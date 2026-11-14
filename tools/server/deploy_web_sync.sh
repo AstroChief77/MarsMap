@@ -37,8 +37,7 @@ if ! flock -n 9; then
   exit 0
 fi
 
-# 1. Ozel (private) GitHub deposu icin SSH Deploy Key veya HTTPS Token ayari
-GIT_EXTRA_ARGS=()
+# 1. Ozel (private) GitHub deposu icin SSH Deploy Key veya HTTPS Token ayari (ps ciktisinda gorunmeyen ortam degiskenleriyle)
 if [ -f "$DEPLOY_KEY_FILE" ]; then
   export GIT_SSH_COMMAND="ssh -i ${DEPLOY_KEY_FILE} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 fi
@@ -46,7 +45,9 @@ if [ -f "$TOKEN_FILE" ] && [[ "$REPO_URL" == https://github.com/* ]]; then
   GH_TOKEN="$(tr -d '[:space:]' < "$TOKEN_FILE")"
   if [ -n "$GH_TOKEN" ]; then
     AUTH_B64="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
-    GIT_EXTRA_ARGS+=(-c "http.extraheader=Authorization: Basic ${AUTH_B64}")
+    export GIT_CONFIG_COUNT=1
+    export GIT_CONFIG_KEY_0="http.extraheader"
+    export GIT_CONFIG_VALUE_0="Authorization: Basic ${AUTH_B64}"
   fi
 fi
 
@@ -54,21 +55,24 @@ fi
 if [ ! -d "$STAGE_DIR/.git" ]; then
   log "[INIT] $REPO_URL ($BRANCH) ilk klonlaniyor -> $STAGE_DIR"
   rm -rf "$STAGE_DIR"
-  if ! git "${GIT_EXTRA_ARGS[@]}" clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$STAGE_DIR" 2>>"$LOG_FILE"; then
+  if ! git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$STAGE_DIR" 2>>"$LOG_FILE"; then
     log "[ERROR] GitHub clone basarisiz! Ozel depo ise Deploy Key (${DEPLOY_KEY_FILE}.pub) GitHub'a eklenmemis olabilir."
     exit 1
   fi
 else
-  if ! git "${GIT_EXTRA_ARGS[@]}" -C "$STAGE_DIR" fetch --depth 1 origin "$BRANCH" --quiet 2>>"$LOG_FILE"; then
+  if ! git -C "$STAGE_DIR" fetch --depth 1 origin "$BRANCH" --quiet 2>>"$LOG_FILE"; then
     log "[ERROR] GitHub fetch basarisiz ($REPO_URL)."
     exit 1
   fi
   git -C "$STAGE_DIR" reset --hard "origin/$BRANCH" --quiet
 fi
 
-# 3. Yalnizca web dosyalarinin son commit SHA'sini kontrol et (gereksiz deploy'u onle)
+# 3. Yalnizca web dosyalarinin son commit SHA'sini kontrol et (--depth 1 sığ klonda bos donerse HEAD SHA kullan)
 LATEST_WEB_SHA="$(git -C "$STAGE_DIR" log -n 1 --pretty=format:%H -- \
   index.html version.json SOURCES.md BACKEND_API.md api chat css js data res)"
+if [ -z "$LATEST_WEB_SHA" ]; then
+  LATEST_WEB_SHA="$(git -C "$STAGE_DIR" rev-parse HEAD)"
+fi
 CURRENT_WEB_SHA=""
 [ -f "$WEB_ROOT/.deployed_web_sha" ] && CURRENT_WEB_SHA="$(tr -d '[:space:]' < "$WEB_ROOT/.deployed_web_sha")"
 
@@ -79,7 +83,7 @@ fi
 
 log "[SYNC] Yeni web degisikligi algilandi: ${CURRENT_WEB_SHA:-none} -> $LATEST_WEB_SHA"
 
-# 4. Canliya basmadan once PHP/JSON saglik kontrolu
+# 4. Canliya basmadan once PHP/JSON saglik kontrolu (sys.argv ile guvenli arguman aktarimi)
 if command -v php >/dev/null 2>&1; then
   for pf in "$STAGE_DIR"/api/*.php; do
     [ -f "$pf" ] && php -l "$pf" >/dev/null
@@ -87,7 +91,13 @@ if command -v php >/dev/null 2>&1; then
 fi
 
 if command -v python3 >/dev/null 2>&1; then
-  python3 -c "import json; json.load(open('$STAGE_DIR/version.json')); json.load(open('$STAGE_DIR/data/tiles/manifest.json')); json.load(open('$STAGE_DIR/data/datasets/jpl_mars_trek_layers.json'))"
+  python3 -c '
+import json, os, sys
+stage = sys.argv[1]
+for rel in ("version.json", "data/tiles/manifest.json", "data/datasets/jpl_mars_trek_layers.json"):
+    with open(os.path.join(stage, rel), "r", encoding="utf-8") as fh:
+        json.load(fh)
+' "$STAGE_DIR"
 fi
 
 # 5. Canli storage/, uploads/, .well-known/ verilerine dokunmadan yalnizca web dosyalarini senkronize et
@@ -143,7 +153,7 @@ log "[OK] mars.kubitron.com web icerigi guncellendi (SHA: ${LATEST_WEB_SHA:0:8})
 # DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
 # ------------------------------------------------------------------------------
 # - Satir 1-38: Ortam degiskenleri, Deploy Key / HTTPS token tanimi ve flock eszamanlilik kilidi.
-# - Satir 40-72: Ozel GitHub main dalindan yalnizca web commit degisimini (SHA) denetler.
-# - Satir 74-92: Canli oncesi PHP lint ve JSON dogrulamasi.
-# - Satir 94-137: storage/, uploads/ ve .well-known/ dizinlerini koruyarak rsync + Nginx yenileme yapar.
+# - Satir 40-80: GIT_CONFIG_* ortam degiskenleriyle ps-gizli kimlik dogrulamasi ve HEAD SHA yedekli commit kontrolu.
+# - Satir 82-100: Canli oncesi PHP lint ve sys.argv tabanli JSON dogrulamasi.
+# - Satir 102-149: storage/, uploads/ ve .well-known/ dizinlerini koruyarak rsync + Nginx yenileme yapar.
 # ==============================================================================

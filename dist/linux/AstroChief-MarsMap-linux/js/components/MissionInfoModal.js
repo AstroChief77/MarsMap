@@ -1,7 +1,7 @@
 /**
  * @file MissionInfoModal.js
  * @description NASA Space Apps 2026 yarisma bilgileri, resmi NASA kaynaklari/uyarisi
- * ve AstroChief ekip rollerini (Atahan, Buse, Akif, Rifat, Omer, Mustafa) 10 dilde gosteren modal sinifi.
+ * ve AstroChief ekip rollerini (Atahan, Buse, Akif, Rifat, Omer, Mustafa) 9 dilde gosteren modal sinifi.
  */
 
 (function (ns) {
@@ -85,7 +85,7 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc yarisma bilgisi, ekip rolleri ve NASA kaynaklari modali tanimi.
+   - Satir 1-5: JSDoc yarisma bilgisi, ekip rolleri ve NASA kaynaklari modali tanimi (9 dil destekli).
    - Satir 11-30: constructor, open ve close metodlari.
-   - Satir 32-78: render; 10 dil destegiyle TeamMember ve ResourceItem modellerini birlestirerek modali ekrana cizer.
+   - Satir 32-78: render; 9 dil destegiyle TeamMember ve ResourceItem modellerini birlestirerek modali ekrana cizer.
    ========================================================================== */

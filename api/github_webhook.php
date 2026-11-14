@@ -27,10 +27,28 @@ if ($secret === '') {
     exit;
 }
 
-// 2. X-Hub-Signature-256 sabit zamanli (hash_equals) imza dogrulamasi
-$rawBody = file_get_contents('php://input');
+// 2. Boyut sinirli (64 KB) govde okuma ve X-Hub-Signature-256 sabit zamanli (hash_equals) imza dogrulamasi
+$maxPayloadBytes = 65536;
+$contentLen = isset($_SERVER['CONTENT_LENGTH']) ? (int)$_SERVER['CONTENT_LENGTH'] : 0;
+if ($contentLen > $maxPayloadBytes) {
+    http_response_code(413);
+    echo json_encode(['ok' => false, 'error' => 'Payload Too Large']);
+    exit;
+}
+
+$stdin = fopen('php://input', 'rb');
+$rawBody = $stdin ? stream_get_contents($stdin, $maxPayloadBytes + 1) : '';
+if ($stdin) {
+    fclose($stdin);
+}
+if (!is_string($rawBody) || strlen($rawBody) > $maxPayloadBytes) {
+    http_response_code(413);
+    echo json_encode(['ok' => false, 'error' => 'Payload Too Large']);
+    exit;
+}
+
 $sigHeader = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
-$expectedSig = 'sha256=' . hash_hmac('sha256', (string)$rawBody, $secret);
+$expectedSig = 'sha256=' . hash_hmac('sha256', $rawBody, $secret);
 
 if ($sigHeader === '' || !hash_equals($expectedSig, $sigHeader)) {
     http_response_code(403);
@@ -44,7 +62,7 @@ if ($event === 'ping') {
     exit;
 }
 
-$payload = json_decode((string)$rawBody, true);
+$payload = json_decode($rawBody, true);
 if (!is_array($payload) || ($payload['ref'] ?? '') !== 'refs/heads/main') {
     echo json_encode(['ok' => true, 'skipped' => true, 'reason' => 'Sadece main dali dagitilir']);
     exit;
@@ -61,7 +79,7 @@ if (empty($commits)) {
         $touched = array_merge($c['added'] ?? [], $c['modified'] ?? [], $c['removed'] ?? []);
         foreach ($touched as $f) {
             foreach ($webPrefixes as $pref) {
-                if (strpos($f, $pref) === 0) {
+                if (strpos((string)$f, $pref) === 0) {
                     $hasWebChange = true;
                     break 3;
                 }
@@ -75,21 +93,26 @@ if (!$hasWebChange) {
     exit;
 }
 
-// 4. Arka planda mars-web-sync calistir (HTTP istegini bekletme)
-if (is_executable('/usr/local/bin/mars-web-sync')) {
-    @exec('nohup sudo -n /usr/local/bin/mars-web-sync >/dev/null 2>&1 &');
-    echo json_encode(['ok' => true, 'triggered' => true, 'target' => 'mars.kubitron.com']);
-    exit;
+// 4. Arka planda mars-web-sync calistir (HTTP istegini bekletme ve ic dosya yolunu sizdirma)
+$syncBin = '/usr/local/bin/mars-web-sync';
+if (is_executable($syncBin)) {
+    $cmdOut = [];
+    $exitCode = 1;
+    @exec('nohup sudo -n /usr/local/bin/mars-web-sync >/dev/null 2>&1 &', $cmdOut, $exitCode);
+    if ($exitCode === 0) {
+        echo json_encode(['ok' => true, 'triggered' => true, 'target' => 'mars.kubitron.com']);
+        exit;
+    }
 }
 
 http_response_code(500);
-echo json_encode(['ok' => false, 'error' => '/usr/local/bin/mars-web-sync kurulu degil']);
+echo json_encode(['ok' => false, 'error' => 'Dagitim servisi tetiklenemedi']);
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-16: JSDoc, guvenlik basliklari ve POST metod zorunlulugu.
-   - Satir 18-39: Web koku disindaki webhook.secret okuma ve HMAC-SHA256 imza dogrulamasi.
-   - Satir 41-72: Sadece main dalindaki web dosyalarini (css/js/api/chat/data) filtreleme.
-   - Satir 74-83: Arka planda sudo mars-web-sync betigini kilitlemeden tetikleme.
+   - Satir 18-56: Web koku disindaki webhook.secret okuma, 64 KB govde siniri ve HMAC-SHA256 imza dogrulamasi.
+   - Satir 58-95: Sadece main dalindaki web dosyalarini (css/js/api/chat/data) filtreleme.
+   - Satir 97-110: Arka planda mars-web-sync betigini tetikleme ve ic sunucu yollarini gizleme.
    ========================================================================== */

@@ -16,18 +16,27 @@
     constructor(initialLang = "tr") {
       this.locales = ns.I18N_LOCALES || {};
       this.supportedLanguages = [
-        { code: "tr", label: "Türkçe", badge: "TR", dir: "ltr" },
-        { code: "en", label: "English", badge: "EN", dir: "ltr" },
-        { code: "de", label: "Deutsch", badge: "DE", dir: "ltr" },
-        { code: "fr", label: "Français", badge: "FR", dir: "ltr" },
-        { code: "es", label: "Español", badge: "ES", dir: "ltr" },
-        { code: "ko", label: "한국어", badge: "KO", dir: "ltr" },
-        { code: "ja", label: "日本語", badge: "JA", dir: "ltr" },
-        { code: "he", label: "עברית", badge: "HE", dir: "rtl" },
-        { code: "ar", label: "العربية", badge: "AR", dir: "rtl" }
+        { code: "tr", label: "Türkçe", nativeName: "Türkçe", badge: "TR", dir: "ltr" },
+        { code: "en", label: "English", nativeName: "English", badge: "EN", dir: "ltr" },
+        { code: "de", label: "Deutsch", nativeName: "Deutsch", badge: "DE", dir: "ltr" },
+        { code: "fr", label: "Français", nativeName: "Français", badge: "FR", dir: "ltr" },
+        { code: "es", label: "Español", nativeName: "Español", badge: "ES", dir: "ltr" },
+        { code: "ko", label: "한국어", nativeName: "한국어", badge: "KO", dir: "ltr" },
+        { code: "ja", label: "日本語", nativeName: "日本語", badge: "JA", dir: "ltr" },
+        { code: "he", label: "עברית", nativeName: "עברית", badge: "HE", dir: "rtl" },
+        { code: "ar", label: "العربية", nativeName: "العربية", badge: "AR", dir: "rtl" }
       ];
       this.currentLang = "tr";
       this.setLang(initialLang);
+    }
+
+    escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     /**
@@ -35,6 +44,10 @@
      * @returns {Array} Dil tanimlari
      */
     getSupportedLanguages() {
+      return this.supportedLanguages;
+    }
+
+    getLanguages() {
       return this.supportedLanguages;
     }
 

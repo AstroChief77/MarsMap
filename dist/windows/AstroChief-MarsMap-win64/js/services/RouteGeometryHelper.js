@@ -141,22 +141,32 @@
       if (ns.marsTopo) {
         return ns.marsTopo.screenToElevatedMars3D(px, py, width, height, rotLat, rotLon, zoom, camPitch, camYaw, reliefScale);
       }
+      const clampedZoom = Math.min(Math.max(zoom, 0.55), 80.0);
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0);
+      const radius = Math.min(width, height) * 0.41 * clampedZoom;
+      const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
+      const yawRad = ((camYaw || 0) * Math.PI) / 180;
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const pivotZ = Math.max(0, Math.min(1, (clampedZoom - 1.1) / 1.1));
       const nx = (px - cx) / radius;
-      const ny = (cy - py) / radius;
+      const ny = (cy - py) / radius + pivotZ * sinP;
       const rSq = nx * nx + ny * ny;
       if (rSq > 1) return { lat: 0, lon: 0, insideMap: false };
 
       const nz = Math.sqrt(Math.max(0, 1 - rSq));
+      const py3 = ny * cosP - nz * sinP;
+      const pz3 = ny * sinP + nz * cosP;
+      const east = nx * cosY + py3 * sinY;
+      const north = -nx * sinY + py3 * cosY;
       const phi0 = (rotLat * Math.PI) / 180;
       const lam0 = (rotLon * Math.PI) / 180;
 
-      const y0 = ny * Math.cos(phi0) + nz * Math.sin(phi0);
-      const z0 = -ny * Math.sin(phi0) + nz * Math.cos(phi0);
+      const y0 = north * Math.cos(phi0) + pz3 * Math.sin(phi0);
+      const z0 = -north * Math.sin(phi0) + pz3 * Math.cos(phi0);
       const phi = Math.asin(Math.max(-1, Math.min(1, y0)));
-      const lambda = lam0 + Math.atan2(nx, z0);
+      const lambda = lam0 + Math.atan2(east, z0);
 
       const lat = Math.max(-84, Math.min(84, (phi * 180) / Math.PI));
       const lon = this.wrapLon((lambda * 180) / Math.PI);

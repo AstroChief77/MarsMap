@@ -25,14 +25,24 @@ impl MarsMap {
     }
 
     pub fn from_flat(width: i32, height: i32, flat_grid: &[i32]) -> Self {
-        let mut grid = Vec::with_capacity(height as usize);
-        for y in 0..height {
-            let start = (y * width) as usize;
-            let end = start + (width as usize);
+        let Ok(w) = usize::try_from(width) else {
+            return Self { width: 0, height: 0, grid: Vec::new() };
+        };
+        let Ok(h) = usize::try_from(height) else {
+            return Self { width: 0, height: 0, grid: Vec::new() };
+        };
+        if w == 0 || h == 0 || w.checked_mul(h).is_none_or(|total| total > 1_000_000) {
+            return Self { width: 0, height: 0, grid: Vec::new() };
+        }
+
+        let mut grid = Vec::with_capacity(h);
+        for y in 0..h {
+            let start = y.saturating_mul(w);
+            let end = start.saturating_add(w);
             if end <= flat_grid.len() {
                 grid.push(flat_grid[start..end].to_vec());
             } else {
-                grid.push(vec![0; width as usize]);
+                grid.push(vec![0; w]);
             }
         }
         Self { width, height, grid }
@@ -43,7 +53,9 @@ impl MarsMap {
         if x < 0 || x >= self.width || y < 0 || y >= self.height {
             return None;
         }
-        Some(self.grid[y as usize][x as usize])
+        let uy = usize::try_from(y).ok()?;
+        let ux = usize::try_from(x).ok()?;
+        self.grid.get(uy)?.get(ux).copied()
     }
 
     pub fn get_successors(&self, current: &Pos) -> Vec<(Pos, u32)> {
@@ -51,21 +63,21 @@ impl MarsMap {
         let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
         for (dx, dy) in directions {
-            let new_x = current.x + dx;
-            let new_y = current.y + dy;
+            let Some(new_x) = current.x.checked_add(dx) else { continue; };
+            let Some(new_y) = current.y.checked_add(dy) else { continue; };
 
             let Some(new_z) = self.get_elevation(new_x, new_y) else {
                 continue;
             };
 
-            // Unnavigable obsracle.
+            // Unnavigable obstacle.
             if new_z == -999 {
                 continue;
             }
 
-            // Check for map slope limit.
-            let slope_diff = new_z - current.z;
-            if slope_diff.abs() > MAX_SLOPE_LIMIT {
+            // Check for map slope limit (saturating subtraction prevents i32 overflow).
+            let slope_diff = new_z.saturating_sub(current.z);
+            if slope_diff.saturating_abs() > MAX_SLOPE_LIMIT {
                 continue;
             }
 
@@ -76,9 +88,9 @@ impl MarsMap {
             };
 
             let total_cost = if slope_diff > 0 {
-                BASE_COST + (slope_diff * POZITIVE_SLOP_COST) as u32
+                BASE_COST.saturating_add((slope_diff.saturating_mul(POZITIVE_SLOP_COST)) as u32)
             } else if slope_diff < 0 {
-                BASE_COST + (slope_diff.abs() * NEGATIVE_SLOP_COST) as u32
+                BASE_COST.saturating_add((slope_diff.saturating_abs().saturating_mul(NEGATIVE_SLOP_COST)) as u32)
             } else {
                 BASE_COST
             };
@@ -106,7 +118,7 @@ impl MarsMap {
         astar(
             &start_pos,
             |p| self.get_successors(p),
-            |p| (p.x.abs_diff(goal.0) + p.y.abs_diff(goal.1)) as u32,
+            |p| p.x.abs_diff(goal.0).saturating_add(p.y.abs_diff(goal.1)),
             |p| p.x == goal.0 && p.y == goal.1
         )
     }
@@ -142,3 +154,14 @@ pub fn find_rover_path(
         None => "{\"success\":false,\"message\":\"Hedefe giden guvenli bir rota bulunamadi (engel veya asiri dik egim).\"}".to_string(),
     }
 }
+
+/* ==========================================================================
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+   --------------------------------------------------------------------------
+   - Satir 1-8: A* algoritmasi, egim/maliyet sabitleri ve opsiyonel wasm_bindgen baglantisi.
+   - Satir 9-21: Pos (3B izgaradaki x, y, z hucresi) ve MarsMap veri yapilari.
+   - Satir 22-49: MarsMap::new ve MarsMap::from_flat; negatif/tasma korumali duz diziden 2B izgara olusturma.
+   - Satir 51-106: get_elevation ve get_successors; -999 engel filtreleme, <=3 egim siniri ve saturating maliyet hesabi.
+   - Satir 108-129: find_path; Manhattan sezgisel fonksiyonlu A* en kisa ve guvenli yol cozucu.
+   - Satir 131-160: find_rover_path; Rust ve WebAssembly tarafindan cagrilabilen JSON ciktili ana API fonksiyonu.
+   ========================================================================== */

@@ -9,7 +9,8 @@
 param(
     [int]$Port = 3000,
     [switch]$NoBrowser,
-    [switch]$LocalOnly
+    [switch]$LocalOnly,
+    [switch]$AllowLan
 )
 
 $ServerCode = @'
@@ -82,8 +83,17 @@ namespace AstroChiefServe
         public int Start(int requestedPort, bool localOnly)
         {
             IPAddress bindIp = localOnly ? IPAddress.Loopback : IPAddress.Any;
-            _listener = new TcpListener(bindIp, requestedPort);
-            _listener.Start();
+            int port = requestedPort > 0 ? requestedPort : 3000;
+            try
+            {
+                _listener = new TcpListener(bindIp, port);
+                _listener.Start();
+            }
+            catch (SocketException)
+            {
+                _listener = new TcpListener(bindIp, 0);
+                _listener.Start();
+            }
             _running = true;
             return ((IPEndPoint)_listener.LocalEndpoint).Port;
         }
@@ -123,6 +133,23 @@ namespace AstroChiefServe
             try { if (_listener != null) _listener.Stop(); } catch { }
         }
 
+        private static string ReadBoundedLine(StreamReader reader, int maxChars)
+        {
+            StringBuilder sb = new StringBuilder();
+            int ch;
+            while ((ch = reader.Read()) != -1)
+            {
+                if (ch == '\n') break;
+                if (ch != '\r')
+                {
+                    if (sb.Length >= maxChars) return null;
+                    sb.Append((char)ch);
+                }
+            }
+            if (ch == -1 && sb.Length == 0) return null;
+            return sb.ToString();
+        }
+
         private void HandleClient(object state)
         {
             TcpClient client = (TcpClient)state;
@@ -134,11 +161,11 @@ namespace AstroChiefServe
                 using (NetworkStream stream = client.GetStream())
                 using (StreamReader reader = new StreamReader(stream, Encoding.ASCII, false, 4096, true))
                 {
-                    string requestLine = reader.ReadLine();
+                    string requestLine = ReadBoundedLine(reader, 8192);
                     if (string.IsNullOrEmpty(requestLine)) return;
                     string headerLine;
                     int count = 0;
-                    while (!string.IsNullOrEmpty(headerLine = reader.ReadLine()))
+                    while (!string.IsNullOrEmpty(headerLine = ReadBoundedLine(reader, 8192)))
                     {
                         count++;
                         if (count > 128) break;
@@ -258,8 +285,9 @@ if (-not ([System.Management.Automation.PSTypeName]'AstroChiefServe.LanHttpServe
     Add-Type -TypeDefinition $ServerCode -Language CSharp
 }
 
+$bindLocalOnly = if ($AllowLan) { $false } else { $true }
 $server = New-Object AstroChiefServe.LanHttpServer($PSScriptRoot)
-$boundPort = $server.Start($Port, [bool]$LocalOnly)
+$boundPort = $server.Start($Port, [bool]$bindLocalOnly)
 $localUrl = "http://127.0.0.1:$boundPort/"
 $lanIps = [AstroChiefServe.LanHttpServer]::GetLanIPv4Addresses()
 
@@ -267,7 +295,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host " [AstroChief] LAN & Yerel HTTP Sunucusu Baslatildi" -ForegroundColor Green
 Write-Host " Kok Dizin : $PSScriptRoot" -ForegroundColor Gray
 Write-Host " Yerel URL : $localUrl" -ForegroundColor White
-if (-not $LocalOnly) {
+if (-not $bindLocalOnly) {
     foreach ($ip in $lanIps) {
         Write-Host " LAN URL   : http://${ip}:$boundPort/" -ForegroundColor Yellow
     }
@@ -291,8 +319,8 @@ try {
 ==========================================================================
 DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
 --------------------------------------------------------------------------
-- Satir 1-13: PowerShell komut dosyasi dokumantasyonu ve Port/NoBrowser/LocalOnly parametreleri.
-- Satir 15-242: C# LanHttpServer sinifi; 0.0.0.0 uzerinde ThreadPool destekli TcpListener ve guvenli beyaz liste.
-- Satir 244-274: Tipi yukler, belirtilen portta sunucuyu baslatir, yerel ve LAN URL'lerini ekrana yazar ve sunucuyu calistirir.
+- Satir 1-14: PowerShell komut dosyasi dokumantasyonu ve Port/NoBrowser/LocalOnly/AllowLan parametreleri.
+- Satir 16-282: C# LanHttpServer sinifi; port yedekli TcpListener, 8 KB satir sinirli okuma ve guvenli beyaz liste.
+- Satir 284-319: Tipi yukler, belirtilen portta sunucuyu baslatir, yerel ve LAN URL'lerini ekrana yazar ve sunucuyu calistirir.
 ==========================================================================
 #>

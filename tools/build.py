@@ -43,15 +43,16 @@ class CodeRuleAuditor:
         if not readme_path.exists():
             raise RuntimeError("KURAL IHLALI: readme.md bulunamadi!")
         try:
-            res = subprocess.run(
-                ["git", "diff", "--quiet", "readme.md"],
-                cwd=self.root_dir,
-                check=False,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            if res.returncode not in (0, 128) and res.returncode != 0:
-                raise RuntimeError("KURAL IHLALI: readme.md uzerinde degisiklik tespit edildi!")
+            for cmd in (["git", "diff", "--quiet", "readme.md"], ["git", "diff", "--cached", "--quiet", "readme.md"]):
+                res = subprocess.run(
+                    cmd,
+                    cwd=self.root_dir,
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                if res.returncode not in (0, 128):
+                    raise RuntimeError("KURAL IHLALI: readme.md uzerinde degisiklik tespit edildi!")
         except FileNotFoundError:
             pass
 
@@ -70,8 +71,8 @@ class CodeRuleAuditor:
 
     def check_line_limits_and_footers(self):
         """Main kodu disinda < 800 satir ve her kod dosyasinda alt satir aciklama blogu kontrolu."""
-        scan_roots = ["js", "css", "data", "tools"]
-        code_exts = {".js", ".css", ".py", ".sh", ".ps1", ".cs"}
+        scan_roots = ["js", "css", "data", "tools", "api", "chat", "backend/src"]
+        code_exts = {".js", ".css", ".py", ".sh", ".ps1", ".cs", ".php", ".rs"}
         candidates = [self.root_dir / "index.html", self.root_dir / "build.sh"]
         for sub in scan_roots:
             sub_dir = self.root_dir / sub
@@ -86,8 +87,8 @@ class CodeRuleAuditor:
             rel = path.relative_to(self.root_dir)
             text = path.read_text(encoding="utf-8", errors="replace")
             line_count = len(text.splitlines())
-            if rel != self.main_entrypoint and line_count > self.max_lines:
-                raise RuntimeError(f"SATIR SINIRI ASILDI: {rel} = {line_count} satir (> {self.max_lines})")
+            if rel != self.main_entrypoint and line_count >= self.max_lines:
+                raise RuntimeError(f"SATIR SINIRI ASILDI: {rel} = {line_count} satir (>= {self.max_lines})")
             tail = text[-1800:].upper()
             if "DOSYA SATIR" not in tail and "NE I" not in tail:
                 raise RuntimeError(f"EKSIK ALT ACIKLAMA: {rel} sonuna satir/islev ozeti eklenmeli.")

@@ -1,0 +1,85 @@
+{
+  "_metadata": {
+    "source": "NASA Jet Propulsion Laboratory (JPL) Mars Trek GIS Web Services & AstroChief Yerel Karo Arşivi",
+    "url": "https://trek.nasa.gov/mars/",
+    "service_type": "Hibrit Karo Piramidi (Yerel data/tiles/ + Canlı WMTS + Backend /api/v1/tiles Proxy)",
+    "projection": "EPSG:104905 (Equirectangular Plate Carree -180..180, -90..90)",
+    "matrix_rule": "cols = 2^(z+1), rows = 2^z, tileSize = 256px",
+    "manifest_path": "./data/tiles/manifest.json",
+    "last_updated": "2026-11-14"
+  },
+  "tile_layers": [
+    {
+      "id": "mars-viking-mdim21",
+      "name": "Viking MDIM 2.1 Optik",
+      "type": "Optical Visible Color",
+      "resolution": "231 m/px",
+      "coverage": "Global (%100)",
+      "format": "jpg",
+      "tile_size": 256,
+      "max_local_zoom": 5,
+      "max_crater_zoom": 5,
+      "max_remote_zoom": 7,
+      "cors_enabled": true,
+      "local_template": "./data/tiles/mars-viking-mdim21/{z}/{y}/{x}.jpg",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+      "description": "Viking Orbiter görüntülerinden üretilen gerçek renkli küresel Mars yüzey mozaiği."
+    },
+    {
+      "id": "mars-mola-elevation",
+      "name": "MOLA Renkli Topografya",
+      "type": "Digital Elevation Model (DEM)",
+      "resolution": "463 m/px",
+      "coverage": "Global (%100)",
+      "format": "jpg",
+      "tile_size": 256,
+      "max_local_zoom": 5,
+      "max_crater_zoom": 5,
+      "max_remote_zoom": 6,
+      "cors_enabled": true,
+      "local_template": "./data/tiles/mars-mola-elevation/{z}/{y}/{x}.jpg",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+      "description": "Mars Global Surveyor MOLA lazer altimetre yükseklik ve gölgeli kabartma katmanı."
+    },
+    {
+      "id": "mars-themis-day-ir",
+      "name": "THEMIS Termal Kızılötesi",
+      "type": "Thermal Infrared (IR)",
+      "resolution": "100 m/px",
+      "coverage": "Global (%98)",
+      "format": "png",
+      "tile_size": 256,
+      "max_local_zoom": 5,
+      "max_crater_zoom": 5,
+      "max_remote_zoom": 9,
+      "cors_enabled": true,
+      "local_template": "./data/tiles/mars-themis-day-ir/{z}/{y}/{x}.png",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+      "description": "Mars Odyssey THEMIS gündüz kızılötesi mozaiği; kaya yoğunluğu ve termal yüzey haritası."
+    },
+    {
+      "id": "mars-global-geology",
+      "name": "USGS SIM 3292 Jeoloji",
+      "type": "Standardized Geologic Map",
+      "resolution": "2000 m/px",
+      "coverage": "Global (%100)",
+      "format": "png",
+      "tile_size": 256,
+      "max_local_zoom": 5,
+      "max_crater_zoom": 5,
+      "max_remote_zoom": 7,
+      "cors_enabled": false,
+      "local_template": "./data/tiles/mars-global-geology/{z}/{y}/{x}.png",
+      "wmts_template": "https://trek.nasa.gov/mars/trekarcgis/rest/services/SIM3292_Global_Geology/MapServer/WMTS/tile/1.0.0/SIM3292_Global_Geology/default/default028mm/{z}/{y}/{x}.png",
+      "description": "USGS Tanaka et al. (2014) standartlaştırılmış Noachian, Hesperian ve Amazonian jeoloji haritası."
+    }
+  ],
+  "planetary_constants": {
+    "equatorial_radius_km": 3396.19,
+    "polar_radius_km": 3376.20,
+    "volumetric_mean_radius_km": 3389.50,
+    "surface_gravity_ms2": 3.72076,
+    "solar_day_seconds_sol": 88775.244,
+    "orbital_period_days": 686.98
+  }
+}

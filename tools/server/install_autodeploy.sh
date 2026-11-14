@@ -5,11 +5,11 @@
 
 set -euo pipefail
 
-WEB_ROOT=""
-REPO_URL=""
-WEBHOOK_SECRET=""
-GITHUB_TOKEN=""
-WEB_OWNER=""
+WEB_ROOT="${MARS_WEB_ROOT:-}"
+REPO_URL="${MARS_REPO_URL:-}"
+WEBHOOK_SECRET="${MARS_WEBHOOK_SECRET:-}"
+GITHUB_TOKEN="${MARS_GITHUB_TOKEN:-}"
+WEB_OWNER="${MARS_WEB_OWNER:-}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in

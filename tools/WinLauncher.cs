@@ -133,6 +133,23 @@ namespace AstroChiefLauncher
             }
         }
 
+        private static string ReadBoundedLine(StreamReader reader, int maxChars)
+        {
+            StringBuilder sb = new StringBuilder();
+            int ch;
+            while ((ch = reader.Read()) != -1)
+            {
+                if (ch == '\n') break;
+                if (ch != '\r')
+                {
+                    if (sb.Length >= maxChars) return null;
+                    sb.Append((char)ch);
+                }
+            }
+            if (ch == -1 && sb.Length == 0) return null;
+            return sb.ToString();
+        }
+
         private void HandleClient(object state)
         {
             TcpClient client = (TcpClient)state;
@@ -144,12 +161,12 @@ namespace AstroChiefLauncher
                 using (NetworkStream stream = client.GetStream())
                 using (StreamReader reader = new StreamReader(stream, Encoding.ASCII, false, 4096, true))
                 {
-                    string requestLine = reader.ReadLine();
+                    string requestLine = ReadBoundedLine(reader, 8192);
                     if (string.IsNullOrEmpty(requestLine)) return;
 
                     string headerLine;
                     int headerCount = 0;
-                    while (!string.IsNullOrEmpty(headerLine = reader.ReadLine()))
+                    while (!string.IsNullOrEmpty(headerLine = ReadBoundedLine(reader, 8192)))
                     {
                         headerCount++;
                         if (headerCount > 128) break;
@@ -295,7 +312,7 @@ namespace AstroChiefLauncher
         {
             int requestedPort = 3000;
             bool noBrowser = false;
-            bool localOnly = false;
+            bool localOnly = true;
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
             for (int i = 0; i < args.Length; i++)
@@ -313,6 +330,10 @@ namespace AstroChiefLauncher
                 else if (args[i] == "--local-only")
                 {
                     localOnly = true;
+                }
+                else if (args[i] == "--lan")
+                {
+                    localOnly = false;
                 }
                 else if (args[i] == "--root" && i + 1 < args.Length)
                 {
@@ -366,10 +387,10 @@ namespace AstroChiefLauncher
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-16: Baslik yorumu ve .NET Framework temel ag/dosya kutuphaneleri.
-   - Satir 18-50: StaticLanServer sinifi ve yerel .woff2/.js/.json/.png/.jpg MIME tablosu.
-   - Satir 52-80: GetLanIPv4Addresses; aktif Wi-Fi/Ethernet LAN IPv4 adreslerini tespit eder.
-   - Satir 82-128: Start/RunLoop/Stop; 0.0.0.0 uzerinde ThreadPool destekli TcpListener yonetir.
-   - Satir 130-169: HandleClient; GET/HEAD HTTP istek basliklarini guvenli sekilde cozumler.
-   - Satir 171-254: ServeStaticPath/IsAllowedWebPath; traversal ve kaynak sizintisini engeller.
-   - Satir 256-326: Program.Main; CLI bayraklarini okur, URL listesini basar ve sunucuyu calistirir.
+   - Satir 18-51: StaticLanServer sinifi ve yerel .wasm/.woff2/.js/.json/.png/.jpg MIME tablosu.
+   - Satir 53-82: GetLanIPv4Addresses; aktif Wi-Fi/Ethernet LAN IPv4 adreslerini tespit eder.
+   - Satir 84-134: Start/RunLoop/Stop; varsayilan 127.0.0.1 (--lan ile 0.0.0.0) uzerinde TcpListener yonetir.
+   - Satir 136-197: ReadBoundedLine ve HandleClient; 8 KB satir sinirli GET/HEAD HTTP isteklerini guvenli cozumler.
+   - Satir 199-286: ServeStaticPath/IsAllowedWebPath; traversal ve kaynak sizintisini engeller.
+   - Satir 288-383: Program.Main; CLI bayraklarini (--port, --lan, --local-only, --root) okur ve sunucuyu calistirir.
    ========================================================================== */

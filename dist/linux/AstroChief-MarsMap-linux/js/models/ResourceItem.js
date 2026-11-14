@@ -20,11 +20,20 @@
     }
 
     escapeHtml(str) {
-      return String(str)
+      return String(str ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    safeUrl(rawUrl) {
+      const s = String(rawUrl || "").trim();
+      if (/^https?:\/\//i.test(s) || s.startsWith("./") || s.startsWith("/")) {
+        return this.escapeHtml(s);
+      }
+      return "#";
     }
 
     /**
@@ -39,7 +48,7 @@
             <span style="font-size:10px;color:var(--mars-red);font-weight:900;">${this.escapeHtml(this.tag)}</span>
           </div>
           <p style="font-size:11px;color:var(--ink-dark);margin:4px 0;">${this.escapeHtml(this.description)}</p>
-          <a href="${this.escapeHtml(this.url)}" target="_blank" rel="noopener noreferrer"
+          <a href="${this.safeUrl(this.url)}" target="_blank" rel="noopener noreferrer"
              style="font-size:11px;font-weight:800;color:var(--route-blue);text-decoration:underline;">
             ${this.escapeHtml(this.actionText)} ↗
           </a>

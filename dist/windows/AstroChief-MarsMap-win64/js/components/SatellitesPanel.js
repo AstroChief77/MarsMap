@@ -1,6 +1,6 @@
 /**
  * @file SatellitesPanel.js
- * @description Sol alt kosede bulunan UYDULAR paneli bileseni (10 dil destekli).
+ * @description Sol alt kosede bulunan UYDULAR paneli bileseni (9 dil destekli).
  * Kural geregi acilan pencerede:
  * - 2D / 3D gorunum secenegi
  * - Asit yagmurlari ve siddetleri (Hafif / Orta / Siddetli)

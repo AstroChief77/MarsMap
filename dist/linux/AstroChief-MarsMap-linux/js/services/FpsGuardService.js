@@ -22,19 +22,31 @@
       this.sampleFrames = [];
       this.rafId = null;
       this.pendingGuard = null;
+      this.pendingGuards = [];
+      this.activeUntilTs = 0;
       this.simulatedFpsOverride = null;
     }
 
-    /**
-     * Arka planda hafif requestAnimationFrame FPS sayacini baslatir
-     */
-    start() {
-      if (this.rafId) return;
-      this.lastFrameTs = performance.now();
+    cloneSnapshot(snap) {
+      try {
+        return JSON.parse(JSON.stringify(snap));
+      } catch (_err) {
+        return { ...snap };
+      }
+    }
 
-      const loop = (now) => {
-        const dt = Math.max(1, now - this.lastFrameTs);
-        this.lastFrameTs = now;
+    /**
+     * Etkilesim veya ayar degisikligi sirasinda rAF olcum penceresini uyandirir; bosta iken otomatik uyur
+     */
+    start(windowMs = 1500) {
+      const now = performance.now();
+      this.activeUntilTs = Math.max(this.activeUntilTs, now + windowMs);
+      if (this.rafId) return;
+      this.lastFrameTs = now;
+
+      const loop = (ts) => {
+        const dt = Math.max(1, ts - this.lastFrameTs);
+        this.lastFrameTs = ts;
         const instantFps = this.simulatedFpsOverride !== null
           ? this.simulatedFpsOverride
           : Math.min(120, 1000 / dt);
@@ -49,7 +61,11 @@
         this.onFpsUpdate?.(this.liveFps);
 
         this.evaluatePendingGuard(instantFps, dt);
-        this.rafId = requestAnimationFrame(loop);
+        if (this.pendingGuards.length > 0 || ts < this.activeUntilTs || this.simulatedFpsOverride !== null) {
+          this.rafId = requestAnimationFrame(loop);
+        } else {
+          this.rafId = null;
+        }
       };
 
       this.rafId = requestAnimationFrame(loop);
@@ -61,23 +77,27 @@
      */
     recordRenderCost(renderDurationMs) {
       if (renderDurationMs <= 0) return;
-      const renderFps = 1000 / renderDurationMs;
-      if (this.pendingGuard && renderFps < this.minFpsThreshold) {
-        this.pendingGuard.slowFrames += 1;
-        this.pendingGuard.worstFps = Math.min(this.pendingGuard.worstFps, renderFps);
+      const renderFps = Math.min(60, Math.round(1000 / Math.max(16.6, renderDurationMs)));
+      this.liveFps = this.pendingGuards.length > 0 ? this.liveFps : renderFps;
+      this.onFpsUpdate?.(this.liveFps);
+      if (this.pendingGuards.length > 0 && 1000 / renderDurationMs < this.minFpsThreshold) {
+        for (const g of this.pendingGuards) {
+          g.slowFrames += 1;
+          g.worstFps = Math.min(g.worstFps, 1000 / renderDurationMs);
+        }
       }
     }
 
     /**
-     * Bir ayar degistirilmeden once onceki durumu guvenceye alir ve degisiklik sonrasi FPS < 10 olursa geri alir
+     * Bir ayar degistirilmeden once onceki durumu derin kopya ile guvenceye alir ve 10s icinde FPS < 10 olursa geri alir
      * @param {Object} previousSnapshot - Degisiklik oncesi guvenli durum kopyasi
      * @param {string} settingLabel - Kullaniciya bildirilecek ayar adi
      * @param {Function} onRevert - FPS < 10 tespit edildiginde cagrilacak geri alma fonksiyonu
      */
     armSettingGuard(previousSnapshot, settingLabel, onRevert) {
       const now = performance.now();
-      this.pendingGuard = {
-        previousSnapshot: { ...previousSnapshot },
+      const entry = {
+        previousSnapshot: this.cloneSnapshot(previousSnapshot),
         settingLabel,
         onRevert,
         startedAt: now,
@@ -86,51 +106,56 @@
         slowFrames: 0,
         worstFps: 999
       };
+      this.pendingGuards.push(entry);
+      this.pendingGuard = entry;
+      this.start(this.guardWindowMs + 250);
     }
 
     /**
-     * Bekleyen ayar degisikligi icin 10 saniyelik FPS penceresini degerlendirir
+     * Bekleyen ayar degisiklikleri icin 10 saniyelik FPS penceresini degerlendirir
      */
     evaluatePendingGuard(instantFps, dt) {
-      const g = this.pendingGuard;
-      if (!g) return;
-
-      const now = performance.now();
-      g.collected.push(instantFps);
-
-      const isSlowFrame = instantFps < this.minFpsThreshold || dt > 1000 / this.minFpsThreshold;
-      if (isSlowFrame) {
-        g.slowFrames += 1;
-        g.worstFps = Math.min(g.worstFps, instantFps);
-        if (g.belowThresholdSince === null) {
-          g.belowThresholdSince = now;
-        }
-      } else {
-        g.belowThresholdSince = null;
-      }
-
-      const elapsed = now - g.startedAt;
-      const sustainedSlowMs = g.belowThresholdSince !== null ? (now - g.belowThresholdSince) : 0;
-      const windowAvg = g.collected.reduce((a, b) => a + b, 0) / g.collected.length;
-
-      // KURAL: Ayar degistirildikten sonra 10 saniye boyunca FPS < 10 kalirsa ayari geri al
-      const sustained10s = sustainedSlowMs >= this.guardWindowMs;
-      const failed10sWindow = elapsed >= this.guardWindowMs && windowAvg < this.minFpsThreshold;
-
-      if (sustained10s || failed10sWindow) {
-        const measured = Math.max(1, Math.round(Math.min(windowAvg, g.worstFps)));
-        const revertFn = g.onRevert;
-        const snap = g.previousSnapshot;
-        const label = g.settingLabel;
+      if (this.pendingGuards.length === 0) {
         this.pendingGuard = null;
-        revertFn?.(snap, measured, label);
         return;
       }
 
-      // 10 saniye sonunda ortalama FPS >= 10 ise ayar guvenli kabul edilir
-      if (elapsed >= this.guardWindowMs) {
-        this.pendingGuard = null;
+      const now = performance.now();
+      const isSlowFrame = instantFps < this.minFpsThreshold || dt > 1000 / this.minFpsThreshold;
+
+      for (let i = 0; i < this.pendingGuards.length; i++) {
+        const g = this.pendingGuards[i];
+        g.collected.push(instantFps);
+        if (isSlowFrame) {
+          g.slowFrames += 1;
+          g.worstFps = Math.min(g.worstFps, instantFps);
+          if (g.belowThresholdSince === null) g.belowThresholdSince = now;
+        } else {
+          g.belowThresholdSince = null;
+        }
+
+        const elapsed = now - g.startedAt;
+        const sustainedSlowMs = g.belowThresholdSince !== null ? (now - g.belowThresholdSince) : 0;
+        const windowAvg = g.collected.reduce((a, b) => a + b, 0) / g.collected.length;
+        const sustained10s = sustainedSlowMs >= this.guardWindowMs;
+        const failed10sWindow = elapsed >= this.guardWindowMs && windowAvg < this.minFpsThreshold;
+
+        if (sustained10s || failed10sWindow) {
+          // Ilk korumanin baslangic goruntusune donerek zincirleme degisiklikleri guvenle geri al
+          const rootGuard = this.pendingGuards[0];
+          const measured = Math.max(1, Math.round(Math.min(windowAvg, g.worstFps)));
+          const revertFn = g.onRevert || rootGuard.onRevert;
+          const snap = rootGuard.previousSnapshot;
+          const label = g.settingLabel;
+          this.pendingGuards = [];
+          this.pendingGuard = null;
+          revertFn?.(snap, measured, label);
+          return;
+        }
       }
+
+      this.pendingGuards = this.pendingGuards.filter((g) => (now - g.startedAt) < this.guardWindowMs);
+      this.pendingGuard = this.pendingGuards[this.pendingGuards.length - 1] || null;
     }
 
     /**

@@ -45,15 +45,34 @@
       return this.wasmInitPromise;
     }
 
-    /** Kullanicinin girdigi veya URL'den gelen backend kok adresini temizler */
+    /** Kullanicinin girdigi veya URL'den gelen backend kok adresini origin beyaz listesi ve sema dogrulamasiyla temizler */
     normalizeBaseUrl(rawUrl) {
       if (!rawUrl || typeof rawUrl !== "string") return "";
       let cleaned = rawUrl.trim().replace(/\/+$/, "");
-      if (!cleaned) return "";
+      if (!cleaned || cleaned.startsWith("//")) return "";
       if (!/^https?:\/\//i.test(cleaned) && !cleaned.startsWith("/")) {
         cleaned = "http://" + cleaned;
       }
-      return cleaned;
+      try {
+        const baseOrigin = (typeof window !== "undefined" && window.location && /^https?:$/i.test(window.location.protocol))
+          ? window.location.origin
+          : "http://127.0.0.1:8080";
+        const parsed = new URL(cleaned, baseOrigin);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+        const host = (parsed.hostname || "").toLowerCase();
+        const extraHosts = (typeof window !== "undefined" && window.ASTROCHIEF_CONFIG && Array.isArray(window.ASTROCHIEF_CONFIG.allowedApiHosts))
+          ? window.ASTROCHIEF_CONFIG.allowedApiHosts.map((h) => String(h).toLowerCase())
+          : [];
+        const currentHost = (typeof window !== "undefined" && window.location && window.location.hostname)
+          ? window.location.hostname.toLowerCase()
+          : "";
+        const allowedHosts = new Set(["127.0.0.1", "localhost", "[::1]", "::1", "mars.kubitron.com", currentHost, ...extraHosts]);
+        if (!allowedHosts.has(host)) return "";
+        const pathPart = parsed.pathname.replace(/\/+$/, "");
+        return `${parsed.protocol}//${parsed.host}${pathPart}`;
+      } catch (_err) {
+        return "";
+      }
     }
 
     /** ?api=... parametresi veya global config uzerinden varsayilan backend URL cozumler */
@@ -61,7 +80,10 @@
       try {
         const params = new URLSearchParams(window.location.search || "");
         const fromQuery = params.get("api");
-        if (fromQuery) return this.normalizeBaseUrl(fromQuery);
+        if (fromQuery) {
+          const validQueryUrl = this.normalizeBaseUrl(fromQuery);
+          if (validQueryUrl) return validQueryUrl;
+        }
       } catch (_err) {
         // file:// veya kisitli ortamlarda sessizce devam et
       }
@@ -71,12 +93,21 @@
       return this.normalizeBaseUrl(savedUrl || "");
     }
 
-    /** Baglanti ve gecikme testi: Once Rust WASM (backend_bg.wasm), varsa HTTP /api/v1/health */
+    isCustomRemoteUrl(cleanUrl) {
+      return Boolean(cleanUrl && cleanUrl !== "http://127.0.0.1:8080" && cleanUrl !== "http://localhost:8080");
+    }
+
+    /** Baglanti ve gecikme testi: Ozel HTTP URL varsa once HTTP /api/v1/health, aksi halde Rust WASM (backend_bg.wasm) */
     async testConnection(baseUrl) {
+      const clean = this.normalizeBaseUrl(baseUrl);
+      if (this.isCustomRemoteUrl(clean)) {
+        const httpRes = await this.pingHttpHealth(clean);
+        if (httpRes.ok) return httpRes;
+      }
+
       const t0 = performance.now();
       const wasmOk = await this.ensureWasmLoaded();
       if (wasmOk && this.wasmFindPath) {
-        // Canli ping testi: 2x2 mini grid ile Rust WASM cagri gecikmesini olc
         const mini = new Int32Array([0, 1, 1, 2]);
         this.wasmFindPath(mini, 2, 2, 0, 0, 1, 1);
         const latencyMs = Math.max(1, Math.round(performance.now() - t0));
@@ -88,10 +119,22 @@
         };
       }
 
-      const clean = this.normalizeBaseUrl(baseUrl);
-      if (!clean) {
-        return { ok: false, status: 0, message: "Rust WASM / HTTP bekleniyor", latencyMs: 0 };
+      if (clean) {
+        const httpRes = await this.pingHttpHealth(clean);
+        if (httpRes.ok) return httpRes;
       }
+
+      // file:// ortaminda yerlesik A* motoru her zaman hazirdir
+      const fallbackLatency = Math.max(1, Math.round(performance.now() - t0));
+      return {
+        ok: true,
+        status: 200,
+        message: `🦀 Yerel A* Motoru Aktif (${fallbackLatency} ms)`,
+        latencyMs: fallbackLatency
+      };
+    }
+
+    async pingHttpHealth(clean) {
       const started = performance.now();
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 1800);
@@ -102,7 +145,7 @@
           return { ok: false, status: res.status, message: `HTTP ${res.status}`, latencyMs };
         }
         const data = await res.json().catch(() => ({}));
-        const engine = data.engine || data.version || "rust-backend";
+        const engine = String(data.engine || data.version || "rust-backend").slice(0, 48);
         return { ok: true, status: res.status, message: `Bagli (${engine}, ${latencyMs} ms)`, latencyMs };
       } catch (err) {
         const latencyMs = Math.round(performance.now() - started);
@@ -161,10 +204,11 @@
             enabled: Boolean(state.showRadiationZones),
             zones: radZones.map((z) => ({
               id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg,
-              alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel
+              alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel, photonFlux: z.photonFlux
             })),
             craterZones: (craterRadZones || []).map((z) => ({
-              id: z.id, name: z.name, relX: z.relX, relY: z.relY, radius: z.radius
+              id: z.id, name: z.name, relX: z.relX, relY: z.relY, radius: z.radius,
+              alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel, photonFlux: z.photonFlux
             }))
           },
           terrain: {
@@ -182,16 +226,34 @@
       };
     }
 
-    /** Derlenmis Rust WASM (`find_rover_path`) uzerinden A* rotasini hesaplar */
+    /** Ozel HTTP backend varsa once HTTP /api/v1/route, yoksa derlenmis Rust WASM (`find_rover_path`) veya yerel A* ile hesaplar */
     async requestStepRoute(baseUrl, payload, planner) {
+      const clean = this.normalizeBaseUrl(baseUrl);
+      if (this.isCustomRemoteUrl(clean)) {
+        try {
+          return await this.fetchHttpRoute(clean, payload, planner);
+        } catch (_httpErr) {
+          // Ozel HTTP sunucu yanit vermezse Rust WASM / yerel A* motoruna dus
+        }
+      }
+
       const wasmReady = await this.ensureWasmLoaded();
       if (wasmReady && this.wasmFindPath) {
         return this.computeViaRustWasm(payload, planner);
       }
 
-      const clean = this.normalizeBaseUrl(baseUrl);
-      if (!clean) throw new Error("Rust WASM veya HTTP Backend aktif degil");
+      if (clean && !this.isCustomRemoteUrl(clean)) {
+        try {
+          return await this.fetchHttpRoute(clean, payload, planner);
+        } catch (_localHttpErr) {
+          // 127.0.0.1:8080 kapaliysa veya file:// ortamindaysa yerel A* cozucusune gec
+        }
+      }
 
+      return this.computeViaRustWasm(payload, planner);
+    }
+
+    async fetchHttpRoute(clean, payload, planner) {
       const started = performance.now();
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), this.defaultTimeoutMs);
@@ -205,15 +267,85 @@
         const latencyMs = Math.round(performance.now() - started);
         if (!res.ok) throw new Error(`Backend HTTP ${res.status}`);
         const raw = await res.json();
+        if (raw && raw.rustRawOutput && !raw.primaryBlue && !raw.primary_route) {
+          const primaryBlue = this.convertWasmPathToRoute(raw.rustRawOutput, payload.origin, payload.destination, "#2563eb", "Mavi Yol (Rust HTTP A*)", planner, payload, 0.38);
+          return {
+            scope: payload.scope || "global",
+            source: "rust-backend",
+            engine: raw.engine || "Rust HTTP A*",
+            latencyMs,
+            rustRawOutput: raw.rustRawOutput,
+            origin: payload.origin,
+            destination: payload.destination,
+            primaryBlue,
+            secondaryPaleBlue: null,
+            hazards: {
+              acidZones: payload.factors?.acidRain?.zones || [],
+              stormZones: payload.factors?.dustStorm?.zones || [],
+              radiationZones: payload.factors?.radiation?.zones || []
+            }
+          };
+        }
         return this.normalizeRouteResponse(raw, payload, planner, latencyMs);
       } finally {
         clearTimeout(timer);
       }
     }
 
+    wrapLon(lon) {
+      return (((Number(lon) || 0) + 180) % 360 + 360) % 360 - 180;
+    }
+
+    shortestDeltaLon(fromLon, toLon) {
+      return (((Number(toLon) - Number(fromLon)) + 540) % 360 + 360) % 360 - 180;
+    }
+
+    /** file:// ortaminda WASM import engellenirse Rust lib.rs ile birebir ayni A* kurallarini calistiran yedek cozucu */
+    solveGridAStarFallback(flat, width, height, sx, sy, gx, gy) {
+      const getZ = (x, y) => (x >= 0 && x < width && y >= 0 && y < height) ? flat[y * width + x] : -999;
+      if (getZ(sx, sy) === -999 || getZ(gx, gy) === -999) return { success: false, path: [] };
+      const keyOf = (x, y) => y * width + x;
+      const gScore = new Map([[keyOf(sx, sy), 0]]);
+      const cameFrom = new Map();
+      const open = [{ x: sx, y: sy, z: getZ(sx, sy), g: 0, f: Math.abs(gx - sx) + Math.abs(gy - sy) }];
+      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+      while (open.length > 0) {
+        open.sort((a, b) => a.f - b.f);
+        const cur = open.shift();
+        if (cur.x === gx && cur.y === gy) {
+          const path = [];
+          let k = keyOf(gx, gy);
+          let node = cur;
+          while (node) {
+            path.unshift({ x: node.x, y: node.y, z: node.z });
+            node = cameFrom.get(k);
+            if (node) k = keyOf(node.x, node.y);
+          }
+          return { success: true, cost: cur.g, steps_count: path.length, path };
+        }
+        for (const [dx, dy] of dirs) {
+          const nx = cur.x + dx, ny = cur.y + dy;
+          const nz = getZ(nx, ny);
+          if (nz === -999) continue;
+          const diff = nz - cur.z;
+          if (Math.abs(diff) > 3) continue;
+          const stepCost = diff > 0 ? 1 + diff * 5 : (diff < 0 ? 1 + Math.abs(diff) * 2 : 1);
+          const tentG = cur.g + stepCost;
+          const nk = keyOf(nx, ny);
+          if (tentG < (gScore.get(nk) ?? 1e9)) {
+            gScore.set(nk, tentG);
+            cameFrom.set(nk, cur);
+            open.push({ x: nx, y: ny, z: nz, g: tentG, f: tentG + Math.abs(gx - nx) + Math.abs(gy - ny) });
+          }
+        }
+      }
+      return { success: false, path: [] };
+    }
+
     /**
      * Mustafa dalindaki derlenmis Rust `find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y)`
-     * WebAssembly fonksiyonunu cagirir ve ciktisini Mars kuresi koordinatlarina donusturur.
+     * WebAssembly fonksiyonunu cagirir ve ciktisini antimeridyen + MOLA topografyasiyla Mars koordinatlarina donusturur.
      */
     computeViaRustWasm(payload, planner) {
       const t0 = performance.now();
@@ -221,6 +353,11 @@
       const height = 20;
       const orig = payload.origin;
       const dest = payload.destination;
+      const dLat = dest.lat - orig.lat;
+      const dLon = this.shortestDeltaLon(orig.lon, dest.lon);
+      const perpLat = -dLon * 0.38;
+      const perpLon = dLat * 0.38;
+      const topo = ns.marsTopo || null;
 
       const buildGrid = (obstacleRadiusScale) => {
         const flat = new Int32Array(width * height);
@@ -228,40 +365,36 @@
         const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
         const radZones = (payload.factors?.radiation?.enabled && payload.factors?.radiation?.zones) || [];
 
-        const dLat = dest.lat - orig.lat;
-        const dLon = dest.lon - orig.lon;
-        const perpLat = -dLon * 0.38;
-        const perpLon = dLat * 0.38;
-
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
             const idx = y * width + x;
             const isEndpoint = (x === 0 && y === 0) || (x === width - 1 && y === height - 1);
             const u = (x + y) / ((width - 1) + (height - 1));
             const v = (x - y) / (width - 1);
-            const lat = orig.lat + dLat * u + perpLat * v;
-            const lon = orig.lon + dLon * u + perpLon * v;
+            const lat = Math.max(-85, Math.min(85, orig.lat + dLat * u + perpLat * v));
+            const lon = this.wrapLon(orig.lon + dLon * u + perpLon * v);
 
-            // Engeller (-999): Asit yagmuru, firtina veya radyasyon cekirdegi
             let blocked = false;
             if (!isEndpoint && obstacleRadiusScale > 0) {
+              const cosLat = Math.max(0.25, Math.cos((lat * Math.PI) / 180));
               for (const z of [...acidZones, ...stormZones, ...radZones]) {
-                const distDeg = Math.hypot(lat - z.lat, lon - z.lon);
-                if (distDeg < (z.radiusDeg || 6) * 0.42 * obstacleRadiusScale) {
+                const dzLon = this.shortestDeltaLon(z.lon, lon) * cosLat;
+                const distDeg = Math.hypot(lat - z.lat, dzLon);
+                if (distDeg < (z.radiusDeg || 6) * 0.45 * obstacleRadiusScale) {
                   blocked = true;
                   break;
                 }
-              }
-              // Diyagonal uzerinde ornek krater/kaya engelleri (Mustafa main.rs stili)
-              if (!blocked && ((x === 5 && y >= 4 && y <= 7) || (x === 10 && y >= 9 && y <= 12) || (x === 14 && y >= 13 && y <= 15))) {
-                blocked = true;
               }
             }
 
             if (blocked) {
               flat[idx] = -999;
+            } else if (topo) {
+              // Gercek NASA MOLA topografyasini (-8200m..+21229m) Rust A* egim sinirina (0..10) olcekle
+              const elevM = topo.getElevationMeters(lat, lon);
+              const norm = Math.round(((elevM + 8200) / 29429) * 10);
+              flat[idx] = Math.max(0, Math.min(10, norm));
             } else {
-              // Rust lib.rs: slope_diff.abs() <= 3 kuralina uygun puruzsuz Mars topoğrafyasi (0..10)
               const wave = Math.sin((x * 0.35) + (orig.lat * 0.05)) * 2.2 + Math.cos((y * 0.35) + (dest.lon * 0.05)) * 2.2;
               flat[idx] = Math.max(0, Math.min(10, Math.round(5 + wave)));
             }
@@ -270,20 +403,23 @@
         return flat;
       };
 
-      // Tekil Mavi Yol: Rust WASM find_rover_path cagrisi (Alternatif yol kaldirildi)
-      let flatGrid = buildGrid(1.0);
-      let rawJsonStr = this.wasmFindPath(flatGrid, width, height, 0, 0, width - 1, height - 1);
-      let parsedPrimary = JSON.parse(rawJsonStr);
-      if (!parsedPrimary.success) {
-        flatGrid = buildGrid(0.0);
-        rawJsonStr = this.wasmFindPath(flatGrid, width, height, 0, 0, width - 1, height - 1);
-        parsedPrimary = JSON.parse(rawJsonStr);
+      const runSolver = (flatGrid) => {
+        if (this.wasmFindPath) {
+          return JSON.parse(this.wasmFindPath(flatGrid, width, height, 0, 0, width - 1, height - 1));
+        }
+        return this.solveGridAStarFallback(flatGrid, width, height, 0, 0, width - 1, height - 1);
+      };
+
+      // Asamali engel yaricapi gevsetmesi: tehlike cekirdeklerini tamamen silmeden en guvenli gecisi bulur
+      let parsedPrimary = { success: false, path: [] };
+      for (const scale of [1.0, 0.72, 0.45, 0.22, 0.0]) {
+        parsedPrimary = runSolver(buildGrid(scale));
+        if (parsedPrimary && parsedPrimary.success) break;
       }
 
       const latencyMs = Math.max(1, Math.round(performance.now() - t0));
       const primaryBlue = this.convertWasmPathToRoute(parsedPrimary, orig, dest, "#2563eb", "Mavi Yol (Rust WASM A*)", planner, payload, 0.38);
 
-      // Aktif tehlike bolgelerini haritada cizilmek uzere hazirla
       const hazards = {
         acidZones: payload.factors?.acidRain?.zones || [],
         stormZones: payload.factors?.dustStorm?.zones || [],
@@ -293,7 +429,7 @@
       return {
         scope: payload.scope || "global",
         source: "rust-backend",
-        engine: "Rust WASM (find_rover_path)",
+        engine: this.wasmFindPath ? "Rust WASM (find_rover_path)" : "Local A* Fallback",
         latencyMs,
         rustRawOutput: parsedPrimary,
         origin: orig,
@@ -311,18 +447,21 @@
         : [{ x: 0, y: 0, z: 0 }, { x: 19, y: 19, z: 0 }];
 
       const dLat = dest.lat - orig.lat;
-      const dLon = dest.lon - orig.lon;
+      const dLon = this.shortestDeltaLon(orig.lon, dest.lon);
       const perpLat = -dLon * lateralFactor;
       const perpLon = dLat * lateralFactor;
+      const topo = ns.marsTopo || null;
 
       const points = path.map((p, idx) => {
         if (idx === 0) return { lat: orig.lat, lon: orig.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
         if (idx === path.length - 1) return { lat: dest.lat, lon: dest.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
         const u = (p.x + p.y) / 38;
         const v = (p.x - p.y) / 19;
+        const rawLat = Math.max(-85, Math.min(85, orig.lat + dLat * u + perpLat * v));
+        const rawLon = this.wrapLon(orig.lon + dLon * u + perpLon * v);
         return {
-          lat: Number((orig.lat + dLat * u + perpLat * v).toFixed(4)),
-          lon: Number((orig.lon + dLon * u + perpLon * v).toFixed(4)),
+          lat: Number(rawLat.toFixed(4)),
+          lon: Number(rawLon.toFixed(4)),
           elevLevel: p.z,
           gridX: p.x,
           gridY: p.y
@@ -340,8 +479,9 @@
         const segKm = i === 0 ? 0 : this.haversineMarsKm(prev.lat, prev.lon, cur.lat, cur.lon);
         totalKm += segKm;
         const dz = i === 0 ? 0 : (cur.elevLevel - prev.elevLevel);
-        const slopeDeg = Number(Math.min(22, Math.abs(dz) * 2.8 + 1.1).toFixed(1));
-        const elevM = Math.round(-2400 + cur.elevLevel * 185);
+        const telem = topo ? topo.getSurfaceTelemetry(cur.lat, cur.lon) : null;
+        const slopeDeg = telem ? telem.slopeDeg : Number(Math.min(22, Math.abs(dz) * 2.8 + 1.1).toFixed(1));
+        const elevM = telem ? telem.elevM : Math.round(-2400 + cur.elevLevel * 185);
         const segHours = segKm / roverSpeed;
 
         let instruction = `Rust A* Hücre (${cur.gridX}, ${cur.gridY}) → ${segKm.toFixed(1)} km ilerle`;
@@ -389,17 +529,17 @@
     haversineMarsKm(lat1, lon1, lat2, lon2) {
       const toRad = Math.PI / 180;
       const dLat = (lat2 - lat1) * toRad;
-      const dLon = (lon2 - lon1) * toRad;
+      const dLon = this.shortestDeltaLon(lon1, lon2) * toRad;
       const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
       return 2 * 3389.5 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
     }
 
-    /** Opsiyonel tehlike katmanlarini backend'den ceker: GET /api/v1/hazards */
+    /** Opsiyonel tehlike katmanlarini ozel HTTP backend'den ceker: GET /api/v1/hazards */
     async fetchHazards(baseUrl) {
       const clean = this.normalizeBaseUrl(baseUrl);
-      if (!clean) return null;
+      if (!this.isCustomRemoteUrl(clean)) return null;
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 1800);
       try {

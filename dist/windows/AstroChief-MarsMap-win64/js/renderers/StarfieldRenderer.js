@@ -48,13 +48,33 @@
     setEnabled(flag) {
       this.enabled = !!flag;
       if (this.canvas) {
-        this.canvas.style.opacity = this.enabled ? "1" : "0.08";
+        this.canvas.style.opacity = this.enabled ? "1" : "0";
+      }
+      if (!this.enabled) {
+        if (this.rafId) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+        if (this.ctx && this.canvas) {
+          this.ctx.fillStyle = "#000000";
+          this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        return;
       }
       this.drawFrame();
+      this.startLoop();
     }
 
     setInteracting(flag) {
-      this.interacting = Boolean(flag);
+      const next = Boolean(flag);
+      if (this.interacting === next) return;
+      this.interacting = next;
+      if (next && this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      } else if (!next && this.enabled) {
+        this.startLoop();
+      }
     }
 
     generateStars(count) {
@@ -92,10 +112,9 @@
     }
 
     drawFrame() {
-      if (!this.ctx || !this.canvas) return;
+      if (!this.enabled || !this.ctx || !this.canvas) return;
       this.ctx.globalAlpha = 1.0;
       this.ctx.drawImage(this.baseCanvas, 0, 0);
-      if (!this.enabled) return;
 
       for (const s of this.twinkleStars) {
         s.a += s.da;
@@ -109,8 +128,13 @@
     }
 
     startLoop() {
+      if (this.rafId || !this.enabled || this.interacting) return;
       const tick = (now) => {
-        if (!this.interacting && this.enabled && now - this.lastDrawTs >= 120) {
+        if (!this.enabled || this.interacting) {
+          this.rafId = null;
+          return;
+        }
+        if (now - this.lastDrawTs >= 120) {
           this.lastDrawTs = now;
           this.drawFrame();
         }
@@ -120,7 +144,10 @@
     }
 
     destroy() {
-      if (this.rafId) cancelAnimationFrame(this.rafId);
+      if (this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
       window.removeEventListener("resize", this.onResize);
     }
   }

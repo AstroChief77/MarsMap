@@ -12,7 +12,7 @@
     code: "tr",
     nativeName: "Türkçe",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.1",
+    pageTitle: "AstroChief | Mars Navigator v3.9",
     settingsTooltip: "Ayarlar (1. Seçenek: Factory Reset)",
     settingsAria: "Ayarlar",
     factoryResetTitle: "Factory Reset",
@@ -166,14 +166,36 @@
     hzRadGale: "Foton Bombardıman Alanı // Merkezi Eyer",
     craterGale: "Gale Krateri & Mount Sharp",
     craterJezero: "Jezero Krateri & Antik Nehir Deltası",
-    craterKorolev: "Korolev Krateri & Su Buzu Buzulu"
+    craterKorolev: "Korolev Krateri & Su Buzu Buzulu",
+    backendLocalActive: "Yerel Rust WASM rota motoru aktif",
+    backendResponded: "Rust motoru yanıtladı ({ms} ms)",
+    inspBackendWaiting: "Sunucu yanıtı bekleniyor",
+    inspLocalBadge: "Yerel WASM",
+    inspNoConnection: "Bağlantı Yok",
+    pickedDestName: "Seçilen Hedef",
+    telemetryLoading: "Mars Yükleniyor...",
+    toastBackendUrlCleared: "Backend URL temizlendi. Yerel Rust WASM modu aktif.",
+    toastClickMarsSurface: "Lütfen Mars yüzeyi üzerinde geçerli bir koordinata tıklayın.",
+    toastDestPicked: "Hedef belirlendi: {lat}°, {lon}°",
+    toastPickDestinationHint: "Harita üzerinde Varış (B) noktasına tıklayın.",
+    zoomResetTitle: "Görünümü Sıfırla",
+    tiltBtnTitle: "3D Kamera Eğimi (Sağ Tık Sürükle veya R/F)",
+    peakBtnTitle: "3D Topografya Zirvelerini Gez (Olympus Mons / Valles Marineris / Mount Sharp)",
+    toastPeakVisit: "⛰ 3D Topografya: {name}",
+    telemElev: "Rakım",
+    telemSlope: "Eğim",
+    telemPitch: "3D Eğim",
+    loadingGlobeText: "Mars 3D dokusu ./data/tiles/ dizininden yükleniyor...",
+    reserveLabel: "Rezerv:",
+    reserveOkBadge: "Rezerv Yeterli",
+    reserveDeficitBadge: "Rezerv Uyarısı"
   };
 
   ns.I18N_LOCALES.en = {
     code: "en",
     nativeName: "English",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.1",
+    pageTitle: "AstroChief | Mars Navigator v3.9",
     settingsTooltip: "Settings (1st Option: Factory Reset)",
     settingsAria: "Settings",
     factoryResetTitle: "Factory Reset",
@@ -327,14 +349,36 @@
     hzRadGale: "Photon Bombardment Zone // Central Saddle",
     craterGale: "Gale Crater & Mount Sharp",
     craterJezero: "Jezero Crater & Ancient River Delta",
-    craterKorolev: "Korolev Crater & Water Ice Glacier"
+    craterKorolev: "Korolev Crater & Water Ice Glacier",
+    backendLocalActive: "Local Rust WASM route engine active",
+    backendResponded: "Rust engine responded ({ms} ms)",
+    inspBackendWaiting: "Waiting for backend",
+    inspLocalBadge: "Local WASM",
+    inspNoConnection: "Offline",
+    pickedDestName: "Selected Target",
+    telemetryLoading: "Loading Mars...",
+    toastBackendUrlCleared: "Backend URL cleared. Local Rust WASM engine active.",
+    toastClickMarsSurface: "Please click on a valid coordinate on the Mars surface.",
+    toastDestPicked: "Destination set: {lat}°, {lon}°",
+    toastPickDestinationHint: "Click on the Mars surface to set Destination (B).",
+    zoomResetTitle: "Reset View",
+    tiltBtnTitle: "3D Camera Tilt (Right-Click Drag or R/F)",
+    peakBtnTitle: "Tour 3D Topography Peaks (Olympus Mons / Valles Marineris / Mount Sharp)",
+    toastPeakVisit: "⛰ 3D Topography: {name}",
+    telemElev: "Elev",
+    telemSlope: "Slope",
+    telemPitch: "3D Tilt",
+    loadingGlobeText: "Loading Mars 3D texture from ./data/tiles/...",
+    reserveLabel: "Reserve:",
+    reserveOkBadge: "Reserve Sufficient",
+    reserveDeficitBadge: "Reserve Alert"
   };
 
   ns.I18N_LOCALES.de = {
     code: "de",
     nativeName: "Deutsch",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.1",
+    pageTitle: "AstroChief | Mars Navigator v3.9",
     settingsTooltip: "Einstellungen (1. Option: Factory Reset)",
     settingsAria: "Einstellungen",
     factoryResetTitle: "Factory Reset",
@@ -458,7 +502,7 @@
     stepCraterMove: "{km} km weiter nach {name} (Neigung {slope}°)",
     warnAcidCorridor: "Korridor-Umleitung um Säureablagerung",
     warnStormCorridor: "Sichere Passage um Staub-/Sturmfeld",
-    warnHazardDetour: "ichere Umleitung um {name}",
+    warnHazardDetour: "Sichere Umleitung um {name}",
     stepGlobalStart: "Start ({lat}°, {lon}°): Parameter geprüft, Abfahrt",
     stepGlobalEnd: "Ankunft ({lat}°, {lon}°): Sicheres Parken & Missionsende",
     stepGlobalMove: "{km} km Richtung {dir} (Neigung {slope}°)",
@@ -488,15 +532,37 @@
     hzRadGale: "Photonenbeschuss-Zone // Zentralsattel",
     craterGale: "Gale-Krater & Mount Sharp",
     craterJezero: "Jezero-Krater & Altes Flussdelta",
-    craterKorolev: "Korolev-Krater & Wassereis-Gletscher"
+    craterKorolev: "Korolev-Krater & Wassereis-Gletscher",
+    backendLocalActive: "Lokaler Rust WASM Routenmotor aktiv",
+    backendResponded: "Rust-Motor antwortete ({ms} ms)",
+    inspBackendWaiting: "Warte auf Backend",
+    inspLocalBadge: "Lokal WASM",
+    inspNoConnection: "Offline",
+    pickedDestName: "Gewähltes Ziel",
+    telemetryLoading: "Mars wird geladen...",
+    toastBackendUrlCleared: "Backend-URL gelöscht. Lokaler Rust WASM-Modus aktiv.",
+    toastClickMarsSurface: "Bitte klicken Sie auf eine gültige Koordinate auf der Marsoberfläche.",
+    toastDestPicked: "Ziel gesetzt: {lat}°, {lon}°",
+    toastPickDestinationHint: "Klicken Sie auf die Marsoberfläche, um Ziel (B) zu setzen.",
+    zoomResetTitle: "Ansicht zurücksetzen",
+    tiltBtnTitle: "3D-Kameraneigung (Rechtsklick-Ziehen oder R/F)",
+    peakBtnTitle: "3D-Topografie-Gipfeltour (Olympus Mons / Valles Marineris / Mount Sharp)",
+    toastPeakVisit: "⛰ 3D-Topografie: {name}",
+    telemElev: "Höhe",
+    telemSlope: "Neigung",
+    telemPitch: "3D-Neigung",
+    loadingGlobeText: "Mars 3D-Textur wird aus ./data/tiles/ geladen...",
+    reserveLabel: "Reserve:",
+    reserveOkBadge: "Reserve Ausreichend",
+    reserveDeficitBadge: "Reservewarnung"
   };
 })(window.AstroChief = window.AstroChief || {});
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc coklu dil paketi (Bolum 1/3) basligi.
-   - Satir 8-165: I18N_LOCALES.tr; Turkce arayuz, rota, tehlike, ekip ve bildirim sozlugu.
-   - Satir 167-324: I18N_LOCALES.en; Ingilizce arayuz, rota, tehlike, ekip ve bildirim sozlugu.
-   - Satir 326-483: I18N_LOCALES.de; Almanca arayuz, rota, tehlike, ekip ve bildirim sozlugu.
+   - Satir 1-10: JSDoc coklu dil paketi (Bolum 1/3) basligi ve IIFE kapsami.
+   - Satir 11-192: I18N_LOCALES.tr; Turkce arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 194-375: I18N_LOCALES.en; Ingilizce arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 377-558: I18N_LOCALES.de; Almanca arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
    ========================================================================== */

@@ -28,12 +28,26 @@ if (!is_dir($uploadDir)) {
     @mkdir($uploadDir, 0775, true);
 }
 
+// Dizin güvenlik dosyaları (.htaccess ile doğrudan erişim ve betik çalıştırma engeli)
+$storageHtaccess = $storageDir . DIRECTORY_SEPARATOR . '.htaccess';
+if (!file_exists($storageHtaccess)) {
+    @file_put_contents($storageHtaccess, "Order deny,allow\nDeny from all\n<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n");
+}
+$uploadHtaccess = $uploadDir . DIRECTORY_SEPARATOR . '.htaccess';
+if (!file_exists($uploadHtaccess)) {
+    @file_put_contents(
+        $uploadHtaccess,
+        "Options -ExecCGI -Indexes\nphp_flag engine off\nRemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht .cgi .pl .py .sh\n<FilesMatch \"\\.(php\\d*|phtml|pht|phar|sh|py|pl|cgi|htaccess|svg|html|htm|js)$\">\n  Order deny,allow\n  Deny from all\n</FilesMatch>\n<IfModule mod_headers.c>\n  Header set X-Content-Type-Options \"nosniff\"\n</IfModule>\n"
+    );
+}
+
 // 2. Güvenli SQLite3 Veritabanı Bağlantısı
 $dbFile = $storageDir . DIRECTORY_SEPARATOR . 'chat.db';
 try {
     $db = new PDO('sqlite:' . $dbFile);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $db->exec("PRAGMA busy_timeout = 3000");
 
     // Mesajlar Tablosu
     $db->exec("CREATE TABLE IF NOT EXISTS messages (
@@ -62,11 +76,18 @@ try {
     exit;
 }
 
-// İstemci IP Adresi Belirleme
-$clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-if (strpos($clientIp, ',') !== false) {
-    $parts = explode(',', $clientIp);
-    $clientIp = trim($parts[0]);
+// İstemci IP Adresi Belirleme (Sahte X-Forwarded-For başlığına karşı yalnızca yerel vekilden gelen başlığa güven)
+$remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$clientIp = $remoteAddr;
+if ($remoteAddr === '127.0.0.1' || $remoteAddr === '::1') {
+    $forwarded = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+    if ($forwarded !== '') {
+        $parts = explode(',', $forwarded);
+        $candidate = trim($parts[0]);
+        if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+            $clientIp = $candidate;
+        }
+    }
 }
 
 // 3. Eylemi Belirleme
@@ -76,8 +97,8 @@ $action = $_GET['action'] ?? ($_POST['action'] ?? 'get_messages');
 // İŞLEM 1: MESAJLARI GETİR (get_messages)
 // =========================================================================
 if ($action === 'get_messages') {
-    $sinceId = isset($_GET['since_id']) ? (int)$_GET['since_id'] : 0;
-    $limit = isset($_GET['limit']) ? min((int)$_GET['limit'], 100) : 50;
+    $sinceId = isset($_GET['since_id']) ? max(0, (int)$_GET['since_id']) : 0;
+    $limit = isset($_GET['limit']) ? max(1, min((int)$_GET['limit'], 100)) : 50;
 
     try {
         if ($sinceId > 0) {
@@ -89,6 +110,18 @@ if ($action === 'get_messages') {
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         $messages = $stmt->fetchAll();
+
+        foreach ($messages as &$row) {
+            $row['user_name'] = html_entity_decode((string)($row['user_name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $row['role'] = html_entity_decode((string)($row['role'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            if ($row['message'] !== null) {
+                $row['message'] = html_entity_decode((string)$row['message'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            }
+            if ($row['file_name'] !== null) {
+                $row['file_name'] = html_entity_decode((string)$row['file_name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            }
+        }
+        unset($row);
 
         echo json_encode([
             'success' => true,
@@ -107,66 +140,51 @@ if ($action === 'get_messages') {
 // İŞLEM 2: YENİ MESAJ VE DOSYA GÖNDER (send_message)
 // =========================================================================
 if ($action === 'send_message') {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Mesaj gönderimi yalnızca POST metodu ile yapılabilir.']);
+        exit;
+    }
+
     $currentTime = time();
 
-    // Rate Limiting (Spam ve DoS Koruması)
+    // Rate Limiting (Atomik INSERT OR IGNORE + SELECT ile yarış durumu engellenir)
+    $db->prepare("INSERT OR IGNORE INTO rate_limits (ip, last_message_time, upload_count, upload_window_start) VALUES (:ip, 0, 0, :now)")
+       ->execute([':ip' => $clientIp, ':now' => $currentTime]);
+
     $stmtRate = $db->prepare("SELECT * FROM rate_limits WHERE ip = :ip");
     $stmtRate->execute([':ip' => $clientIp]);
     $rateRow = $stmtRate->fetch();
 
+    $hasUpload = isset($_FILES['file']) && $_FILES['file']['error'] !== UPLOAD_ERR_NO_FILE;
     if ($rateRow) {
-        // Son mesajdan bu yana en az 0.5 saniye geçmeli
-        if (($currentTime - $rateRow['last_message_time']) < 1) {
+        if (($currentTime - (int)$rateRow['last_message_time']) < 1) {
             http_response_code(429);
             echo json_encode(['success' => false, 'error' => 'Çok hızlı mesaj gönderiyorsunuz. Lütfen 1 saniye bekleyin.']);
             exit;
         }
-
-        // Dakikada en fazla 15 dosya yükleme sınırı
-        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-            if (($currentTime - $rateRow['upload_window_start']) > 60) {
-                // Pencereyi sıfırla
-                $db->prepare("UPDATE rate_limits SET upload_count = 1, upload_window_start = :now WHERE ip = :ip")
-                   ->execute([':now' => $currentTime, ':ip' => $clientIp]);
-            } else {
-                if ($rateRow['upload_count'] >= 15) {
-                    http_response_code(429);
-                    echo json_encode(['success' => false, 'error' => 'Dosya yükleme hız sınırına ulaşıldı (Maksimum 15 dosya/dakika).']);
-                    exit;
-                }
-                $db->prepare("UPDATE rate_limits SET upload_count = upload_count + 1 WHERE ip = :ip")
-                   ->execute([':ip' => $clientIp]);
-            }
+        if ($hasUpload && ($currentTime - (int)$rateRow['upload_window_start']) <= 60 && (int)$rateRow['upload_count'] >= 15) {
+            http_response_code(429);
+            echo json_encode(['success' => false, 'error' => 'Dosya yükleme hız sınırına ulaşıldı (Maksimum 15 dosya/dakika).']);
+            exit;
         }
-
-        // Son mesaj zamanını güncelle
-        $db->prepare("UPDATE rate_limits SET last_message_time = :now WHERE ip = :ip")
-           ->execute([':now' => $currentTime, ':ip' => $clientIp]);
-    } else {
-        $db->prepare("INSERT INTO rate_limits (ip, last_message_time, upload_count, upload_window_start) VALUES (:ip, :now, 1, :now)")
-           ->execute([':ip' => $clientIp, ':now' => $currentTime]);
     }
 
-    // Girdi Temizleme (Sanitization) ve Doğrulama
-    $userName = trim($_POST['user_name'] ?? 'Astronot');
-    $role = trim($_POST['role'] ?? 'Mürettebat');
-    $rawMessage = trim($_POST['message'] ?? '');
+    // Girdi Temizleme (Kontrol karakterlerini arındır, textContent ile çift kaçışı önle)
+    $cleanText = static function (string $val, int $maxLen): string {
+        $cleaned = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', trim($val)) ?? '';
+        return mb_strlen($cleaned) > $maxLen ? mb_substr($cleaned, 0, $maxLen) : $cleaned;
+    };
 
-    // Uzunluk kontrolleri
-    if (mb_strlen($userName) > 40) {
-        $userName = mb_substr($userName, 0, 40);
+    $safeUserName = $cleanText((string)($_POST['user_name'] ?? 'Astronot'), 40);
+    if ($safeUserName === '') {
+        $safeUserName = 'Astronot';
     }
-    if (mb_strlen($role) > 30) {
-        $role = mb_substr($role, 0, 30);
+    $safeRole = $cleanText((string)($_POST['role'] ?? 'Mürettebat'), 30);
+    if ($safeRole === '') {
+        $safeRole = 'Mürettebat';
     }
-    if (mb_strlen($rawMessage) > 2000) {
-        $rawMessage = mb_substr($rawMessage, 0, 2000);
-    }
-
-    // XSS Temizliği
-    $safeUserName = htmlspecialchars($userName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $safeRole = htmlspecialchars($role, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $safeMessage = htmlspecialchars($rawMessage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $safeMessage = $cleanText((string)($_POST['message'] ?? ''), 2000);
 
     // Dosya İşleme Değişkenleri
     $fileUrl = null;
@@ -175,25 +193,25 @@ if ($action === 'send_message') {
     $fileType = null;
 
     // Dosya Yükleme Güvenlik Denetimleri
-    if (isset($_FILES['file']) && $_FILES['file']['error'] !== UPLOAD_ERR_NO_FILE) {
+    if ($hasUpload) {
         $file = $_FILES['file'];
 
         if ($file['error'] !== UPLOAD_ERR_OK) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Dosya yükleme hatası kodu: ' . $file['error']]);
+            echo json_encode(['success' => false, 'error' => 'Dosya yükleme hatası kodu: ' . (int)$file['error']]);
             exit;
         }
 
         // 1. Boyut Sınırı: Maksimum 15 MB (15 * 1024 * 1024 bayt)
         $maxBytes = 15 * 1024 * 1024;
-        if ($file['size'] > $maxBytes) {
+        if ($file['size'] <= 0 || $file['size'] > $maxBytes) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Dosya boyutu çok büyük (Maksimum 15 MB).']);
+            echo json_encode(['success' => false, 'error' => 'Dosya boyutu geçersiz veya çok büyük (Maksimum 15 MB).']);
             exit;
         }
 
         // 2. Uzantı Beyaz Listesi (Whitelist)
-        $rawOriginalName = basename($file['name']);
+        $rawOriginalName = basename((string)$file['name']);
         $pathParts = pathinfo($rawOriginalName);
         $extension = strtolower($pathParts['extension'] ?? '');
 
@@ -208,35 +226,46 @@ if ($action === 'send_message') {
             exit;
         }
 
-        // 3. Çift Uzantı ve Zararlı Ad Engelleme
-        if (preg_match('/\.(php|phtml|phar|sh|py|pl|cgi|exe|bat|cmd|vbs|msi)[\s.]/i', $rawOriginalName) ||
+        // 3. Çift Uzantı ve Zararlı Ad Engelleme (.php3-.php8, .pht, .shtml, .inc, .htaccess, .svg, .html, .js dahil)
+        if (preg_match('/\.(php\d*|phtml|pht|phar|sh|py|pl|cgi|exe|bat|cmd|vbs|msi|shtml|inc|htaccess|svg|html|htm|js|jsp|asp|aspx)(\.|\s|$)/i', $rawOriginalName) ||
             preg_match('/[\x00-\x1F\x7F\/\\\\]/', $rawOriginalName)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Şüpheli veya zararlı dosya adı tespit edildi.']);
             exit;
         }
 
-        // 4. MIME Türü Doğrulaması (finfo ile gerçek dosya içeriği tespiti)
+        // 4. MIME Türü Doğrulaması (finfo ile gerçek dosya içeriği tespiti — application/octet-stream hariç)
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $detectedMime = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
+        $detectedMime = $finfo ? finfo_file($finfo, $file['tmp_name']) : false;
+        if ($finfo) {
+            finfo_close($finfo);
+        }
 
         $allowedMimes = [
             'image/jpeg', 'image/png', 'image/gif', 'image/webp',
             'application/pdf', 'text/plain', 'application/json',
-            'text/csv', 'application/zip', 'application/x-zip-compressed',
-            'application/octet-stream'
+            'text/csv', 'application/csv', 'application/zip', 'application/x-zip-compressed'
         ];
 
-        // PHP betik içeriklerini kesin engelleme
-        $firstBytes = file_get_contents($file['tmp_name'], false, null, 0, 512);
-        if (stripos($firstBytes, '<?php') !== false || stripos($firstBytes, '<script') !== false) {
+        if ($detectedMime === false || !in_array($detectedMime, $allowedMimes, true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Dosya içerik türü (MIME) güvenlik kontrolünden geçemedi.']);
+            exit;
+        }
+
+        // 5. Tam dosya içeriğinde PHP / HTML betik imzası taraması
+        $fullContent = @file_get_contents($file['tmp_name']);
+        if ($fullContent === false ||
+            stripos($fullContent, '<?php') !== false ||
+            stripos($fullContent, '<?=') !== false ||
+            stripos($fullContent, '<script') !== false ||
+            stripos($fullContent, '__HALT_COMPILER') !== false) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Dosya içeriğinde izin verilmeyen betik kodu algılandı.']);
             exit;
         }
 
-        // 5. Güvenli Rastgele İsim Oluşturma (Kriptografik 32 karakterlik karma)
+        // 6. Güvenli Rastgele İsim Oluşturma (Kriptografik 32 karakterlik karma)
         $randomToken = bin2hex(random_bytes(16));
         $savedFileName = $randomToken . '.' . $extension;
         $targetPath = $uploadDir . DIRECTORY_SEPARATOR . $savedFileName;
@@ -247,20 +276,33 @@ if ($action === 'send_message') {
             exit;
         }
 
-        // Dosya izinlerini kısıtla (yalnızca okuma)
-        chmod($targetPath, 0644);
+        @chmod($targetPath, 0644);
 
-        $fileUrl = './uploads/' . $savedFileName;
-        $originalFileName = htmlspecialchars($rawOriginalName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $fileUrl = 'uploads/' . $savedFileName;
+        $originalFileName = $cleanText($rawOriginalName, 120);
         $fileSize = (int)$file['size'];
         $fileType = $extension;
     }
 
     // Mesaj veya dosyanın en az biri dolu olmalıdır
-    if (empty($safeMessage) && empty($fileUrl)) {
+    if ($safeMessage === '' && $fileUrl === null) {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'Mesaj metni veya bir dosya eklemelisiniz.']);
         exit;
+    }
+
+    // Doğrulamalar başarılı olduktan sonra hız sınırı sayaçlarını güncelle
+    if ($hasUpload) {
+        if ($rateRow && ($currentTime - (int)$rateRow['upload_window_start']) <= 60) {
+            $db->prepare("UPDATE rate_limits SET last_message_time = :now, upload_count = upload_count + 1 WHERE ip = :ip")
+               ->execute([':now' => $currentTime, ':ip' => $clientIp]);
+        } else {
+            $db->prepare("UPDATE rate_limits SET last_message_time = :now, upload_count = 1, upload_window_start = :now WHERE ip = :ip")
+               ->execute([':now' => $currentTime, ':ip' => $clientIp]);
+        }
+    } else {
+        $db->prepare("UPDATE rate_limits SET last_message_time = :now WHERE ip = :ip")
+           ->execute([':now' => $currentTime, ':ip' => $clientIp]);
     }
 
     // Veritabanına Kaydet
@@ -301,14 +343,12 @@ exit;
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-8: JSDoc ve dosya amacı tanıtımı.
-   - Satır 10-14: HTTP güvenlik başlıkları (X-Content-Type-Options, nosniff, frame-ancestors).
-   - Satır 17-26: Sunucu storage ve uploads dizinlerinin güvenli modda oluşturulması.
-   - Satır 28-56: SQLite3 veritabanı PDO bağlantısı ve messages + rate_limits şema tanımları.
-   - Satır 58-65: İstemci IP tespit algoritması (Cloudflare ve Reverse Proxy desteği).
-   - Satır 67-96: get_messages eylemi; since_id ile artımlı ve hızlı mesaj listeleme.
-   - Satır 98-142: send_message eylemi; IP tabanlı rate limit (hız sınırı) ve DoS koruması.
-   - Satır 144-162: Kullanıcı adı, rol ve mesaj metninin XSS'e karşı htmlspecialchars ile temizlenmesi.
-   - Satır 164-245: Katı dosya aktarım denetimleri: 15MB limit, uzantı whitelist'i, PHP betik taraması ve kriptografik isimle kaydetme.
-   - Satır 247-270: PDO prepared statement ile SQL enjeksiyonuna karşı %100 korumalı veri ekleme.
+   - Satır 1-18: JSDoc, HTTP güvenlik başlıkları ve canlı ortam hata gizleme ayarları.
+   - Satır 19-44: storage/ ve uploads/ dizinlerinin oluşturulması ve .htaccess betik çalıştırma engeli.
+   - Satır 46-79: SQLite3 PDO bağlantısı, busy_timeout ve messages / rate_limits tabloları.
+   - Satır 81-94: Sahte X-Forwarded-For başlığına karşı REMOTE_ADDR tabanlı güvenli IP tespiti.
+   - Satır 96-140: get_messages eylemi; pozitif limit/since_id doğrulaması ve entity decode.
+   - Satır 145-196: send_message eylemi; zorunlu POST kontrolü, atomik rate limit ve girdi temizliği.
+   - Satır 198-291: Katı dosya yükleme denetimleri (15 MB sınır, uzantı + finfo MIME beyaz listesi, tam içerik taraması).
+   - Satır 293-351: Hız sınırı güncellemesi ve PDO prepared statement ile SQLi korumalı kayıt.
    ========================================================================== */

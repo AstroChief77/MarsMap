@@ -41,11 +41,16 @@
       this.taintedOrigin = false;
       this.remoteConsecutiveErrors = 0;
       this.remoteBlockedUntil = 0;
+      // Hata alan karolar bu sure (ms) sonra yeniden denenir (kalici "error" kilidini onler)
+      this.errorRetryMs = 15000;
 
-      this.scratchCanvas = document.createElement("canvas");
-      this.scratchCanvas.width = 256;
-      this.scratchCanvas.height = 256;
-      this.scratchCtx = this.scratchCanvas.getContext("2d", { willReadFrequently: true });
+      const hasDom = typeof document !== "undefined" && typeof document.createElement === "function";
+      this.scratchCanvas = hasDom ? document.createElement("canvas") : null;
+      if (this.scratchCanvas) {
+        this.scratchCanvas.width = 256;
+        this.scratchCanvas.height = 256;
+      }
+      this.scratchCtx = this.scratchCanvas ? this.scratchCanvas.getContext("2d", { willReadFrequently: true }) : null;
     }
 
     /**
@@ -226,7 +231,8 @@
       }
 
       // 3. Eski kamera konumuna ait bekleyen z>=3 kuyrugunu temizle ve yeni frustum konisini (z=3..targetZ) sirala
-      this.loadQueue = this.loadQueue.filter((item) => item.z <= 2);
+      //    Kuyruktan dusen kayitlar onbellekten de silinir; aksi halde sonsuza dek "queued" kalip ekrana donemezler.
+      this.dropStaleQueuedTiles();
 
       for (let lz = 3; lz <= targetZ; lz++) {
         requested += this.requestViewportWindow(layer, lz, viewState, isDragging && !isZooming);
@@ -261,12 +267,11 @@
         const yMax = Math.min(rows - 1, Math.floor(((90 - (rotLat - halfLat)) / 180) * rows));
         const uMin = (rotLon - halfLon + 180) / 360;
         const uMax = (rotLon + halfLon + 180) / 360;
-        const ixStart = Math.floor(uMin * cols);
-        const ixEnd = Math.min(ixStart + 7, Math.floor(uMax * cols));
-
-        const candidates = [];
         const cyMid = ((90 - rotLat) / 180) * rows;
         const cxMid = ((rotLon + 180) / 360) * cols;
+        const [ixStart, ixEnd] = this.clampColumnSpan(Math.floor(uMin * cols), Math.floor(uMax * cols), cxMid, 8);
+
+        const candidates = [];
 
         for (let y = yMin; y <= yMax; y++) {
           for (let ix = ixStart; ix <= ixEnd; ix++) {
@@ -307,8 +312,7 @@
         const adjLonSpan = Math.min(145, halfLonSpan / latCos);
         const uMin = (rotLon - adjLonSpan + 180) / 360;
         const uMax = (rotLon + adjLonSpan + 180) / 360;
-        const ixStart = Math.floor(uMin * cols);
-        const ixEnd = Math.min(ixStart + 6, Math.floor(uMax * cols));
+        const [ixStart, ixEnd] = this.clampColumnSpan(Math.floor(uMin * cols), Math.floor(uMax * cols), cxMid, 7);
 
         for (let ix = ixStart; ix <= ixEnd; ix++) {
           const x = ((ix % cols) + cols) % cols;
@@ -324,6 +328,33 @@
         this.loadTile(layer, z, c.y, c.x, false);
       }
       return cap;
+    }
+
+    /**
+     * Sutun araligini kamera merkezine (cxMid) gore simetrik olarak en fazla maxCols sutuna kirpar
+     * (eski "ixStart + N" yontemi dogu yarisini asimetrik kesiyordu)
+     */
+    clampColumnSpan(ixStart, ixEnd, cxMid, maxCols) {
+      if (ixEnd - ixStart + 1 <= maxCols) return [ixStart, ixEnd];
+      const start = Math.max(ixStart, Math.round(cxMid - maxCols / 2));
+      const end = Math.min(ixEnd, start + maxCols - 1);
+      return [Math.max(ixStart, end - maxCols + 1), end];
+    }
+
+    /** Kuyrukta bekleyen z>=3 kayitlarini kuyruktan VE onbellekten (tileCache + fastGrid) siler */
+    dropStaleQueuedTiles() {
+      const keep = [];
+      for (const rec of this.loadQueue) {
+        if (rec.z <= 2) keep.push(rec);
+        else if (rec.status === "queued") this.forgetTile(rec);
+      }
+      this.loadQueue = keep;
+    }
+
+    forgetTile(rec) {
+      this.tileCache.delete(`${rec.layerId}:${rec.z}/${rec.y}/${rec.x}`);
+      const level = this.fastGrid.get(rec.layerId)?.[rec.z];
+      if (level && level.get(rec.intKey) === rec) level.delete(rec.intKey);
     }
 
     enqueueRange(layer, z, x0, x1, y0, y1, highPriority = false) {
@@ -355,7 +386,9 @@
     loadTile(layer, z, y, x, highPriority = false) {
       const key = `${layer.id}:${z}/${y}/${x}`;
       const existing = this.tileCache.get(key);
-      if (existing) {
+      if (existing && existing.status === "error" && Date.now() - (existing.failedAt || 0) > this.errorRetryMs) {
+        this.forgetTile(existing);
+      } else if (existing) {
         this.tileCache.delete(key);
         this.tileCache.set(key, existing);
         if (existing.status === "ready" && !existing.pixels && !existing.decodeQueued && !existing.tainted) {
@@ -425,11 +458,17 @@
       img.onerror = () => {
         this.activeLoads = Math.max(0, this.activeLoads - 1);
         record.status = "error";
+        record.failedAt = Date.now();
         if (record.sourceKind === "wmts") {
           this.remoteConsecutiveErrors++;
           if (this.remoteConsecutiveErrors >= 3) {
             this.remoteBlockedUntil = Date.now() + 30000;
           }
+        } else if (record.sourceKind === "local") {
+          // Yerel karo diskte yok (404): manifestten dusur ve NASA WMTS yedegine hemen gec
+          this.manifestSets.get(record.layerId)?.delete(`${record.z}/${record.y}/${record.x}`);
+          this.forgetTile(record);
+          this.loadTile(record.layer, record.z, record.y, record.x, record.z <= 2);
         }
         this.pumpLoadQueue();
       };
@@ -480,7 +519,7 @@
       }
 
       if (decodedAny) {
-        this.decodedVersion++;
+        // decodedVersion yalnizca extractTilePixels icinde artirilir (cift artis kaldirildi)
         this.onTileReady?.();
       }
 
@@ -495,7 +534,7 @@
     extractTilePixels(record) {
       if (!record || record.status !== "ready" || !record.img) return null;
       if (record.pixels) return record.pixels;
-      if (record.tainted) return null;
+      if (record.tainted || !this.scratchCtx) return null;
       try {
         this.scratchCtx.clearRect(0, 0, 256, 256);
         this.scratchCtx.drawImage(record.img, 0, 0, 256, 256);

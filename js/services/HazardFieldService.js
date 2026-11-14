@@ -68,13 +68,23 @@
         }
       ] : [];
 
-      // 2. Kum Firtinasi / Kasirga Koridorlari (Hellas, Acidalia-Chryse, Solis Planum, Isidis Kenari)
+      // 2. Kum Firtinasi / Kasirga Koridorlari (nasa_worldview_and_hazards.json verisiyle senkronize)
+      const corridors = this.worldviewHazards?.mars_environmental_hazards?.global_and_regional_dust_storm_corridors || [];
+      const wrapLon = (lon) => (((Number(lon) || 0) + 180) % 360 + 360) % 360 - 180;
+      const findCorridor = (id, defLat, defLon) => {
+        const hit = corridors.find((c) => c.region_id === id);
+        return hit ? { lat: Number(hit.center_lat), lon: wrapLon(hit.center_lon) } : { lat: defLat, lon: defLon };
+      };
+      const hellasCoord = findCorridor("hellas-basin-corridor", -42.7, 70.0);
+      const acidaliaCoord = findCorridor("acidalia-chryse-storm-track", 35.0, -35.0);
+      const solisCoord = findCorridor("solis-planum-trigger", -26.0, -90.0);
+
       const stormZones = options.filterDustStorm ? [
         {
           id: "storm-hellas",
           name: t("hzStormHellas", { tau: stormSpec.tau }),
-          lat: -42.4,
-          lon: 70.5,
+          lat: hellasCoord.lat,
+          lon: hellasCoord.lon,
           radiusDeg: 20 * stormSpec.detourScale,
           intensity: stormSpec.label,
           tau: stormSpec.tau
@@ -91,8 +101,8 @@
         {
           id: "storm-acidalia",
           name: t("hzStormAcidalia", { tau: stormSpec.tau }),
-          lat: 35.0,
-          lon: -35.0,
+          lat: acidaliaCoord.lat,
+          lon: acidaliaCoord.lon,
           radiusDeg: 16 * stormSpec.detourScale,
           intensity: stormSpec.label,
           tau: stormSpec.tau
@@ -100,8 +110,8 @@
         {
           id: "storm-solis",
           name: t("hzStormSolis", { tau: stormSpec.tau }),
-          lat: -26.0,
-          lon: -90.0,
+          lat: solisCoord.lat,
+          lon: solisCoord.lon,
           radiusDeg: 14 * stormSpec.detourScale,
           intensity: stormSpec.label,
           tau: stormSpec.tau

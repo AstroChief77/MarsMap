@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   AstroChief GitHub (origin/main) surekli izleme, derleme ve port 3000 LAN guncelleme otomasyonu.
 .DESCRIPTION
@@ -100,8 +100,9 @@ function Start-MarsServer {
     if (Get-RunningMarsServers) {
         return $true
     }
+    $quotedRoot = if ($RootDir -match '\s') { '"' + $RootDir + '"' } else { $RootDir }
     $proc = Start-Process -FilePath $WinExe `
-        -ArgumentList "--root", $RootDir, "--port", $Port.ToString(), "--no-browser" `
+        -ArgumentList "--root", $quotedRoot, "--port", $Port.ToString(), "--no-browser" `
         -WorkingDirectory $RootDir `
         -WindowStyle Hidden `
         -RedirectStandardOutput $ServerOut `
@@ -126,7 +127,8 @@ function Start-MarsServer {
 
 function Invoke-BuildTool {
     param([switch]$ForceSkipDesktop)
-    $argList = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $BuildScript)
+    $quotedBuild = if ($BuildScript -match '[\s"]') { '"' + ($BuildScript -replace '"', '\"') + '"' } else { $BuildScript }
+    $argList = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $quotedBuild)
     if ($ForceSkipDesktop) {
         $argList += "-SkipDesktopDeploy"
     }

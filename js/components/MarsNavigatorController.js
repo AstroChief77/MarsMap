@@ -117,23 +117,12 @@
       this.fpsGuard.start();
       this.startBackendLatencyMonitor();
       this.refreshAll();
-      if (this.state.backendApiUrl) {
-        this.refreshBackendHazardsAndRoute();
-      }
+      this.refreshBackendHazardsAndRoute();
     }
 
-    getLocalizedCraters() {
-      return this.i18n ? CRATERS_DATA.map((c) => this.i18n.localizeCrater(c)) : CRATERS_DATA;
-    }
-
-    getActiveCrater() {
-      const list = this.getLocalizedCraters();
-      return list.find((c) => c.id === this.state.activeCraterId) || list[0];
-    }
-
-    getActiveWaypoints() {
-      return CRATER_WAYPOINTS_DATA[this.getActiveCrater().id] || [];
-    }
+    getLocalizedCraters() { return this.i18n ? CRATERS_DATA.map((c) => this.i18n.localizeCrater(c)) : CRATERS_DATA; }
+    getActiveCrater() { const list = this.getLocalizedCraters(); return list.find((c) => c.id === this.state.activeCraterId) || list[0]; }
+    getActiveWaypoints() { return CRATER_WAYPOINTS_DATA[this.getActiveCrater().id] || []; }
 
     changeLanguage(langCode) {
       if (!this.i18n) return;
@@ -146,15 +135,8 @@
       this.showToast(this.t("toastLangChanged", { lang: meta ? `${meta.nativeName} (${meta.badge})` : valid.toUpperCase() }));
     }
 
-    persistState() {
-      clearTimeout(this.persistTimer);
-      this.storage.saveState(this.state);
-    }
-
-    schedulePersistState() {
-      clearTimeout(this.persistTimer);
-      this.persistTimer = setTimeout(() => this.storage.saveState(this.state), 240);
-    }
+    persistState() { clearTimeout(this.persistTimer); this.storage.saveState(this.state); }
+    schedulePersistState() { clearTimeout(this.persistTimer); this.persistTimer = setTimeout(() => this.storage.saveState(this.state), 240); }
 
     /** Hizli tekerlek, surukleme ve karo yuklemelerini tek rAF karesinde birlestirir */
     scheduleRender(requestTiles = false) {
@@ -162,10 +144,7 @@
       if (this.renderRafId) return;
       this.renderRafId = requestAnimationFrame(() => {
         this.renderRafId = null;
-        if (this.tilesNeedRequest) {
-          this.tilesNeedRequest = false;
-          this.requestTilesForView();
-        }
+        if (this.tilesNeedRequest) { this.tilesNeedRequest = false; this.requestTilesForView(); }
         this.drawMap();
         this.updateTelemetryBar();
       });
@@ -181,16 +160,17 @@
         this.starfield?.setEnabled(this.state.showStarfield);
         this.persistState();
         this.refreshAll();
+        this.refreshBackendHazardsAndRoute();
         this.showToast(this.t("toastFpsRevert", { fps: measuredFps, label: failedLabel }), true);
       });
 
       this.state[key] = value;
-      if (key === "viewMode" && value === "3d" && this.state.zoom > 22.0) this.state.zoom = 22.0;
+      if (key === "viewMode" && value === "3d" && this.state.zoom > 80.0) this.state.zoom = 80.0;
       if (key === "showStarfield") this.starfield?.setEnabled(value);
       this.backendRoutes = null;
       this.persistState();
       this.refreshAll();
-      if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(220);
+      this.scheduleBackendRouteFetch(180);
     }
 
     /** ZORUNLU KURAL: Sol ust Ayarlar -> 1. Secenek Factory Reset */
@@ -211,6 +191,7 @@
       this.starfield?.setEnabled(this.state.showStarfield);
       this.renderBottomRight();
       this.refreshAll();
+      this.refreshBackendHazardsAndRoute();
       this.showToast(this.t("toastFactoryReset"));
     }
 
@@ -220,7 +201,7 @@
       this.persistState();
       this.animateTo(-2.0, 96.0, 1.02);
       this.renderUi();
-      if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(120);
+      this.scheduleBackendRouteFetch(120);
     }
 
     flyToCraterById(craterId) {
@@ -238,7 +219,7 @@
       this.persistState();
       this.refreshAll();
       this.animateTo(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.state.zoom, 1.25));
-      if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(120);
+      this.scheduleBackendRouteFetch(120);
     }
 
     getActiveEndpoints() {
@@ -247,13 +228,13 @@
 
     getActiveHazardBundle() {
       const base = this.hazardService.getGlobalHazardZones(this.state);
-      if (!this.backendHazards) return { ...base, acidZones: [], stormZones: [], radiationZones: [] };
-      const pick = (flag, arr) => (flag && Array.isArray(arr) ? arr : []);
+      if (!this.backendHazards) return base;
+      const pick = (flag, arr, fallback) => (flag ? (Array.isArray(arr) ? arr : fallback) : []);
       return {
         ...base,
-        acidZones: pick(this.state.filterAcidRain, this.backendHazards.acidZones),
-        stormZones: pick(this.state.filterDustStorm, this.backendHazards.stormZones),
-        radiationZones: pick(this.state.showRadiationZones, this.backendHazards.radiationZones)
+        acidZones: pick(this.state.filterAcidRain, this.backendHazards.acidZones, base.acidZones),
+        stormZones: pick(this.state.filterDustStorm, this.backendHazards.stormZones, base.stormZones),
+        radiationZones: pick(this.state.showRadiationZones, this.backendHazards.radiationZones, base.radiationZones)
       };
     }
 
@@ -285,8 +266,8 @@
       const craters = this.getLocalizedCraters();
       const activeCrater = this.getActiveCrater();
       const wps = this.getActiveWaypoints();
-      const { computedRoutes } = this.getRouteAndHazardBundle();
-      const radZones = (this.backendHazards && Array.isArray(this.backendHazards.radiationZones)) ? this.backendHazards.radiationZones : [];
+      const { computedRoutes, hazardBundle } = this.getRouteAndHazardBundle();
+      const radZones = Array.isArray(hazardBundle?.radiationZones) ? hazardBundle.radiationZones : [];
       const { origin, destination } = this.getActiveEndpoints();
       const reqPayload = this.lastRequestPayload || this.buildCurrentRequestPayload(origin, destination, activeCrater);
 
@@ -309,8 +290,8 @@
         <div class="zoom-stack">
           <button class="zoom-btn" id="btn-zoom-in" title="${this.t("zoomInTitle")}">＋</button>
           <button class="zoom-btn" id="btn-zoom-out" title="${this.t("zoomOutTitle")}">－</button>
-          <button class="zoom-btn zoom-btn-3d" id="btn-3d-tilt" title="3D Kamera Eğimi (Sağ Tık Sürükle veya R/F)">${pitch}°</button>
-          <button class="zoom-btn zoom-btn-peak" id="btn-3d-peak" title="3D Topografya Zirvelerini Gez (Olympus Mons / Valles Marineris / Mount Sharp)">⛰</button>
+          <button class="zoom-btn zoom-btn-3d" id="btn-3d-tilt" title="${this.t("tiltBtnTitle")}">${pitch}°</button>
+          <button class="zoom-btn zoom-btn-peak" id="btn-3d-peak" title="${this.t("peakBtnTitle")}">⛰</button>
           <button class="zoom-btn" id="btn-cam-reset" title="${this.t("zoomResetTitle")}">⌂</button>
         </div>
         <div class="telemetry-strip">
@@ -338,7 +319,7 @@
         const p = peaks[this.peakIdx];
         this.state.viewMode = "3d"; this.state.camPitch = p.pitch;
         this.renderBottomRight(); this.animateTo(p.lat, p.lon, p.zoom);
-        this.showToast(`⛰ 3D Topografya: ${p.name}`);
+        this.showToast(this.t("toastPeakVisit", { name: p.name }));
       });
       this.bottomRightEl.querySelector("#btn-cam-reset")?.addEventListener("click", () => {
         const c = this.getActiveCrater();
@@ -364,9 +345,9 @@
       if (!el) return;
       const stats = this.tileLoader.getLayerStats(this.state.activeLayerId);
       const topo = ns.marsTopo ? ns.marsTopo.getSurfaceTelemetry(this.hoverCoords.lat, this.hoverCoords.lon) : null;
-      const elevStr = topo ? `${topo.elevM >= 0 ? "+" : ""}${topo.elevM} m (Eğim ${topo.slopeDeg}°)` : "";
-      const pitchStr = this.state.viewMode === "3d" ? ` • 3D Eğim: ${Math.round(this.state.camPitch ?? 28)}°` : "";
-      const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • Rakım: ${elevStr}${pitchStr} • ${stats.name} • z=${stats.zoom}`;
+      const elevStr = topo ? `${topo.elevM >= 0 ? "+" : ""}${topo.elevM} m (${this.t("telemSlope")} ${topo.slopeDeg}°)` : "";
+      const pitchStr = this.state.viewMode === "3d" ? ` • ${this.t("telemPitch")}: ${Math.round(this.state.camPitch ?? 28)}°` : "";
+      const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • ${this.t("telemElev")}: ${elevStr}${pitchStr} • ${stats.name} • z=${stats.zoom}`;
       if (nextText !== this.lastTelemetryText) {
         this.lastTelemetryText = nextText;
         el.textContent = nextText;
@@ -437,10 +418,7 @@
       });
 
       this.canvas.addEventListener("mousemove", (e) => {
-        if (!this.isDragging) {
-          this.updateHoverCoords(e);
-          return;
-        }
+        if (!this.isDragging) { this.updateHoverCoords(e); return; }
         const dx = e.clientX - this.dragX, dy = e.clientY - this.dragY;
         if (dx === 0 && dy === 0) return;
         if (dx * dx + dy * dy > 4) this.hasMoved = true;
@@ -496,10 +474,11 @@
 
         const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
         if (hit && !this.pickMode) { this.flyToCraterById(hit.crater.id); return; }
+        if (this.pickMode !== "destination") return;
 
         const geo = this.pixelToGeo(cx, cy);
         if (!geo.insideMap) {
-          if (this.pickMode) this.showToast(this.t("toastClickMarsSurface"), true);
+          this.showToast(this.t("toastClickMarsSurface"), true);
           return;
         }
         this.pickMode = null; this.canvas.style.cursor = "";
@@ -643,7 +622,7 @@
       }
       this.backendRoutes = null;
       this.persistState(); this.refreshAll();
-      if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(40);
+      this.scheduleBackendRouteFetch(40);
     }
 
     togglePickMode(mode) {
@@ -660,8 +639,8 @@
       this.backendRoutes = null; this.backendHazards = null;
       this.backendStatusText = clean ? this.t("backendConnecting") : this.t("backendLocalActive");
       this.persistState(); this.refreshAll();
-      if (clean) await this.refreshBackendHazardsAndRoute();
-      else this.showToast(this.t("toastBackendUrlCleared"));
+      if (!clean) this.showToast(this.t("toastBackendUrlCleared"));
+      await this.refreshBackendHazardsAndRoute();
     }
 
     async handleBackendUrlTest(rawUrl) {
@@ -673,12 +652,13 @@
     }
 
     async refreshBackendHazardsAndRoute() {
-      if (!this.backendApi || !this.state.backendApiUrl) return;
-      const health = await this.backendApi.testConnection(this.state.backendApiUrl);
+      if (!this.backendApi) return;
+      const baseUrl = this.state.backendApiUrl || "";
+      const health = await this.backendApi.testConnection(baseUrl);
       this.backendStatusText = health.message;
       this.backendLatencyMs = health.ok ? health.latencyMs : null;
       this.updateLatencyBadges();
-      const hz = await this.backendApi.fetchHazards(this.state.backendApiUrl);
+      const hz = await this.backendApi.fetchHazards(baseUrl);
       if (hz) {
         this.backendHazards = hz;
         this.cachedBundle = null;
@@ -690,12 +670,8 @@
     startBackendLatencyMonitor() {
       clearInterval(this.latencyTimer);
       this.latencyTimer = setInterval(async () => {
-        if (!this.backendApi || !this.state.backendApiUrl) {
-          this.backendLatencyMs = null;
-          this.updateLatencyBadges();
-          return;
-        }
-        const health = await this.backendApi.testConnection(this.state.backendApiUrl);
+        if (!this.backendApi) return;
+        const health = await this.backendApi.testConnection(this.state.backendApiUrl || "");
         this.backendLatencyMs = health.ok ? health.latencyMs : null;
         this.backendStatusText = health.message;
         this.updateLatencyBadges();
@@ -740,7 +716,7 @@
         this.backendRoutes = res;
         this.backendLatencyMs = typeof res.latencyMs === "number" ? res.latencyMs : this.backendLatencyMs;
         if (res.hazards) this.backendHazards = res.hazards;
-        this.backendStatusText = this.t("backendResponded", { ms: res.latencyMs || 0 });
+        this.backendStatusText = this.t("backendResponded", { ms: res.latencyMs ?? 1 });
         this.updateLatencyBadges();
       } catch (err) {
         if (seq !== this.requestSeq) return;
@@ -784,12 +760,13 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc ana Mars Navigator denetleyicisi tanimi.
-   - Satir 17-75: constructor; 10 dilli i18n, HiDPI olcek, rAF birlestirme, Rust Backend istemcisi ve 10s FPS koruma sistemini kurar.
-   - Satir 76-158: initUiPanels, init, getLocalizedCraters ve changeLanguage; Ayarlar, Uydular, Rota Inceleme panellerini ve 10 dil gecisini yonetir.
-   - Satir 160-250: scheduleRender, applyGuardedSetting, performFactoryReset ve krater/kuresel rota gecis metodlari.
-   - Satir 251-355: getActiveHazardBundle, computeActiveRoutes, buildCurrentRequestPayload, getRouteAndHazardBundle ve renderUi yardimcilari.
-   - Satir 357-445: requestTilesForView ve drawMap; HiDPI tuval donusumuyle 2D/3D motorlarini donmasiz cizer.
-   - Satir 447-625: piksel-kilitli surukleme, yumusak tekerlek yakinlastirma, haritadan hedef secimi, atalet ve duragan netlestirme.
-   - Satir 626-774: pixelToGeo, Rust Backend senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
+   - Satir 1-10: JSDoc ve IIFE modul tanimi.
+   - Satir 12-60: constructor ve t; 9 dilli i18n, HiDPI olcek, rAF birlestirme, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
+   - Satir 62-145: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme panellerini ve 9 dil gecisini yonetir.
+   - Satir 147-230: applyGuardedSetting, performFactoryReset ve krater/kuresel rota gecis metodlari (FPS < 10 geri alma ve fabrika sifirlama sonrasi rota yenileme).
+   - Satir 232-295: getActiveHazardBundle, computeActiveRoutes, buildCurrentRequestPayload, getRouteAndHazardBundle ve renderUi yardimcilari.
+   - Satir 297-415: renderBottomRight, updateTelemetryBar, requestTilesForView ve drawMap; yerellestirilmis telemetri ve HiDPI 2D/3D cizim.
+   - Satir 417-595: bindCanvasEvents, bindGlobalEvents, startInertia, animateTo ve applyZoom; yalnizca pickMode aktifken hedef secen guvenli tiklama ve 80x 3D zoom.
+   - Satir 597-776: pixelToGeo, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
    ========================================================================== */
+
