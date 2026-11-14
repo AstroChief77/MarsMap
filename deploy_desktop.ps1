@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # AstroChief - Masaüstüne Güncel Sürüm Dağıtım Betiği (deploy_desktop.ps1)
 # ==============================================================================
 
@@ -12,11 +12,13 @@ Write-Host "[AstroChief] Kaynak Dizin : $SourceDir" -ForegroundColor Cyan
 Write-Host "[AstroChief] Hedef Masaüstü: $TargetDir" -ForegroundColor Cyan
 
 if (Test-Path $TargetDir) {
-    Write-Host "[AstroChief] Önceki masaüstü test sürümü temizleniyor..." -ForegroundColor Yellow
-    Remove-Item -Path $TargetDir -Recurse -Force
+    Write-Host "[AstroChief] Önceki masaüstü test sürümü güncelleniyor..." -ForegroundColor Yellow
+    Get-ChildItem -Path $TargetDir -Force | ForEach-Object {
+        Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+    }
+} else {
+    New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
 }
-
-New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
 
 $ExcludeDirs = @(".git", "backups", "logs")
 $Items = Get-ChildItem -Path $SourceDir -Force | Where-Object { $ExcludeDirs -notcontains $_.Name }
@@ -24,7 +26,10 @@ $Items = Get-ChildItem -Path $SourceDir -Force | Where-Object { $ExcludeDirs -no
 foreach ($Item in $Items) {
     $DestPath = Join-Path $TargetDir $Item.Name
     if ($Item.PSIsContainer) {
-        Copy-Item -Path $Item.FullName -Destination $DestPath -Recurse -Force
+        if (-not (Test-Path $DestPath)) {
+            New-Item -ItemType Directory -Path $DestPath -Force | Out-Null
+        }
+        Copy-Item -Path (Join-Path $Item.FullName "*") -Destination $DestPath -Recurse -Force
     } else {
         Copy-Item -Path $Item.FullName -Destination $DestPath -Force
     }
@@ -43,11 +48,10 @@ DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 - Satır 8: Kullanıcının Windows Masaüstü yolunu ($DesktopDir) dinamik olarak bulur.
 - Satır 9: Masaüstünde oluşturulacak hedef klasör yolunu (AstroChief-MarsMap) belirler.
 - Satır 11-12: Kaynak ve hedef dizinleri konsola yazdırır.
-- Satır 14-17: Masaüstünde eski bir test sürümü varsa temizler.
-- Satır 19: Hedef klasörü masaüstünde yeniden oluşturur.
-- Satır 21: Kopyalanmayacak sistem/yedek klasörlerini (.git, backups, logs) tanımlar.
-- Satır 22: Hariç tutulanlar dışındaki tüm dosya ve klasörleri listeler.
-- Satır 24-31: Proje dosya ve klasörlerini tek tek masaüstündeki hedef klasöre kopyalar.
-- Satır 33-34: İşlem tamamlandığında başarı ve test yönergesi mesajlarını yazdırır.
+- Satır 14-21: Masaüstünde hedef klasör açıksa kök dizini silmeye çalışıp kilitlenmek yerine içindeki eski öğeleri temizler, yoksa klasörü oluşturur.
+- Satır 23: Kopyalanmayacak sistem/yedek klasörlerini (.git, backups, logs) tanımlar.
+- Satır 24: Hariç tutulanlar dışındaki tüm dosya ve klasörleri listeler.
+- Satır 26-33: Proje dosya ve klasörlerini tek tek masaüstündeki hedef klasöre üzerine yazarak kopyalar.
+- Satır 35-36: İşlem tamamlandığında başarı ve test yönergesi mesajlarını yazdırır.
 ================================================================================
 #>

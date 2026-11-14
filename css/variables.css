@@ -1,65 +1,60 @@
 /**
  * @file variables.css
- * @description AstroChief Mission Control renk paleti, 'Public Sans Web' kalın tipografi ve arayüz değişkenleri.
- * Kural Gereği: Yazı fontları Public Sans Web, sans-serif ailesinden ve bold olmak zorundadır.
+ * @description AstroChief %60 Beyaz, %30 Siyah, %10 Kırmızı NASA Teması ve 'Public Sans Web' Bold değişkenleri.
+ * Kural Gereği: Tema %60 beyaz, %30 siyah, %10 kırmızı; font Public Sans Web, sans-serif ve bold olmalıdır.
  */
 
 :root {
-  /* Zifiri Siyah Uzay & Panel Renkleri */
-  --bg-space: #000000;
-  --bg-space-deep: #050508;
-  --bg-panel: rgba(10, 12, 18, 0.92);
-  --bg-panel-solid: #0d1117;
-  --bg-card: rgba(15, 20, 30, 0.94);
-  --bg-card-hover: rgba(22, 28, 42, 0.98);
-  
-  /* Görev Kontrol Vurguları */
-  --mars-primary: #ff5722;
-  --mars-accent: #f97316;
-  --mars-deep: #c2410c;
-  --nasa-blue: #0284c7;
-  --nasa-cyan: #38bdf8;
-  --hud-green: #22c55e;
-  --hud-amber: #f59e0b;
-  --hud-red: #ef4444;
-  --boxwork-gold: #eab308;
+  /* %60 Beyaz Temiz Arayüz Yüzeyleri */
+  --surface-white: #ffffff;
+  --surface-offwhite: #f4f6f8;
+  --surface-subtle: #e5e7eb;
 
-  /* Metin Renkleri - Yüksek Kontrast */
-  --text-primary: #ffffff;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  /* %30 Siyah Uzay Zemini, Harita Boşluğu ve Kontrast Metinler */
+  --space-black: #000000;
+  --ink-black: #0a0a0a;
+  --ink-dark: #1f2937;
+  --ink-muted: #4b5563;
 
-  /* Çerçeveler & HUD Hatları */
-  --border-clean: rgba(255, 255, 255, 0.12);
-  --border-active: rgba(255, 87, 34, 0.5);
-  --border-cyan: rgba(56, 189, 248, 0.4);
-  --border-green: rgba(34, 197, 94, 0.4);
+  /* %10 Mars & NASA Kırmızısı Vurgular */
+  --mars-red: #e03c31;
+  --mars-red-dark: #b91c1c;
+  --mars-red-soft: rgba(224, 60, 49, 0.1);
 
-  /* KURAL: Public Sans Web ve Bold Standartı */
+  /* Yardımcı Bilimsel Telemetri Renkleri */
+  --hud-green: #16a34a;
+  --hud-cyan: #0284c7;
+  --hud-amber: #d97706;
+
+  /* Çerçeveler ve Gölgeler */
+  --border-black: #111111;
+  --border-light: #d1d5db;
+  --shadow-clean: 0 10px 30px rgba(0, 0, 0, 0.65);
+
+  /* KURAL: Public Sans Web, sans-serif ve Bold Standartı */
   --font-family-mars: 'Public Sans Web', 'Public Sans', system-ui, -apple-system, sans-serif;
-  --font-weight-normal: 700; /* Kural gereği bold taban */
-  --font-weight-bold: 800;
-  --font-weight-heavy: 900;
+  --font-weight-base: 700;
+  --font-weight-heavy: 800;
+  --font-weight-black: 900;
 
-  /* Ölçüler & Yuvarlatmalar */
+  /* Ölçüler */
   --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-full: 9999px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --max-width-container: 1360px;
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc CSS değişkenleri ve zorunlu Public Sans bold kuralı açıklaması.
-   - Satır 7: :root seçicisi ile küresel değişkenlerin başlatılması.
-   - Satır 9-14: Zifiri siyah uzay (--bg-space: #000000) ve cam panel renkleri.
-   - Satır 16-25: Görev kontrol vurguları (Mars pası, NASA camgöbeği, telemetri yeşili, Boxwork altını).
-   - Satır 27-31: Yüksek kontrastlı metin renkleri (--text-primary: #ffffff).
-   - Satır 33-37: Temiz kenarlıklar ve aktif seçim çerçeveleri.
-   - Satır 39-44: Kural gereğince zorunlu 'Public Sans Web' font ailesi ve kalın (bold 700/800/900) ağırlıklar.
-   - Satır 46-51: Ölçüler, köşe yarıçapları ve maksimum sayfa genişliği (1360px).
-   - Satır 52: :root bloğu sonu.
+   - Satır 1-5: JSDoc dosya tanıtımı ve 60-30-10 tema + Public Sans bold kuralı açıklaması.
+   - Satır 7: :root global CSS değişkenleri bloğu başlangıcı.
+   - Satır 9-11: %60 Beyaz yüzey değişkenleri (--surface-white, --surface-offwhite, --surface-subtle).
+   - Satır 13-17: %30 Siyah uzay ve tipografi renkleri (--space-black: #000000, --ink-black).
+   - Satır 19-22: %10 Kırmızı NASA vurguları (--mars-red: #e03c31, --mars-red-dark).
+   - Satır 24-27: Yardımcı telemetri durum renkleri (yeşil, camgöbeği, amber).
+   - Satır 29-32: Net siyah kenarlıklar ve temiz gölge değişkenleri.
+   - Satır 34-38: Zorunlu 'Public Sans Web' font ailesi ve kalın (700/800/900) ağırlık kuralları.
+   - Satır 40-44: Köşe yarıçapları ve maksimum sayfa genişliği (1360px).
+   - Satır 45: :root kapanışı.
    ========================================================================== */
