@@ -31,7 +31,7 @@
     }
 
     /**
-     * Modal icinde gosterilecek sade siyah-beyaz-kirmizi ekip kartini uretir
+     * Modal icinde gosterilecek sade acik gri-beyaz-kirmizi ekip kartini uretir
      * @returns {string} HTML metni
      */
     renderCard() {

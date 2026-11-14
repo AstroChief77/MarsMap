@@ -1,50 +1,64 @@
 /**
  * @file variables.css
- * @description %60 Beyaz, %30 Siyah, %10 Kirmizi kurumsal tema degiskenleri ve "Public Sans Web" font ailesi.
+ * @description Acik Gri Studio (%60 Beyaz/Buzlu Yuzey, %30 Acik Gri Zemin & Slate Tipografi, %10 Kirmizi) tema degiskenleri ve "Public Sans Web" font ailesi.
  */
 
 :root {
-  /* Koyu Kozmik Mars Cam Yüzeyleri */
-  --bg-white: rgba(13, 17, 26, 0.90);
-  --bg-offwhite: rgba(22, 27, 39, 0.88);
-  --bg-soft: rgba(34, 41, 58, 0.92);
+  /* Beyaz & Buzlu Kart Yuzeyleri */
+  --bg-white: rgba(255, 255, 255, 0.95);
+  --bg-solid-white: #ffffff;
+  --bg-offwhite: #f8fafc;
+  --bg-soft: #eef2f6;
 
-  /* Uzay Zemini, Açık Metinler ve Çerçeveler */
-  --space-black: #000000;
-  --ink-black: #f1f5f9;
-  --ink-dark: #cbd5e1;
-  --ink-muted: #94a3b8;
+  /* Acik Gri Studio Zeminleri, Kontroller ve Yuksek Kontrastli Slate Tipografi */
+  --space-black: #dfe4ec;
+  --bg-canvas: #dfe4ec;
+  --bg-gray-100: #eef2f6;
+  --bg-gray-200: #dfe5ee;
+  --bg-gray-300: #cfd7e3;
+  --surface-control: #eef2f6;
+  --surface-control-hover: #e2e8f0;
+  --ink-black: #1e293b;
+  --ink-dark: #334155;
+  --ink-muted: #64748b;
 
-  /* NASA / Mars Kırmızısı Vurgular */
-  --mars-red: #e03e2d;
+  /* NASA / Mars Kirmizisi Vurgular */
+  --mars-red: #d92b2b;
   --mars-red-dark: #b91c1c;
-  --mars-red-tint: rgba(224, 62, 45, 0.16);
+  --mars-red-tint: rgba(217, 43, 43, 0.10);
+  --mars-red-soft: #fee2e2;
 
-  /* Güvenli Rota Renk Standartları */
-  --route-blue: #3b82f6;
-  --route-pale-blue: #93c5fd;
+  /* Guvenli Rota ve Durum Renk Standartlari */
+  --route-blue: #2563eb;
+  --route-blue-dark: #1d4ed8;
+  --route-blue-soft: #eff6ff;
+  --route-pale-blue: #60a5fa;
+  --status-ok-bg: #dcfce7;
+  --status-ok-text: #15803d;
+  --status-ok-border: #86efac;
 
-  /* Çizgi ve Gölgeler */
-  --line-light: rgba(255, 255, 255, 0.14);
-  --line-dark: rgba(235, 118, 62, 0.42);
-  --shadow-card: 0 14px 36px rgba(0, 0, 0, 0.68);
-  --shadow-btn: 0 6px 20px rgba(0, 0, 0, 0.55);
+  /* Cizgiler, Cam Efektleri ve Yumusak Slate Golgeler */
+  --line-light: #cbd5e1;
+  --line-dark: #94a3b8;
+  --glass-blur: blur(14px);
+  --shadow-card: 0 14px 34px -6px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-btn: 0 6px 18px -4px rgba(15, 23, 42, 0.12), 0 1px 4px rgba(15, 23, 42, 0.06);
 
-  /* ZORUNLU FONT AİLESİ: Public Sans Web, sans-serif */
+  /* ZORUNLU FONT AILESI: Public Sans Web, sans-serif */
   --font-main: 'Public Sans Web', sans-serif;
 
-  /* Yuvarlaklık ve Boşluklar */
-  --r-xs: 6px;
-  --r-sm: 10px;
-  --r-md: 14px;
+  /* Yuvarlaklik */
+  --r-xs: 8px;
+  --r-sm: 11px;
+  --r-md: 16px;
   --r-pill: 999px;
 }
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-4: JSDoc tema degiskenleri tanimi.
-   - Satir 6-22: %60 beyaz yuzey, %30 siyah yazi/uzay, %10 kirmizi vurgu renk tokenlari.
-   - Satir 24-26: Haritada en guvenli kisa yol (Mavi) ve uzun guvenli yol (Soluk Mavi) renk sabitleri.
-   - Satir 28-35: Kenarliklar, golgeler ve zorunlu 'Public Sans Web', sans-serif font ailesi degiskeni.
+   - Satir 1-4: JSDoc Acik Gri Studio tema degiskenleri tanimi.
+   - Satir 6-24: Beyaz/buzlu kartlar, acik gri arka plan/kontrol tonlari ve yuksek kontrastli slate metin renkleri.
+   - Satir 26-39: Mars Kirmizisi, Mavi Guvenli Rota ve yuksek okunakli durum rozeti renk sabitleri.
+   - Satir 41-55: Ince gri kenarliklar, buzlu cam bulanikligi, yumusak golgeler ve 'Public Sans Web', sans-serif font ailesi.
    ========================================================================== */

@@ -1,7 +1,7 @@
 /**
  * @file inspector.css
  * @description Sag ust Rota & Radyasyon Inceleme Karti ve Gorev/Ekip/Kaynaklar modali stilleri.
- * %60 Beyaz kartlar, %30 Siyah tipografi, %10 Kirmizi rozetler + Mavi/Soluk Mavi rota seritleri.
+ * Acik Gri Studio: %60 Beyaz/Buzlu kartlar, %30 Acik Gri zemin & Slate tipografi, %10 Kirmizi/Mavi vurgular.
  */
 
 .hud-top-right {
@@ -13,7 +13,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  max-width: 340px;
+  max-width: 440px;
 }
 
 .inspector-toggle-btn {
@@ -22,36 +22,39 @@
   gap: 8px;
   padding: 8px 13px;
   background: var(--bg-white);
+  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
-  border: 1.5px solid var(--line-light);
-  backdrop-filter: blur(14px);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-sm);
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
   box-shadow: var(--shadow-btn);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .inspector-toggle-btn:hover {
-  background: var(--mars-red);
-  color: #ffffff;
-  border-color: var(--mars-red);
+  background: var(--surface-control-hover);
+  color: var(--ink-black);
+  border-color: var(--line-dark);
 }
 
 .inspector-card {
-  width: 292px;
+  width: 326px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 355px);
   overflow-y: auto;
   background: var(--bg-white);
+  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
-  border: 1.5px solid var(--line-light);
-  backdrop-filter: blur(16px);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 10px;
+  padding: 12px;
   display: none;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .inspector-card.open {
@@ -78,7 +81,7 @@
 .insp-title {
   font-size: 13.5px;
   font-weight: 900;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .insp-sub {
@@ -102,24 +105,29 @@
 
 .insp-select {
   width: 100%;
-  padding: 5px 6px;
+  padding: 6px 7px;
   border: 1px solid var(--line-light);
   border-radius: 6px;
-  background: var(--bg-offwhite);
+  background: var(--bg-solid-white);
   color: var(--ink-black);
   font-size: 11px;
   font-weight: 700;
+}
+
+.insp-select:focus {
+  border-color: var(--route-blue);
+  outline: none;
 }
 
 /* Mavi ve Soluk Mavi Rota Kutulari */
 .route-card {
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 8px 10px;
+  padding: 9px 10px;
   background: var(--bg-offwhite);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .route-card.primary {
@@ -134,17 +142,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-weight: 900;
 }
 
 .route-duration-pill {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: var(--ink-black);
-  color: var(--bg-white);
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--route-blue-soft);
+  color: var(--route-blue-dark);
+  border: 1px solid #bfdbfe;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .route-metrics-line {
@@ -157,18 +169,18 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--ink-muted);
-  background: var(--bg-white);
+  background: var(--bg-solid-white);
   border: 1px solid var(--line-light);
-  border-radius: 4px;
-  padding: 4px 6px;
+  border-radius: 5px;
+  padding: 5px 7px;
   margin-top: 2px;
 }
 
 .insp-source-pill {
   font-size: 10px;
   font-weight: 900;
-  padding: 2px 7px;
-  border-radius: 99px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
   background: var(--bg-soft);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
@@ -176,18 +188,19 @@
 }
 
 .insp-source-pill.rust {
-  background: var(--ink-black);
-  color: #4ade80;
-  border-color: #16a34a;
+  background: var(--status-ok-bg);
+  color: var(--status-ok-text);
+  border-color: var(--status-ok-border);
 }
 
 .insp-latency-pill {
   font-size: 10px;
   font-weight: 900;
-  padding: 2px 7px;
-  border-radius: 99px;
-  background: var(--ink-black);
-  color: #4ade80;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--status-ok-bg);
+  color: var(--status-ok-text);
+  border: 1px solid var(--status-ok-border);
   white-space: nowrap;
 }
 
@@ -198,18 +211,19 @@
 }
 
 .insp-latency-pill.slow {
-  background: var(--mars-red);
-  color: var(--bg-white);
+  background: var(--mars-red-soft);
+  color: var(--mars-red-dark);
+  border: 1px solid #fca5a5;
 }
 
 .insp-coord-box {
   background: var(--bg-offwhite);
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 8px;
+  padding: 9px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .insp-pick-row {
@@ -219,19 +233,25 @@
 }
 
 .insp-pick-btn {
-  padding: 5px 6px;
-  border: 1px solid var(--ink-black);
-  border-radius: 5px;
-  background: var(--bg-white);
+  padding: 6px 6px;
+  border: 1px solid var(--line-dark);
+  border-radius: 6px;
+  background: var(--bg-solid-white);
   color: var(--ink-black);
   font-size: 10.5px;
   font-weight: 800;
   text-align: center;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.insp-pick-btn:hover {
+  background: var(--surface-control);
 }
 
 .insp-pick-btn.active {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   border-color: var(--mars-red);
 }
 
@@ -257,35 +277,42 @@
 .insp-coord-inputs input {
   width: 100%;
   min-width: 0;
-  padding: 4px 5px;
+  padding: 5px 6px;
   border: 1px solid var(--line-light);
-  border-radius: 4px;
-  background: var(--bg-white);
+  border-radius: 5px;
+  background: var(--bg-solid-white);
   font-size: 11px;
   font-weight: 700;
   color: var(--ink-black);
 }
 
+.insp-coord-inputs input:focus {
+  border-color: var(--route-blue);
+  outline: none;
+}
+
 .insp-calc-btn {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--route-blue);
-  border-radius: 5px;
+  padding: 7px 10px;
+  border: 1px solid var(--route-blue-dark);
+  border-radius: 6px;
   background: var(--route-blue);
   color: #ffffff;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 900;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
 }
 
 .insp-calc-btn:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--route-blue-dark);
+  border-color: var(--route-blue-dark);
 }
 
 .step-panel {
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 7px;
+  padding: 8px;
   background: var(--bg-offwhite);
   display: flex;
   flex-direction: column;
@@ -299,13 +326,14 @@
 
 .step-tab-btn {
   flex: 1;
-  padding: 4px 6px;
+  padding: 5px 6px;
   border: 1px solid var(--line-light);
-  border-radius: 4px;
-  background: var(--bg-soft);
+  border-radius: 5px;
+  background: var(--bg-solid-white);
   color: var(--ink-black);
   font-size: 10.5px;
   font-weight: 800;
+  cursor: pointer;
 }
 
 .step-tab-btn.active {
@@ -315,24 +343,26 @@
 }
 
 .step-list {
-  max-height: 150px;
+  max-height: 170px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .step-row {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-solid-white);
   border: 1px solid var(--line-light);
   border-left: 3px solid var(--route-blue);
-  border-radius: 4px;
-  padding: 5px 7px;
+  border-radius: 5px;
+  padding: 7px 9px;
   cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
 
 .step-row:hover {
   border-color: var(--route-blue);
+  background: var(--bg-offwhite);
 }
 
 .step-row-top {
@@ -361,8 +391,8 @@
 .rad-panel {
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 8px 10px;
-  background: var(--bg-offwhite);
+  padding: 9px 10px;
+  background: var(--bg-solid-white);
 }
 
 .rad-panel-head {
@@ -375,7 +405,7 @@
 .rad-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 8px;
+  gap: 5px 8px;
   font-size: 11px;
 }
 
@@ -394,21 +424,28 @@
 .wp-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
 }
 
 .wp-chip {
   padding: 4px 7px;
   border-radius: 5px;
   border: 1px solid var(--line-light);
-  background: var(--bg-offwhite);
-  font-size: 10px;
+  background: var(--bg-solid-white);
+  color: var(--ink-black);
+  font-size: 9.5px;
   font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.wp-chip:hover {
+  background: var(--surface-control-hover);
 }
 
 .wp-chip.active {
-  background: var(--mars-red);
-  color: #ffffff;
+  background: var(--mars-red-soft);
+  color: var(--mars-red-dark);
   border-color: var(--mars-red);
 }
 
@@ -426,14 +463,15 @@
   height: 112px;
   object-fit: cover;
   border-radius: var(--r-xs);
-  border: 1px solid var(--ink-black);
+  border: 1px solid var(--line-light);
 }
 
 /* Gorev / Ekip / Kaynaklar Modali */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(148, 163, 184, 0.46);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -446,13 +484,12 @@
   max-width: 100%;
   max-height: 86vh;
   overflow-y: auto;
-  background: var(--bg-white);
+  background: var(--bg-solid-white);
   color: var(--ink-black);
-  border: 1.5px solid var(--line-light);
-  backdrop-filter: blur(18px);
+  border: 1px solid var(--line-dark);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -462,7 +499,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1.5px solid var(--ink-black);
+  border-bottom: 1px solid var(--line-light);
   padding-bottom: 10px;
 }
 
@@ -478,7 +515,7 @@
 }
 
 .team-card {
-  border: 1px solid var(--ink-black);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-sm);
   padding: 10px;
   background: var(--bg-offwhite);
@@ -491,8 +528,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--bg-gray-200);
+  color: var(--ink-black);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -518,7 +555,7 @@
 }
 
 .disclaimer-box {
-  background: var(--mars-red-tint);
+  background: var(--mars-red-soft);
   border: 1px solid var(--mars-red);
   border-radius: var(--r-xs);
   padding: 10px;
@@ -540,9 +577,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sag ust rota inceleme karti ve gorev/ekip modali stilleri.
-   - Satir 7-74: .hud-top-right konumlandirmasi, acma/kapatma dugmesi ve beyaz inceleme karti.
-   - Satir 76-152: Rota baslangic/hedef secicileri ile Mavi ve Soluk Mavi yol kartlari (sure/mesafe/yorum).
-   - Satir 154-224: Alfa/Beta/Gama foton radyasyon izgarasi ve EVA durak fotoğraf önizlemesi.
-   - Satir 226-309: Gorev, NASA kaynaklari ve AstroChief ekip uyeleri modali stilleri.
+   - Satir 1-5: JSDoc Acik Gri Studio sag ust rota inceleme karti ve gorev/ekip modali stilleri.
+   - Satir 7-80: .hud-top-right konumlandirmasi, buzlu cam acma/kapatma dugmesi ve kompakt 326px kart gorunumu.
+   - Satir 82-215: Seciciler, Mavi/Soluk Mavi rota kartlari, tek satirlik acik mavi sure rozeti ve okunakli yesil gecikme rozetleri.
+   - Satir 217-370: Koordinat alma dugmeleri, Mavi rota hesapla CTA butonu, adim sekmeleri ve net beyaz adim satirlari.
+   - Satir 372-466: Radyasyon paneli, acik gri EVA durak cipleri ve kamera fotograf onizlemesi.
+   - Satir 468-563: Acik gri arka plan bulanikli gorev/ekip/NASA kaynaklari modali ve acik gri takim rozetleri.
    ========================================================================== */

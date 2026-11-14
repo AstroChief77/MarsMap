@@ -72,23 +72,37 @@
         let lon = parseFloat(coordMatch[3]);
         if (coordMatch[2] && coordMatch[2].toUpperCase() === "S") lat = -Math.abs(lat);
         if (coordMatch[4] && coordMatch[4].toUpperCase() === "W") lon = -Math.abs(lon);
-        if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-          this.animateTo(lat, lon, Math.max(this.state.zoom || 1, 2.2));
-          this.showToast(`${lat.toFixed(2)}°, ${lon.toFixed(2)}°`);
+        const lonValid = coordMatch[4] ? (lon >= -180 && lon <= 180) : (lon >= -180 && lon <= 360);
+        if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lonValid) {
+          const normLon = this.normalizeLon(lon);
+          this.animateTo(lat, normLon, Math.max(this.state.zoom || 1, 2.2));
+          this.showToast(`${lat.toFixed(2)}°, ${normLon.toFixed(2)}°`);
           return;
         }
       }
       const norm = q.toLowerCase();
-      const craterHit = (this.craters || []).find((c) => c.name.toLowerCase().includes(norm) || c.id.toLowerCase().includes(norm));
+      const craterHit = this.getLocalizedCraters().find((c) =>
+        c.name.toLowerCase().includes(norm) ||
+        (c.englishName && c.englishName.toLowerCase().includes(norm)) ||
+        c.id.toLowerCase().includes(norm)
+      );
       if (craterHit) {
         this.flyToCraterById(craterHit.id);
         return;
       }
-      const siteHit = (this.landingSites || []).find((s) => s.name.toLowerCase().includes(norm) || s.id.toLowerCase().includes(norm));
+      const siteHit = (this.landingSites || []).find((s) =>
+        (s.name && s.name.toLowerCase().includes(norm)) ||
+        (s.site_name && s.site_name.toLowerCase().includes(norm)) ||
+        (s.id && s.id.toLowerCase().includes(norm))
+      );
       if (siteHit) {
-        this.animateTo(siteHit.lat, siteHit.lon, Math.max(this.state.zoom || 1, 2.2));
-        this.showToast(siteHit.name);
-        return;
+        const sLat = Number(siteHit.latitude ?? siteHit.lat);
+        const sLon = this.normalizeLon(Number(siteHit.longitude ?? siteHit.lon));
+        if (Number.isFinite(sLat) && Number.isFinite(sLon)) {
+          this.animateTo(sLat, sLon, Math.max(this.state.zoom || 1, 2.2));
+          this.showToast(siteHit.name || q);
+          return;
+        }
       }
       const landmarks = [
         { name: "Olympus Mons", lat: 18.65, lon: -133.8, zoom: 2.35 },
@@ -104,11 +118,11 @@
       ];
       const lmHit = landmarks.find((l) => l.name.toLowerCase().includes(norm));
       if (lmHit) {
-        this.animateTo(lmHit.lat, lmHit.lon, lmHit.zoom);
+        this.animateTo(lmHit.lat, this.normalizeLon(lmHit.lon), lmHit.zoom);
         this.showToast(lmHit.name);
         return;
       }
-      this.showToast(`"${q}" için konum veya koordinat bulunamadı`, true);
+      this.showToast(this.t("toastSearchNotFound", { query: q }), true);
     }
 
     initUiPanels() {
@@ -118,6 +132,7 @@
         onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label),
         onSearchQuery: (q) => this.handleSearchQuery(q),
         onPopoverOpen: () => this.satellitesPanel?.close(),
+        onPanelToggle: () => this.scheduleRender(false),
         onSelectGlobalScope: () => this.switchToGlobalRouteScope(),
         onSelectCrater: (craterId) => this.flyToCraterById(craterId),
         onOpenInfoModal: () => this.missionModal.open(),
@@ -129,10 +144,11 @@
       });
       this.satellitesPanel = new SatellitesPanel(document.getElementById("bottom-left-dock"), {
         onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label),
-        onPopoverOpen: () => this.settingsPanel?.close()
+        onPopoverOpen: () => this.settingsPanel?.close(),
+        onPanelToggle: () => this.scheduleRender(false)
       });
       this.inspectorPanel = new RouteInspectorPanel(document.getElementById("top-right-dock"), {
-        onToggleInspector: (open) => { this.state.inspectorOpen = open; this.persistState(); this.renderUi(); },
+        onToggleInspector: (open) => { this.state.inspectorOpen = open; this.persistState(); this.renderUi(); this.scheduleRender(false); },
         onChangeGlobalEndpoints: (key, siteId) => this.handlePresetEndpointChange(key, siteId),
         onTogglePickMode: (mode) => this.togglePickMode(mode),
         onSendBackendRoute: () => this.fetchBackendRouteNow(true),
@@ -327,7 +343,7 @@
     applyDemoScenario(scen) {
       if (!scen) return;
       Object.assign(this.state, scen.patch || {});
-      if (scen.camera) { this.state.camPitch = scen.camera.pitch ?? 28; this.state.camYaw = 0; }
+      if (scen.camera) { this.state.camPitch = scen.camera.pitch ?? 0; this.state.camYaw = 0; }
       this.backendRoutes = null; this.persistState(); this.renderBottomRight(); this.refreshAll();
       if (scen.camera) this.animateTo(scen.camera.lat, scen.camera.lon, scen.camera.zoom);
       this.scheduleBackendRouteFetch(30);
@@ -423,7 +439,7 @@
       const stats = this.tileLoader.getLayerStats(this.state.activeLayerId);
       const topo = ns.marsTopo ? ns.marsTopo.getSurfaceTelemetry(this.hoverCoords.lat, this.hoverCoords.lon) : null;
       const elevStr = topo ? `${topo.elevM >= 0 ? "+" : ""}${topo.elevM} m (${this.t("telemSlope")} ${topo.slopeDeg}°)` : "";
-      const pitchStr = this.state.viewMode === "3d" ? ` • ${this.t("telemPitch")}: ${Math.round(this.state.camPitch ?? 28)}°` : "";
+      const pitchStr = this.state.viewMode === "3d" ? ` • ${this.t("telemPitch")}: ${Math.round(this.state.camPitch ?? 0)}°` : "";
       const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • ${this.t("telemElev")}: ${elevStr}${pitchStr} • ${stats.name} • z=${stats.zoom}`;
       if (nextText !== this.lastTelemetryText) {
         this.lastTelemetryText = nextText;
@@ -440,11 +456,38 @@
       const isInteracting = Boolean(isDragging || isZooming);
       this.tileLoader.requestVisibleTiles(activeLayerId, {
         rotLat, rotLon, zoom, dpr: this.dpr || 1, viewportW: vw, viewportH: vh,
-        camPitch: camPitch ?? 28, camYaw: camYaw ?? 0, isDragging, isZooming, isInteracting,
+        camPitch: camPitch ?? 0, camYaw: camYaw ?? 0, isDragging, isZooming, isInteracting,
         mapWidthPx: Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 32.0),
         sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0),
         viewMode, progressiveLodRender
       });
+    }
+
+    computeUiAvoidRects() {
+      if (!this.canvas || typeof document === "undefined") return [];
+      const cr = this.canvas.getBoundingClientRect();
+      const rects = [];
+      const selectors = [
+        "#top-left-dock .icon-square-btn",
+        "#top-left-dock .top-nav-pill",
+        "#settings-dropdown.open",
+        "#btn-toggle-inspector",
+        "#top-right-dock .inspector-card.open",
+        "#btn-satellites-toggle",
+        "#satellites-popover.open",
+        "#bottom-right-dock .zoom-stack",
+        "#bottom-right-dock .telemetry-strip",
+        "#demo-bar-root .demo-panel",
+        "#demo-bar-root .demo-collapsed-pill"
+      ];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const b = el.getBoundingClientRect();
+        if (b.width <= 0 || b.height <= 0) continue;
+        rects.push({ x: b.left - cr.left, y: b.top - cr.top, w: b.width, h: b.height });
+      }
+      return rects;
     }
 
     drawMap() {
@@ -463,7 +506,7 @@
       const payload = {
         width: this.viewWidth, height: this.viewHeight, dpr: this.dpr,
         rotLat: s.rotLat, rotLon: s.rotLon, zoom: s.zoom, activeLayerId: s.activeLayerId,
-        camPitch: s.camPitch ?? 28, camYaw: s.camYaw ?? 0,
+        camPitch: s.camPitch ?? 0, camYaw: s.camYaw ?? 0,
         topoReliefScale: s.topoReliefScale ?? 1.0, enable3DTerrain: s.enable3DTerrain !== false,
         isDragging: this.isDragging || this.isOrbitDragging, isInteracting: interacting,
         craters: this.getLocalizedCraters(), landingSites: this.landingSites, activeCrater,
@@ -473,7 +516,8 @@
         progressiveLodRender: s.progressiveLodRender, showGraticule: s.showGraticule,
         showNomenclature: s.showNomenclature, showRadiationZones: s.showRadiationZones,
         showRouteComments: s.showRouteComments, routeScope: s.routeScope, highQualityGlobeRay: s.highQualityGlobeRay,
-        demoSim: this.demoService?.getRenderPayload() || null
+        demoSim: this.demoService?.getRenderPayload() || null,
+        uiAvoidRects: this.computeUiAvoidRects()
       };
 
       this.hitTargets = s.viewMode === "3d"
@@ -504,7 +548,7 @@
       const geo = this.routePlanner.geo;
       if (this.state.viewMode === "3d") {
         const relief = this.state.enable3DTerrain === false ? 0 : (this.state.topoReliefScale ?? 1.0);
-        return geo.screenToMarsCoords3D(px, py, this.viewWidth, this.viewHeight, this.state.rotLat, this.state.rotLon, this.state.zoom, this.state.camPitch ?? 28, this.state.camYaw ?? 0, relief);
+        return geo.screenToMarsCoords3D(px, py, this.viewWidth, this.viewHeight, this.state.rotLat, this.state.rotLon, this.state.zoom, this.state.camPitch ?? 0, this.state.camYaw ?? 0, relief);
       }
       return geo.screenToMarsCoords2D(px, py, this.viewWidth, this.viewHeight, this.state.rotLat, this.state.rotLon, this.state.zoom);
     }
@@ -659,11 +703,12 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-16: JSDoc ve IIFE modul tanimi.
-   - Satir 17-62: constructor ve t; 9 dilli i18n, HiDPI olcek, MarsMapInteractionHelper, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
-   - Satir 63-167: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme, Demo Modu panellerini ve 9 dil gecisini yonetir.
-   - Satir 168-286: applyGuardedSetting, performFactoryReset, switchToGlobalRouteScope, applyDemoScenario ve rota/tehlike demeti yardimcilari.
-   - Satir 287-429: renderUi, renderBottomRight, updateTelemetryBar, requestTilesForView ve drawMap; yerellestirilmis telemetri ve HiDPI 2D/3D cizim.
-   - Satir 431-457: MarsMapInteractionHelper delegasyonlari (bindCanvasEvents, bindGlobalEvents, animateTo, applyZoom), resizeCanvas ve pixelToGeo.
-   - Satir 458-603: handlePresetEndpointChange, togglePickMode, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
+   - Satir 17-61: constructor ve t; 9 dilli i18n, HiDPI olcek, MarsMapInteractionHelper, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
+   - Satir 63-126: handleSearchQuery; ust arama cubugundan koordinat (0-360° normalizasyonlu), lokalize krater, inis alani ve landmark aramasini yonetir.
+   - Satir 128-205: initUiPanels ve init; Ayarlar, Uydular, Rota Inceleme, Demo Modu panellerini, panel ac/kapa yeniden cizimini ve haritayi baslatir.
+   - Satir 207-350: getLocalizedCraters, changeLanguage, scheduleRender, applyGuardedSetting, performFactoryReset, switchToGlobalRouteScope, flyToCraterById, applyDemoScenario ve rota/tehlike demetleri.
+   - Satir 352-527: refreshAll, renderUi, renderBottomRight (0° varsayilan egim), updateTelemetryBar, requestTilesForView, computeUiAvoidRects ve drawMap.
+   - Satir 529-554: MarsMapInteractionHelper delegasyonlari, normalizeLon, resizeCanvas ve pixelToGeo.
+   - Satir 556-697: handlePresetEndpointChange, togglePickMode, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
    ========================================================================== */
 

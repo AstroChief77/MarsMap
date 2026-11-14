@@ -19,10 +19,12 @@
     }
 
     toggleOpen(forceState) {
+      const prev = this.isOpen;
       this.isOpen = typeof forceState === "boolean" ? forceState : !this.isOpen;
       if (this.isOpen) this.handlers.onPopoverOpen?.();
       this.mountEl.querySelector("#btn-settings")?.classList.toggle("active", this.isOpen);
       this.mountEl.querySelector("#settings-dropdown")?.classList.toggle("open", this.isOpen);
+      if (this.isOpen !== prev) this.handlers.onPanelToggle?.(this.isOpen);
     }
 
     close() {
@@ -31,7 +33,7 @@
     }
 
     /**
-     * Sol ust Ayarlar + Factory Reset + 9 Dil Secici + Hedef Seridini DOM'a cizer
+     * Sol ust Ayarlar + Factory Reset + 9 Dil Secici + Ust Arama Seridini DOM'a cizer
      */
     render(state, craters, backendStatus = "", demoActive = false) {
       if (!this.mountEl) return;
@@ -46,10 +48,13 @@
       const prevDropdown = this.mountEl.querySelector("#settings-dropdown");
       const prevScrollTop = prevDropdown ? prevDropdown.scrollTop : 0;
       const activeEl = typeof document !== "undefined" ? document.activeElement : null;
-      const wasInputFocused = Boolean(activeEl && activeEl.id === "inp-backend-url");
-      const draftInputVal = wasInputFocused ? activeEl.value : (state.backendApiUrl || "");
-      const selStart = wasInputFocused ? activeEl.selectionStart : null;
-      const selEnd = wasInputFocused ? activeEl.selectionEnd : null;
+      const wasBackendFocused = Boolean(activeEl && activeEl.id === "inp-backend-url");
+      const wasSearchFocused = Boolean(activeEl && activeEl.id === "nav-search-input");
+      const prevSearchInput = this.mountEl.querySelector("#nav-search-input");
+      const draftInputVal = wasBackendFocused ? activeEl.value : (state.backendApiUrl || "");
+      const draftSearchVal = wasSearchFocused ? activeEl.value : (prevSearchInput ? prevSearchInput.value : "");
+      const selStart = (wasBackendFocused || wasSearchFocused) ? activeEl.selectionStart : null;
+      const selEnd = (wasBackendFocused || wasSearchFocused) ? activeEl.selectionEnd : null;
 
       const langChipsHtml = langs.map((l) => `
         <button type="button"
@@ -152,17 +157,18 @@
           </div>
         </div>
 
-        <nav class="top-nav-pill" aria-label="Mars Arama">
+        <nav class="top-nav-pill" aria-label="${esc(t("navSearchAria"))}">
           <span class="brand-tag">ASTRO<span>CHIEF</span></span>
           <form class="nav-search-form" id="nav-search-form">
             <input
               type="text"
               class="nav-search-input"
               id="nav-search-input"
-              placeholder="Yer veya koordinat (-4.59, 137.44)"
-              aria-label="Yer veya koordinat ara"
+              value="${esc(draftSearchVal)}"
+              placeholder="${esc(t("navSearchPlaceholder"))}"
+              aria-label="${esc(t("navSearchAria"))}"
             />
-            <button type="submit" class="nav-search-btn" id="btn-nav-search">Ara</button>
+            <button type="submit" class="nav-search-btn" id="btn-nav-search">${esc(t("navSearchBtn"))}</button>
           </form>
           <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}">${demoActive ? "■" : "▶"} ${esc(t("demoBtnLabel"))}</button>
           <button class="nav-info-btn" id="btn-open-mission-modal" title="${esc(t("navInfoTitle"))}">${esc(t("navInfo"))}</button>
@@ -171,8 +177,8 @@
 
       const nextDropdown = this.mountEl.querySelector("#settings-dropdown");
       if (nextDropdown && prevScrollTop > 0) nextDropdown.scrollTop = prevScrollTop;
-      if (wasInputFocused) {
-        const nextInp = this.mountEl.querySelector("#inp-backend-url");
+      if (wasBackendFocused || wasSearchFocused) {
+        const nextInp = this.mountEl.querySelector(wasBackendFocused ? "#inp-backend-url" : "#nav-search-input");
         if (nextInp) {
           nextInp.focus();
           try {
@@ -202,10 +208,6 @@
           const code = btn.getAttribute("data-lang-code");
           this.handlers.onLanguageChange?.(code);
         });
-      });
-
-      this.mountEl.querySelector("#sel-top-lang")?.addEventListener("change", (e) => {
-        this.handlers.onLanguageChange?.(e.target.value);
       });
 
       this.mountEl.querySelectorAll("[data-setting-key]").forEach((cb) => {
@@ -248,8 +250,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset ve 9 dil secici bileseni tanimi.
-   - Satir 7-31: constructor, toggleOpen ve close; acilir menunun durumunu yonetir.
-   - Satir 33-195: render; 1. secenekte Factory Reset butonu, 9 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve ust dil secim kutusunu cizer.
-   - Satir 197-246: bindEvents; dil degisimi, ayar tiklamalari, hedef secimleri ve Rust backend dugmelerini baglar.
+   - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset, 9 dil secici ve ust arama seridi bileseni tanimi.
+   - Satir 7-34: constructor, toggleOpen (onPopoverOpen + onPanelToggle geri cagrilari dahil) ve close; acilir menunun durumunu yonetir.
+   - Satir 36-191: render; 1. secenekte Factory Reset butonu, 9 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve yerellestirilmis ust arama/bilgi/demo cubugunu cizer.
+   - Satir 193-247: bindEvents; dil degisimi, ayar anahtarlari, yer/koordinat arama formu ve Rust backend dugmelerini baglar.
    ========================================================================== */

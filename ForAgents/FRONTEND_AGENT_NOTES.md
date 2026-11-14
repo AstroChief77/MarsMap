@@ -47,3 +47,12 @@ Frontend tarafında **tüm backend uç noktaları, A/B koordinat seçimi ve rota
   - `data/i18n/localesJaKoArHe.js`: Japonca, Korece, Arapça, İbranice sözlükleri.
   - `js/services/I18nService.js`: `window.AstroChief.i18n` tekil servisi (`t(key, vars)`, `setLang(code)`, `isRtl()`, `localizeCrater()`, `localizeTeamMember()`).
 - **RTL Desteği**: Arapça (`ar`) ve İbranice (`he`) seçildiğinde açılır kartlar (`#settings-dropdown`, `#satellites-popover`, `.inspector-card`, `.modal-box`) `dir="rtl"` yönüne geçer; ekran köşelerindeki HUD sabitlemeleri (`sol üst`, `sol alt`, `sağ üst`, `sağ alt`) korunur.
+
+## 6. Açık Gri Stüdyo GUI & Çakışmasız Yerleşim Standardı (`v4.4.0`)
+- **Görsel Tema (`css/variables.css`, `StarfieldRenderer.js`, `css/demo_studio.css`, `css/chat.css`)**:
+  - Tüm siyah/koyu HUD arka planları ve koyu yıldız tuvali, Mars yüzeyi ile yüksek kontrast sağlayan **Açık Gri Stüdyo** paletine (`#eef2f6`/`#dfe5ee`/`#cfd7e3` arka plan, `#ffffff` buzlu cam kartlar, `#1e293b`/`#334155` slate metinler, `#d92b2b` Mars kırmızısı ve `#2563eb` rota mavisi) geçirildi.
+  - 3D Mars küresi altına yumuşak slate ortam gölgesi, küre kenarına ise sıcak terakota atmosfer geçişi eklendi.
+- **Çakışmasız Etiket & HUD Geometrisi**:
+  - `OverlayDrawHelper` (kare başına `beginLabelFrame` + `claimLabelSlot`) tüm harita etiketlerini (`uiAvoidRects` üzerinden açık HUD kartlarından ve diğer etiketlerden kaçarak) yuvarlak açık gri haplar (`#ffffff` / `rgba(255,255,255,0.92)`) olarak konumlandırır.
+  - `.inspector-card` yüksekliği (`calc(100vh - 355px)`) sağ alt `.zoom-stack` kontrolleriyle çakışmayı tamamen önler; Ayarlar, Uydular, Rota İnceleme veya Demo Bar açılıp kapandığında harita etiketleri anında yeniden hesaplanır.
+

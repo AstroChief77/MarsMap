@@ -1,8 +1,8 @@
 /**
  * @file chat.css
- * @description AstroChief Mars Görev İletişim & Dosya Aktarım Paneli Stilleri.
- * Tema standartları: %60 Beyaz (#ffffff, #f8fafc), %30 Siyah/Koyu Uzay (#020617, #0f172a), %10 Kırmızı (#d92b2b).
- * Yazı tipi: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif.
+ * @description AstroChief Mars Görev İletişim & Dosya Aktarım Paneli Stilleri (Açık Gri Studio).
+ * Tema standartları: %60 Beyaz (#ffffff, #f8fafc), %30 Açık Gri Zemin & Slate Tipografi (#eef2f6, #dfe5ee, #1e293b), %10 Kırmızı (#d92b2b).
+ * Yazı tipi: 'Public Sans Web', sans-serif.
  */
 
 /* ==========================================================================
@@ -16,16 +16,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
-  color: #ffffff;
-  border: 1px solid rgba(217, 43, 43, 0.4);
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
   border-radius: 9999px;
   padding: 12px 20px;
-  font-family: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Public Sans Web', sans-serif;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(217, 43, 43, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(217, 43, 43, 0.14);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 }
@@ -33,7 +33,8 @@
 .mission-chat-trigger:hover {
   transform: translateY(-2px);
   border-color: #d92b2b;
-  box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.6), 0 0 20px rgba(217, 43, 43, 0.4);
+  background: #ffffff;
+  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.18), 0 0 16px rgba(217, 43, 43, 0.18);
 }
 
 .mission-chat-trigger .chat-badge-icon {
@@ -64,14 +65,14 @@
   height: 580px;
   max-height: calc(100vh - 120px);
   background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.15);
+  border: 1px solid #cbd5e1;
   border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(217, 43, 43, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(217, 43, 43, 0.14);
   display: flex;
   flex-direction: column;
   z-index: 1001;
   overflow: hidden;
-  font-family: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Public Sans Web', sans-serif;
   animation: missionChatSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -94,8 +95,8 @@
    3. BAŞLIK VE KİMLİK / ROL BARI (HEADER)
    ========================================================================== */
 .mission-chat-header {
-  background: #0f172a;
-  color: #ffffff;
+  background: #eef2f6;
+  color: #1e293b;
   padding: 14px 18px;
   display: flex;
   align-items: center;
@@ -114,7 +115,7 @@
   height: 10px;
   background: #22c55e;
   border-radius: 50%;
-  box-shadow: 0 0 8px #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.65);
   animation: pulseLive 2s infinite;
 }
 
@@ -125,27 +126,28 @@
 
 .mission-chat-title {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   margin: 0;
+  color: #1e293b;
 }
 
 .mission-chat-close-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #475569;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 6px;
   border-radius: 6px;
   transition: all 0.2s;
 }
 
 .mission-chat-close-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  color: #1e293b;
+  background: #e2e8f0;
 }
 
 /* Kullanıcı Kimlik Seçimi */
@@ -172,8 +174,8 @@
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 12px;
-  font-weight: 500;
-  color: #0f172a;
+  font-weight: 600;
+  color: #1e293b;
   outline: none;
 }
 
@@ -197,7 +199,7 @@
 .mission-chat-empty {
   margin: auto;
   text-align: center;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 13px;
   padding: 24px;
 }
@@ -210,7 +212,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 10px 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   animation: messageFadeIn 0.2s ease-out;
 }
 
@@ -237,7 +239,7 @@
 
 .mission-message-author {
   font-weight: 700;
-  color: #0f172a;
+  color: #1e293b;
 }
 
 .mission-message-role {
@@ -250,7 +252,7 @@
 }
 
 .mission-message-time {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 10px;
 }
 
@@ -272,7 +274,7 @@
   border-radius: 8px;
   padding: 8px 12px;
   text-decoration: none;
-  color: #0f172a;
+  color: #1e293b;
   transition: all 0.2s;
 }
 
@@ -294,7 +296,7 @@
 .mission-file-name {
   font-size: 12px;
   font-weight: 600;
-  color: #0f172a;
+  color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -327,7 +329,7 @@
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #0f172a;
+  color: #1e293b;
 }
 
 .mission-chat-attachment-bar.hidden {
@@ -386,7 +388,7 @@
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13px;
-  color: #0f172a;
+  color: #1e293b;
   outline: none;
   font-family: inherit;
 }
@@ -423,7 +425,7 @@
 .mission-chat-security-badge {
   text-align: center;
   font-size: 10px;
-  color: #94a3b8;
+  color: #64748b;
   margin-top: 6px;
 }
 
@@ -431,9 +433,9 @@
    7. BAĞIMSIZ /chat/ SAYFASI STİLLERİ (STANDALONE SHELL)
    ========================================================================== */
 body.standalone-chat-body {
-  font-family: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #050608;
-  color: #0d0f12;
+  font-family: 'Public Sans Web', sans-serif;
+  background: linear-gradient(155deg, #f1f5f9 0%, #dfe5ee 100%);
+  color: #1e293b;
   height: 100dvh;
   display: flex;
   align-items: center;
@@ -451,38 +453,39 @@ body.standalone-chat-body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(217, 43, 43, 0.35);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 22px 48px -12px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06);
 }
 
 .chat-header {
-  background: #0d0f12;
-  color: #ffffff;
+  background: #eef2f6;
+  color: #1e293b;
   padding: 16px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 3px solid #d92b2b;
+  border-bottom: 2px solid #d92b2b;
   gap: 12px;
   flex-wrap: wrap;
 }
 
 .chat-title-wrap { display: flex; align-items: center; gap: 10px; }
-.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
-.chat-title { font-size: 16px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.65); }
+.chat-title { font-size: 16px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: #1e293b; }
 .crew-bar { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.crew-bar label { color: #94a3b8; font-weight: 600; }
+.crew-bar label { color: #475569; font-weight: 700; }
 
 .crew-select {
-  background: #171a20;
-  color: #ffffff;
-  border: 1px solid #334155;
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 6px 12px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   outline: none;
+  cursor: pointer;
 }
 
 .crew-select:focus { border-color: #d92b2b; }
@@ -505,16 +508,16 @@ body.standalone-chat-body {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 12px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 .msg-card.own { align-self: flex-end; border-left: 4px solid #d92b2b; }
 .msg-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 12px; }
 .msg-author-wrap { display: flex; align-items: center; gap: 6px; }
-.msg-author { font-weight: 700; color: #0d0f12; }
+.msg-author { font-weight: 700; color: #1e293b; }
 .msg-role { background: rgba(217, 43, 43, 0.1); color: #d92b2b; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-.msg-time { color: #94a3b8; font-size: 11px; }
-.msg-text { font-size: 14px; color: #171a20; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
+.msg-time { color: #64748b; font-size: 11px; }
+.msg-text { font-size: 14px; color: #334155; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
 
 .file-preview-img {
   margin-top: 10px;
@@ -536,7 +539,7 @@ body.standalone-chat-body {
   border-radius: 8px;
   padding: 8px 12px;
   text-decoration: none;
-  color: #0d0f12;
+  color: #1e293b;
   transition: border-color 0.2s;
 }
 
@@ -582,6 +585,7 @@ body.standalone-chat-body {
   font-size: 14px;
   font-family: inherit;
   outline: none;
+  color: #1e293b;
   background: #f8fafc;
 }
 
@@ -608,10 +612,11 @@ body.standalone-chat-body {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-8: Stil dosyası başlığı, %60 Beyaz / %30 Siyah / %10 Kırmızı kuralları.
-   - Satır 11-53: Sağ alt köşe sabit sohbet açma/kapama butonu (.mission-chat-trigger).
-   - Satır 58-150: Sohbet modal paneli pencere kapsayıcısı ve başlık/durum rozeti.
+   - Satır 1-6: Stil dosyası başlığı, Açık Gri Studio (%60 Beyaz / %30 Açık Gri & Slate / %10 Kırmızı) kuralları.
+   - Satır 11-53: Sağ alt köşe sabit açık gri sohbet açma/kapama butonu (.mission-chat-trigger).
+   - Satır 58-150: Sohbet modal paneli pencere kapsayıcısı ve açık gri başlık/durum rozeti.
    - Satır 152-317: Ekip üyesi seçici, mesaj balonları ve dosya kartı stilleri.
    - Satır 322-428: Yüklenmek üzere seçilen dosya önizleme şeridi ve gönderme formu.
-   - Satır 433-604: Bağımsız /chat/ sayfası (.chat-shell, .chat-header, .msg-card, .chat-footer) stilleri.
+   - Satır 433-608: Bağımsız /chat/ sayfası (.standalone-chat-body, .chat-shell, .chat-header, .msg-card, .chat-footer) açık gri stilleri.
    ========================================================================== */
+

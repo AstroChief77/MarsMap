@@ -404,3 +404,22 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * computeViaRustWasm icinde Asama 1/2/3 fallback takibi (fallbackStage & fallbackWarning) ve HTTP A* icin dinamik 48x48 gridW/gridH eslemesi baglandi; non-enumerable _corridorCache ile cift ornekleme onlendi.
 - BACKEND_API.md, index.html & demo/index.html: API sartnamesi + Rust serde sablonlari v4.3.2'ye guncellendi, guncel servis betikleri ?v=4.3.2 onbellek kiriciya alindi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T01:40:00+03:00] feat(ui): Acik Gri Studyo (v4.4.0) Tema Donusumu, 4c02347 Birlestirmesi & GUI/Rota Cilasi:
+- Yedek Klasorleri: backups/snapshot_20261114_light_gray_gui/ ve backups/snapshot_20261115_pull_4c02347/
+- css/variables.css (Satir 1-65) & css/{base,controls,inspector,satellites_panel,demo,demo_studio,chat,style}.css:
+  * Tum siyah/koyu/karisik arka planlar %60 beyaz/buzlu cam (rgba(255, 255, 255, 0.95) / #ffffff), %30 acik gri zemin (#dfe4ec / #eef2f6 / #dfe5ee) ve yuksek kontrastli slate tipografi (#1e293b / #334155) + %10 Mars kirmizisi (#d92b2b) / Mavi rota (#2563eb) Acik Gri Studyo paletine cevrildi.
+  * Sag ust .hud-top-right (max-width: 440px) ile 78x78 kare Uydular tetikleyicisi, kompakt varsayilan kapali Rota Planlayici ve ust arama cubugu (#nav-search-form) cakismasiz tepki yukseklikleriyle duzenlendi.
+- js/renderers/{StarfieldRenderer,OverlayDrawHelper,Map2DRenderer,Map3DFallbackRenderer,Map3DRenderer,SimulationChartRenderer}.js:
+  * Yildiz/uzay arka plani acik gri degrade + ince yorunge cizgilerine donusturuldu; 3D kure altina yumusak slate golge ve terakota atmosfer halkasi eklendi.
+  * Map3DRenderer.js (Satir 639-715): Yukleme kuresi (#dfe5ee / #94a3b8 / #1e293b), acik kumtasi asamali karo yedegi (gridLine ? 235 : 214), acik enlem/boylam agi ve claimLabelSlot cakismasiz yer adlari uygulandi; alt yorum ozeti guncellendi.
+- js/components/{MarsNavigatorController,MarsMapInteractionHelper,SettingsPanel,SatellitesPanel,DemoStudioController}.js & js/services/DemoScenarioService.js & js/models/TeamMember.js:
+  * handleSearchQuery (Satir 63-126) icinde getLocalizedCraters, 0-360° boylam normalizasyonu ve i18n toastSearchNotFound tamamlandi; camPitch ?? 0 varsayilani sabitlendi, onPanelToggle ile harita etiket cakisma onleme yenilemesi baglandi, alt satir aciklamalari guncellendi.
+- js/components/RouteInspectorPanel.js (Satir 98-107, 210-217):
+  * .insp-source-pill (🦀 Rust Backend) ve #insp-latency-pill-card (⏱ ms) ayri fleks sutun yiginina alinarak render() ile updateLatencyBadges() cakismasi giderildi.
+- js/renderers/RouteCanvasRenderer.js (Satir 10-80, 116-187, 450-460):
+  * _trimToWidth ve _layoutCommentLines yardimcilari eklendi; drawDeferredRouteComment icinde _avoidRects arasi acik yatay koridor olculerek uzun rota yorumlari (ozellikle /demo studyosu Stage 2/3) 2 satira otomatik kirilip 620px altina sigdirildi.
+- data/i18n/locales{TrEnDe,FrEs,JaKoArHe}.js, index.html (v4.4), demo/index.html, chat/index.html, version.json (4.4.0) & ForAgents/FRONTEND_AGENT_NOTES.md:
+  * Tum 9 dilde navSearchPlaceholder/navSearchBtn/navSearchAria/toastSearchNotFound/stepsHeading/stepsEmptyHint/reserveDeficitAlert anahtarlari dogrulandi ve betikler ?v=4.4 ile onbellek kiriciya alindi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+

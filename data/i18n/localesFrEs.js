@@ -12,7 +12,7 @@
     code: "fr",
     nativeName: "Français",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.9",
+    pageTitle: "AstroChief | Mars Navigator v4.4",
     settingsTooltip: "Paramètres (1re option : Factory Reset)",
     settingsAria: "Paramètres",
     factoryResetTitle: "Factory Reset",
@@ -188,14 +188,21 @@
     loadingGlobeText: "Chargement de la texture 3D de Mars depuis ./data/tiles/...",
     reserveLabel: "Réserve :",
     reserveOkBadge: "Réserve Suffisante",
-    reserveDeficitBadge: "Alerte Réserve"
+    reserveDeficitBadge: "Alerte Réserve",
+    navSearchPlaceholder: "Lieu ou coord. (-4.59, 137.44)",
+    navSearchBtn: "Aller",
+    navSearchAria: "Rechercher un lieu ou des coordonnées",
+    toastSearchNotFound: "Aucun lieu ni coordonnée trouvé pour « {query} »",
+    stepsHeading: "ÉTAPES",
+    stepsEmptyHint: "Sélectionnez une destination et calculez la route.",
+    reserveDeficitAlert: "⚠ Dépassement de réserve :"
   };
 
   ns.I18N_LOCALES.es = {
     code: "es",
     nativeName: "Español",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.9",
+    pageTitle: "AstroChief | Mars Navigator v4.4",
     settingsTooltip: "Ajustes (1.ª opción: Factory Reset)",
     settingsAria: "Ajustes",
     factoryResetTitle: "Factory Reset",
@@ -371,7 +378,14 @@
     loadingGlobeText: "Cargando textura 3D de Marte desde ./data/tiles/...",
     reserveLabel: "Reserva:",
     reserveOkBadge: "Reserva Suficiente",
-    reserveDeficitBadge: "Alerta de Reserva"
+    reserveDeficitBadge: "Alerta de Reserva",
+    navSearchPlaceholder: "Lugar o coord. (-4.59, 137.44)",
+    navSearchBtn: "Ir",
+    navSearchAria: "Buscar lugar o coordenadas",
+    toastSearchNotFound: "No se encontró ubicación ni coordenadas para \"{query}\"",
+    stepsHeading: "PASOS",
+    stepsEmptyHint: "Seleccione un destino y calcule la ruta.",
+    reserveDeficitAlert: "⚠ Exceso de reserva:"
   };
 })(window.AstroChief = window.AstroChief || {});
 
@@ -379,6 +393,6 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc coklu dil paketi (Bolum 2/3) basligi ve IIFE kapsami.
-   - Satir 11-192: I18N_LOCALES.fr; Fransizca arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
-   - Satir 194-375: I18N_LOCALES.es; Ispanyolca arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 11-199: I18N_LOCALES.fr; Fransizca arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 201-396: I18N_LOCALES.es; Ispanyolca arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
    ========================================================================== */

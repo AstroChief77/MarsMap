@@ -12,7 +12,7 @@
     code: "ja",
     nativeName: "日本語",
     dir: "ltr",
-    pageTitle: "AstroChief | 火星ナビゲーター v3.9",
+    pageTitle: "AstroChief | 火星ナビゲーター v4.4",
     settingsTooltip: "設定（第1項目：Factory Reset）",
     settingsAria: "設定",
     factoryResetTitle: "Factory Reset (初期設定に戻す)",
@@ -170,14 +170,16 @@
     backendLocalActive: "ローカル Rust WASM エンジン稼働中", backendResponded: "Rust エンジン応答 ({ms} ms)", inspBackendWaiting: "サーバー待機中", inspLocalBadge: "ローカル WASM", inspNoConnection: "未接続",
     pickedDestName: "選択した目的地", telemetryLoading: "火星を読み込み中...", toastBackendUrlCleared: "バックエンドURLを消去しました。ローカル Rust WASM 稼働中。", toastClickMarsSurface: "火星表面上の有効な座標をクリックしてください。",
     toastDestPicked: "目的地を設定しました：{lat}°, {lon}°", toastPickDestinationHint: "火星表面をクリックして目的地 (B) を指定してください。", zoomResetTitle: "視点をリセット", tiltBtnTitle: "3D カメラ傾斜（右ドラッグまたは R/F）",
-    peakBtnTitle: "3D 地形ピーク巡回（オリンポス山 / マリネリス峡谷 / シャープ山）", toastPeakVisit: "⛰ 3D 地形：{name}", telemElev: "標高", telemSlope: "傾斜", telemPitch: "3D傾斜", loadingGlobeText: "./data/tiles/ から火星 3D テクスチャを読み込み中...", reserveLabel: "予備：", reserveOkBadge: "予備十分", reserveDeficitBadge: "予備警告"
+    peakBtnTitle: "3D 地形ピーク巡回（オリンポス山 / マリネリス峡谷 / シャープ山）", toastPeakVisit: "⛰ 3D 地形：{name}", telemElev: "標高", telemSlope: "傾斜", telemPitch: "3D傾斜", loadingGlobeText: "./data/tiles/ から火星 3D テクスチャを読み込み中...", reserveLabel: "予備：", reserveOkBadge: "予備十分", reserveDeficitBadge: "予備警告",
+    navSearchPlaceholder: "地名・座標 (-4.59, 137.44)", navSearchBtn: "検索", navSearchAria: "場所または座標を検索", toastSearchNotFound: "「{query}」に一致する場所または座標が見つかりません",
+    stepsHeading: "手順", stepsEmptyHint: "目的地を選択してルートを計算してください。", reserveDeficitAlert: "⚠ 予備超過:"
   };
 
   ns.I18N_LOCALES.ko = {
     code: "ko",
     nativeName: "한국어",
     dir: "ltr",
-    pageTitle: "AstroChief | 화성 내비게이터 v3.9",
+    pageTitle: "AstroChief | 화성 내비게이터 v4.4",
     settingsTooltip: "설정 (1번째 옵션: Factory Reset)",
     settingsAria: "설정",
     factoryResetTitle: "Factory Reset (초기화)",
@@ -335,14 +337,16 @@
     backendLocalActive: "로컬 Rust WASM 경로 엔진 활성", backendResponded: "Rust 엔진 응답 완료 ({ms} ms)", inspBackendWaiting: "서버 응답 대기 중", inspLocalBadge: "로컬 WASM", inspNoConnection: "연결 없음",
     pickedDestName: "선택된 목적지", telemetryLoading: "화성 로딩 중...", toastBackendUrlCleared: "백엔드 URL이 지워졌습니다. 로컬 Rust WASM 활성.", toastClickMarsSurface: "화성 표면 위의 유효한 좌표를 클릭해 주세요.",
     toastDestPicked: "목적지 설정됨: {lat}°, {lon}°", toastPickDestinationHint: "화성 표면을 클릭하여 목적지 (B)를 설정하세요.", zoomResetTitle: "시점 초기화", tiltBtnTitle: "3D 카메라 기울기 (우클릭 드래그 또는 R/F)",
-    peakBtnTitle: "3D 지형 봉우리 투어 (올림푸스 산 / 매리너 계곡 / 샤프 산)", toastPeakVisit: "⛰ 3D 지형: {name}", telemElev: "고도", telemSlope: "경사", telemPitch: "3D 기울기", loadingGlobeText: "./data/tiles/ 에서 화성 3D 텍스처 로딩 중...", reserveLabel: "예비량:", reserveOkBadge: "예비량 충분", reserveDeficitBadge: "예비량 부족"
+    peakBtnTitle: "3D 지형 봉우리 투어 (올림푸스 산 / 매리너 계곡 / 샤프 산)", toastPeakVisit: "⛰ 3D 지형: {name}", telemElev: "고도", telemSlope: "경사", telemPitch: "3D 기울기", loadingGlobeText: "./data/tiles/ 에서 화성 3D 텍스처 로딩 중...", reserveLabel: "예비량:", reserveOkBadge: "예비량 충분", reserveDeficitBadge: "예비량 부족",
+    navSearchPlaceholder: "장소/좌표 (-4.59, 137.44)", navSearchBtn: "검색", navSearchAria: "장소 또는 좌표 검색", toastSearchNotFound: "\"{query}\"에 대한 위치 또는 좌표를 찾을 수 없습니다",
+    stepsHeading: "단계별 안내", stepsEmptyHint: "목적지를 선택하고 경로를 계산하세요.", reserveDeficitAlert: "⚠ 예비량 초과:"
   };
 
   ns.I18N_LOCALES.ar = {
     code: "ar",
     nativeName: "العربية",
     dir: "rtl",
-    pageTitle: "AstroChief | مستكشف المريخ v3.9",
+    pageTitle: "AstroChief | مستكشف المريخ v4.4",
     settingsTooltip: "الإعدادات (الخيار الأول: Factory Reset)",
     settingsAria: "الإعدادات",
     factoryResetTitle: "Factory Reset (إعادة ضبط المصنع)",
@@ -500,14 +504,16 @@
     backendLocalActive: "محرك Rust WASM المحلي نشط", backendResponded: "استجاب محرك Rust ({ms} مللي ثانية)", inspBackendWaiting: "بانتظار الخادم", inspLocalBadge: "WASM محلي", inspNoConnection: "غير متصل",
     pickedDestName: "وجهة مختارة", telemetryLoading: "جاري تحميل المريخ...", toastBackendUrlCleared: "تم مسح عنوان الخادم. محرك Rust WASM المحلي نشط.", toastClickMarsSurface: "يرجى النقر على إحداثيات صالحة على سطح المريخ.",
     toastDestPicked: "تم تحديد الوجهة: {lat}°, {lon}°", toastPickDestinationHint: "انقر على سطح المريخ لتحديد نقطة الوجهة (B).", zoomResetTitle: "إعادة ضبط الكاميرا", tiltBtnTitle: "ميل الكاميرا ثلاثية الأبعاد (سحب بزر الفأرة الأيمن أو R/F)",
-    peakBtnTitle: "جولة قمم التضاريس ثلاثية الأبعاد (أوليمبوس مونس / فاليس مارينيريس / جبل شارب)", toastPeakVisit: "⛰ تضاريس ثلاثية الأبعاد: {name}", telemElev: "الارتفاع", telemSlope: "الميل", telemPitch: "ميل 3D", loadingGlobeText: "جاري تحميل مجسم المريخ ثلاثي الأبعاد من ./data/tiles/...", reserveLabel: "الاحتياطي:", reserveOkBadge: "الاحتياطي كافٍ", reserveDeficitBadge: "تنبيه الاحتياطي"
+    peakBtnTitle: "جولة قمم التضاريس ثلاثية الأبعاد (أوليمبوس مونس / فاليس مارينيريس / جبل شارب)", toastPeakVisit: "⛰ تضاريس ثلاثية الأبعاد: {name}", telemElev: "الارتفاع", telemSlope: "الميل", telemPitch: "ميل 3D", loadingGlobeText: "جاري تحميل مجسم المريخ ثلاثي الأبعاد من ./data/tiles/...", reserveLabel: "الاحتياطي:", reserveOkBadge: "الاحتياطي كافٍ", reserveDeficitBadge: "تنبيه الاحتياطي",
+    navSearchPlaceholder: "مكان أو إحداثيات (-4.59, 137.44)", navSearchBtn: "بحث", navSearchAria: "ابحث عن مكان أو إحداثيات", toastSearchNotFound: "لم يتم العثور على موقع أو إحداثيات لـ \"{query}\"",
+    stepsHeading: "الخطوات", stepsEmptyHint: "اختر وجهة واحسب المسار.", reserveDeficitAlert: "⚠ تجاوز الاحتياطي:"
   };
 
   ns.I18N_LOCALES.he = {
     code: "he",
     nativeName: "עברית",
     dir: "rtl",
-    pageTitle: "AstroChief | נווט מאדים v3.9",
+    pageTitle: "AstroChief | נווט מאדים v4.4",
     settingsTooltip: "הגדרות (אפשרות 1: Factory Reset)",
     settingsAria: "הגדרות",
     factoryResetTitle: "Factory Reset (איפוס הגדרות יצרן)",
@@ -665,7 +671,9 @@
     backendLocalActive: "מנוע Rust WASM מקומי פעיל", backendResponded: "מנוע Rust הגיב ({ms} מ\"ש)", inspBackendWaiting: "ממתין לשרת", inspLocalBadge: "WASM מקומי", inspNoConnection: "אין חיבור",
     pickedDestName: "יעד שנבחר", telemetryLoading: "טוען את מאדים...", toastBackendUrlCleared: "כתובת השרת נוקתה. מנוע Rust WASM מקומי פעיל.", toastClickMarsSurface: "אנא לחץ על קואורדינטה תקפה על פני מאדים.",
     toastDestPicked: "היעד הוגדר: {lat}°, {lon}°", toastPickDestinationHint: "לחץ על פני מאדים כדי להגדיר נקודת יעד (B).", zoomResetTitle: "אפס תצוגה", tiltBtnTitle: "הטיית מצלמת 3D (גרירה בלחצן ימני או R/F)",
-    peakBtnTitle: "סיור פסגות טופוגרפיה 3D (אולימפוס מונס / ואלס מרינריס / הר שארפ)", toastPeakVisit: "⛰ טופוגרפיית 3D: {name}", telemElev: "גובה", telemSlope: "שיפוע", telemPitch: "הטיית 3D", loadingGlobeText: "טוען טקסטורת תלת-ממד של מאדים מתוך ./data/tiles/...", reserveLabel: "עתודה:", reserveOkBadge: "עתודה מספקת", reserveDeficitBadge: "התרעת עתודה"
+    peakBtnTitle: "סיור פסגות טופוגרפיה 3D (אולימפוס מונס / ואלס מרינריס / הר שארפ)", toastPeakVisit: "⛰ טופוגרפיית 3D: {name}", telemElev: "גובה", telemSlope: "שיפוע", telemPitch: "הטיית 3D", loadingGlobeText: "טוען טקסטורת תלת-ממד של מאדים מתוך ./data/tiles/...", reserveLabel: "עתודה:", reserveOkBadge: "עתודה מספקת", reserveDeficitBadge: "התרעת עתודה",
+    navSearchPlaceholder: "מקום או קואורדינטות (-4.59, 137.44)", navSearchBtn: "חפש", navSearchAria: "חפש מקום או קואורדינטות", toastSearchNotFound: "לא נמצא מיקום או קואורדינטות עבור \"{query}\"",
+    stepsHeading: "שלבים", stepsEmptyHint: "בחר יעד וחשב מסלול.", reserveDeficitAlert: "⚠ חריגת עתודה:"
   };
 })(window.AstroChief = window.AstroChief || {});
 
@@ -673,8 +681,8 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc coklu dil paketi (Bolum 3/3) basligi ve IIFE kapsami.
-   - Satir 11-174: I18N_LOCALES.ja; Japonca arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
-   - Satir 176-339: I18N_LOCALES.ko; Korece arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
-   - Satir 341-504: I18N_LOCALES.ar; Arapca (RTL) arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
-   - Satir 506-670: I18N_LOCALES.he; Ibranice (RTL) arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 11-176: I18N_LOCALES.ja; Japonca arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 178-343: I18N_LOCALES.ko; Korece arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 345-510: I18N_LOCALES.ar; Arapca (RTL) arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 512-678: I18N_LOCALES.he; Ibranice (RTL) arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
    ========================================================================== */

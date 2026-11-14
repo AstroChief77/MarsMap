@@ -1,6 +1,6 @@
 /**
  * @file satellites_panel.css
- * @description Sol alt UYDULAR paneli stilleri.
+ * @description Sol alt UYDULAR paneli stilleri (Acik Gri Studio + kare Mars uydu fotografi dugmesi).
  * Kural geregi 2D/3D secenekleri, Asit Yagmuru + siddeti, Firtina + siddeti ve uydu katmanlari
  * hepsi Uydular penceresinin icinde, az ve oz yazilarla, arka planlarinda gercek Mars bolge fotograflariyla yer alir.
  */
@@ -12,7 +12,7 @@
   z-index: 35;
 }
 
-/* Tek Sol Alt Tetikleyici: Kare Uydu Fotografli Uydular Butonu */
+/* Tek Sol Alt Tetikleyici: Acik Gri Cerceveli Kare Uydu Fotografli Uydular Butonu */
 .sat-trigger-btn {
   position: relative;
   width: 78px;
@@ -22,18 +22,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 7px 6px;
-  background-color: #16100e;
-  background-image: linear-gradient(180deg, rgba(10, 12, 18, 0.25) 0%, rgba(10, 12, 18, 0.82) 100%),
+  background-color: var(--bg-gray-200);
+  background-image: linear-gradient(180deg, rgba(15, 23, 42, 0.14) 0%, rgba(15, 23, 42, 0.66) 100%),
     url("../data/tiles/mars-viking-mdim21/0/0/0.jpg");
   background-size: cover;
   background-position: center;
   color: #ffffff;
-  border: 1.5px solid rgba(255, 255, 255, 0.28);
-  border-radius: 6px;
+  border: 2.5px solid #ffffff;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: var(--shadow-btn);
+  box-shadow: 0 0 0 1px var(--line-dark), var(--shadow-btn);
   overflow: hidden;
   transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
@@ -41,7 +41,7 @@
 .sat-trigger-btn:hover,
 .sat-trigger-btn.open {
   border-color: var(--mars-red);
-  box-shadow: 0 0 0 2px rgba(224, 62, 45, 0.45), var(--shadow-btn);
+  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.28), var(--shadow-card);
   transform: translateY(-1px);
 }
 
@@ -57,44 +57,47 @@
   height: 8px;
   border-radius: 50%;
   background: var(--mars-red);
-  box-shadow: 0 0 6px var(--mars-red);
+  box-shadow: 0 0 6px rgba(217, 43, 43, 0.85);
+  border: 1px solid #ffffff;
   flex-shrink: 0;
 }
 
 .sat-mode-tag {
   font-size: 9.5px;
   font-weight: 900;
-  padding: 2px 5px;
+  padding: 2px 6px;
   border-radius: 4px;
   background: var(--mars-red);
   color: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
 }
 
 .sat-trigger-label {
   font-size: 11.5px;
   font-weight: 900;
   letter-spacing: 0.02em;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(15, 23, 42, 0.92);
 }
 
-/* Acilan Uydular Penceresi (Koyu Kozmik Cam Zemin)
+/* Acilan Uydular Penceresi (Acik Gri Studio)
  * Not: display:none yerine visibility/opacity kullanilarak 5 Mars fotografının sayfa acilisinda
  * hemen dekode edilmesi saglanir. */
 .sat-popover {
   position: absolute;
-  bottom: calc(100% + 10px);
+  bottom: calc(100% + 12px);
   left: 0;
-  width: 382px;
+  width: 392px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 185px);
+  max-height: calc(100vh - 186px);
   overflow-y: auto;
   background: var(--bg-white);
+  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
-  border: 1.5px solid var(--line-light);
-  backdrop-filter: blur(16px);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 13px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 11px;
@@ -134,10 +137,11 @@
   font-size: 14px;
   font-weight: 800;
   color: var(--ink-muted);
+  cursor: pointer;
 }
 
 .sat-pop-close:hover {
-  background: var(--bg-soft);
+  background: var(--surface-control-hover);
   color: var(--ink-black);
 }
 
@@ -153,11 +157,11 @@
   width: 100%;
   border-radius: var(--r-sm);
   overflow: hidden;
-  background-color: #14161a;
+  background-color: var(--bg-gray-200);
   background-size: cover;
   background-position: center;
-  border: 2.5px solid var(--ink-black);
-  color: var(--bg-white);
+  border: 2px solid var(--line-dark);
+  color: var(--ink-black);
   text-align: start;
   cursor: pointer;
   user-select: none;
@@ -168,7 +172,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.62) 100%);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.06) 0%, rgba(226, 232, 240, 0.22) 100%);
   transition: background 0.15s ease, backdrop-filter 0.15s ease;
   z-index: 0;
 }
@@ -188,8 +192,8 @@
 }
 
 .sat-photo-card.inactive::before {
-  background: rgba(10, 12, 16, 0.68);
-  backdrop-filter: grayscale(0.85);
+  background: rgba(226, 232, 240, 0.56);
+  backdrop-filter: saturate(0.45);
 }
 
 .sat-photo-card > * {
@@ -199,7 +203,7 @@
 
 .sat-view-btn {
   height: 94px;
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -207,20 +211,36 @@
 
 .sat-photo-card.active {
   border-color: var(--mars-red);
-  box-shadow: 0 0 0 3px rgba(217, 43, 43, 0.38);
+  box-shadow: 0 0 0 3px rgba(217, 43, 43, 0.28);
 }
 
 .sat-card-kicker {
-  font-size: 11px;
+  display: inline-block;
+  width: fit-content;
+  font-size: 10.5px;
   font-weight: 900;
-  letter-spacing: 0.06em;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  letter-spacing: 0.05em;
+  background: rgba(248, 250, 252, 0.90);
+  backdrop-filter: blur(8px);
+  color: var(--ink-black);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 6px;
+  padding: 2px 7px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
 
 .sat-card-label {
-  font-size: 15px;
+  display: inline-block;
+  width: fit-content;
+  font-size: 13.5px;
   font-weight: 900;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.98);
+  background: rgba(248, 250, 252, 0.92);
+  backdrop-filter: blur(8px);
+  color: var(--ink-black);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 6px;
+  padding: 3px 8px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
 
 .sat-active-badge {
@@ -232,13 +252,14 @@
   font-size: 10px;
   font-weight: 900;
   padding: 3px 7px;
-  border-radius: 4px;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(217, 43, 43, 0.3);
 }
 
 /* Asit Yagmuru ve Firtina Kartlari (Arka Planda Bolge Fotograflari - Tum Resme Basilir) */
 .sat-hazard-card {
   min-height: 92px;
-  padding: 13px 14px;
+  padding: 12px 13px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -275,28 +296,37 @@
 }
 
 .sat-hazard-title {
-  font-size: 14.5px;
+  display: inline-block;
+  font-size: 13.5px;
   font-weight: 900;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  background: rgba(248, 250, 252, 0.90);
+  backdrop-filter: blur(8px);
+  color: var(--ink-black);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 7px;
+  padding: 4px 9px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
 
 .sat-switch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 13px;
+  padding: 5px 12px;
   border-radius: var(--r-pill);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 900;
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffffff;
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background: rgba(241, 245, 249, 0.92);
+  color: var(--ink-dark);
+  border: 1px solid var(--line-dark);
   pointer-events: none;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
 
 .sat-switch.on {
   background: var(--mars-red);
-  border-color: #ffffff;
+  color: #ffffff;
+  border-color: var(--mars-red-dark);
 }
 
 .sat-intensity-row {
@@ -310,26 +340,29 @@
   border-radius: 6px;
   font-size: 11.5px;
   font-weight: 800;
-  background: rgba(0, 0, 0, 0.64);
-  color: rgba(255, 255, 255, 0.92);
-  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  background: rgba(241, 245, 249, 0.90);
+  backdrop-filter: blur(6px);
+  color: var(--ink-black);
+  border: 1px solid rgba(148, 163, 184, 0.65);
   text-align: center;
   cursor: pointer;
-  transition: background 0.14s ease, border-color 0.14s ease;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 
 .sat-int-btn:hover {
-  background: rgba(0, 0, 0, 0.88);
+  background: #ffffff;
+  border-color: var(--line-dark);
 }
 
 .sat-int-btn.active {
   background: #ffffff;
-  color: #0d0f12;
+  color: var(--mars-red-dark);
   border-color: var(--mars-red);
+  box-shadow: inset 0 0 0 1px var(--mars-red);
 }
 
 .sat-int-btn:disabled {
-  opacity: 0.42;
+  opacity: 0.55;
   pointer-events: none;
 }
 
@@ -342,33 +375,35 @@
 
 .sat-layer-chip {
   padding: 9px 10px;
-  border-radius: 6px;
-  border: 1.5px solid var(--line-light);
+  border-radius: 7px;
+  border: 1px solid var(--line-light);
   background: var(--bg-offwhite);
   color: var(--ink-black);
   font-size: 12px;
   font-weight: 800;
   text-align: center;
   cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 
 .sat-layer-chip:hover {
-  background: var(--bg-soft);
+  background: var(--surface-control-hover);
 }
 
 .sat-layer-chip.active {
-  background: var(--mars-red);
-  color: #ffffff;
+  background: var(--bg-gray-200);
+  color: var(--ink-black);
   border-color: var(--mars-red);
+  box-shadow: inset 0 0 0 1px var(--mars-red);
 }
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc Uydular paneli ve fotograf arkaplanli secenek kurallari.
-   - Satir 8-53: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
-   - Satir 55-116: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
-   - Satir 118-210: Tum gorsel kartlari (.sat-photo-card) icin hover/focus vurgusu, RTL uyumlu aktif rozet ve kapali gri filtre stilleri.
-   - Satir 212-308: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari, salt durum rozeti (.sat-switch pointer-events: none) ve kapaliyken tiklamayi karta geciren siddet butonlari.
-   - Satir 310-337: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
+   - Satir 1-6: JSDoc Uydular paneli Acik Gri Studio ve fotograf arkaplanli secenek kurallari.
+   - Satir 8-77: Sol alt kare Mars fotografli 78x78 .sat-trigger-btn ("Uydular") cerceveli karesi, canli nokta ve 2D/3D mod etiketi.
+   - Satir 79-142: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode, ust barda cakismayan yukseklik) ve baslik/kapatma dugmesi.
+   - Satir 144-244: Tum gorsel kartlari (.sat-photo-card) icin hafif cam kaplama, buzlu acik gri etiket haplari ve aktif vurgu.
+   - Satir 246-352: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ fotograflari, acik gri durum/siddet haplari.
+   - Satir 354-383: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji) acik gri aktif vurgusu.
    ========================================================================== */

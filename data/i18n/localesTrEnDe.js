@@ -12,7 +12,7 @@
     code: "tr",
     nativeName: "Türkçe",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.9",
+    pageTitle: "AstroChief | Mars Navigator v4.4",
     settingsTooltip: "Ayarlar (1. Seçenek: Factory Reset)",
     settingsAria: "Ayarlar",
     factoryResetTitle: "Factory Reset",
@@ -188,14 +188,21 @@
     loadingGlobeText: "Mars 3D dokusu ./data/tiles/ dizininden yükleniyor...",
     reserveLabel: "Rezerv:",
     reserveOkBadge: "Rezerv Yeterli",
-    reserveDeficitBadge: "Rezerv Uyarısı"
+    reserveDeficitBadge: "Rezerv Uyarısı",
+    navSearchPlaceholder: "Yer veya koordinat (-4.59, 137.44)",
+    navSearchBtn: "Ara",
+    navSearchAria: "Yer veya koordinat ara",
+    toastSearchNotFound: "\"{query}\" için konum veya koordinat bulunamadı",
+    stepsHeading: "ADIMLAR",
+    stepsEmptyHint: "Hedef seçip rota hesaplayın.",
+    reserveDeficitAlert: "⚠ Rezerv Aşımı:"
   };
 
   ns.I18N_LOCALES.en = {
     code: "en",
     nativeName: "English",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.9",
+    pageTitle: "AstroChief | Mars Navigator v4.4",
     settingsTooltip: "Settings (1st Option: Factory Reset)",
     settingsAria: "Settings",
     factoryResetTitle: "Factory Reset",
@@ -371,14 +378,21 @@
     loadingGlobeText: "Loading Mars 3D texture from ./data/tiles/...",
     reserveLabel: "Reserve:",
     reserveOkBadge: "Reserve Sufficient",
-    reserveDeficitBadge: "Reserve Alert"
+    reserveDeficitBadge: "Reserve Alert",
+    navSearchPlaceholder: "Place or coords (-4.59, 137.44)",
+    navSearchBtn: "Go",
+    navSearchAria: "Search place or coordinates",
+    toastSearchNotFound: "No location or coordinates found for \"{query}\"",
+    stepsHeading: "STEPS",
+    stepsEmptyHint: "Select a destination and compute a route.",
+    reserveDeficitAlert: "⚠ Reserve Exceeded:"
   };
 
   ns.I18N_LOCALES.de = {
     code: "de",
     nativeName: "Deutsch",
     dir: "ltr",
-    pageTitle: "AstroChief | Mars Navigator v3.9",
+    pageTitle: "AstroChief | Mars Navigator v4.4",
     settingsTooltip: "Einstellungen (1. Option: Factory Reset)",
     settingsAria: "Einstellungen",
     factoryResetTitle: "Factory Reset",
@@ -554,7 +568,14 @@
     loadingGlobeText: "Mars 3D-Textur wird aus ./data/tiles/ geladen...",
     reserveLabel: "Reserve:",
     reserveOkBadge: "Reserve Ausreichend",
-    reserveDeficitBadge: "Reservewarnung"
+    reserveDeficitBadge: "Reservewarnung",
+    navSearchPlaceholder: "Ort oder Koord. (-4.59, 137.44)",
+    navSearchBtn: "Suchen",
+    navSearchAria: "Ort oder Koordinaten suchen",
+    toastSearchNotFound: "Kein Ort oder Koordinat für \"{query}\" gefunden",
+    stepsHeading: "SCHRITTE",
+    stepsEmptyHint: "Ziel wählen und Route berechnen.",
+    reserveDeficitAlert: "⚠ Reserve überschritten:"
   };
 })(window.AstroChief = window.AstroChief || {});
 
@@ -562,7 +583,7 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc coklu dil paketi (Bolum 1/3) basligi ve IIFE kapsami.
-   - Satir 11-192: I18N_LOCALES.tr; Turkce arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
-   - Satir 194-375: I18N_LOCALES.en; Ingilizce arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
-   - Satir 377-558: I18N_LOCALES.de; Almanca arayuz, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 11-199: I18N_LOCALES.tr; Turkce arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 201-389: I18N_LOCALES.en; Ingilizce arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
+   - Satir 391-580: I18N_LOCALES.de; Almanca arayuz, arama, rota, tehlike, ekip, HUD ve bildirim sozlugu.
    ========================================================================== */

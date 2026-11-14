@@ -1,26 +1,26 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AstroChief Mars Navigator - NASA Space Apps 2026 | 2D/3D Gezinebilen Mars Haritası, Asit Yağmuru & Fırtına Kaçınmalı Güvenli Rota Planlayıcı">
-  <title>AstroChief | Mars Navigator v4.3</title>
+  <title>AstroChief | Mars Navigator v4.4</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%23d92b2b%22/><circle cx=%2250%22 cy=%2250%22 r=%2222%22 fill=%22%23ffffff%22 opacity=%220.2%22/></svg>">
-  <link rel="stylesheet" href="./css/style.css?v=4.5">
+  <link rel="stylesheet" href="./css/style.css?v=4.4">
 </head>
 <body>
 
-  <!-- Zifiri Siyah Uzay ve Parıldayan Yıldızlar Tuvali -->
+  <!-- Açık Gri Stüdyo Arka Plan ve İnce Yörünge Katmanı Tuvali -->
   <canvas id="starfield-canvas" aria-hidden="true"></canvas>
 
   <!-- Orta Alan: Ana Mars Harita ve Rota Sahnesi -->
   <main id="mars-navigator-app" class="app-viewport">
     <canvas id="mars-map-canvas" aria-label="Etkileşimli Mars Haritası"></canvas>
 
-    <!-- Sol Üst: Ayarlar (1. Seçenek Factory Reset), Hızlı Hedef Şeridi ve 9 Dil Seçici -->
+    <!-- Sol Üst: Ayarlar (1. Seçenek Factory Reset), Hızlı Arama Şeridi ve 9 Dil Seçici -->
     <div id="top-left-dock" class="hud-top-left"></div>
 
-    <!-- Sağ Üst: Mavi Güvenli Rota, Süre/Saat, Mesafe/km, O₂ Bütçesi ve α/β/γ Radyasyon Paneli -->
+    <!-- Sağ Üst: Mavi Güvenli Rota, 5sn Gecikme Rozeti, Süre/Saat, Mesafe/km, O₂ Bütçesi ve α/β/γ Radyasyon Paneli -->
     <div id="top-right-dock" class="hud-top-right"></div>
 
     <!-- Sol Alt: Uydular Paneli (2D/3D, Asit Yağmuru & Şiddeti, Fırtına & Şiddeti) -->
@@ -39,38 +39,38 @@
   </main>
 
   <!-- Çift tıklamayla (file://) ve HTTP sunucuda sorunsuz açılan sıralı yerel modül betikleri -->
-  <script defer src="./data/offlineDatasets.js?v=4.3"></script>
-  <script defer src="./data/craterLocations.js?v=4.3"></script>
-  <script defer src="./data/craterWaypointsData.js?v=4.3"></script>
-  <script defer src="./data/resourcesData.js?v=4.3"></script>
-  <script defer src="./data/teamData.js?v=4.3"></script>
+  <script defer src="./data/offlineDatasets.js?v=4.4"></script>
+  <script defer src="./data/craterLocations.js?v=4.4"></script>
+  <script defer src="./data/craterWaypointsData.js?v=4.4"></script>
+  <script defer src="./data/resourcesData.js?v=4.4"></script>
+  <script defer src="./data/teamData.js?v=4.4"></script>
   <script defer src="./data/i18n/localesTrEnDe.js?v=4.4"></script>
-  <script defer src="./data/i18n/localesFrEs.js?v=4.3"></script>
-  <script defer src="./data/i18n/localesJaKoArHe.js?v=4.3"></script>
-  <script defer src="./data/i18n/localesDemo.js?v=4.3"></script>
+  <script defer src="./data/i18n/localesFrEs.js?v=4.4"></script>
+  <script defer src="./data/i18n/localesJaKoArHe.js?v=4.4"></script>
+  <script defer src="./data/i18n/localesDemo.js?v=4.4"></script>
 
   <script defer src="./js/models/AppConfig.js?v=4.4"></script>
-  <script defer src="./js/models/ResourceItem.js?v=4.3"></script>
-  <script defer src="./js/models/TeamMember.js?v=4.3"></script>
+  <script defer src="./js/models/ResourceItem.js?v=4.4"></script>
+  <script defer src="./js/models/TeamMember.js?v=4.4"></script>
 
-  <script defer src="./js/services/I18nService.js?v=4.3"></script>
-  <script defer src="./js/services/StateStorageService.js?v=4.3"></script>
-  <script defer src="./js/services/FpsGuardService.js?v=4.3"></script>
-  <script defer src="./js/services/DatasetLoader.js?v=4.3"></script>
-  <script defer src="./js/services/MarsTileLoader.js?v=4.3"></script>
-  <script defer src="./js/services/MarsTopographyService.js?v=4.3.2"></script>
-  <script defer src="./js/services/HazardFieldService.js?v=4.3"></script>
-  <script defer src="./js/services/MolaAStarGridHelper.js?v=4.3.2"></script>
-  <script defer src="./js/services/BackendApiService.js?v=4.3.2"></script>
-  <script defer src="./js/services/RouteGeometryHelper.js?v=4.3.1"></script>
-  <script defer src="./js/services/RoutePlannerService.js?v=4.3"></script>
-  <script defer src="./js/services/DemoScenarioService.js?v=4.3"></script>
+  <script defer src="./js/services/I18nService.js?v=4.4"></script>
+  <script defer src="./js/services/StateStorageService.js?v=4.4"></script>
+  <script defer src="./js/services/FpsGuardService.js?v=4.4"></script>
+  <script defer src="./js/services/DatasetLoader.js?v=4.4"></script>
+  <script defer src="./js/services/MarsTileLoader.js?v=4.4"></script>
+  <script defer src="./js/services/MarsTopographyService.js?v=4.4"></script>
+  <script defer src="./js/services/HazardFieldService.js?v=4.4"></script>
+  <script defer src="./js/services/MolaAStarGridHelper.js?v=4.4"></script>
+  <script defer src="./js/services/BackendApiService.js?v=4.4"></script>
+  <script defer src="./js/services/RouteGeometryHelper.js?v=4.4"></script>
+  <script defer src="./js/services/RoutePlannerService.js?v=4.4"></script>
+  <script defer src="./js/services/DemoScenarioService.js?v=4.4"></script>
 
-  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.3"></script>
-  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/Map2DRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/Map3DFallbackRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.4"></script>
+  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/Map2DRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/Map3DFallbackRenderer.js?v=4.4"></script>
   <script defer src="./js/renderers/Map3DRenderer.js?v=4.4"></script>
 
   <script defer src="./js/components/SettingsPanel.js?v=4.4"></script>
@@ -78,9 +78,9 @@
   <script defer src="./js/components/RouteInspectorPanel.js?v=4.4"></script>
   <script defer src="./js/components/DemoControlBar.js?v=4.4"></script>
   <script defer src="./js/components/MissionInfoModal.js?v=4.4"></script>
-  <script defer src="./js/components/MarsMapInteractionHelper.js?v=4.3.1"></script>
+  <script defer src="./js/components/MarsMapInteractionHelper.js?v=4.4"></script>
   <script defer src="./js/components/MarsNavigatorController.js?v=4.4"></script>
-  <script defer src="./js/app.js?v=4.3"></script>
+  <script defer src="./js/app.js?v=4.4"></script>
 </body>
 </html>
 
@@ -88,14 +88,14 @@
 ==========================================================================
 DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------
-- Satır 1-10: HTML5 belgesi, temiz UTF-8 karakter seti, v4.3 başlığı, SVG favikon ve yerel CSS paketi.
-- Satır 14: #starfield-canvas; arka planda siyah uzay ve yıldız animasyonu tuvali.
+- Satır 1-10: HTML5 belgesi, temiz UTF-8 karakter seti, Açık Gri Stüdyo v4.4 başlığı, SVG favikon ve yerel CSS paketi.
+- Satır 14: #starfield-canvas; arka planda Açık Gri Stüdyo zemin ve yörünge katmanı tuvali.
 - Satır 17-18: #mars-navigator-app ve #mars-map-canvas; orta alanda tam ekran gezinebilen 2D/3D Mars harita yüzeyi.
-- Satır 21: #top-left-dock; sol üst Ayarlar simgesi (ilk seçenek Factory Reset), hedef krater şeridi, Demo bağlantısı ve 9 dil seçici.
-- Satır 24: #top-right-dock; sağ üst açılır/kapanır rota analizi (Mavi Güvenli Rota), O2 bütçesi ve radyasyon telemetrisi.
-- Satır 27: #bottom-left-dock; sol alt Uydular butonu ve 2D/3D/Asit/Fırtına fotoğraf arka planlı açılır penceresi.
+- Satır 21: #top-left-dock; sol üst Ayarlar simgesi (ilk seçenek Factory Reset), arama çubuğu, Demo bağlantısı ve 9 dil seçici.
+- Satır 24: #top-right-dock; sağ üst açılır/kapanır rota analizi (Mavi Güvenli Rota), 5sn backend gecikme rozeti ve radyasyon telemetrisi.
+- Satır 27: #bottom-left-dock; sol alt kare Mars uydu fotoğraflı Uydular butonu ve açılır penceresi.
 - Satır 30: #bottom-right-dock; sağ alt yakınlaştırma butonları, koordinat etiketi ve FPS koruma göstergesi.
 - Satır 33-38: #app-toast (FPS < 10 uyarıları), #demo-bar-root ve #mission-modal-root kapları.
-- Satır 42-83: file:// doğrudan çift tıklama ve HTTP sunucuda çalışan sıralı yerel AstroChief modül, helper ve 9-dil (i18n) betikleri.
+- Satır 42-83: file:// doğrudan çift tıklama ve HTTP sunucuda çalışan sıralı yerel AstroChief modül, helper ve 9-dil (i18n) betikleri (?v=4.4).
 ==========================================================================
 -->
