@@ -37,21 +37,29 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
 
 5. **Mars Perseverance Raw Images Gallery (NASA Mars 2020)**
    - **Resmi URL:** https://mars.nasa.gov/mars2020/multimedia/raw-images/
-   - **İndirilen Veri Dosyası:**
-     * `data/datasets/perseverance_raw_images.json` (Jezero Krateri'nden canlı ham görsel metadataları, kameralar, sol ve optik bağlantılar)
-     * `data/datasets/images/perseverance_supercam_sol2031.jpg` (Örnek yüksek çözünürlüklü ham yüzey fotoğrafı)
-   - **Kullanım Alanı:** Yüzey fotoğrafları, kamera ham verileri ve optik teyit.
+   - **İndirilen Veri Dosyaları:**
+     * `data/datasets/perseverance_raw_images.json` (Jezero Krateri ham görsel metadataları, kameralar, sol ve optik bağlantılar)
+     * `res/images/perseverance_supercam_sol2031.jpg` ve `data/datasets/images/perseverance_supercam_sol2031.jpg` (Perseverance Sol 2031 gerçek ham Mars yüzey fotoğrafı)
+   - **Kullanım Alanı:** Yüzey fotoğrafları, krater EVA durak kartları ve optik teyit.
 
 6. **NASA Space Apps Challenge 2026 — Interplanetary Survival Guide: Martian Map**
    - **Resmi URL:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
-   - **Yerel Yapılandırma:** `data/craterLocations.js`, `data/craterWaypointsData.js`
-   - **Kullanım Alanı:** Gale Krateri (Boxwork formasyonları), Jezero Krateri (Delta) ve Korolev Krateri EVA yürüyüş rotaları.
+   - **Yerel Yapılandırma:** `data/craterLocations.js`, `data/craterWaypointsData.js`, `js/services/HazardFieldService.js`, `js/services/RoutePlannerService.js`
+   - **Kullanım Alanı:** Asit yağmurları, kum fırtınaları ve Alfa/Beta/Gama foton bombardımanı risklerinden kaçınan en güvenli kısa (**Mavi `#2563eb`**) ve güvenli uzun (**Soluk Mavi `#93c5fd`**) rotaların `Saat`, `km/m` ve `Litre` birimleriyle hesaplanması.
 
-7. **Tipografi & Tasarım Kaynakları**
-   - **Font Ailesi:** Public Sans (Google Fonts CDN / Public Sans Web, sans-serif, Bold 700-900)
-   - **Resmi API:** `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json`
+7. **Yerel Tipografi & Bölge Görselleri (`res/` Arşivi — İnternet Çekimi Yasaktır)**
+   - **Font Ailesi (`res/fonts/`):** `Public Sans Web, sans-serif` (400, 600, 700, 800, 900 ağırlıkları, latin ve latin-ext `.woff2` yerel dosyaları; internet/CDN çağrısı olmadan `css/fonts.css` ile sunulur)
+   - **Bölge & Uydu Görselleri (`res/images/`):**
+     * `sat_2d_view.jpg` (Valles Marineris 2D yörünge görünümü)
+     * `sat_3d_view.jpg` (3D Mars küresi yörünge görünümü)
+     * `acid_rain_region.jpg` (Sülfat/asit sisli krater bölgesi)
+     * `dust_storm_region.jpg` (Mars siklonik toz fırtınası/kasırgası bölgesi)
+     * `radiation_region.jpg` (Mars atmosferik aurora ve Alfa/Beta/Gama foton kuşağı)
+   - **Resmi NASA Ham Görsel API Kaydı (Belgeleme Amaçlı):** `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json`
 
-8. **Harita Projeksiyon, Şablon ve Çoklu Platform Derleme Araçları**
-   - **Projeksiyon & Şablon Referansları:** NASA Mars Trek (`https://trek.nasa.gov/mars/`, `EPSG:104905` Equirectangular & 3D Globe modu) ve Google Maps kurumsal Sidebar + Header düzeni
-   - **Windows Derleyici:** Microsoft .NET Framework `csc.exe` (`tools/WinLauncher.cs` -> `MarsMap-win64.exe` bağımsız yerel sunucu ikilisi)
-   - **Linux Paketleyici:** POSIX Bash başlatıcı (`tools/launch-linux.sh`) + `tar.exe` (`.tar.gz`) ve SHA-256 doğrulama manifestosu (`tools/build_tool.ps1`)
+8. **Harita Projeksiyonu, Çoklu Platform Derleme & Ajan İletişimi**
+   - **Projeksiyon & Tema:** NASA Mars Trek (`EPSG:104905` Equirectangular varsayılan 2D & bilineer 3D Küre), %60 Beyaz / %30 Siyah / %10 Kırmızı tema
+   - **İşletim Sistemi Duyarlı Derleme Aracı:** `build.sh` ve `tools/build.py` (çalıştığı işletim sistemini algılayarak Linux `.tar.gz` veya Windows paketi derler ve Masaüstüne kopyalar)
+   - **Linux Paketleyici & Sunucu:** `tools/launch-linux.sh` (`.woff2` MIME destekli Python3 HTTP sunucusu + `SHA256SUMS.txt` + `.tar.gz`)
+   - **Windows Derleyici & Sunucu:** `tools/build_tool.ps1`, `build.bat`, `serve.ps1`, `tools/WinLauncher.cs` (.NET Framework `csc.exe` -> `MarsMap-win64.exe`)
+   - **Ortak AI Ajan Belgeleri:** `ForAgents/PROJECT_STATE.md` ve `ForAgents/SHARED_PLANS_AND_API.md`

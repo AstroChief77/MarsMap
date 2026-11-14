@@ -1,0 +1,51 @@
+/**
+ * @file variables.css
+ * @description Kurumsal Google Maps tarzı %60 Beyaz, %30 Siyah, %10 Kırmızı tema ve Public Sans Web bold değişkenleri.
+ */
+
+:root {
+  /* %60 Beyaz Kurumsal Yüzeyler */
+  --surface-white: #ffffff;
+  --surface-offwhite: #f8f9fa;
+  --surface-subtle: #f1f3f5;
+
+  /* %30 Siyah Uzay Zemini ve Yüksek Kontrast Tipografi */
+  --space-black: #000000;
+  --ink-black: #111317;
+  --ink-dark: #374151;
+  --ink-muted: #6b7280;
+
+  /* %10 NASA / Mars Kırmızısı Kurumsal Vurgu */
+  --mars-red: #d92b2b;
+  --mars-red-dark: #b91c1c;
+  --mars-red-soft: rgba(217, 43, 43, 0.08);
+
+  /* İnce Hairline Kenarlıklar ve Kurumsal Gölgeler */
+  --border-hairline: #e5e7eb;
+  --border-medium: #d1d5db;
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-popover: 0 6px 24px rgba(0, 0, 0, 0.22);
+  --shadow-section: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  /* KURAL: Public Sans Web, sans-serif ve Bold Standartı */
+  --font-family-mars: 'Public Sans Web', 'Public Sans', system-ui, -apple-system, sans-serif;
+  --font-weight-base: 700;
+  --font-weight-heavy: 800;
+  --font-weight-black: 900;
+
+  /* Ölçüler */
+  --header-height: 60px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --max-width-container: 1280px;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc kurumsal tasarım değişkenleri tanımı.
+   - Satır 6-22: %60 Beyaz, %30 Siyah, %10 Kırmızı kurumsal renk paleti ve sade saç teli kenarlıklar.
+   - Satır 24-28: Zorunlu Public Sans Web bold tipografi değişkenleri.
+   - Satır 30-35: Header yüksekliği (60px), yumuşak köşe yarıçapları ve maksimum sayfa genişliği.
+   ========================================================================== */

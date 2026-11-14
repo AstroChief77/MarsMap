@@ -39,7 +39,9 @@ namespace AstroChiefLauncher
             mimeTypes[".png"]  = "image/png";
             mimeTypes[".jpg"]  = "image/jpeg";
             mimeTypes[".svg"]  = "image/svg+xml";
-            mimeTypes[".ico"]  = "image/x-icon";
+            mimeTypes[".ico"]   = "image/x-icon";
+            mimeTypes[".woff2"] = "font/woff2";
+            mimeTypes[".woff"]  = "font/woff";
 
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add(prefix);
@@ -103,10 +105,10 @@ namespace AstroChiefLauncher
 }
 
 /* ==========================================================================
-   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satır 1-14: Başlık yorumu ve .NET Framework temel kütüphane bildirimleri.
-   - Satır 18-26: FindFreePort; çakışma yaşamadan boş yerel TCP portu tespit eder.
-   - Satır 28-56: Main; MIME tablosunu hazırlar, HttpListener'ı başlatır ve varsayılan tarayıcıyı açar.
-   - Satır 58-92: Gelen HTTP isteklerini kök dizin güvenliği (traversal koruması) ile sunucudan döner.
+   - Satir 1-14: Baslik yorumu ve .NET Framework temel kutuphane bildirimleri.
+   - Satir 18-26: FindFreePort; cakisma yasamadan bos yerel TCP portu tespit eder.
+   - Satir 28-62: Main; yerel .woff2/.js/.json MIME tablosunu hazirlar, HttpListener'i baslatir ve tarayiciyi acar.
+   - Satir 64-103: Gelen HTTP isteklerini kok dizin guvenligi (traversal korumasi) ile sunucudan doner.
    ========================================================================== */

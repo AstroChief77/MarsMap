@@ -1,40 +1,45 @@
 /**
  * @file app.js
- * @description AstroChief Mars Kuresi ana baslatici sinifi (Navbar olmadan tam ekran).
- * Yildiz simülasyonu ve data/tiles karo tabanli MarsGlobeViewer bilesenini baslatir.
+ * @description AstroChief Mars Navigator ana baslatici sinifi.
+ * Yildiz tuvalini ve MarsNavigatorController ana uygulamasini ayaga kaldirir.
  */
 
-import { Starfield } from "./components/Starfield.js";
-import { MarsGlobeViewer } from "./components/MarsGlobeViewer.js";
+(function (ns) {
+  "use strict";
+  const { StarfieldRenderer, MarsNavigatorController } = ns;
 
-export class AstroChiefApp {
-  /**
-   * AstroChiefApp yapici metodu
-   */
-  constructor() {
-    this.starfield = new Starfield("starfield-canvas");
-    this.globeViewer = new MarsGlobeViewer("mars-globe-container", this.starfield);
+  class AstroChiefApp {
+    /**
+     * AstroChiefApp yapici metodu
+     */
+    constructor() {
+      this.starfield = new StarfieldRenderer("starfield-canvas");
+      this.navigator = new MarsNavigatorController(this.starfield);
+    }
+
+    /**
+     * Uygulamayi baslatir
+     */
+    async start() {
+      this.starfield.init();
+      await this.navigator.init();
+      window.__astroChiefApp = this;
+    }
   }
 
-  /**
-   * Yildiz tuvalini ve yerel karo tabanli Mars kuresini baslatir
-   */
-  async start() {
-    this.starfield.init();
-    await this.globeViewer.init();
-  }
-}
+  document.addEventListener("DOMContentLoaded", () => {
+    const app = new AstroChiefApp();
+    app.start();
+  });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const app = new AstroChiefApp();
-  app.start();
-});
+  ns.AstroChiefApp = AstroChiefApp;
+})(window.AstroChief = window.AstroChief || {});
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc minimal Mars Kuresi giris koordinatörü tanıtımı.
-   - Satir 7-8: Starfield ve MarsGlobeViewer modullerinin içe aktarılması.
-   - Satir 10-25: AstroChiefApp; navbar ve pathfind panelleri olmadan yildizli Mars kuresini ayağa kaldırır.
+   - Satir 1-5: JSDoc AstroChief Mars Navigator giris noktasi tanimi.
+   - Satir 7-8: StarfieldRenderer ve MarsNavigatorController siniflarinin ice aktarilmasi.
+   - Satir 10-25: AstroChiefApp sinifi; yildiz arkaplanini ve varsayilan 2D harita koordinasyonunu baslatir.
    - Satir 27-30: DOMContentLoaded olayinda uygulamayi calistirir.
    ========================================================================== */

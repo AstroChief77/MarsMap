@@ -1,19 +1,19 @@
 /**
  * @file style.css
- * @description AstroChief Mars Kuresi ana stil dosyasi.
- * Kural Geregi: Yazi fontlari Public Sans Web, sans-serif ailesinden ve bold olmaktadir.
+ * @description Tum yerel CSS modullerini tek merkezden yukleyen ana stil dosyasi.
+ * Kural geregi hicbir harici CDN kutuphanesi veya fontu internetten cekilmez.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@600;700;800;900&display=swap');
-
+@import url('./fonts.css');
 @import url('./variables.css');
 @import url('./base.css');
-@import url('./globe_viewer.css');
+@import url('./controls.css');
+@import url('./satellites_panel.css');
+@import url('./inspector.css');
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc ana stil dosyasi ve Public Sans Web bold zorunlulugu.
-   - Satir 7: Google Fonts uzerinden Public Sans (600-900) font ailesinin yuklenmesi.
-   - Satir 9-11: variables.css, base.css ve globe_viewer.css moduler iceri aktarimi.
+   - Satir 1-5: JSDoc cevrime kapali (yerel res/fonts) ana stil girisi.
+   - Satir 7-12: fonts.css, variables.css, base.css, controls.css, satellites_panel.css ve inspector.css modullerinin sirali yuklenmesi.
    ========================================================================== */
