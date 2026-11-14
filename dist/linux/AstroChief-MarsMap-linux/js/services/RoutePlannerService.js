@@ -134,9 +134,11 @@
 
       return {
         scope: "crater",
+        source: "local-fallback",
         primaryBlue: {
           ...m1,
           points: primaryPoints,
+          steps: this.buildCraterSteps(crater, primaryPoints, m1.totalHours, m1.totalKm),
           colorHex: "#2563eb",
           label: "En Güvenli Kısa Yol (Mavi)",
           comment: `// Mavi Yol: ${crater.name} güvenli en kısa rota — ${m1.formattedDuration} sürer (${m1.totalKm.toFixed(1)} km)`
@@ -144,6 +146,7 @@
         secondaryPaleBlue: {
           ...m2,
           points: secondaryPoints,
+          steps: this.buildCraterSteps(crater, secondaryPoints, m2.totalHours, m2.totalKm),
           colorHex: "#93c5fd",
           label: "Güvenli Uzun Alternatif Yol (Soluk Mavi)",
           comment: `// Soluk Mavi: Fırtına/asit/foton dışı güvenli uzun yay — ${m2.formattedDuration} sürer (${m2.totalKm.toFixed(1)} km)`
@@ -152,26 +155,68 @@
     }
 
     /**
-     * Kuresel 2D/3D harita uzerinde iki inis sahasi/krater arasi Mavi ve Soluk Mavi rotayi hesaplar
+     * Krater EVA durak noktalarindan step-by-step adim listesi uretir
      */
-    computeGlobalRoutes(sites, originId, targetId, options = {}) {
-      const startSite = sites.find((s) => s.id === originId) || sites[0];
-      const endSite = sites.find((s) => s.id === targetId) || sites[1] || sites[0];
-      if (!startSite || !endSite) return { primaryBlue: null, secondaryPaleBlue: null };
+    buildCraterSteps(crater, pts, totalHours, totalKm) {
+      if (!Array.isArray(pts) || pts.length === 0) return [];
+      const denomKm = Math.max(0.01, totalKm || 1);
+      const baseLat = crater && crater.coordinates ? crater.coordinates.lat : -4.59;
+      const baseLon = crater && crater.coordinates ? crater.coordinates.lon : 137.44;
+      return pts.map((wp, idx) => {
+        const prev = idx > 0 ? pts[idx - 1] : wp;
+        const legKm = idx === 0 ? 0 : Math.hypot(wp.relX - prev.relX, wp.relY - prev.relY) * this.pixelToKmFactor;
+        const legHours = (legKm / denomKm) * (totalHours || 0);
+        const lat = Number((baseLat - wp.relY * 0.008).toFixed(4));
+        const lon = Number(this.geo.wrapLon(baseLon + wp.relX * 0.008).toFixed(4));
+        const slopeDeg = Number((wp.slope || 4.5).toFixed(1));
+        const elevM = Math.round(wp.elevationM !== undefined ? wp.elevationM : (-4200 + idx * 145));
+        const hazardWarning = wp.acidRisk
+          ? "Asit çökeltisi çevresinden koridor sapması"
+          : (wp.stormRisk ? "Fırtına/toz cebi çevresinden güvenli geçiş" : null);
+        const instruction = idx === 0
+          ? `Üs çıkışı: ${wp.title || wp.name || "Durak 1"} (EVA hazırlığı)`
+          : `${wp.title || wp.name || `Durak ${idx + 1}`} noktasına ${legKm.toFixed(2)} km ilerle (Eğim ${slopeDeg}°)`;
+        return {
+          step: idx + 1,
+          lat,
+          lon,
+          elevM,
+          slopeDeg,
+          distKm: Number(legKm.toFixed(2)),
+          durationHours: Number(legHours.toFixed(2)),
+          instruction,
+          hazardWarning
+        };
+      });
+    }
 
-      const hzBundle = this.hazardService.getGlobalHazardZones(options);
+    /**
+     * Herhangi iki {lat, lon} noktasi arasinda cevrimdisi yedek Mavi ve Soluk Mavi step-by-step rota uretir
+     */
+    computeRoutesBetweenCoords(origin, destination, options = {}) {
+      if (!origin || !destination) return { primaryBlue: null, secondaryPaleBlue: null };
+
+      const hzBundle = options.hazardBundle || this.hazardService.getGlobalHazardZones(options);
       const allHazards = [
-        ...hzBundle.acidZones.map((z) => ({ ...z, weight: 1.0 })),
-        ...hzBundle.stormZones.map((z) => ({ ...z, weight: 1.1 })),
-        ...hzBundle.radiationZones.map((z) => ({ ...z, weight: 0.85 }))
+        ...(hzBundle.acidZones || []).map((z) => ({ ...z, weight: 1.0 })),
+        ...(hzBundle.stormZones || []).map((z) => ({ ...z, weight: 1.1 })),
+        ...(hzBundle.radiationZones || []).map((z) => ({ ...z, weight: 0.85 }))
       ];
 
-      const startPt = { lat: startSite.latitude, lon: this.geo.wrapLon(startSite.longitude), name: startSite.name };
-      const endPt = { lat: endSite.latitude, lon: this.geo.wrapLon(endSite.longitude), name: endSite.name };
+      const startPt = {
+        id: origin.id || "custom-origin",
+        name: origin.name || "Mevcut Konum (A)",
+        lat: Number(origin.lat || 0),
+        lon: this.geo.wrapLon(Number(origin.lon || 0))
+      };
+      const endPt = {
+        id: destination.id || "custom-destination",
+        name: destination.name || "Varış Noktası (B)",
+        lat: Number(destination.lat || 0),
+        lon: this.geo.wrapLon(Number(destination.lon || 0))
+      };
 
-      // YOL YORUMU (MAVI): Aktif asit/firtina/foton merkezlerinin kenarindan dolanan en kisa guvenli gezici rotasi
       const blueGeoPts = this.geo.buildSafeGlobalPath(startPt, endPt, allHazards, 1.0, 1);
-      // YOL YORUMU (SOLUK MAVI): Tum firtina ve asit kusaklarinin genis dis cemberinden dolanan guvenli uzun yol
       const paleGeoPts = this.geo.buildSafeGlobalPath(startPt, endPt, allHazards, 1.75, -1);
 
       const summarizeGeo = (pts, isOuterSafe) => {
@@ -179,7 +224,6 @@
         for (let i = 0; i < pts.length - 1; i++) {
           totalKm += this.geo.haversineMarsKm(pts[i].lat, pts[i].lon, pts[i + 1].lat, pts[i + 1].lon);
         }
-        // Her iki rota da kacinma koridorunda ilerler; firtina/asit siddeti surus hizini her ikisinde de etkiler
         let speedMult = 1.0;
         if (options.filterAcidRain) speedMult *= (0.70 + 0.30 * hzBundle.acidSpec.speedMult);
         if (options.filterDustStorm) speedMult *= (0.68 + 0.32 * hzBundle.stormSpec.speedMult);
@@ -187,12 +231,14 @@
 
         const effSpeed = this.roverSpeedKmH * speedMult;
         const totalHours = totalKm / effSpeed;
+        const steps = this.geo.buildStepsFromGeoPath(pts, allHazards, totalHours, totalKm);
 
         return {
           points: pts,
-          totalKm,
+          steps,
+          totalKm: Number(totalKm.toFixed(2)),
           totalMeters: Math.round(totalKm * 1000),
-          totalHours,
+          totalHours: Number(totalHours.toFixed(2)),
           formattedDuration: this.formatHours(totalHours),
           o2Liters: Math.round(totalHours * this.o2LitersPerHour),
           waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
@@ -204,8 +250,11 @@
 
       return {
         scope: "global",
-        originName: startSite.name,
-        targetName: endSite.name,
+        source: "local-fallback",
+        origin: startPt,
+        destination: endPt,
+        originName: startPt.name,
+        targetName: endPt.name,
         primaryBlue: {
           ...g1,
           colorHex: "#2563eb",
@@ -220,6 +269,20 @@
         }
       };
     }
+
+    /**
+     * Kuresel 2D/3D harita uzerinde iki inis sahasi/krater arasi Mavi ve Soluk Mavi rotayi hesaplar
+     */
+    computeGlobalRoutes(sites, originId, targetId, options = {}) {
+      const startSite = sites.find((s) => s.id === originId) || sites[0];
+      const endSite = sites.find((s) => s.id === targetId) || sites[1] || sites[0];
+      if (!startSite || !endSite) return { primaryBlue: null, secondaryPaleBlue: null };
+      return this.computeRoutesBetweenCoords(
+        { id: startSite.id, name: startSite.name, lat: startSite.latitude, lon: startSite.longitude },
+        { id: endSite.id, name: endSite.name, lat: endSite.latitude, lon: endSite.longitude },
+        options
+      );
+    }
   }
 
   ns.RoutePlannerService = RoutePlannerService;
@@ -228,9 +291,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-8: JSDoc cift rota hesaplama servisi (Mavi kisa + Soluk Mavi uzun + yol yorumlari + sure).
+   - Satir 1-8: JSDoc cift rota hesaplama servisi (Mavi kisa + Soluk Mavi uzun + step-by-step adimlar + yol yorumlari).
    - Satir 10-29: constructor; fabrika birimleri (km/m, Saat, Litre) ve hiz sabitlerini tanimlar.
    - Satir 31-42: formatHours; saat ve dakika/Sol cinsinden ulasim suresini bicimlendirir.
-   - Satir 44-129: computeCraterRoutes; krater ici EVA duraklari icin asit/firtina siddetli Mavi ve Soluk Mavi yollari, yol yorumlarini ve sureyi hesaplar.
-   - Satir 131-196: computeGlobalRoutes; iki Mars bolgesi arasinda Haversine km/m mesafesi, varis suresi (saat), Litre tuketimi ve yol yorumlarini uretir.
+   - Satir 44-187: computeCraterRoutes ve buildCraterSteps; krater ici EVA duraklari icin adimli Mavi ve Soluk Mavi rotalar uretir.
+   - Satir 189-299: computeRoutesBetweenCoords ve computeGlobalRoutes; herhangi iki {lat, lon} arasi Haversine mesafe, sure, Litre ve steps[] uretir.
    ========================================================================== */

@@ -7,7 +7,7 @@
 
 (function (ns) {
   "use strict";
-  const { CRATERS_DATA, CRATER_WAYPOINTS_DATA, AppConfig, StateStorageService, FpsGuardService, DatasetLoader, MarsTileLoader, HazardFieldService, RoutePlannerService, Map2DRenderer, Map3DRenderer, SettingsPanel, SatellitesPanel, RouteInspectorPanel, MissionInfoModal } = ns;
+  const { CRATERS_DATA, CRATER_WAYPOINTS_DATA, AppConfig, StateStorageService, FpsGuardService, DatasetLoader, MarsTileLoader, HazardFieldService, BackendApiService, RoutePlannerService, Map2DRenderer, Map3DRenderer, SettingsPanel, SatellitesPanel, RouteInspectorPanel, MissionInfoModal } = ns;
 
   class MarsNavigatorController {
     /**
@@ -26,11 +26,16 @@
         this.updateTelemetryBar();
       });
       this.hazardService = new HazardFieldService(this.config);
+      this.backendApi = BackendApiService ? new BackendApiService(this.config) : null;
       this.routePlanner = new RoutePlannerService(this.config, this.hazardService);
       this.renderer2D = new Map2DRenderer(this.tileLoader);
       this.renderer3D = new Map3DRenderer(this.tileLoader);
 
-      this.fpsGuard = new FpsGuardService(this.config.fpsMinLimit, (fps) => this.updateFpsBadge(fps));
+      this.fpsGuard = new FpsGuardService(
+        this.config.fpsMinLimit,
+        (fps) => this.updateFpsBadge(fps),
+        this.config.fpsGuardWindowMs || 10000
+      );
 
       this.canvas = document.getElementById("mars-map-canvas");
       this.ctx = this.canvas ? this.canvas.getContext("2d") : null;
@@ -40,6 +45,14 @@
       this.hitTargets = [];
       this.selectedWaypoint = null;
       this.hoverCoords = { lat: this.state.rotLat, lon: this.state.rotLon };
+
+      this.backendRoutes = null;
+      this.backendHazards = null;
+      this.backendLoading = false;
+      this.backendStatusText = "";
+      this.pickMode = null;
+      this.requestSeq = 0;
+      this.routeDebounceTimer = null;
 
       this.isDragging = false;
       this.hasMoved = false;
@@ -59,7 +72,9 @@
         onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label),
         onSelectGlobalScope: () => this.switchToGlobalRouteScope(),
         onSelectCrater: (craterId) => this.flyToCraterById(craterId),
-        onOpenInfoModal: () => this.missionModal.open()
+        onOpenInfoModal: () => this.missionModal.open(),
+        onBackendUrlSave: (url) => this.handleBackendUrlSave(url),
+        onBackendUrlTest: (url) => this.handleBackendUrlTest(url)
       });
 
       this.satellitesPanel = new SatellitesPanel(document.getElementById("bottom-left-dock"), {
@@ -72,11 +87,16 @@
           this.persistState();
           this.renderUi();
         },
-        onChangeGlobalEndpoints: (key, siteId) => {
-          this.state[key] = siteId;
+        onChangeGlobalEndpoints: (key, siteId) => this.handlePresetEndpointChange(key, siteId),
+        onTogglePickMode: (mode) => this.togglePickMode(mode),
+        onEnterGlobalPicker: () => this.switchToGlobalRouteScope(),
+        onApplyCustomCoords: (oLat, oLon, dLat, dLon) => this.applyCustomCoordinates(oLat, oLon, dLat, dLon),
+        onChangeStepTab: (tab) => {
+          this.state.activeStepRouteTab = tab === "secondary" ? "secondary" : "primary";
           this.persistState();
-          this.refreshAll();
+          this.renderUi();
         },
+        onFocusCoords: (lat, lon) => this.animateTo(lat, lon, Math.max(this.state.zoom, 1.35)),
         onSelectWaypoint: (wpId) => {
           const wps = this.getActiveWaypoints();
           this.selectedWaypoint = wps.find((w) => w.id === wpId) || null;
@@ -100,6 +120,10 @@
 
       this.landingSites = landingJson?.landing_sites || [];
       this.hazardService.setWorldviewData(hazardJson);
+      if (this.backendApi) {
+        const initUrl = this.backendApi.resolveInitialUrl(this.state.backendApiUrl);
+        if (initUrl) this.state.backendApiUrl = initUrl;
+      }
 
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
@@ -111,6 +135,9 @@
       this.bindGlobalEvents();
       this.fpsGuard.start();
       this.refreshAll();
+      if (this.state.backendApiUrl) {
+        this.refreshBackendHazardsAndRoute();
+      }
     }
 
     getActiveCrater() {
@@ -144,8 +171,12 @@
       if (key === "showStarfield") {
         this.starfield?.setEnabled(value);
       }
+      this.backendRoutes = null;
       this.persistState();
       this.refreshAll();
+      if (this.state.backendApiUrl) {
+        this.scheduleBackendRouteFetch(220);
+      }
     }
 
     /**
@@ -153,51 +184,94 @@
      */
     performFactoryReset() {
       if (this.animFrame) cancelAnimationFrame(this.animFrame);
+      this.pickMode = null;
+      if (this.canvas) this.canvas.style.cursor = "";
+      this.backendRoutes = null;
+      this.backendHazards = null;
+      this.backendStatusText = "";
       this.state = this.storage.factoryReset();
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       this.starfield?.setEnabled(this.state.showStarfield);
       this.refreshAll();
-      this.showToast("Factory Reset: 2D Varsayılan, Ölçekli LOD ve Litre/km/Saat/α-β-γ yüklendi.");
+      this.showToast("Factory Reset: 3D Varsayılan, Ölçekli LOD ve Litre/km/Saat/α-β-γ yüklendi.");
     }
 
     switchToGlobalRouteScope() {
       this.state.routeScope = "global";
+      this.backendRoutes = null;
       this.persistState();
       this.animateTo(-2.0, 96.0, 1.02);
       this.renderUi();
+      if (this.state.backendApiUrl) {
+        this.scheduleBackendRouteFetch(120);
+      }
     }
 
     flyToCraterById(craterId) {
       const crater = CRATERS_DATA.find((c) => c.id === craterId);
       if (!crater) return;
+      this.pickMode = null;
+      if (this.canvas) this.canvas.style.cursor = "";
       this.state.activeCraterId = crater.id;
       this.state.routeScope = "crater";
+      this.backendRoutes = null;
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       this.persistState();
       this.renderUi();
       this.animateTo(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.state.zoom, 1.95));
+      if (this.state.backendApiUrl) {
+        this.scheduleBackendRouteFetch(120);
+      }
+    }
+
+    getActiveEndpoints() {
+      return this.routePlanner.geo.resolveActiveEndpoints(
+        this.state,
+        this.getActiveCrater(),
+        this.getActiveWaypoints(),
+        this.landingSites
+      );
+    }
+
+    getActiveHazardBundle() {
+      const base = this.hazardService.getGlobalHazardZones(this.state);
+      if (!this.backendHazards) return base;
+      return {
+        ...base,
+        acidZones: (this.state.filterAcidRain && Array.isArray(this.backendHazards.acidZones) && this.backendHazards.acidZones.length > 0)
+          ? this.backendHazards.acidZones
+          : base.acidZones,
+        stormZones: (this.state.filterDustStorm && Array.isArray(this.backendHazards.stormZones) && this.backendHazards.stormZones.length > 0)
+          ? this.backendHazards.stormZones
+          : base.stormZones,
+        radiationZones: (this.state.showRadiationZones && Array.isArray(this.backendHazards.radiationZones) && this.backendHazards.radiationZones.length > 0)
+          ? this.backendHazards.radiationZones
+          : base.radiationZones
+      };
     }
 
     computeActiveRoutes() {
+      if (this.backendRoutes && this.backendRoutes.scope === this.state.routeScope) {
+        return this.backendRoutes;
+      }
+
       const activeCrater = this.getActiveCrater();
       const wps = this.getActiveWaypoints();
+      const hazardBundle = this.getActiveHazardBundle();
       const opts = {
         filterAcidRain: this.state.filterAcidRain,
         acidIntensity: this.state.acidIntensity,
         filterDustStorm: this.state.filterDustStorm,
         stormIntensity: this.state.stormIntensity,
-        showRadiationZones: this.state.showRadiationZones
+        showRadiationZones: this.state.showRadiationZones,
+        hazardBundle
       };
 
-      if (this.state.routeScope === "global" && this.landingSites.length >= 2) {
-        return this.routePlanner.computeGlobalRoutes(
-          this.landingSites,
-          this.state.globalOriginId,
-          this.state.globalTargetId,
-          opts
-        );
+      if (this.state.routeScope === "global") {
+        const { origin, destination } = this.getActiveEndpoints();
+        return this.routePlanner.computeRoutesBetweenCoords(origin, destination, opts);
       }
       return this.routePlanner.computeCraterRoutes(activeCrater, wps, opts);
     }
@@ -214,12 +288,19 @@
       const wps = this.getActiveWaypoints();
       const routes = this.computeActiveRoutes();
       const radZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
+      const { origin, destination } = this.getActiveEndpoints();
 
-      this.settingsPanel.render(this.state, CRATERS_DATA);
+      this.settingsPanel.render(this.state, CRATERS_DATA, this.backendStatusText);
       this.satellitesPanel.render(this.state, this.tileLoader.getLayers());
       this.inspectorPanel.render(
         this.state, activeCrater, this.landingSites,
-        wps, this.selectedWaypoint, routes, radZones
+        wps, this.selectedWaypoint, routes, radZones,
+        {
+          activeOrigin: origin,
+          activeDestination: destination,
+          pickMode: this.pickMode,
+          backendLoading: this.backendLoading
+        }
       );
     }
 
@@ -275,8 +356,9 @@
       const activeCrater = this.getActiveCrater();
       const wps = this.getActiveWaypoints();
       const computedRoutes = this.computeActiveRoutes();
-      const hazardBundle = this.hazardService.getGlobalHazardZones(this.state);
+      const hazardBundle = this.getActiveHazardBundle();
       const craterRadZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
+      const { origin, destination } = this.getActiveEndpoints();
 
       const payload = {
         width: this.canvas.width,
@@ -294,6 +376,8 @@
         computedRoutes,
         craterWaypoints: wps,
         selectedWaypoint: this.selectedWaypoint,
+        customOrigin: origin,
+        customDestination: destination,
         progressiveLodRender: this.state.progressiveLodRender,
         showGraticule: this.state.showGraticule,
         showNomenclature: this.state.showNomenclature,
@@ -355,8 +439,38 @@
       this.canvas.addEventListener("click", (e) => {
         if (this.hasMoved) return;
         const rect = this.canvas.getBoundingClientRect();
-        const cx = e.clientX - rect.left;
-        const cy = e.clientY - rect.top;
+        const scaleX = this.canvas.width / Math.max(1, rect.width);
+        const scaleY = this.canvas.height / Math.max(1, rect.height);
+        const cx = (e.clientX - rect.left) * scaleX;
+        const cy = (e.clientY - rect.top) * scaleY;
+
+        if (this.pickMode) {
+          const geo = this.pixelToGeo(cx, cy);
+          if (!geo.insideMap) {
+            this.showToast("Lütfen Mars yüzeyi üzerinde bir koordinata tıklayın.", true);
+            return;
+          }
+          const mode = this.pickMode;
+          this.pickMode = null;
+          this.canvas.style.cursor = "";
+          const pt = this.routePlanner.geo.makeEndpointPoint(
+            mode === "origin" ? "picked-origin" : "picked-dest",
+            mode === "origin" ? "Konum" : "Varış",
+            geo.lat,
+            geo.lon
+          );
+          if (mode === "origin") this.state.customOrigin = pt;
+          else this.state.customDestination = pt;
+          this.state.useCustomCoordinates = true;
+          this.state.routeScope = "global";
+          this.backendRoutes = null;
+          this.persistState();
+          this.refreshAll();
+          this.showToast(`${mode === "origin" ? "Konum (A)" : "Varış (B)"}: ${geo.lat.toFixed(2)}°, ${geo.lon.toFixed(2)}°`);
+          if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(30);
+          return;
+        }
+
         const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
         if (hit) this.flyToCraterById(hit.crater.id);
       });
@@ -447,14 +561,157 @@
       this.canvas.height = window.innerHeight;
     }
 
+    pixelToGeo(px, py) {
+      const geo = this.routePlanner.geo;
+      if (this.state.viewMode === "3d") {
+        return geo.screenToMarsCoords3D(px, py, this.canvas.width, this.canvas.height, this.state.rotLat, this.state.rotLon, this.state.zoom);
+      }
+      return geo.screenToMarsCoords2D(px, py, this.canvas.width, this.canvas.height, this.state.rotLat, this.state.rotLon, this.state.zoom);
+    }
+
+    handlePresetEndpointChange(key, siteId) {
+      this.state[key] = siteId;
+      this.state.useCustomCoordinates = false;
+      const site = this.landingSites.find((s) => s.id === siteId);
+      if (site) {
+        const pt = { id: site.id, name: site.name, lat: site.latitude, lon: site.longitude };
+        if (key === "globalOriginId") this.state.customOrigin = pt;
+        else this.state.customDestination = pt;
+      }
+      this.backendRoutes = null;
+      this.persistState();
+      this.refreshAll();
+      if (this.state.backendApiUrl) {
+        this.scheduleBackendRouteFetch(40);
+      }
+    }
+
+    togglePickMode(mode) {
+      this.pickMode = this.pickMode === mode ? null : mode;
+      if (this.canvas) {
+        this.canvas.style.cursor = this.pickMode ? "crosshair" : "";
+      }
+      if (this.pickMode === "origin") {
+        this.showToast("Harita üzerinde Konum (A) noktasına tıklayın.");
+      } else if (this.pickMode === "destination") {
+        this.showToast("Harita üzerinde Varış (B) noktasına tıklayın.");
+      }
+      this.renderUi();
+    }
+
+    applyCustomCoordinates(oLat, oLon, dLat, dLon) {
+      if ([oLat, oLon, dLat, dLon].some((n) => Number.isNaN(n))) {
+        this.showToast("Lütfen geçerli sayısal enlem ve boylam girin.", true);
+        return;
+      }
+      this.pickMode = null;
+      if (this.canvas) this.canvas.style.cursor = "";
+      this.state.customOrigin = this.routePlanner.geo.makeEndpointPoint("manual-origin", "Konum", oLat, oLon);
+      this.state.customDestination = this.routePlanner.geo.makeEndpointPoint("manual-dest", "Varış", dLat, dLon);
+      this.state.useCustomCoordinates = true;
+      this.state.routeScope = "global";
+      this.backendRoutes = null;
+      this.persistState();
+      this.refreshAll();
+      if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(10);
+      else this.showToast("Koordinatlar yerel rota motoruyla step-by-step hesaplandı.");
+    }
+
+    async handleBackendUrlSave(rawUrl) {
+      if (!this.backendApi) return;
+      const clean = this.backendApi.normalizeBaseUrl(rawUrl);
+      this.state.backendApiUrl = clean;
+      this.backendRoutes = null;
+      this.backendHazards = null;
+      this.backendStatusText = clean ? "Bağlanıyor..." : "Yerel yedek rota motoru aktif";
+      this.persistState();
+      this.refreshAll();
+      if (clean) {
+        await this.refreshBackendHazardsAndRoute();
+      } else {
+        this.showToast("Backend URL temizlendi. Yerel yedek mod aktif.");
+      }
+    }
+
+    async handleBackendUrlTest(rawUrl) {
+      if (!this.backendApi) return;
+      const res = await this.backendApi.testConnection(rawUrl);
+      this.backendStatusText = res.message;
+      this.renderUi();
+      this.showToast(res.message, !res.ok);
+    }
+
+    async refreshBackendHazardsAndRoute() {
+      if (!this.backendApi || !this.state.backendApiUrl) return;
+      const health = await this.backendApi.testConnection(this.state.backendApiUrl);
+      this.backendStatusText = health.message;
+      const hz = await this.backendApi.fetchHazards(this.state.backendApiUrl);
+      if (hz) {
+        this.backendHazards = hz;
+        this.drawMap();
+      }
+      await this.fetchBackendRouteNow();
+    }
+
+    scheduleBackendRouteFetch(delayMs = 180) {
+      clearTimeout(this.routeDebounceTimer);
+      this.routeDebounceTimer = setTimeout(() => {
+        this.fetchBackendRouteNow();
+      }, delayMs);
+    }
+
+    async fetchBackendRouteNow() {
+      if (!this.backendApi || !this.state.backendApiUrl) return;
+      const seq = ++this.requestSeq;
+      this.backendLoading = true;
+      this.renderUi();
+
+      const activeCrater = this.getActiveCrater();
+      const { origin, destination } = this.getActiveEndpoints();
+      const hazardBundle = this.getActiveHazardBundle();
+      const craterRadZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
+      const payload = this.backendApi.buildRouteRequestPayload({
+        scope: this.state.routeScope,
+        origin,
+        destination,
+        state: this.state,
+        activeCrater,
+        hazardBundle,
+        craterRadZones,
+        planner: this.routePlanner
+      });
+
+      try {
+        const res = await this.backendApi.requestStepRoute(this.state.backendApiUrl, payload, this.routePlanner);
+        if (seq !== this.requestSeq) return;
+        this.backendRoutes = res;
+        if (res.hazards) {
+          this.backendHazards = res.hazards;
+        }
+        this.backendStatusText = `Bağlı (${res.engine})`;
+      } catch (err) {
+        if (seq !== this.requestSeq) return;
+        this.backendRoutes = null;
+        this.backendStatusText = `Yedek mod: ${err.message}`;
+      } finally {
+        if (seq === this.requestSeq) {
+          this.backendLoading = false;
+          this.renderUi();
+          this.drawMap();
+        }
+      }
+    }
+
     updateHoverCoords(e) {
       const rect = this.canvas.getBoundingClientRect();
-      const dx = e.clientX - rect.left - this.canvas.width / 2;
-      const dy = e.clientY - rect.top - this.canvas.height / 2;
-      this.hoverCoords = {
-        lat: Math.max(-90, Math.min(90, this.state.rotLat - dy * (0.14 / this.state.zoom))),
-        lon: this.normalizeLon(this.state.rotLon + dx * (0.14 / this.state.zoom))
-      };
+      const scaleX = this.canvas.width / Math.max(1, rect.width);
+      const scaleY = this.canvas.height / Math.max(1, rect.height);
+      const px = (e.clientX - rect.left) * scaleX;
+      const py = (e.clientY - rect.top) * scaleY;
+      const geo = this.pixelToGeo(px, py);
+      if (geo.insideMap) {
+        this.hoverCoords = { lat: geo.lat, lon: geo.lon };
+      }
       this.updateTelemetryBar();
     }
 
@@ -476,11 +733,10 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc ana Mars Navigator denetleyicisi tanimi.
-   - Satir 27-68: constructor; tum servisleri, 2D/3D cizim motorlarini ve FPS koruma sistemini kurar.
-   - Satir 70-128: initUiPanels ve init; Ayarlar, Uydular, Rota Inceleme panellerini ve veri setlerini yukler.
-   - Satir 142-164: applyGuardedSetting; her ayar degisikliginde FPS < 10 duserse ayari onceki haline dondurur.
-   - Satir 166-195: performFactoryReset, switchToGlobalRouteScope ve flyToCraterById islemleri.
-   - Satir 197-260: computeActiveRoutes, refreshAll, renderUi, renderBottomRight ve telemetri/FPS guncelleme.
-   - Satir 262-310: drawMap; aktif moda gore 2D (varsayilan) veya 3D motoru cizer ve kare suresini FPS Guard'a bildirir.
-   - Satir 312-434: fare surukleme, tekerlek yakinlastirma, atalet animasyonu, krater ucusu ve bildirim yonetimi.
+   - Satir 27-76: constructor; servisleri, Rust BackendApiService istemcisini, 2D/3D motorlarini ve 10s FPS koruma sistemini kurar.
+   - Satir 78-156: initUiPanels ve init; Ayarlar, Uydular, Rota Inceleme panellerini, harita secimini ve veri setlerini yukler.
+   - Satir 158-295: applyGuardedSetting, A/B koordinat secimi, tehlike katman birlestirme ve rota hesaplama metodlari.
+   - Satir 297-395: refreshAll, renderUi, drawMap, telemetri/FPS guncelleme ve kare suresi olcumu.
+   - Satir 397-525: harita surukleme/tiklama (A/B secimi dahil), zoom, atalet animasyonu ve krater ucusu.
+   - Satir 527-695: pixelToGeo, Rust Backend POST /api/v1/route ve GET /api/v1/hazards senkronizasyonu ve bildirim yonetimi.
    ========================================================================== */

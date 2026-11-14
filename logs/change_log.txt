@@ -185,3 +185,11 @@
 [2026-11-14 14:40:20] [UPDATE] chat/index.html 9. satirdaki harici Google Fonts CDN @import kaldirilarak yerel ../css/fonts.css ve Public Sans Web fontuna gecirildi.
 [2026-11-14 14:40:40] [UPDATE] tools/WinLauncher.cs ve serve.ps1 URLACL gerektirmeyen coklu is parcacikli 0.0.0.0 TcpListener LAN sunucusuna ve guvenli web beyaz listesine yukseltildi.
 [2026-11-14 14:55:00] [CREATE] tools/github_autodeploy.ps1 olusturuldu (GitHub origin/main izleme, otomatik build_tool.ps1 derleme ve port 3000 kesintisiz yenileme otomasyonu).
+[2026-11-14 15:10:00] [BACKUP] backups/snapshot_20261114_backend_step_route/ dizinine 16 kaynak ve dokumantasyon dosyasi yedeklendi.
+[2026-11-14 15:11:00] [CREATE] js/services/BackendApiService.js olusturuldu (Rust backend URL cozumleme, GET /api/v1/health, GET /api/v1/hazards, POST /api/v1/route step-by-step istemcisi ve cevrimdisi normalize katmani).
+[2026-11-14 15:11:30] [UPDATE] js/models/AppConfig.js ve js/services/FpsGuardService.js guncellendi (10 saniye / 10000ms kesintisiz FPS < 10 koruma penceresi, customOrigin/customDestination ve backendApiUrl varsayilanlari).
+[2026-11-14 15:12:00] [UPDATE] js/services/RouteGeometryHelper.js ve RoutePlannerService.js guncellendi (screenToMarsCoords2D/3D ters projeksiyon, rastgele A->B noktalari arasi rota ve yukseklik/egim/uyarili steps[] uretimi).
+[2026-11-14 15:12:30] [UPDATE] js/renderers/OverlayDrawHelper.js, Map2DRenderer.js ve Map3DRenderer.js guncellendi (2D ve 3D haritada secilen Konum A / Varis B pinleri).
+[2026-11-14 15:13:00] [UPDATE] index.html, css/controls.css, css/inspector.css, SettingsPanel.js, RouteInspectorPanel.js ve MarsNavigatorController.js guncellendi (Rust Backend URL ayari, haritadan A->B tiklama secimi, step-by-step adim listesi, backend kaynak rozeti ve tehlike katmani senkronizasyonu).
+[2026-11-14 15:14:00] [DOCS] BACKEND_API.md ve ForAgents/SHARED_PLANS_AND_API.md guncellendi (POST /api/v1/route JSON semasi ve kopyalanabilir Rust serde modelleri).
+[2026-11-14 15:18:00] [UPDATE] readme.md (f689933) geregi AppConfig, StateStorageService, SettingsPanel, MarsNavigatorController ve ForAgents dokumanlarinda varsayilan gorunum 3D ("3d") yapildi ve storageKey v3_1 surumune alindi.

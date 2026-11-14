@@ -112,6 +112,158 @@
       }
       return pts;
     }
+
+    /**
+     * 2D harita ekran pikselini Mars (lat, lon) koordinatina cevirir
+     */
+    screenToMarsCoords2D(px, py, width, height, rotLat, rotLon, zoom) {
+      const baseWidth = Math.max(width * 0.86, 620);
+      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 4.5);
+      const mapH = mapW * 0.5;
+      const vCenter = (90 - rotLat) / 180;
+      const oy = height / 2 - vCenter * mapH;
+
+      const dLon = ((px - width / 2) / mapW) * 360;
+      const rawLat = 90 - ((py - oy) / mapH) * 180;
+      const insideMap = rawLat >= -90 && rawLat <= 90;
+      const lat = Math.max(-84, Math.min(84, rawLat));
+      const lon = this.wrapLon(rotLon + dLon);
+      return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)), insideMap };
+    }
+
+    /**
+     * 3D kure ekran pikselini Mars (lat, lon) koordinatina cevirir
+     */
+    screenToMarsCoords3D(px, py, width, height, rotLat, rotLon, zoom) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 3.2);
+      const nx = (px - cx) / radius;
+      const ny = (cy - py) / radius;
+      const rSq = nx * nx + ny * ny;
+      if (rSq > 1) return { lat: 0, lon: 0, insideMap: false };
+
+      const nz = Math.sqrt(Math.max(0, 1 - rSq));
+      const phi0 = (rotLat * Math.PI) / 180;
+      const lam0 = (rotLon * Math.PI) / 180;
+
+      const y0 = ny * Math.cos(phi0) + nz * Math.sin(phi0);
+      const z0 = -ny * Math.sin(phi0) + nz * Math.cos(phi0);
+      const phi = Math.asin(Math.max(-1, Math.min(1, y0)));
+      const lambda = lam0 + Math.atan2(nx, z0);
+
+      const lat = Math.max(-84, Math.min(84, (phi * 180) / Math.PI));
+      const lon = this.wrapLon((lambda * 180) / Math.PI);
+      return { lat: Number(lat.toFixed(4)), lon: Number(lon.toFixed(4)), insideMap: true };
+    }
+
+    /** Topografik yukseklik (m) tahmini (yerel yedek rota adimlari icin) */
+    estimateElevationM(lat, lon) {
+      const tharsisDist = Math.hypot(lat - 5, this.shortestDeltaLon(lon, -110));
+      const hellasDist = Math.hypot(lat + 42, this.shortestDeltaLon(lon, 70));
+      const northBasin = lat > 15 ? -2600 : 850;
+      const tharsisPeak = tharsisDist < 38 ? (38 - tharsisDist) * 185 : 0;
+      const hellasDip = hellasDist < 28 ? -(28 - hellasDist) * 195 : 0;
+      const ripple = Math.sin(lat * 0.22) * 420 + Math.cos(lon * 0.17) * 360;
+      return Math.round(northBasin + tharsisPeak + hellasDip + ripple);
+    }
+
+    getCardinalDirectionTr(lat1, lon1, lat2, lon2) {
+      const dLat = lat2 - lat1;
+      const dLon = this.shortestDeltaLon(lon1, lon2);
+      const ang = (Math.atan2(dLon, dLat) * 180) / Math.PI;
+      const norm = (ang + 360) % 360;
+      const dirs = ["Kuzey", "Kuzeydoğu", "Doğu", "Güneydoğu", "Güney", "Güneybatı", "Batı", "Kuzeybatı"];
+      return dirs[Math.round(norm / 45) % 8];
+    }
+
+    /**
+     * Kuresel rota nokta dizisinden step-by-step adim listesi uretir
+     */
+    buildStepsFromGeoPath(pts, hazards, totalHours, totalKm) {
+      if (!Array.isArray(pts) || pts.length === 0) return [];
+      const denomKm = Math.max(0.01, totalKm || 1);
+      const steps = [];
+
+      for (let i = 0; i < pts.length; i++) {
+        const cur = pts[i];
+        const prev = i > 0 ? pts[i - 1] : cur;
+        const legKm = i === 0 ? 0 : this.haversineMarsKm(prev.lat, prev.lon, cur.lat, cur.lon);
+        const legHours = (legKm / denomKm) * (totalHours || 0);
+        const elevM = this.estimateElevationM(cur.lat, cur.lon);
+        const prevElev = this.estimateElevationM(prev.lat, prev.lon);
+        const riseKm = Math.abs(elevM - prevElev) / 1000;
+        const rawSlope = legKm > 0.5 ? (Math.atan2(riseKm * 2.4, legKm) * 180) / Math.PI : 1.5;
+        const slopeDeg = Number(Math.min(24.0, Math.max(1.2, rawSlope + (i % 3) * 0.9)).toFixed(1));
+
+        let hazardWarning = null;
+        for (const hz of hazards || []) {
+          const d = Math.hypot(cur.lat - hz.lat, this.shortestDeltaLon(hz.lon, cur.lon));
+          if (d < hz.radiusDeg * 1.45) {
+            hazardWarning = `${hz.name} çevresinden güvenli sapma`;
+            break;
+          }
+        }
+
+        let instruction;
+        if (i === 0) {
+          instruction = `Başlangıç (${cur.lat.toFixed(2)}°, ${cur.lon.toFixed(2)}°): Etkenler doğrulandı, çıkış`;
+        } else if (i === pts.length - 1) {
+          instruction = `Varış (${cur.lat.toFixed(2)}°, ${cur.lon.toFixed(2)}°): Güvenli park ve görev sonu`;
+        } else {
+          const dir = this.getCardinalDirectionTr(prev.lat, prev.lon, cur.lat, cur.lon);
+          instruction = `${dir} yönünde ${Math.round(legKm)} km ilerle (Eğim ${slopeDeg}°)`;
+        }
+
+        steps.push({
+          step: i + 1,
+          lat: Number(cur.lat.toFixed(4)),
+          lon: Number(cur.lon.toFixed(4)),
+          elevM,
+          slopeDeg,
+          distKm: Number(legKm.toFixed(2)),
+          durationHours: Number(legHours.toFixed(2)),
+          instruction,
+          hazardWarning
+        });
+      }
+      return steps;
+    }
+
+    /** Koordinat ciftini sinirlayip standart Konum/Varis uc noktasi nesnesi olusturur */
+    makeEndpointPoint(id, labelPrefix, rawLat, rawLon) {
+      const lat = Math.max(-84, Math.min(84, Number(Number(rawLat || 0).toFixed(4))));
+      const lon = Number(this.wrapLon(Number(rawLon || 0)).toFixed(4));
+      return { id, name: `${labelPrefix} (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`, lat, lon };
+    }
+
+    /** Aktif mod (crater/global) ve state'e gore gecerli A -> B noktalarini cozumler */
+    resolveActiveEndpoints(state, crater, waypoints, landingSites) {
+      if (state.routeScope === "crater") {
+        const lastWp = waypoints && waypoints[waypoints.length - 1];
+        const baseLat = crater ? crater.coordinates.lat : -4.59;
+        const baseLon = crater ? crater.coordinates.lon : 137.44;
+        return {
+          origin: { id: crater ? crater.id : "crater", name: crater ? crater.name : "Krater", lat: baseLat, lon: baseLon },
+          destination: {
+            id: lastWp ? lastWp.id : "crater-end",
+            name: lastWp ? lastWp.name : "EVA Hedef",
+            lat: Number((baseLat - ((lastWp ? lastWp.relY : -20) * 0.008)).toFixed(4)),
+            lon: Number(this.wrapLon(baseLon + ((lastWp ? lastWp.relX : 20) * 0.008)).toFixed(4))
+          }
+        };
+      }
+      if (state.useCustomCoordinates && state.customOrigin && state.customDestination) {
+        return { origin: state.customOrigin, destination: state.customDestination };
+      }
+      const list = landingSites || [];
+      const s = list.find((item) => item.id === state.globalOriginId) || list[0];
+      const e = list.find((item) => item.id === state.globalTargetId) || list[1] || s;
+      return {
+        origin: s ? { id: s.id, name: s.name, lat: s.latitude, lon: s.longitude } : (state.customOrigin || this.makeEndpointPoint("origin", "Konum", -4.59, 137.44)),
+        destination: e ? { id: e.id, name: e.name, lat: e.latitude, lon: e.longitude } : (state.customDestination || this.makeEndpointPoint("dest", "Varış", 18.44, 77.45))
+      };
+    }
   }
 
   ns.RouteGeometryHelper = RouteGeometryHelper;
@@ -120,8 +272,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc kuresel rota geometrisi ve tehlike kacinma matematik yardimcisi.
-   - Satir 7-29: haversineMarsKm; 3389.5 km Mars yaricapiyla iki koordinat arasi gercek mesafeyi (km) hesaplar.
-   - Satir 31-45: shortestDeltaLon ve wrapLon; antimeridyen (±180 boylam) gecislerini normalize eder.
-   - Satir 47-105: buildSafeGlobalPath; Asit/Firtina/Foton dairelerinden itici vektorlerle kacinan Mavi (kisa) ve Soluk Mavi (uzun guvenli) rota noktalarini uretir.
+   - Satir 1-5: JSDoc kuresel rota geometrisi, ters projeksiyon ve adim uretici matematik yardimcisi.
+   - Satir 7-45: haversineMarsKm, shortestDeltaLon, wrapLon kuresel trigonometri ve boylam normalize metodlari.
+   - Satir 47-105: buildSafeGlobalPath; Asit/Firtina/Foton dairelerinden itici vektorlerle kacinan Mavi/Soluk Mavi rota noktalari uretir.
+   - Satir 107-146: screenToMarsCoords2D & screenToMarsCoords3D; ekran tiklamasini Mars (lat, lon) koordinatina cevirir.
+   - Satir 148-221: estimateElevationM ve buildStepsFromGeoPath; yukseklik, egim ve tehlike uyarili step-by-step adim listesi uretir.
+   - Satir 223-267: makeEndpointPoint ve resolveActiveEndpoints; krater/kuresel Konum (A) -> Varis (B) uc noktalarini uretir.
    ========================================================================== */

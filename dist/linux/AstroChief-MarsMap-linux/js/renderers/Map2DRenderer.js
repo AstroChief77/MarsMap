@@ -29,7 +29,8 @@
         craters, landingSites, activeCrater, hazardBundle,
         computedRoutes, craterWaypoints, selectedWaypoint,
         progressiveLodRender, showGraticule, showNomenclature,
-        showRadiationZones, showRouteComments, routeScope
+        showRadiationZones, showRouteComments, routeScope,
+        customOrigin, customDestination
       } = state;
 
       ctx.clearRect(0, 0, width, height);
@@ -103,8 +104,12 @@
         );
       }
 
-      // 7. Tiklanabilir krater ve NASA inis sahasi pinleri
-      return this.overlays.drawMarkers(ctx, project2D, craters, landingSites, activeCrater?.id);
+      // 7. Tiklanabilir krater, NASA inis sahasi ve A/B konum-varis pinleri
+      const hits = this.overlays.drawMarkers(ctx, project2D, craters, landingSites, activeCrater?.id);
+      if (routeScope === "global") {
+        this.overlays.drawCustomEndpoints(ctx, project2D, customOrigin, customDestination);
+      }
+      return hits;
     }
 
     /**

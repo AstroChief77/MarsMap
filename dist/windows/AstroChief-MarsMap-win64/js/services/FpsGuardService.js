@@ -13,8 +13,9 @@
      * @param {number} minFpsThreshold - Minimum izin verilen FPS esigi (10)
      * @param {Function} onFpsUpdate - Canli FPS degeri guncellendiginde cagirilir
      */
-    constructor(minFpsThreshold = 10, onFpsUpdate = null) {
+    constructor(minFpsThreshold = 10, onFpsUpdate = null, guardWindowMs = 10000) {
       this.minFpsThreshold = minFpsThreshold;
+      this.guardWindowMs = guardWindowMs;
       this.onFpsUpdate = onFpsUpdate;
       this.liveFps = 60;
       this.lastFrameTs = 0;
@@ -74,11 +75,13 @@
      * @param {Function} onRevert - FPS < 10 tespit edildiginde cagrilacak geri alma fonksiyonu
      */
     armSettingGuard(previousSnapshot, settingLabel, onRevert) {
+      const now = performance.now();
       this.pendingGuard = {
         previousSnapshot: { ...previousSnapshot },
         settingLabel,
         onRevert,
-        startedAt: performance.now(),
+        startedAt: now,
+        belowThresholdSince: null,
         collected: [],
         slowFrames: 0,
         worstFps: 999
@@ -86,26 +89,35 @@
     }
 
     /**
-     * Bekleyen ayar degisikligi icin FPS penceresini degerlendirir
+     * Bekleyen ayar degisikligi icin 10 saniyelik FPS penceresini degerlendirir
      */
     evaluatePendingGuard(instantFps, dt) {
       const g = this.pendingGuard;
       if (!g) return;
 
+      const now = performance.now();
       g.collected.push(instantFps);
-      if (instantFps < this.minFpsThreshold || dt > 1000 / this.minFpsThreshold) {
+
+      const isSlowFrame = instantFps < this.minFpsThreshold || dt > 1000 / this.minFpsThreshold;
+      if (isSlowFrame) {
         g.slowFrames += 1;
         g.worstFps = Math.min(g.worstFps, instantFps);
+        if (g.belowThresholdSince === null) {
+          g.belowThresholdSince = now;
+        }
+      } else {
+        g.belowThresholdSince = null;
       }
 
-      const elapsed = performance.now() - g.startedAt;
+      const elapsed = now - g.startedAt;
+      const sustainedSlowMs = g.belowThresholdSince !== null ? (now - g.belowThresholdSince) : 0;
       const windowAvg = g.collected.reduce((a, b) => a + b, 0) / g.collected.length;
 
-      // 1. Anlik coklu agir kare (2+ kare > 100ms) veya pencere sonunda ortalama FPS < 10 ise GERI AL
-      const failedEarly = g.slowFrames >= 2 && (this.simulatedFpsOverride !== null || elapsed > 220);
-      const failedWindow = elapsed >= 650 && windowAvg < this.minFpsThreshold;
+      // KURAL: Ayar degistirildikten sonra 10 saniye boyunca FPS < 10 kalirsa ayari geri al
+      const sustained10s = sustainedSlowMs >= this.guardWindowMs;
+      const failed10sWindow = elapsed >= this.guardWindowMs && windowAvg < this.minFpsThreshold;
 
-      if (failedEarly || failedWindow) {
+      if (sustained10s || failed10sWindow) {
         const measured = Math.max(1, Math.round(Math.min(windowAvg, g.worstFps)));
         const revertFn = g.onRevert;
         const snap = g.previousSnapshot;
@@ -115,8 +127,8 @@
         return;
       }
 
-      // 650ms sonunda FPS >= 10 ise ayar guvenli kabul edilir
-      if (elapsed >= 650) {
+      // 10 saniye sonunda ortalama FPS >= 10 ise ayar guvenli kabul edilir
+      if (elapsed >= this.guardWindowMs) {
         this.pendingGuard = null;
       }
     }
@@ -152,11 +164,11 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc FPS < 10 ayar degisikligi koruma servisi tanimi.
-   - Satir 8-22: constructor; minimum 10 FPS esigini ve canli olcum tamponunu kurar.
-   - Satir 24-50: start; requestAnimationFrame dongusuyle anlik ve ortalama FPS degerini hesaplar.
-   - Satir 52-63: recordRenderCost; tek cizim karesi 100ms'yi asarsa (<10 FPS) yavas kareyi kaydeder.
-   - Satir 65-79: armSettingGuard; herhangi bir ayar degisikligi oncesi onceki guvenli durumu yedekler.
-   - Satir 81-112: evaluatePendingGuard; olcum penceresinde FPS < 10 saptanirsa ayari degistirilmeden onceki haline dondurur.
-   - Satir 114-135: getLiveFps, setSimulatedFpsForTest ve stop yardimci metodlari.
+   - Satir 1-6: JSDoc FPS < 10 (10 saniye) ayar degisikligi koruma servisi tanimi.
+   - Satir 8-26: constructor; minimum 10 FPS esigini, 10000ms (10s) koruma penceresini ve canli olcum tamponunu kurar.
+   - Satir 28-55: start; requestAnimationFrame dongusuyle anlik ve ortalama FPS degerini hesaplar.
+   - Satir 57-68: recordRenderCost; tek cizim karesi 100ms'yi asarsa (<10 FPS) yavas kareyi kaydeder.
+   - Satir 70-89: armSettingGuard; herhangi bir ayar degisikligi oncesi onceki guvenli durumu yedekler.
+   - Satir 91-137: evaluatePendingGuard; 10 saniyelik olcum penceresinde kesintisiz veya ortalama FPS < 10 saptanirsa ayari geri alir.
+   - Satir 139-162: getLiveFps, setSimulatedFpsForTest ve stop yardimci metodlari.
    ========================================================================== */
