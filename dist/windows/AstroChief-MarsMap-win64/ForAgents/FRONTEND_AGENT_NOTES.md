@@ -39,11 +39,11 @@ Frontend tarafında **tüm backend uç noktaları, A/B koordinat seçimi ve rota
 - **GitHub Actions (`.github/workflows/deploy-mars-web.yml`)**: `main` dalına web dosyası (`index.html`, `version.json`, `api/`, `chat/`, `css/`, `js/`, `data/`) pushlandığında `<800` satır, JSON ve `manifest.json` kontrolü yapar; `DEPLOY_SSH_KEY` + `DEPLOY_USER` (veya `DEPLOY_WEBHOOK_URL`) tanımlıysa `storage/` ve `uploads/` dizinlerini koruyarak `mars.kubitron.com` sunucusuna deploy eder.
 - **Sunucu Otomasyonu (`tools/server/deploy_web_sync.sh`, `install_autodeploy.sh`, `api/github_webhook.php`)**: VPS üzerinde 30 saniyelik Systemd timer veya HMAC-SHA256 doğrulamalı GitHub Webhook ile web değişikliklerini çeker (`chat.db` ve `uploads/` korunur). Kurulum adımları: `tools/server/README.md`.
 
-## 5. 10 Farklı Dil (i18n) Altyapısı (`v3.1.0`)
-- **Desteklenen 10 Dil**: Çince Basitleştirilmiş (`zh`), Korece (`ko`), Japonca (`ja`), Türkçe (`tr`), Almanca (`de`), İngilizce (`en`), İbranice (`he`, RTL), Arapça (`ar`, RTL), Fransızca (`fr`), İspanyolca (`es`).
+## 5. 9 Farklı Dil (i18n) Altyapısı (`v3.1.0`)
+- **Desteklenen 9 Dil**: Korece (`ko`), Japonca (`ja`), Türkçe (`tr`), Almanca (`de`), İngilizce (`en`), İbranice (`he`, RTL), Arapça (`ar`, RTL), Fransızca (`fr`), İspanyolca (`es`).
 - **Dosya Yapısı (`< 800` satır kuralına tam uyumlu)**:
   - `data/i18n/localesTrEnDe.js`: Türkçe, İngilizce, Almanca sözlükleri.
-  - `data/i18n/localesFrEsZh.js`: Fransızca, İspanyolca, Basitleştirilmiş Çince sözlükleri.
+  - `data/i18n/localesFrEs.js`: Fransızca, İspanyolca sözlükleri.
   - `data/i18n/localesJaKoArHe.js`: Japonca, Korece, Arapça, İbranice sözlükleri.
-  - `js/services/I18nService.js`: `window.AstroChief.i18n` tekil servisi (`t(key, vars)`, `setLanguage(code)`, `isRtl()`, `localizeCrater()`, `localizeTeamMember()`).
+  - `js/services/I18nService.js`: `window.AstroChief.i18n` tekil servisi (`t(key, vars)`, `setLang(code)`, `isRtl()`, `localizeCrater()`, `localizeTeamMember()`).
 - **RTL Desteği**: Arapça (`ar`) ve İbranice (`he`) seçildiğinde açılır kartlar (`#settings-dropdown`, `#satellites-popover`, `.inspector-card`, `.modal-box`) `dir="rtl"` yönüne geçer; ekran köşelerindeki HUD sabitlemeleri (`sol üst`, `sol alt`, `sağ üst`, `sağ alt`) korunur.
