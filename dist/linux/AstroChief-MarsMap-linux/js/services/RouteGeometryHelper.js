@@ -118,10 +118,13 @@
      */
     screenToMarsCoords2D(px, py, width, height, rotLat, rotLon, zoom) {
       const baseWidth = Math.max(width * 0.86, 620);
-      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 4.5);
+      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 32.0);
       const mapH = mapW * 0.5;
       const vCenter = (90 - rotLat) / 180;
-      const oy = height / 2 - vCenter * mapH;
+      const rawOy = height / 2 - vCenter * mapH;
+      const oy = mapH <= height
+        ? (height - mapH) * 0.5
+        : Math.max(height - mapH, Math.min(0, rawOy));
 
       const dLon = ((px - width / 2) / mapW) * 360;
       const rawLat = 90 - ((py - oy) / mapH) * 180;
@@ -134,10 +137,13 @@
     /**
      * 3D kure ekran pikselini Mars (lat, lon) koordinatina cevirir
      */
-    screenToMarsCoords3D(px, py, width, height, rotLat, rotLon, zoom) {
+    screenToMarsCoords3D(px, py, width, height, rotLat, rotLon, zoom, camPitch = 0, camYaw = 0, reliefScale = 1) {
+      if (ns.marsTopo) {
+        return ns.marsTopo.screenToElevatedMars3D(px, py, width, height, rotLat, rotLon, zoom, camPitch, camYaw, reliefScale);
+      }
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 3.2);
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0);
       const nx = (px - cx) / radius;
       const ny = (cy - py) / radius;
       const rSq = nx * nx + ny * ny;

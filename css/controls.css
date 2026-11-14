@@ -21,12 +21,14 @@
 }
 
 .icon-square-btn {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   border-radius: var(--r-sm);
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 1.5px solid var(--ink-black);
+  border: 2px solid var(--ink-black);
+  font-size: 20px;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -299,19 +301,19 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   background: var(--bg-white);
-  border: 1.5px solid var(--ink-black);
+  border: 2px solid var(--ink-black);
   border-radius: var(--r-sm);
-  padding: 4px;
+  padding: 6px;
   box-shadow: var(--shadow-btn);
 }
 
 .brand-tag {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.04em;
-  padding: 5px 9px;
+  padding: 7px 11px;
   border-radius: 6px;
   background: var(--ink-black);
   color: var(--bg-white);
@@ -322,11 +324,12 @@
 }
 
 .nav-target-btn {
-  padding: 5px 10px;
+  padding: 8px 13px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   color: var(--ink-black);
+  cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
 }
 
@@ -340,12 +343,13 @@
 }
 
 .nav-info-btn {
-  padding: 5px 10px;
+  padding: 8px 13px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
-  border: 1px solid var(--line-light);
+  border: 1.5px solid var(--line-light);
   color: var(--ink-dark);
+  cursor: pointer;
 }
 
 .nav-info-btn:hover {
@@ -354,12 +358,12 @@
 }
 
 .nav-lang-select {
-  padding: 4px 8px;
+  padding: 7px 11px;
   border-radius: 6px;
-  border: 1px solid var(--ink-black);
+  border: 1.5px solid var(--ink-black);
   background: var(--bg-offwhite);
   color: var(--ink-black);
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -386,19 +390,20 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-white);
-  border: 1.5px solid var(--ink-black);
+  border: 2px solid var(--ink-black);
   border-radius: var(--r-sm);
   overflow: hidden;
   box-shadow: var(--shadow-btn);
 }
 
 .zoom-btn {
-  width: 38px;
-  height: 36px;
-  font-size: 16px;
+  width: 48px;
+  height: 46px;
+  font-size: 20px;
   font-weight: 900;
   color: var(--ink-black);
-  border-bottom: 1px solid var(--line-light);
+  border-bottom: 1.5px solid var(--line-light);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -421,18 +426,18 @@
   color: var(--bg-white);
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   border-radius: var(--r-xs);
-  padding: 6px 12px;
-  font-size: 11px;
+  padding: 8px 14px;
+  font-size: 12px;
   font-weight: 700;
   box-shadow: var(--shadow-btn);
 }
 
 .fps-pill {
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: var(--r-pill);
   background: #16a34a;
   color: #ffffff;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
 }
 
@@ -441,7 +446,7 @@
 }
 
 .zoom-btn-3d {
-  font-size: 11px !important;
+  font-size: 12.5px !important;
   font-weight: 900 !important;
   background: var(--ink-black) !important;
   color: var(--bg-white) !important;
@@ -449,7 +454,7 @@
 }
 
 .zoom-btn-peak {
-  font-size: 15px !important;
+  font-size: 18px !important;
   background: var(--mars-red) !important;
   color: var(--bg-white) !important;
 }

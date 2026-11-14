@@ -200,3 +200,11 @@ async function __wbg_init_once(module_or_path) {
 }
 
 export { initSync, __wbg_init as default };
+
+/* ==========================================================================
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+   --------------------------------------------------------------------------
+   - Satir 1-35: find_rover_path; Rust WASM A* rota bulucu baglayici fonksiyonu.
+   - Satir 36-107: WASM bellek, dizi kopyalama (passArray32ToWasm0) ve UTF-8 metin cozumleyici yardimcilari.
+   - Satir 109-202: __wbg_load, initSync ve __wbg_init; WebAssembly modul yukleme ve baslatma arayuzu.
+   ========================================================================== */
