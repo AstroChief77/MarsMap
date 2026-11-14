@@ -1,39 +1,31 @@
 /**
  * @file RouteInspectorPanel.js
- * @description Sag ustte yer alan acilir/kapanir Rota (Konum A -> Varis B), Step-by-Step adim listesi,
- * Sure (Saat), Mesafe (km/m), Tuketim (Litre) ve Alfa/Beta/Gama Radyasyon inceleme paneli.
+ * @description Sag ustte yer alan sadelestirilmis Rota (Bulundugumuz Konum -> Hedef Konum),
+ * Step-by-Step adim listesi ve Radyasyon inceleme paneli.
  */
 
 (function (ns) {
   "use strict";
   class RouteInspectorPanel {
-    /**
-     * RouteInspectorPanel yapici metodu
-     * @param {HTMLElement} mountEl - #top-right-dock elemani
-     * @param {Object} handlers - Rota ve durak secimi geri cagirilari
-     */
     constructor(mountEl, handlers) {
       this.mountEl = mountEl;
       this.handlers = handlers;
     }
 
-    /**
-     * Mavi/Soluk Mavi rota, A/B koordinat secici ve step-by-step adim listesini DOM'a cizer
-     */
     render(state, activeCrater, landingSites, waypoints, selectedWp, computedRoutes, radZones, uiMeta = {}) {
       if (!this.mountEl) return;
 
       const pri = computedRoutes?.primaryBlue;
       const sec = computedRoutes?.secondaryPaleBlue;
-      const activeOrigin = uiMeta.activeOrigin || state.customOrigin || { name: "Gale Krateri", lat: -4.59, lon: 137.44 };
+      const activeOrigin = uiMeta.activeOrigin || state.customOrigin || { name: "Bulunduğumuz Konum", lat: -4.59, lon: 137.44 };
       const activeDest = uiMeta.activeDestination || state.customDestination || { name: "Jezero Krateri", lat: 18.44, lon: 77.45 };
-      const pickMode = uiMeta.pickMode || null;
+      const pickingDest = uiMeta.pickMode === "destination";
       const backendLoading = Boolean(uiMeta.backendLoading);
       const latencyMs = typeof uiMeta.backendLatencyMs === "number" ? uiMeta.backendLatencyMs : null;
       const isRust = computedRoutes?.source === "rust-backend";
       const sourceLabel = backendLoading
-        ? "⏳ Rust Hesaplıyor"
-        : (isRust ? "🦀 Rust Backend" : "⚡ Yerel Yedek");
+        ? "⏳ Hesaplıyor..."
+        : (isRust ? "🦀 Rust Backend" : "⚡ Yerel Motor");
       const latencyLabel = latencyMs !== null
         ? `⏱ ${latencyMs} ms`
         : (state.backendApiUrl ? "⏱ Bekleniyor" : "⏱ Yerel");
@@ -47,26 +39,24 @@
         photonFlux: "5.4x10^6 MeV/cm²·s"
       };
 
-      const siteOptions = (selectedId) => (landingSites || []).map((s) => `
-        <option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${s.name}</option>
-      `).join("");
+      const targetOptions = (landingSites || [])
+        .filter((s) => s.id !== "curiosity-gale")
+        .map((s) => `
+          <option value="${s.id}" ${(!state.useCustomCoordinates && s.id === state.globalTargetId) ? "selected" : ""}>
+            ${s.name} (${s.latitude.toFixed(1)}°, ${s.longitude.toFixed(1)}°)
+          </option>
+        `).join("");
 
-      const wpChips = state.routeScope === "crater" ? (waypoints || []).map((wp) => `
-        <button class="wp-chip ${selectedWp?.id === wp.id ? "active" : ""}" data-wp-id="${wp.id}">
-          ${wp.name}
-        </button>
-      `).join("") : "";
-
-      const routeBadge = pri ? `${pri.formattedDuration} · ${pri.totalKm.toFixed(1)} km` : "Rota Hazır";
+      const routeBadge = pri ? `${pri.formattedDuration} · ${pri.totalKm.toFixed(0)} km` : "Rota Hazır";
       const stepTab = state.activeStepRouteTab === "secondary" ? "secondary" : "primary";
       const activeStepRoute = stepTab === "secondary" ? (sec || pri) : pri;
       const stepRowsHtml = ((activeStepRoute && activeStepRoute.steps) || []).map((s) => `
-        <div class="step-row" data-step-lat="${s.lat}" data-step-lon="${s.lon}" title="Haritada odakla">
+        <div class="step-row" data-step-lat="${s.lat}" data-step-lon="${s.lon}" title="Haritada bu adıma odaklan">
           <div class="step-row-top">
             <span>#${s.step} · ${s.instruction}</span>
           </div>
           <div class="step-row-meta">
-            ${Number(s.lat).toFixed(2)}°, ${Number(s.lon).toFixed(2)}° · ${s.elevM} m · Eğim ${s.slopeDeg}° · ${s.distKm} km
+            ${Number(s.lat).toFixed(2)}°, ${Number(s.lon).toFixed(2)}° · İrtifa ${s.elevM} m · Eğim ${s.slopeDeg}° · ${s.distKm} km
           </div>
           ${s.hazardWarning ? `<div class="step-row-warn">⚠ ${s.hazardWarning}</div>` : ""}
         </div>
@@ -74,72 +64,43 @@
 
       this.mountEl.innerHTML = `
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
-          <span>Rota &amp; Radyasyon</span>
+          <span>Rota</span>
           <span style="color:var(--mars-red);">${routeBadge}</span>
           <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill" title="Backend Gecikmesi (5sn yenileme)">${latencyLabel}</span>
           <span>${state.inspectorOpen ? "▴" : "▾"}</span>
         </button>
 
-        <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="Güvenli Rota ve Radyasyon Paneli">
+        <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="Basit Rota ve Radyasyon Paneli">
           <div class="insp-head">
             <div>
-              <span class="insp-badge">${state.routeScope === "global" ? "KÜRESEL ROTA" : "KRATER EVA"}</span>
-              <div class="insp-title">${state.routeScope === "global" ? `${activeOrigin.name} → ${activeDest.name}` : (activeCrater?.name || "Gale Krateri")}</div>
+              <span class="insp-badge">ROTA PLANLAYICI</span>
+              <div class="insp-title">Konumumuz → Hedef</div>
               <div class="insp-sub">
                 Asit: <strong>${state.filterAcidRain ? state.acidIntensity : "Kapalı"}</strong> ·
                 Fırtına: <strong>${state.filterDustStorm ? state.stormIntensity : "Kapalı"}</strong>
               </div>
             </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-              <span class="insp-source-pill ${isRust ? "rust" : ""}">${sourceLabel}</span>
-              <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill-card" title="Backend Veri Gecikmesi (5sn)">${latencyLabel}</span>
-            </div>
+            <span class="insp-source-pill ${isRust ? "rust" : ""}">${sourceLabel}</span>
           </div>
 
-          ${state.routeScope === "global" ? `
-            <div class="insp-route-selectors">
-              <div class="insp-select-wrap">
-                <label for="sel-origin">Başlangıç Hazır Nokta</label>
-                <select class="insp-select" id="sel-origin">${siteOptions(state.globalOriginId)}</select>
-              </div>
-              <div class="insp-select-wrap">
-                <label for="sel-target">Hedef Hazır Nokta</label>
-                <select class="insp-select" id="sel-target">${siteOptions(state.globalTargetId)}</select>
-              </div>
+          <div class="insp-coord-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;background:var(--bg-white);padding:6px 8px;border-radius:5px;border:1px solid var(--line-light);">
+              <span>📍 <strong>Bulunduğumuz Konum:</strong></span>
+              <span style="font-weight:800;color:var(--route-blue);">Gale (${Number(activeOrigin.lat).toFixed(2)}°, ${Number(activeOrigin.lon).toFixed(2)}°)</span>
             </div>
 
-            <div class="insp-coord-box">
-              <div class="insp-pick-row">
-                <button type="button" class="insp-pick-btn ${pickMode === "origin" ? "active" : ""}" id="btn-pick-origin">
-                  ${pickMode === "origin" ? "Haritaya Tıklayın (A)..." : "📍 Haritadan Konum (A)"}
-                </button>
-                <button type="button" class="insp-pick-btn ${pickMode === "destination" ? "active" : ""}" id="btn-pick-destination">
-                  ${pickMode === "destination" ? "Haritaya Tıklayın (B)..." : "🎯 Haritadan Varış (B)"}
-                </button>
-              </div>
-              <div class="insp-coord-grid">
-                <div class="insp-coord-cell">
-                  <label>Konum (A) Enlem / Boylam</label>
-                  <div class="insp-coord-inputs">
-                    <input type="number" step="0.1" id="inp-orig-lat" value="${Number(activeOrigin.lat).toFixed(2)}" aria-label="Konum Enlem" />
-                    <input type="number" step="0.1" id="inp-orig-lon" value="${Number(activeOrigin.lon).toFixed(2)}" aria-label="Konum Boylam" />
-                  </div>
-                </div>
-                <div class="insp-coord-cell">
-                  <label>Varış (B) Enlem / Boylam</label>
-                  <div class="insp-coord-inputs">
-                    <input type="number" step="0.1" id="inp-dest-lat" value="${Number(activeDest.lat).toFixed(2)}" aria-label="Varış Enlem" />
-                    <input type="number" step="0.1" id="inp-dest-lon" value="${Number(activeDest.lon).toFixed(2)}" aria-label="Varış Boylam" />
-                  </div>
-                </div>
-              </div>
-              <button type="button" class="insp-calc-btn" id="btn-calc-custom-route">Rotayı Hesapla (Step-by-Step)</button>
+            <div class="insp-select-wrap">
+              <label for="sel-target">🎯 Hedef Konum (${Number(activeDest.lat).toFixed(2)}°, ${Number(activeDest.lon).toFixed(2)}°)</label>
+              <select class="insp-select" id="sel-target">
+                ${state.useCustomCoordinates ? `<option value="__custom__" selected>Haritadan Seçilen Hedef (${Number(activeDest.lat).toFixed(1)}°, ${Number(activeDest.lon).toFixed(1)}°)</option>` : ""}
+                ${targetOptions}
+              </select>
             </div>
-          ` : `
-            <button type="button" class="insp-calc-btn" id="btn-enter-global-picker">
-              🧭 Haritadan Konum (A) → Varış (B) Seç
+
+            <button type="button" class="insp-pick-btn ${pickingDest ? "active" : ""}" id="btn-pick-destination" style="width:100%;padding:7px 10px;font-size:11.5px;">
+              ${pickingDest ? "🎯 Haritada Hedef Noktaya Tıklayın..." : "🎯 Haritadan Hedef Konum Seç"}
             </button>
-          `}
+          </div>
 
           ${(pri && sec) ? `
             <div class="route-card primary">
@@ -147,7 +108,7 @@
                 <span style="color:var(--route-blue);">● Mavi Yol (En Kısa Güvenli)</span>
                 <span class="route-duration-pill">${pri.formattedDuration}</span>
               </div>
-              <div class="route-metrics-line">${pri.totalKm.toFixed(2)} km (${pri.totalMeters} m) · ${pri.o2Liters} L O₂ · ${pri.waterLiters} L Su</div>
+              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km · ${pri.o2Liters} L O₂ · ${pri.waterLiters} L Su</div>
               <div class="route-comment-line">${pri.comment}</div>
             </div>
 
@@ -156,13 +117,14 @@
                 <span style="color:#1d4ed8;">○ Soluk Mavi (Güvenli Uzun)</span>
                 <span class="route-duration-pill">${sec.formattedDuration}</span>
               </div>
-              <div class="route-metrics-line">${sec.totalKm.toFixed(2)} km (${sec.totalMeters} m) · ${sec.o2Liters} L O₂ · ${sec.waterLiters} L Su</div>
+              <div class="route-metrics-line">${sec.totalKm.toFixed(1)} km · ${sec.o2Liters} L O₂ · ${sec.waterLiters} L Su</div>
               <div class="route-comment-line">${sec.comment}</div>
             </div>
           ` : ""}
 
           ${stepRowsHtml ? `
             <div class="step-panel">
+              <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">ADIM ADIM ROTA (STEP-BY-STEP)</div>
               <div class="step-tabs">
                 <button type="button" class="step-tab-btn ${stepTab === "primary" ? "active" : ""}" data-step-tab="primary">
                   Mavi Adımlar (${(pri && pri.steps) ? pri.steps.length : 0})
@@ -184,24 +146,6 @@
               <div><span>Foton Akısı</span><strong>${rad.photonFlux}</strong></div>
             </div>
           </div>
-
-          ${state.routeScope === "crater" ? `
-            <div>
-              <div style="font-size:10px;font-weight:900;color:var(--ink-muted);margin-bottom:4px;">EVA DURAKLARI</div>
-              <div class="wp-strip">${wpChips}</div>
-            </div>
-            ${selectedWp ? `
-              <div class="wp-detail-box">
-                <div style="display:flex;justify-content:space-between;font-weight:900;">
-                  <span>${selectedWp.name}</span>
-                  <span style="color:var(--mars-red);">${selectedWp.elev} m · ${selectedWp.slopeText}</span>
-                </div>
-                ${selectedWp.imageUrl ? `<img src="${selectedWp.imageUrl}" alt="${selectedWp.name}" class="wp-photo" />` : ""}
-                <p style="color:var(--ink-dark);"><strong>Jeoloji:</strong> ${selectedWp.geology}</p>
-                <p style="color:var(--ink-muted);"><strong>Güvenlik:</strong> ${selectedWp.hazardNote}</p>
-              </div>
-            ` : ""}
-          ` : ""}
         </aside>
       `;
 
@@ -213,29 +157,13 @@
         this.handlers.onToggleInspector?.(!state.inspectorOpen);
       });
 
-      this.mountEl.querySelector("#sel-origin")?.addEventListener("change", (e) => {
-        this.handlers.onChangeGlobalEndpoints?.("globalOriginId", e.target.value);
-      });
       this.mountEl.querySelector("#sel-target")?.addEventListener("change", (e) => {
+        if (e.target.value === "__custom__") return;
         this.handlers.onChangeGlobalEndpoints?.("globalTargetId", e.target.value);
       });
 
-      this.mountEl.querySelector("#btn-pick-origin")?.addEventListener("click", () => {
-        this.handlers.onTogglePickMode?.("origin");
-      });
       this.mountEl.querySelector("#btn-pick-destination")?.addEventListener("click", () => {
         this.handlers.onTogglePickMode?.("destination");
-      });
-      this.mountEl.querySelector("#btn-enter-global-picker")?.addEventListener("click", () => {
-        this.handlers.onEnterGlobalPicker?.();
-      });
-
-      this.mountEl.querySelector("#btn-calc-custom-route")?.addEventListener("click", () => {
-        const oLat = parseFloat(this.mountEl.querySelector("#inp-orig-lat")?.value);
-        const oLon = parseFloat(this.mountEl.querySelector("#inp-orig-lon")?.value);
-        const dLat = parseFloat(this.mountEl.querySelector("#inp-dest-lat")?.value);
-        const dLon = parseFloat(this.mountEl.querySelector("#inp-dest-lon")?.value);
-        this.handlers.onApplyCustomCoords?.(oLat, oLon, dLat, dLon);
       });
 
       this.mountEl.querySelectorAll("[data-step-tab]").forEach((btn) => {
@@ -253,12 +181,6 @@
           }
         });
       });
-
-      this.mountEl.querySelectorAll("[data-wp-id]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          this.handlers.onSelectWaypoint?.(btn.getAttribute("data-wp-id"));
-        });
-      });
     }
   }
 
@@ -268,8 +190,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sag ust rota, step-by-step adimlar ve radyasyon inceleme paneli tanimi.
-   - Satir 7-18: constructor; baglanti elemani ve geri cagirilari saklar.
-   - Satir 20-210: render; backend kaynak rozetini, A/B harita secim ve koordinat kutusunu, Mavi/Soluk Mavi yollari, Adim Adim listeyi ve radyasyon verilerini cizer.
-   - Satir 212-261: bindEvents; harita secimi, elle koordinat girisi, adim odaklama ve panel dugmelerini baglar.
+   - Satir 1-5: JSDoc sadelestirilmis sag ust rota (Bulundugumuz Konum -> Hedef) ve step-by-step paneli tanimi.
+   - Satir 7-15: constructor; baglanti elemani ve geri cagirilari saklar.
+   - Satir 17-152: render; Bulundugumuz Konum gostergesini, tekli Hedef secimini, Mavi/Soluk Mavi rotayi ve Adim Adim listeyi cizer.
+   - Satir 154-188: bindEvents; hedef secimi, haritadan hedef tiklama ve adim odaklama dugmelerini baglar.
    ========================================================================== */

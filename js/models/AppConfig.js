@@ -11,7 +11,7 @@
      * Sistem performans koruma ve fabrika ayar sablonunu olusturur
      */
     constructor() {
-      this.storageKey = "astrochief_mars_navigator_v3_1";
+      this.storageKey = "astrochief_mars_navigator_v3_2";
       this.fpsMinLimit = 10;
       this.fpsGuardWindowMs = 10000;    // KURAL: Ayar degistirildikten sonra 10 saniye < 10 FPS kalirsa geri al
       this.challengeUrl = "https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/";
@@ -26,18 +26,18 @@
         viewMode: "3d",                 // KURAL: Harita varsayilan olarak 3D baslar
         activeLayerId: "mars-viking-mdim21",
         activeCraterId: "gale-crater",
-        routeScope: "crater",           // 'crater' (Krater ici EVA) veya 'global' (Inis sahasi arasi)
+        routeScope: "global",           // Varsayilan: Bulundugumuz Konum -> Hedef Konum rotasi
         globalOriginId: "curiosity-gale",
         globalTargetId: "perseverance-jezero",
         customOrigin: {
           id: "curiosity-gale",
-          name: "Curiosity (Gale Krateri)",
+          name: "Bulunduğumuz Konum",
           lat: -4.5895,
           lon: 137.4417
         },
         customDestination: {
           id: "perseverance-jezero",
-          name: "Perseverance (Jezero)",
+          name: "Jezero Krateri",
           lat: 18.4447,
           lon: 77.4508
         },

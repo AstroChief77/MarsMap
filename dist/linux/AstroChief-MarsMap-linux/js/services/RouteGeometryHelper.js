@@ -237,31 +237,19 @@
       return { id, name: `${labelPrefix} (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`, lat, lon };
     }
 
-    /** Aktif mod (crater/global) ve state'e gore gecerli A -> B noktalarini cozumler */
-    resolveActiveEndpoints(state, crater, waypoints, landingSites) {
-      if (state.routeScope === "crater") {
-        const lastWp = waypoints && waypoints[waypoints.length - 1];
-        const baseLat = crater ? crater.coordinates.lat : -4.59;
-        const baseLon = crater ? crater.coordinates.lon : 137.44;
-        return {
-          origin: { id: crater ? crater.id : "crater", name: crater ? crater.name : "Krater", lat: baseLat, lon: baseLon },
-          destination: {
-            id: lastWp ? lastWp.id : "crater-end",
-            name: lastWp ? lastWp.name : "EVA Hedef",
-            lat: Number((baseLat - ((lastWp ? lastWp.relY : -20) * 0.008)).toFixed(4)),
-            lon: Number(this.wrapLon(baseLon + ((lastWp ? lastWp.relX : 20) * 0.008)).toFixed(4))
-          }
-        };
-      }
-      if (state.useCustomCoordinates && state.customOrigin && state.customDestination) {
-        return { origin: state.customOrigin, destination: state.customDestination };
+    /** Sabit Bulundugumuz Konum -> Secilen Hedef Konum uc noktalarini cozumler */
+    resolveActiveEndpoints(state, _crater, _waypoints, landingSites) {
+      const origin = { id: "curiosity-gale", name: "Bulunduğumuz Konum", lat: -4.5895, lon: 137.4417 };
+      if (state.useCustomCoordinates && state.customDestination) {
+        return { origin, destination: state.customDestination };
       }
       const list = landingSites || [];
-      const s = list.find((item) => item.id === state.globalOriginId) || list[0];
-      const e = list.find((item) => item.id === state.globalTargetId) || list[1] || s;
+      const e = list.find((item) => item.id === state.globalTargetId) || list[1] || list[0];
       return {
-        origin: s ? { id: s.id, name: s.name, lat: s.latitude, lon: s.longitude } : (state.customOrigin || this.makeEndpointPoint("origin", "Konum", -4.59, 137.44)),
-        destination: e ? { id: e.id, name: e.name, lat: e.latitude, lon: e.longitude } : (state.customDestination || this.makeEndpointPoint("dest", "Varış", 18.44, 77.45))
+        origin,
+        destination: e
+          ? { id: e.id, name: e.name, lat: e.latitude, lon: e.longitude }
+          : (state.customDestination || this.makeEndpointPoint("dest", "Hedef", 18.44, 77.45))
       };
     }
   }
