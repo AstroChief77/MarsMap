@@ -34,7 +34,7 @@ AstroChief
 
 -Eğer bootstrap gibi bir kütüphane kullanılacak ise kütüphaneyi internetten çekmek yasak res içinden kütüphaneler kullanılabilir eğer kütüphane yoksa res klasörüne indirilebilir.
 
--Default oalarak harita 2D başlayacak.
+-Default oalarak harita 3D başlayacak.
 
 -Herhangi bir ayar değiştirildiğinde fps 10 dan aşşağı iniyor ise değiştirilen ayarın değişmesi engellenicek değiştirilmeden önceki haline gelicek fakat yeni bir seçenek açıldığında fps düşüceği için 10 saniye boyunca 10fps altında kaldığında ayarı eski haline getirsin.
 
