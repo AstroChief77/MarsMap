@@ -29,10 +29,15 @@
       const activeDest = uiMeta.activeDestination || state.customDestination || { name: "Jezero Krateri", lat: 18.44, lon: 77.45 };
       const pickMode = uiMeta.pickMode || null;
       const backendLoading = Boolean(uiMeta.backendLoading);
+      const latencyMs = typeof uiMeta.backendLatencyMs === "number" ? uiMeta.backendLatencyMs : null;
       const isRust = computedRoutes?.source === "rust-backend";
       const sourceLabel = backendLoading
         ? "⏳ Rust Hesaplıyor"
         : (isRust ? "🦀 Rust Backend" : "⚡ Yerel Yedek");
+      const latencyLabel = latencyMs !== null
+        ? `⏱ ${latencyMs} ms`
+        : (state.backendApiUrl ? "⏱ Bekleniyor" : "⏱ Yerel");
+      const latencyClass = latencyMs !== null ? (latencyMs > 500 ? "slow" : "") : "offline";
 
       const rad = (radZones && radZones[0]) || {
         name: "Foton Bombardıman Alanı",
@@ -71,6 +76,7 @@
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
           <span>Rota &amp; Radyasyon</span>
           <span style="color:var(--mars-red);">${routeBadge}</span>
+          <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill" title="Backend Gecikmesi (5sn yenileme)">${latencyLabel}</span>
           <span>${state.inspectorOpen ? "▴" : "▾"}</span>
         </button>
 
@@ -84,7 +90,10 @@
                 Fırtına: <strong>${state.filterDustStorm ? state.stormIntensity : "Kapalı"}</strong>
               </div>
             </div>
-            <span class="insp-source-pill ${isRust ? "rust" : ""}">${sourceLabel}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="insp-source-pill ${isRust ? "rust" : ""}">${sourceLabel}</span>
+              <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill-card" title="Backend Veri Gecikmesi (5sn)">${latencyLabel}</span>
+            </div>
           </div>
 
           ${state.routeScope === "global" ? `

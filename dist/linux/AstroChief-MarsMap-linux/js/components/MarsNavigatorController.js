@@ -48,11 +48,13 @@
 
       this.backendRoutes = null;
       this.backendHazards = null;
+      this.backendLatencyMs = null;
       this.backendLoading = false;
       this.backendStatusText = "";
       this.pickMode = null;
       this.requestSeq = 0;
       this.routeDebounceTimer = null;
+      this.latencyTimer = null;
 
       this.isDragging = false;
       this.hasMoved = false;
@@ -134,6 +136,7 @@
       this.bindCanvasEvents();
       this.bindGlobalEvents();
       this.fpsGuard.start();
+      this.startBackendLatencyMonitor();
       this.refreshAll();
       if (this.state.backendApiUrl) {
         this.refreshBackendHazardsAndRoute();
@@ -299,7 +302,8 @@
           activeOrigin: origin,
           activeDestination: destination,
           pickMode: this.pickMode,
-          backendLoading: this.backendLoading
+          backendLoading: this.backendLoading,
+          backendLatencyMs: this.backendLatencyMs
         }
       );
     }
@@ -645,12 +649,44 @@
       if (!this.backendApi || !this.state.backendApiUrl) return;
       const health = await this.backendApi.testConnection(this.state.backendApiUrl);
       this.backendStatusText = health.message;
+      this.backendLatencyMs = health.ok ? health.latencyMs : null;
+      this.updateLatencyBadges();
       const hz = await this.backendApi.fetchHazards(this.state.backendApiUrl);
       if (hz) {
         this.backendHazards = hz;
         this.drawMap();
       }
       await this.fetchBackendRouteNow();
+    }
+
+    startBackendLatencyMonitor() {
+      clearInterval(this.latencyTimer);
+      this.latencyTimer = setInterval(async () => {
+        if (!this.backendApi || !this.state.backendApiUrl) {
+          this.backendLatencyMs = null;
+          this.updateLatencyBadges();
+          return;
+        }
+        const health = await this.backendApi.testConnection(this.state.backendApiUrl);
+        this.backendLatencyMs = health.ok ? health.latencyMs : null;
+        this.backendStatusText = health.message;
+        this.updateLatencyBadges();
+      }, 5000);
+    }
+
+    updateLatencyBadges() {
+      const label = typeof this.backendLatencyMs === "number"
+        ? `⏱ ${this.backendLatencyMs} ms`
+        : (this.state.backendApiUrl ? "⏱ Bağlantı Yok" : "⏱ Yerel");
+      const isOffline = typeof this.backendLatencyMs !== "number";
+      const isSlow = typeof this.backendLatencyMs === "number" && this.backendLatencyMs > 500;
+      ["#insp-latency-pill", "#insp-latency-pill-card"].forEach((sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return;
+        el.textContent = label;
+        el.classList.toggle("offline", isOffline);
+        el.classList.toggle("slow", isSlow);
+      });
     }
 
     scheduleBackendRouteFetch(delayMs = 180) {
@@ -685,6 +721,7 @@
         const res = await this.backendApi.requestStepRoute(this.state.backendApiUrl, payload, this.routePlanner);
         if (seq !== this.requestSeq) return;
         this.backendRoutes = res;
+        this.backendLatencyMs = typeof res.latencyMs === "number" ? res.latencyMs : this.backendLatencyMs;
         if (res.hazards) {
           this.backendHazards = res.hazards;
         }
@@ -692,6 +729,7 @@
       } catch (err) {
         if (seq !== this.requestSeq) return;
         this.backendRoutes = null;
+        this.backendLatencyMs = null;
         this.backendStatusText = `Yedek mod: ${err.message}`;
       } finally {
         if (seq === this.requestSeq) {
