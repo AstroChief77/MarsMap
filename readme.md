@@ -20,6 +20,8 @@ AstroChief
 
 -Yorum satırı eklenmeli, kodun satır satır ne işe yaradğını kod dosyasının en altına eklenmelidir.
 
+-Yazı fontalrı Public Sans Web,sans-serif ailesinden ve bold olmak zorundadaır
+
 -Her şey kendine ait bir dosyaya sahip olmalı, claslardan ve nesnelerden oluşmalıdır main kod dosyası dışında hiç bir dosya 800 satırı geçmemelidir, her fonksiyon eğer kompleksliği arttırıyor ise fonksiyonlar farklı dosyalarda açılmalıdır.
 
 -Kullanılan kaynaklar ve apiler not edilmeli
