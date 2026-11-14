@@ -217,3 +217,10 @@
 [2026-11-14 16:26:00] [BACKUP] backups/snapshot_20261114_remove_zh/ dizinine Çince (zh) dilinin kaldırılması öncesi tüm ilgili dosyaların yedeği alındı.
 [2026-11-14 16:27:00] [UPDATE/REMOVE] Kullanıcı talebi ("Çince yasak") doğrultusunda Çince (zh) dil desteği tamamen kaldırıldı; data/i18n/localesFrEsZh.js yerine yalnızca Fransızca ve İspanyolca içeren data/i18n/localesFrEs.js oluşturuldu, I18nService.js, index.html, version.json ve ForAgents belgeleri 9 dil (TR, EN, DE, FR, ES, KO, JA, HE, AR) olarak güncellendi.
 
+
+[2026-11-14 16:38] Mustafa Dalındaki Rust A* Backend ve WebAssembly Derlemesi
+- Yedek Klasörü: backups/snapshot_20261114_mustafa_wasm/
+- Rust Araç Zinciri: rustc 1.100.0 (stable-x86_64-pc-windows-gnu + wasm32-unknown-unknown) ve wasm-pack 0.13.1 bu bilgisayara kuruldu.
+- backend/ (Cargo.toml, src/lib.rs, src/main.rs): Mustafa dalından çekilip hem native Windows ikilisi (backend/target/release/backend.exe) hem de WebAssembly modülü (js/wasm/backend_bg.wasm + js/wasm/backend.js) olarak derlendi.
+- js/services/BackendApiService.js: Derlenen Rust WebAssembly modülündeki `find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y)` fonksiyonuna bağlandı.
+- tools/WinLauncher.cs & serve.ps1: `.wasm` (`application/wasm`) MIME türü eklendi.

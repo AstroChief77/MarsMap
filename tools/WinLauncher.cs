@@ -46,6 +46,7 @@ namespace AstroChiefLauncher
             map[".ico"] = "image/x-icon";
             map[".woff2"] = "font/woff2";
             map[".woff"] = "font/woff";
+            map[".wasm"] = "application/wasm";
             return map;
         }
 

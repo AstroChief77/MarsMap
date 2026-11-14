@@ -50,6 +50,7 @@ namespace AstroChiefServe
             _mimeTypes[".ico"] = "image/x-icon";
             _mimeTypes[".woff2"] = "font/woff2";
             _mimeTypes[".woff"] = "font/woff";
+            _mimeTypes[".wasm"] = "application/wasm";
         }
 
         public static List<string> GetLanIPv4Addresses()
