@@ -75,3 +75,24 @@
 [2026-11-14 11:40:43] [UPDATE] css/style.css güncellendi (Google Fonts Public Sans 600-900 ve tüm modüler CSS bağlantıları).
 [2026-11-14 11:40:55] [UPDATE] index.html güncellendi (Yıldız tuvali, EVA HUD ve krater haritası mount noktaları).
 [2026-11-14 11:41:09] [UPDATE] readme.md güncellendi (Yeni temiz şablon adımı eklendi).
+[2026-11-14 11:47:14] [GIT] origin/main üzerindeki readme.md (# Tasarım Kuralları ve readme değiştirme yasağı) korundu ve rebase tamamlandı.
+[2026-11-14 11:48:20] [UPDATE] css/crater_viewer.css güncellendi (Sol alt 2D/3D, Asit Yağmuru ve Kum Fırtınası filtre stilleri eklendi).
+[2026-11-14 11:50:02] [BACKUP] backups/snapshot_20261114_1150 dizinine tüm HTML, CSS, JS ve SOURCES dosyalarının düzenleme öncesi yedeği alındı.
+[2026-11-14 11:50:36] [CREATE] data/craterWaypointsData.js oluşturuldu (Gale, Jezero ve Korolev kraterleri için EVA durak verileri ve görseller).
+[2026-11-14 11:50:45] [CREATE] js/services/DatasetLoader.js oluşturuldu (İndirilen NASA/USGS JSON veri setlerini önbellekle okuyan servis).
+[2026-11-14 11:51:17] [CREATE] js/renderers/CraterCanvasRenderer.js oluşturuldu (Google Earth prosedürel Mars yüzeyi, yıldızlı uzay, 2D/3D projeksiyon, asit/fırtına filtre çizim motoru).
+[2026-11-14 11:51:48] [UPDATE] js/components/CraterMapViewer.js yeniden yapılandırıldı (467 satıra düşürüldü, sol alt 2D/3D/Asit/Kum filtre kontrolleri ve NASA fotoğraf önizlemesi bağlandı).
+[2026-11-14 11:51:59] [UPDATE] css/variables.css güncellendi (%60 Beyaz, %30 Siyah, %10 Kırmızı tema ve Public Sans Web bold değişkenleri).
+[2026-11-14 11:52:08] [UPDATE] css/base.css güncellendi (Zifiri siyah yıldızlı zemin ve tüm metinlerde Public Sans Web bold zorunluluğu).
+[2026-11-14 11:52:22] [UPDATE] css/navbar.css güncellendi (Siyah telemetri çubuğu ve %60 beyaz ana menü barı).
+[2026-11-14 11:52:44] [UPDATE] css/crater_viewer.css güncellendi (Beyaz yan paneller, siyah yıldızlı orta harita, beyaz sol alt filtre grubu, kırmızı vurgular).
+[2026-11-14 11:52:57] [UPDATE] css/sections.css güncellendi (.white-panel-wrapper ve Hangi Krater? karşılaştırma tablosu stilleri).
+[2026-11-14 11:53:08] [UPDATE] css/cards.css güncellendi (%60 Beyaz, %30 Siyah, %10 Kırmızı kaynak ve ekip kartları).
+[2026-11-14 11:53:18] [UPDATE] css/footer.css güncellendi (Beyaz zemin, siyah kenarlık ve kırmızı telemetri rozeti).
+[2026-11-14 11:53:36] [UPDATE] js/components/DetailsSection.js güncellendi (Gale/Jezero/Korolev krater karşılaştırma tablosu ve beyaz panel sarmalayıcısı eklendi).
+[2026-11-14 11:53:43] [UPDATE] js/components/ResourcesSection.js güncellendi (.white-panel-wrapper yapısına geçirildi).
+[2026-11-14 11:53:50] [UPDATE] js/components/TeamSection.js güncellendi (.white-panel-wrapper yapısına geçirildi).
+[2026-11-14 11:54:02] [UPDATE] SOURCES.md güncellendi (Space Apps 2026 Challenge URL, Public Sans font ve Mars RSS API eklendi).
+[2026-11-14 11:55:20] [BACKUP] backups/deploy_desktop_backup_20261114_1155.ps1 yedeği alındı.
+[2026-11-14 11:55:37] [UPDATE] deploy_desktop.ps1 güncellendi (Açık masaüstü klasöründe güvenli üzerine yazma ve iç içe klasör önleme mantığı eklendi).
+[2026-11-14 11:56:25] [DEPLOY] Güncel sürüm C:\Users\nasaapp\Desktop\AstroChief-MarsMap klasörüne başarıyla dağıtıldı.

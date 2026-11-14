@@ -1,0 +1,123 @@
+/**
+ * @file footer.css
+ * @description Görev Kontrol alt bilgi (Footer), NASA bildirimleri ve telif hakları stilleri.
+ */
+
+.main-footer-clean {
+  background: #040508;
+  border-top: 1px solid var(--border-clean);
+  padding: 3.5rem 1.5rem 2rem;
+  margin-top: 4rem;
+}
+
+.footer-top-clean {
+  max-width: var(--max-width-container);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border-clean);
+}
+
+.footer-brand-clean {
+  max-width: 380px;
+}
+
+.footer-logo-clean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  color: #ffffff;
+  margin-bottom: 0.8rem;
+}
+
+.footer-logo-clean .radar {
+  color: var(--mars-primary);
+}
+
+.footer-desc-clean {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.footer-col-title {
+  font-size: 0.82rem;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.footer-list-clean {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.footer-list-clean a {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.footer-list-clean a:hover {
+  color: var(--mars-primary);
+}
+
+.footer-bottom-clean {
+  max-width: var(--max-width-container);
+  margin: 2rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.footer-disclaimer-clean {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-clean);
+  border-radius: var(--radius-xs);
+  padding: 0.8rem 1.2rem;
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.footer-credits-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.active-telemetry-badge {
+  color: var(--hud-green);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 768px) {
+  .footer-top-clean {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc footer CSS başlığı.
+   - Satır 6-11: .main-footer-clean zemin ve boşluk ayarları.
+   - Satır 13-21: .footer-top-clean 3 sütunlu düzeni.
+   - Satır 23-44: Marka logosu, radar ikonu ve alt açıklama.
+   - Satır 46-66: Footer link sütunları.
+   - Satır 68-75: .footer-bottom-clean dikey yerleşimi.
+   - Satır 77-87: NASA yasal uyarı kutucuğu (.footer-disclaimer-clean).
+   - Satır 89-103: Telif hakları ve aktif telemetri rozeti.
+   - Satır 105-110: Mobil uyumluluk.
+   - Satır 111: Dosya sonu.
+   ========================================================================== */

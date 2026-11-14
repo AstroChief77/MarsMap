@@ -1,18 +1,18 @@
 /**
  * @file cards.css
- * @description NASA kaynak kartları (Resources), yasal uyarı kutusu ve mürettebat manifestosu (Teams) stilleri.
+ * @description NASA kaynak kartları (Resources) ve ekip manifestosu (Teams) %60 Beyaz, %30 Siyah, %10 Kırmızı stilleri.
  */
 
 /* ==========================================================================
    NASA FERAGATNAME (DISCLAIMER)
    ========================================================================== */
 .nasa-disclaimer-box {
-  background: rgba(18, 14, 10, 0.9);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  border-left: 4px solid var(--hud-amber);
+  background: var(--surface-offwhite);
+  border: 2px solid var(--space-black);
+  border-left: 6px solid var(--mars-red);
   border-radius: var(--radius-xs);
   padding: 1.2rem 1.4rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.2rem;
 }
 
 .disclaimer-header {
@@ -28,13 +28,13 @@
 
 .disclaimer-title {
   font-size: 0.88rem;
-  color: var(--hud-amber);
+  color: var(--mars-red);
   letter-spacing: 0.04em;
 }
 
 .disclaimer-text {
   font-size: 0.82rem;
-  color: #e2e8f0;
+  color: var(--ink-black);
   line-height: 1.6;
 }
 
@@ -43,25 +43,24 @@
    ========================================================================== */
 .resources-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 1.6rem;
 }
 
 .resource-card {
-  background: var(--bg-panel-solid);
-  border: 1px solid var(--border-clean);
-  border-radius: var(--radius-md);
-  padding: 1.8rem;
+  background: var(--surface-white);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-sm);
+  padding: 1.6rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .resource-card:hover {
-  border-color: var(--border-active);
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+  box-shadow: 6px 6px 0px var(--space-black);
 }
 
 .resource-card-top {
@@ -75,8 +74,8 @@
   width: 38px;
   height: 38px;
   border-radius: var(--radius-xs);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-clean);
+  background: var(--surface-offwhite);
+  border: 1.5px solid var(--space-black);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,28 +85,30 @@
 .resource-tag {
   font-size: 0.7rem;
   padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-xs);
+  border-radius: 3px;
   letter-spacing: 0.06em;
+  background: var(--space-black);
+  color: var(--surface-white);
 }
 
-.badge-mars-orange { background: rgba(255, 87, 34, 0.12); color: #ff8a65; border: 1px solid rgba(255, 87, 34, 0.3); }
-.badge-mars-red    { background: rgba(239, 68, 68, 0.12);  color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-.badge-mars-amber  { background: rgba(245, 158, 11, 0.12); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
-.badge-mars-blue   { background: rgba(56, 189, 248, 0.12); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); }
-.badge-mars-purple { background: rgba(168, 85, 247, 0.12); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+.badge-mars-orange { background: var(--mars-red); }
+.badge-mars-red    { background: var(--space-black); }
+.badge-mars-amber  { background: var(--mars-red-dark); }
+.badge-mars-blue   { background: var(--space-black); }
+.badge-mars-purple { background: var(--mars-red); }
 
 .resource-title {
   font-size: 1.1rem;
-  color: #ffffff;
+  color: var(--ink-black);
   line-height: 1.35;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.55rem;
 }
 
 .resource-description {
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   line-height: 1.6;
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.35rem;
 }
 
 .btn-resource-link {
@@ -116,19 +117,18 @@
   justify-content: space-between;
   width: 100%;
   padding: 0.65rem 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-clean);
+  background: var(--space-black);
+  border: 2px solid var(--space-black);
   border-radius: var(--radius-xs);
-  color: var(--text-primary);
+  color: var(--surface-white);
   font-size: 0.82rem;
   transition: all 0.2s ease;
 }
 
 .btn-resource-link:hover {
-  background: var(--mars-primary);
-  border-color: var(--mars-primary);
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(255, 87, 34, 0.4);
+  background: var(--mars-red);
+  border-color: var(--mars-red);
+  color: var(--surface-white);
 }
 
 /* ==========================================================================
@@ -137,23 +137,22 @@
 .team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-  gap: 1.8rem;
+  gap: 1.6rem;
 }
 
 .team-card {
-  background: var(--bg-panel-solid);
-  border: 1px solid var(--border-clean);
-  border-radius: var(--radius-md);
-  padding: 1.8rem;
+  background: var(--surface-white);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-sm);
+  padding: 1.6rem;
   display: flex;
   flex-direction: column;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .team-card:hover {
-  border-color: var(--border-active);
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+  box-shadow: 6px 6px 0px var(--mars-red);
 }
 
 .team-card-header {
@@ -174,7 +173,7 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--mars-primary);
+  border: 2px solid var(--space-black);
 }
 
 .team-status-indicator {
@@ -183,53 +182,52 @@
   right: 0;
   width: 12px;
   height: 12px;
-  background-color: var(--hud-green);
-  border: 2px solid #000000;
+  background-color: var(--mars-red);
+  border: 2px solid var(--surface-white);
   border-radius: 50%;
 }
 
 .team-badge {
   font-size: 0.68rem;
   padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-xs);
-  background: rgba(255, 87, 34, 0.12);
-  border: 1px solid var(--border-active);
-  color: var(--mars-primary);
+  border-radius: 3px;
+  background: var(--space-black);
+  color: var(--surface-white);
 }
 
 .team-icon-badge {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   margin-bottom: 0.4rem;
 }
 
 .team-member-name {
   font-size: 1.2rem;
-  color: #ffffff;
+  color: var(--ink-black);
   margin-bottom: 0.2rem;
 }
 
 .team-member-role {
   font-size: 0.82rem;
-  color: var(--mars-primary);
-  margin-bottom: 0.8rem;
+  color: var(--mars-red);
+  margin-bottom: 0.75rem;
 }
 
 .team-member-description {
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--ink-dark);
   line-height: 1.55;
   margin-bottom: 1.2rem;
 }
 
 .team-card-footer {
   margin-top: auto;
-  padding-top: 0.8rem;
-  border-top: 1px solid var(--border-clean);
+  padding-top: 0.75rem;
+  border-top: 1.5px solid var(--border-light);
 }
 
 .mission-tag {
   font-size: 0.7rem;
-  color: var(--text-dim);
+  color: var(--ink-muted);
   letter-spacing: 0.05em;
 }
 
@@ -237,8 +235,7 @@
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
    - Satır 1-4: JSDoc kartlar CSS başlığı.
-   - Satır 6-31: NASA yasal uyarı kutusu (.nasa-disclaimer-box) kehribar rengi stilleri.
-   - Satır 33-88: Kaynak kartları grid yapısı, rozet renkleri (.badge-mars-*) ve dış bağlantı butonu.
-   - Satır 90-155: AstroChief mürettebat kartları (yuvarlak avatar, çevrimiçi göstergesi, rol ve açıklama).
-   - Satır 156: Dosya sonu.
+   - Satır 6-31: NASA yasal uyarı kutusu (.nasa-disclaimer-box) kırmızı sol çerçeve ile.
+   - Satır 33-112: Kaynak kartları; beyaz zemin, siyah kenarlık, kırmızı/siyah aksiyon butonları.
+   - Satır 114-198: Mürettebat kartları; beyaz zemin, siyah çerçeve, kırmızı hover gölgesi ve rol vurgusu.
    ========================================================================== */

@@ -1,0 +1,176 @@
+/**
+ * @file sections.css
+ * @description NASA Space Apps 2026 yarışma detayları, veri kaynakları ve yasal bildirim stilleri.
+ */
+
+.section-details-dark,
+.section-resources-clean,
+.section-teams-clean {
+  padding: 4.5rem 1.5rem;
+  max-width: var(--max-width-container);
+  margin: 0 auto;
+}
+
+/* Temiz Bölüm Başlıkları */
+.section-header-clean {
+  text-align: left;
+  max-width: 900px;
+  margin-bottom: 3rem;
+}
+
+.challenge-event-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-heavy);
+  color: var(--mars-primary);
+  background: rgba(255, 87, 34, 0.12);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.9rem;
+}
+
+.clean-section-title {
+  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+  font-weight: var(--font-weight-heavy);
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.9rem;
+}
+
+.clean-section-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* 3 Temel Sütun Kartları (Challenge Pillars) */
+.challenge-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.8rem;
+  margin-bottom: 3.5rem;
+}
+
+.pillar-card {
+  background: var(--bg-panel-solid);
+  border: 1px solid var(--border-clean);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+}
+
+.pillar-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.pillar-card-accent {
+  border-color: rgba(255, 87, 34, 0.4);
+  background: linear-gradient(180deg, rgba(20, 24, 34, 0.95) 0%, rgba(12, 14, 20, 0.95) 100%);
+}
+
+.pillar-num {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-heavy);
+  color: var(--mars-primary);
+  margin-bottom: 0.8rem;
+}
+
+.pillar-title {
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-bold);
+  color: #ffffff;
+  margin-bottom: 0.8rem;
+}
+
+.pillar-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.4rem;
+}
+
+.pillar-check-list {
+  list-style: none;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.pillar-check-list li {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.pillar-check-list li::before {
+  content: '■';
+  color: var(--mars-primary);
+  font-size: 0.65rem;
+  margin-top: 3px;
+}
+
+/* Görev Mimarisi ve Format Vizyonu Kutusu */
+.hud-format-box {
+  background: #06080d;
+  border: 1px solid var(--border-cyan);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.hud-format-header {
+  background: rgba(56, 189, 248, 0.08);
+  padding: 0.7rem 1.4rem;
+  border-bottom: 1px solid var(--border-cyan);
+}
+
+.hud-terminal-prompt {
+  font-size: 0.78rem;
+  color: var(--nasa-cyan);
+  letter-spacing: 0.08em;
+}
+
+.hud-format-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem 1.4rem;
+}
+
+.format-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.format-tag {
+  font-size: 0.72rem;
+  color: var(--boxwork-gold);
+  letter-spacing: 0.05em;
+}
+
+.format-item p {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc bölüm stilleri başlığı.
+   - Satır 6-11: Bölümlerin standart padding ve genişlik hizalamaları.
+   - Satır 13-36: Temiz sol hizalı bölüm başlıkları (.section-header-clean) ve Space Apps rozeti.
+   - Satır 38-84: 3 sütunlu meydan okuma kartları (.challenge-pillars-grid) ve hover efektleri.
+   - Satır 86-120: Astronot format kutusu (.hud-format-box); Habitat Ekranı, EVA Tableti ve Kask HUD mimarisinin açıklamaları.
+   - Satır 121: Dosya sonu.
+   ========================================================================== */

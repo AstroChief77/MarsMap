@@ -40,3 +40,12 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
      * `data/datasets/perseverance_raw_images.json` (Jezero Krateri'nden canlı ham görsel metadataları, kameralar, sol ve optik bağlantılar)
      * `data/datasets/images/perseverance_supercam_sol2031.jpg` (Örnek yüksek çözünürlüklü ham yüzey fotoğrafı)
    - **Kullanım Alanı:** Yüzey fotoğrafları, kamera ham verileri ve optik teyit.
+
+6. **NASA Space Apps Challenge 2026 — Interplanetary Survival Guide: Martian Map**
+   - **Resmi URL:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
+   - **Yerel Yapılandırma:** `data/craterLocations.js`, `data/craterWaypointsData.js`
+   - **Kullanım Alanı:** Gale Krateri (Boxwork formasyonları), Jezero Krateri (Delta) ve Korolev Krateri EVA yürüyüş rotaları.
+
+7. **Tipografi & Tasarım Kaynakları**
+   - **Font Ailesi:** Public Sans (Google Fonts CDN / Public Sans Web, sans-serif, Bold 700-900)
+   - **Resmi API:** `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json`

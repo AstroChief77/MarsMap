@@ -1,6 +1,6 @@
 /**
  * @file base.css
- * @description Zifiri siyah zemin, sabit yıldız tuvali ve zorunlu 'Public Sans Web' kalın tipografi kuralları.
+ * @description Zifiri siyah yıldızlı uzay zemini, temel sıfırlama ve zorunlu Public Sans Web bold kuralları.
  */
 
 *,
@@ -14,23 +14,23 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
-  background-color: var(--bg-space);
-  color: var(--text-primary);
+  background-color: var(--space-black);
+  color: var(--ink-black);
 }
 
 body {
   font-family: var(--font-family-mars);
-  font-weight: var(--font-weight-normal); /* Kural gereği bold */
-  background-color: var(--bg-space);
-  color: var(--text-primary);
-  line-height: 1.55;
+  font-weight: var(--font-weight-base);
+  background-color: var(--space-black);
+  color: var(--ink-black);
+  line-height: 1.5;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   position: relative;
 }
 
-/* Sabit Zifiri Siyah Yıldız Simülasyon Tuvali */
+/* Zifiri Siyah Yıldız Simülasyon Tuvali (Ekran Arkaplanı) */
 #starfield-canvas {
   position: fixed;
   top: 0;
@@ -42,33 +42,22 @@ body {
   background-color: #000000;
 }
 
-/* Sayfa İçerik Katmanı */
+/* İçerik Katmanı */
 #app-content-wrapper {
   position: relative;
   z-index: 1;
 }
 
-/* Ortak Kapsayıcı */
-.container-clean {
-  width: 100%;
-  max-width: var(--max-width-container);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-/* Başlıklar ve Metin Kalınlıkları */
+/* Tüm Elemanlar İçin Zorunlu Public Sans Web Bold Tipografi */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-mars);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.02em;
 }
 
-p, span, label, a, button {
+p, span, label, a, button, li, strong {
   font-family: var(--font-family-mars);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-base);
 }
 
 a {
@@ -78,14 +67,12 @@ a {
 }
 
 button {
-  font-family: var(--font-family-mars);
-  font-weight: var(--font-weight-bold);
   cursor: pointer;
   border: none;
   background: none;
 }
 
-/* Temiz Minimal Kaydırma Çubuğu */
+/* Temiz Kaydırma Çubuğu */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -95,25 +82,23 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2430;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-clean);
+  background: #ffffff;
+  border: 2px solid #000000;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--mars-primary);
+  background: var(--mars-red);
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc temel CSS dosya açıklaması.
-   - Satır 6-12: Sıfırlama (box-sizing, margin, padding).
-   - Satır 14-19: html etiketi; arka planı zifiri siyah (#000000) yapar.
-   - Satır 21-30: body etiketi; zorunlu Public Sans Web fontu ve bold (700) ağırlığını tüm sayfaya uygular.
-   - Satır 32-42: #starfield-canvas; ekranın arkasında sabit duran ve fare tıklamalarını engellemeyen (pointer-events: none) yıldız katmanı.
-   - Satır 44-48: #app-content-wrapper; içeriklerin yıldızların üzerinde (z-index: 1) görünmesini sağlar.
-   - Satır 50-57: .container-clean; 1360px genişliğinde ortalanmış çalışma alanı.
-   - Satır 59-78: Başlık, paragraf, etiket, link ve butonların Public Sans bold kuralına bağlanması.
-   - Satır 80-97: Minimal siyah kaydırma çubuğu (scrollbar) tasarımı.
+   - Satır 1-4: JSDoc temel CSS başlığı.
+   - Satır 6-12: Sıfırlama (box-sizing: border-box, margin/padding 0).
+   - Satır 14-19: html etiketi; zifiri siyah uzay tabanı.
+   - Satır 21-30: body etiketi; zorunlu Public Sans Web ve bold (700) ayarı.
+   - Satır 32-42: #starfield-canvas; tüm ekranın arkasındaki yıldız tuvali.
+   - Satır 44-48: #app-content-wrapper; yıldızların üstünde duran içerik katmanı.
+   - Satır 50-74: Başlık, paragraf, buton ve linklerin zorunlu font kuralları.
+   - Satır 76-92: Yüksek kontrastlı siyah-beyaz-kırmızı kaydırma çubuğu.
    ========================================================================== */
