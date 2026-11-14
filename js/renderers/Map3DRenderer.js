@@ -72,17 +72,24 @@
       const pitchRad = (pitch * Math.PI) / 180;
       const limbRadius = radius * rMaxLimb;
       const limbVisible = limbRadius < Math.hypot(cx, cy) * 1.18;
+      const sinP = Math.sin(pitchRad);
+      const tiltRad = pitchRad * 0.45, cosT = Math.cos(tiltRad), sinT = Math.sin(tiltRad);
+      const yForeshorten = 1.0 - 0.36 * sinP;
 
       // 1. Dis Mars atmosferi kehribar limb isimasi (kure her zaman ekranin tam ortasinda: cx, cy)
       if (limbVisible) {
-        const atmo = ctx.createRadialGradient(cx, cy, radius * 0.94, cx, cy, limbRadius * 1.10);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(1, yForeshorten);
+        const atmo = ctx.createRadialGradient(0, 0, radius * 0.94, 0, 0, limbRadius * 1.10);
         atmo.addColorStop(0.0, "rgba(235, 128, 70, 0.5)");
         atmo.addColorStop(0.45, "rgba(205, 88, 38, 0.2)");
         atmo.addColorStop(1.0, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = atmo;
         ctx.beginPath();
-        ctx.arc(cx, cy, limbRadius * 1.10, 0, Math.PI * 2);
+        ctx.arc(0, 0, limbRadius * 1.10, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       }
 
       if (!this.tileLoader.hasAnyReadyTile(activeLayerId)) {
@@ -91,9 +98,9 @@
       }
 
       const sx0 = Math.max(0, Math.floor(cx - limbRadius - 4));
-      const sy0 = Math.max(0, Math.floor(cy - limbRadius - 4));
+      const sy0 = Math.max(0, Math.floor(cy - limbRadius * yForeshorten - 6));
       const sx1 = Math.min(width, Math.ceil(cx + limbRadius + 4));
-      const sy1 = Math.min(height, Math.ceil(cy + limbRadius + 4));
+      const sy1 = Math.min(height, Math.ceil(cy + limbRadius * yForeshorten + 6));
       const cropW = sx1 - sx0;
       const cropH = sy1 - sy0;
 
@@ -160,18 +167,17 @@
         ctx.strokeStyle = "rgba(244, 145, 92, 0.55)";
         ctx.lineWidth = 1.4;
         ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy, radius, radius * yForeshorten, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // 2. Vektor katmanlari icin merkezi sabit (cx, cy) 3D topografik projeksiyon fonksiyonu
+      // 2. Vektor katmanlari icin merkezi sabit (cx, cy) + 3D Egim/Yorunge projeksiyon fonksiyonu
       const pxPerDeg = radius / 57.2958;
       const degToRad = Math.PI / 180;
       const phi0 = rotLat * degToRad, lam0 = rotLon * degToRad;
       const cosP0 = Math.cos(phi0), sinP0 = Math.sin(phi0);
       const yawRad = yaw * degToRad;
       const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-      const sinP = Math.sin(pitchRad);
 
       const project3D = (lat, lon) => {
         const elevM = (topo && reliefScale > 0) ? topo.getElevationMeters(lat, lon) : 0;
@@ -185,16 +191,18 @@
 
         const north = y0 * cosP0 - z0 * sinP0;
         const up = y0 * sinP0 + z0 * cosP0;
-        const rx = east * cosY - north * sinY;
-        const ry = east * sinY + north * cosY;
-        const screenX = rx * rScale;
-        const screenY = ry * rScale + dr * sinP * Math.max(0, up);
+        const x1 = east * cosY - north * sinY;
+        const y1 = east * sinY + north * cosY;
+        const y2 = y1 * cosT - up * sinT;
+        const z2 = y1 * sinT + up * cosT;
+        const screenX = x1 * rScale;
+        const screenY = (y2 * rScale + dr * sinP * 1.35 * Math.max(0, z2)) * yForeshorten;
 
         return {
           x: cx + screenX * radius,
           y: cy - screenY * radius,
-          z: up * rScale,
-          visible: up > 0.04,
+          z: z2 * rScale,
+          visible: z2 > 0.04,
           pxPerDeg
         };
       };
@@ -234,6 +242,8 @@
       const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
       const yawRad = ((camYaw || 0) * Math.PI) / 180;
       const sinP = Math.sin(pitchRad), cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const tiltRad = pitchRad * 0.45, cosT = Math.cos(tiltRad), sinT = Math.sin(tiltRad);
+      const invYForeshorten = 1.0 / (1.0 - 0.36 * sinP);
       const invTwoPi = 1 / (Math.PI * 2), invPi = 1 / Math.PI, halfPi = Math.PI * 0.5;
 
       const invScale = 1 / scale, invRadius = 1 / radius, step = invScale * invRadius;
@@ -320,26 +330,29 @@
       };
 
       const evalRay = (nx, ny) => {
-        const baseR2 = nx * nx + ny * ny;
+        const nyUn = ny * invYForeshorten;
+        const baseR2 = nx * nx + nyUn * nyUn;
         if (baseR2 >= rMaxLimbSq) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
 
         let dr = 0;
         let rSurf = baseR2 < 1.0 ? 1.0 : rMaxLimb;
-        let up = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, baseR2)));
+        let z2 = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, baseR2)));
         let u = 0, v = 0, vy = 0, rhoSq = baseR2, topoSample = null;
         const passes = (!fastMode && elevGrid && (baseR2 > 0.78 || camPitch > 8)) ? 2 : 1;
 
         for (let it = 0; it < passes; it++) {
           const rx = nx / rSurf;
-          const ry = (ny - dr * sinP * up) / rSurf;
+          const ry = (nyUn - dr * sinP * 1.35 * z2) / rSurf;
           rhoSq = rx * rx + ry * ry;
           if (rhoSq > 1.0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
-          up = Math.sqrt(1.0 - rhoSq);
+          z2 = Math.sqrt(1.0 - rhoSq);
 
-          const east = rx * cosY + ry * sinY;
-          const north = -rx * sinY + ry * cosY;
-          const y0 = north * cosP0 + up * sinP0;
-          const z0 = -north * sinP0 + up * cosP0;
+          const y1 = ry * cosT + z2 * sinT;
+          const z1 = -ry * sinT + z2 * cosT;
+          const east = rx * cosY + y1 * sinY;
+          const north = -rx * sinY + y1 * cosY;
+          const y0 = north * cosP0 + z1 * sinP0;
+          const z0 = -north * sinP0 + z1 * cosP0;
           vy = y0 > 1 ? 1 : y0 < -1 ? -1 : y0;
           const lat = Math.asin(vy);
           const lon = lam0 + Math.atan2(east, z0);
@@ -352,12 +365,12 @@
           }
         }
         const finalRx = nx / rSurf;
-        const finalRy = (ny - dr * sinP * up) / rSurf;
+        const finalRy = (nyUn - dr * sinP * 1.35 * z2) / rSurf;
         const finalRhoSq = finalRx * finalRx + finalRy * finalRy;
         if (finalRhoSq > 1.0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
 
         const nzNorm = Math.sqrt(1.0 - finalRhoSq);
-        let diff = Math.max(minLight, -0.34 * nx + 0.26 * ny + 0.90 * nzNorm);
+        let diff = Math.max(minLight, -0.34 * nx + 0.26 * nyUn + 0.90 * nzNorm);
         const om = 1.0 - nzNorm;
         const limb = nzNorm < 0.62 ? om * om * om : 0;
 
