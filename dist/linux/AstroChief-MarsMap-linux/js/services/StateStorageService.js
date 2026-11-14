@@ -1,53 +1,45 @@
 /**
  * @file StateStorageService.js
- * @description Uygulama ayarlarını saklayan ve Kural Gereği Factory Ayarlarını yöneten servis.
- * Factory ayarları: Ölçeğe bağlı (yaklaştıkça görünür alan) render, birimler (Litre, km/m, Saat)
- * ve Alfa/Beta/Gama radyasyon ile Foton Bombardıman alanları görünürlüğü içerir.
+ * @description Uygulama ayarlarini saklayan ve Factory Reset standartlarini yoneten servis.
+ * Factory ayarlari: Olcege bagli (yakinlastikca gorunur karo) LOD render, Litre / km-m / Saat
+ * birimleri ve Alfa/Beta/Gama + Foton Bombardıman alanlarini icerir.
  */
 
 export class StateStorageService {
   /**
-   * StateStorageService yapıcı metodu
+   * StateStorageService yapici metodu
    */
   constructor() {
-    this.storageKey = "astrochief_mars_navigator_v2";
+    this.storageKey = "astrochief_mars_globe_v24";
   }
 
   /**
-   * ZORUNLU FACTORY AYARLARI ŞABLONU:
-   * - Harita ölçeği yaklaştıkça (LOD + görünür pencere kırpma) render edilir; tamamı render edilmez.
-   * - Parametreler Litre (L), Kilometre/Metre (km/m), Saat (sa) ve Alfa/Beta/Gama + Foton alanlarını içerir.
-   * @returns {Object} Fabrika çıkışı harita ve sistem ayarları
+   * ZORUNLU FACTORY AYARLARI SABLONU
+   * @returns {Object} Varsayilan fabrika harita ayarlari
    */
   getFactoryDefaults() {
     return {
+      activeLayerId: "mars-viking-mdim21",
       activeCraterIndex: 0,
-      mapScope: "globe",         // 'globe' (Mars Küre), 'global2d' (EPSG:104905), 'crater' (Hiper-yerel EVA)
-      viewMode: "3d",            // '2d' veya '3d'
+      viewMode: "3d",             // '3d' Gezinebilen Kure | '2d' Duz Karolu Harita
       filterAcidRain: true,
       filterDustStorm: true,
-      progressiveLodRender: true, // Kural: Yalnızca yakınlaşılan/görünen alan render edilir (tamamı değil)
-      showRadiationZones: true,   // Kural: Alfa, Beta, Gama ve Foton Bombardıman alanları açık
-      terrainExaggeration: 1.0,
-      basemapOpacity: 1.0,
+      progressiveLodRender: true, // Yakinlastikca gorunur karolari data/tiles'dan yukle
+      showRadiationZones: true,   // Alfa, Beta, Gama ve Foton alanlari
       showNomenclature: true,
       showGraticule: false,
       showStarfield: true,
-      oxygenReserveLiters: 420,  // Astronot Yaşam Destek (Litre)
-      waterReserveLiters: 24.0,  // Suit Soğutma Suyu (Litre)
-      layers: {
-        optical: true,
-        topography: true,
-        thermal: false,
-        geology: true,
-        evaRoute: true
-      }
+      basemapOpacity: 1.0,
+      rotLat: -4.59,
+      rotLon: 137.44,
+      zoom: 1.08,
+      oxygenReserveLiters: 420,
+      waterReserveLiters: 24.0
     };
   }
 
   /**
-   * Kaydedilmiş ayarları yükler; yoksa veya bozuksa Factory ayarlarını döner
-   * @returns {Object} Aktif ayarlar
+   * Kayitli ayarlari yukler, yoksa Factory varsayilanlarini doner
    */
   loadState() {
     const defaults = this.getFactoryDefaults();
@@ -55,49 +47,42 @@ export class StateStorageService {
       const raw = window.localStorage.getItem(this.storageKey);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
-      return {
-        ...defaults,
-        ...parsed,
-        layers: { ...defaults.layers, ...(parsed.layers || {}) }
-      };
+      return { ...defaults, ...parsed };
     } catch (err) {
-      console.warn("[StateStorageService] Kayıtlı ayar okunamadı:", err.message);
+      console.warn("[StateStorageService] Ayar okunamadi:", err.message);
       return defaults;
     }
   }
 
   /**
-   * Kullanıcı tercihlerini kaydeder
+   * Guncel ayarlari localStorage uzerine kaydeder
    */
   saveState(stateSnapshot) {
     try {
       window.localStorage.setItem(this.storageKey, JSON.stringify(stateSnapshot));
     } catch (err) {
-      console.warn("[StateStorageService] Kayıt hatası:", err.message);
+      console.warn("[StateStorageService] Ayar kaydedilemedi:", err.message);
     }
   }
 
   /**
-   * FACTORY RESET: Tüm özelleştirmeleri temizler ve Factory ayarlarına döner
-   * @returns {Object} Temiz Factory varsayılanları
+   * FACTORY RESET: Tum ayarlari sifirlar ve Factory varsayilanlarini geri yukler
    */
   factoryReset() {
     try {
       window.localStorage.removeItem(this.storageKey);
     } catch (err) {
-      console.warn("[StateStorageService] Temizleme hatası:", err.message);
+      console.warn("[StateStorageService] Sifirlama hatasi:", err.message);
     }
     return this.getFactoryDefaults();
   }
 }
 
 /* ==========================================================================
-   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satır 1-6: JSDoc Factory ayarları, LOD render ve birim standartları servisi tanıtımı.
-   - Satır 8-14: constructor; localStorage kayıt anahtarını tanımlar.
-   - Satır 16-43: getFactoryDefaults; harita ölçeği yaklaştıkça render etme (progressiveLodRender), Litre/km-m/Saat parametreleri ve Alfa/Beta/Gama + Foton Bombardıman alanları ayarlarını içerir.
-   - Satır 45-61: loadState; tarayıcı belleğinden ayarları yükler, yoksa varsayılanı döner.
-   - Satır 63-70: saveState; aktif ayarları kaydeder.
-   - Satır 72-81: factoryReset; sol üst Ayarlar -> 1. seçenek olan Factory Reset işlemini yürütür.
+   - Satir 1-6: JSDoc Factory ayarlari ve kalicilik servisi tanimi.
+   - Satir 8-14: constructor; v2.4 yerel depo anahtarini tanimlar.
+   - Satir 16-39: getFactoryDefaults; yerel karo katmani, LOD render, radyasyon ve birim standartlarini dondurur.
+   - Satir 41-72: loadState, saveState ve factoryReset metodlari.
    ========================================================================== */

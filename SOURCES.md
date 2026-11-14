@@ -13,8 +13,9 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
    - **Resmi URL:** https://trek.nasa.gov/mars/
    - **İndirilen Veri Dosyaları:**
      * `data/datasets/mars_landing_sites.json` (Tüm başarılı Mars iniş sahaları koordinat, irtifa ve görev verisi)
-     * `data/datasets/jpl_mars_trek_layers.json` (WMTS/XYZ karo servisleri, MOLA DEM, THEMIS IR ve sabitler)
-   - **Kullanım Alanı:** Mars yüzeyi etkileşimli haritalandırma, iniş bölgeleri koordinatları ve topoğrafik incelemeler.
+     * `data/datasets/jpl_mars_trek_layers.json` (Doğrulanmış WMTS/yerel karo piramidi katman kataloğu)
+     * `data/tiles/{mars-viking-mdim21,mars-mola-elevation,mars-themis-day-ir,mars-global-geology}/` (136 adet gerçek NASA PNG/JPG yüzey karosu ve indirme betiği `tools/fetch_mars_tiles.ps1`)
+   - **Kullanım Alanı:** Mars küresi ve 2D equirectangular haritada doğrudan `data/tiles/` altından gezinebilen gerçek yüzey dokusu çizimi.
 
 2. **USGS-NASA Planetary Geologic Mapping Program**
    - **Resmi URL:** https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars
