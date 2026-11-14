@@ -1,14 +1,14 @@
 /**
  * @file footer.css
- * @description Görev Kontrol alt bilgi (%60 Beyaz, %30 Siyah, %10 Kırmızı) stilleri.
+ * @description Kurumsal sayfa alt bilgisi (Footer) sade stilleri.
  */
 
 .main-footer-clean {
   background: var(--surface-white);
   color: var(--ink-black);
-  border-top: 3px solid var(--space-black);
-  padding: 3.5rem 1.5rem 2rem;
-  margin-top: 3.5rem;
+  border-top: 1px solid var(--border-hairline);
+  padding: 3rem 1.5rem 2rem;
+  margin-top: 2.5rem;
 }
 
 .footer-top-clean {
@@ -17,8 +17,8 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 2.5rem;
-  padding-bottom: 2.5rem;
-  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-hairline);
 }
 
 .footer-brand-clean {
@@ -29,9 +29,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   color: var(--ink-black);
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.75rem;
 }
 
 .footer-logo-clean .radar {
@@ -45,17 +45,17 @@
 }
 
 .footer-col-title {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--ink-black);
-  letter-spacing: 0.08em;
-  margin-bottom: 1rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.9rem;
 }
 
 .footer-list-clean {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.5rem;
 }
 
 .footer-list-clean a {
@@ -69,20 +69,20 @@
 
 .footer-bottom-clean {
   max-width: var(--max-width-container);
-  margin: 2rem auto 0;
+  margin: 1.8rem auto 0;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1rem;
 }
 
 .footer-disclaimer-clean {
   background: var(--surface-offwhite);
-  border: 1.5px solid var(--space-black);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-xs);
-  padding: 0.85rem 1.2rem;
+  padding: 0.85rem 1.15rem;
   font-size: 0.76rem;
   color: var(--ink-dark);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .footer-credits-row {
@@ -97,23 +97,20 @@
 
 .active-telemetry-badge {
   color: var(--mars-red);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  font-size: 0.74rem;
 }
 
 @media (max-width: 768px) {
   .footer-top-clean {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.8rem;
   }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc footer CSS başlığı.
-   - Satır 6-12: .main-footer-clean beyaz zemin, siyah üst kenarlık.
-   - Satır 14-66: 3 sütunlu üst bölüm, logo ve navigasyon linkleri.
-   - Satır 68-102: Alt yasal uyarı kutusu, telif hakları ve kırmızı telemetri durumu.
-   - Satır 104-109: Mobil responsive tek sütun görünümü.
+   - Satır 1-4: JSDoc kurumsal footer stilleri başlığı.
+   - Satır 6-65: Beyaz kurumsal alt bilgi 3 sütunlu yerleşim ve sade hairline çizgiler.
+   - Satır 67-105: NASA yasal uyarı notu, telif hakları ve kırmızı Space Apps vurgusu.
    ========================================================================== */

@@ -96,3 +96,14 @@
 [2026-11-14 11:55:20] [BACKUP] backups/deploy_desktop_backup_20261114_1155.ps1 yedeği alındı.
 [2026-11-14 11:55:37] [UPDATE] deploy_desktop.ps1 güncellendi (Açık masaüstü klasöründe güvenli üzerine yazma ve iç içe klasör önleme mantığı eklendi).
 [2026-11-14 11:56:25] [DEPLOY] Güncel sürüm C:\Users\nasaapp\Desktop\AstroChief-MarsMap klasörüne başarıyla dağıtıldı.
+[2026-11-14 11:58:58] [GIT] origin/main üzerindeki güncel readme.md kuralları (Sol üst Ayarlar -> 1. Seçenek Factory Reset, Windows & Linux derleme aracı) yerel dala birleştirildi.
+[2026-11-14 12:06:55] [BACKUP] backups/snapshot_20261114_mars_trek klasörüne 37 dosya yedeklendi.
+[2026-11-14 12:07:30] [CREATE] js/services/StateStorageService.js oluşturuldu (localStorage durum yönetimi ve Factory Reset servisi).
+[2026-11-14 12:07:45] [CREATE] js/renderers/MarsGlobeRenderer.js oluşturuldu (NASA Mars Trek 3D Küresi ve EPSG:104905 2D küresel projeksiyon motoru).
+[2026-11-14 12:08:19] [UPDATE] js/renderers/CraterCanvasRenderer.js güncellendi (şeffaf yıldızlı arkaplan uyumu ve krater terrain çizimi).
+[2026-11-14 12:08:53] [CREATE] js/components/SettingsMenu.js oluşturuldu (Sol üst Ayarlar simgesi ve ilk seçeneği Factory Reset olan açılır menü).
+[2026-11-14 12:10:40] [UPDATE] js/components/Navbar.js, CraterDrawers.js, CraterMapViewer.js, js/app.js ve index.html kurumsal Google Maps (sade Header + Sidebar + orta yıldızlı harita + sol alt 2D/3D/Asit/Kum filtreleri) düzenine sadeleştirildi.
+[2026-11-14 12:11:45] [UPDATE] css/variables.css, navbar.css, crater_viewer.css, sections.css, cards.css ve footer.css yormayan kurumsal %60 Beyaz / %30 Siyah / %10 Kırmızı tasarım sistemine geçirildi.
+[2026-11-14 12:12:25] [CREATE] version.json (v2.2.0), build.bat, tools/WinLauncher.cs, tools/launch-linux.sh ve tools/build_tool.ps1 otomatik Windows+Linux derleme aracı oluşturuldu.
+[2026-11-14 12:12:55] [BUILD] tools/build_tool.ps1 ile Windows (MarsMap-win64.exe + ZIP) ve Linux (launch-linux.sh + TAR.GZ) paketleri hatasız derlendi.
+[2026-11-14 12:13:20] [UPDATE] SOURCES.md ve deploy_desktop.ps1 güncellendi.

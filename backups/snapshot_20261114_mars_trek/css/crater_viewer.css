@@ -1,0 +1,535 @@
+/**
+ * @file crater_viewer.css
+ * @description Google Earth tarzı krater haritası: %60 Beyaz paneller, %30 Siyah yıldızlı harita boşluğu, %10 Kırmızı aktif vurgular.
+ */
+
+.section-crater-viewer {
+  padding: 2rem 1.5rem 3.5rem;
+  max-width: var(--max-width-container);
+  margin: 0 auto;
+}
+
+.crater-map-wrapper {
+  background: var(--surface-white);
+  border: 3px solid var(--space-black);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-clean);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Üst Krater Seçim Barı (Beyaz Zemin) */
+.map-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.4rem;
+  background: var(--surface-white);
+  border-bottom: 2px solid var(--space-black);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.crater-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.selector-label {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
+}
+
+.crater-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.crater-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8rem;
+  color: var(--ink-black);
+  background: var(--surface-offwhite);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-xs);
+  transition: all 0.2s ease;
+}
+
+.crater-tab-btn:hover {
+  border-color: var(--space-black);
+}
+
+.crater-tab-btn.active {
+  color: var(--surface-white);
+  background: var(--space-black);
+  border-color: var(--space-black);
+}
+
+.tab-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-muted);
+}
+
+.crater-tab-btn.active .tab-pulse {
+  background: var(--mars-red);
+}
+
+.tab-badge {
+  font-size: 0.65rem;
+  background: var(--mars-red);
+  color: var(--surface-white);
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+}
+
+.map-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-map-control {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--ink-black);
+  background: var(--surface-offwhite);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+
+.btn-map-control:hover {
+  background: var(--mars-red);
+  border-color: var(--mars-red);
+  color: var(--surface-white);
+}
+
+/* Ana 3 Sütunlu Çalışma Alanı (Sol Katmanlar + Orta Yıldızlı Harita + Sağ İnceleme) */
+.map-viewport-container {
+  display: grid;
+  grid-template-columns: 270px 1fr 330px;
+  min-height: 620px;
+  background: var(--space-black);
+}
+
+/* Sol Katman Yönetim Paneli (%60 Beyaz) */
+.map-layers-panel {
+  background: var(--surface-white);
+  color: var(--ink-black);
+  border-right: 2px solid var(--space-black);
+  padding: 1.3rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 2px solid var(--space-black);
+}
+
+.panel-icon {
+  font-size: 1rem;
+}
+
+.panel-title {
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-black);
+}
+
+.layer-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--ink-dark);
+  user-select: none;
+}
+
+.layer-item input[type="checkbox"] {
+  display: none;
+}
+
+.layer-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  border: 2px solid var(--space-black);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.optical-ind { color: #ea580c; }
+.topo-ind    { color: #0284c7; }
+.geo-ind     { color: #ca8a04; }
+.therm-ind   { color: #9333ea; }
+.eva-ind     { color: #16a34a; }
+
+.layer-item input[type="checkbox"]:checked + .layer-indicator {
+  background-color: currentColor;
+  border-color: var(--space-black);
+}
+
+/* Krater Hızlı Teknik Bilgi */
+.crater-quick-info {
+  margin-top: auto;
+  padding-top: 1.1rem;
+  border-top: 2px solid var(--border-light);
+}
+
+.quick-title {
+  font-size: 0.95rem;
+  color: var(--ink-black);
+  margin-bottom: 0.45rem;
+}
+
+.quick-desc {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  margin-bottom: 0.85rem;
+}
+
+.quick-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+  background: var(--surface-offwhite);
+  padding: 0.75rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-light);
+}
+
+.quick-specs strong {
+  color: var(--ink-black);
+}
+
+/* ORTA ALAN: Siyah Yıldızlı Google Earth Canvas Haritası (%30 Siyah) */
+.map-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000000;
+  cursor: grab;
+}
+
+.map-canvas-container:active {
+  cursor: grabbing;
+}
+
+#mars-crater-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sol Üst: İmleç Telemetri HUD'ı */
+.hud-cursor-telemetry {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1.5px solid var(--surface-white);
+  border-radius: var(--radius-xs);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.hud-key {
+  color: #9ca3af;
+}
+
+.hud-item strong {
+  color: var(--surface-white);
+}
+
+.hud-status strong {
+  color: #4ade80;
+}
+
+/* SOL ALTTA ZORUNLU FİLTRE GRUBU (2D, 3D, Asit Yağmuru, Kum Yağmuru/Kasırga) */
+.map-bottom-left-filters {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.filter-view-modes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--surface-white);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-xs);
+  padding: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+.btn-filter-tab {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.75rem;
+  color: var(--ink-black);
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.btn-filter-tab:hover {
+  background: var(--surface-offwhite);
+}
+
+.btn-filter-tab.active {
+  background: var(--mars-red);
+  color: var(--surface-white);
+}
+
+.filter-hazard-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-pill-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.38rem 0.8rem;
+  background: var(--surface-white);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-xs);
+  font-size: 0.74rem;
+  color: var(--ink-black);
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+.filter-pill-label input[type="checkbox"] {
+  display: none;
+}
+
+.filter-pill-ind {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--space-black);
+}
+
+.acid-ind { color: #d97706; }
+.storm-ind { color: var(--mars-red); }
+
+.filter-pill-label input[type="checkbox"]:checked + .acid-ind {
+  background-color: #f59e0b;
+}
+
+.filter-pill-label input[type="checkbox"]:checked + .storm-ind {
+  background-color: var(--mars-red);
+}
+
+/* Sağ Alt: Ölçek Çubuğu */
+.map-scale-bar {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  pointer-events: none;
+}
+
+.scale-line {
+  width: 80px;
+  height: 3px;
+  background: var(--surface-white);
+  border-left: 2px solid var(--surface-white);
+  border-right: 2px solid var(--surface-white);
+}
+
+.scale-text {
+  font-size: 0.68rem;
+  color: var(--surface-white);
+}
+
+/* Sağ Panel: Bilimsel İnceleme (%60 Beyaz) */
+.map-inspector-panel {
+  background: var(--surface-white);
+  color: var(--ink-black);
+  border-left: 2px solid var(--space-black);
+  padding: 1.3rem 1.15rem;
+  overflow-y: auto;
+}
+
+.inspector-default-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.8rem;
+  padding: 3rem 1rem;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.inspect-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.inspect-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius-xs);
+  background: var(--space-black);
+  color: var(--surface-white);
+}
+
+.badge-highlight {
+  background: var(--mars-red);
+  color: var(--surface-white);
+}
+
+.inspect-title {
+  font-size: 1.15rem;
+  color: var(--ink-black);
+  line-height: 1.25;
+}
+
+.inspect-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  background: var(--surface-offwhite);
+  border: 1.5px solid var(--space-black);
+  border-radius: var(--radius-xs);
+  padding: 0.8rem;
+}
+
+.metric-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.m-label {
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+}
+
+.m-val {
+  font-size: 0.88rem;
+  color: var(--ink-black);
+}
+
+/* Gerçek NASA Yüzey Fotoğrafı Kutusu */
+.inspect-photo-box {
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  background: var(--space-black);
+}
+
+.inspect-photo {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.inspect-photo-caption {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.68rem;
+  color: var(--surface-white);
+  background: var(--space-black);
+}
+
+.inspect-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sub-label {
+  font-size: 0.72rem;
+  color: var(--mars-red);
+  letter-spacing: 0.05em;
+}
+
+.sub-text {
+  font-size: 0.8rem;
+  color: var(--ink-dark);
+  line-height: 1.5;
+}
+
+@media (max-width: 1120px) {
+  .map-viewport-container {
+    grid-template-columns: 1fr;
+  }
+  .map-layers-panel,
+  .map-inspector-panel {
+    border: none;
+    border-bottom: 2px solid var(--space-black);
+  }
+  .map-canvas-container {
+    min-height: 500px;
+  }
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc krater haritası CSS başlığı ve %60-%30-%10 tema açıklaması.
+   - Satır 6-20: .section-crater-viewer ve beyaz ana çerçeve (.crater-map-wrapper).
+   - Satır 22-112: .map-top-bar; beyaz krater sekme barı, siyah aktif buton ve kırmızı NASA HEDEF rozeti.
+   - Satır 114-210: 3 sütunlu Google Earth düzeni; solda beyaz katman paneli ve krater özeti.
+   - Satır 212-265: Merkezdeki siyah yıldızlı harita konteyneri ve sol üstteki telemetri HUD kutusu.
+   - Satır 267-350: Sol alttaki zorunlu filtreler (2D/3D butonları, Asit Yağmuru, Kum Yağmuru/Kasırga anahtarları).
+   - Satır 352-468: Sağdaki beyaz nokta inceleme (Inspector) paneli ve NASA ham fotoğraf çerçevesi.
+   - Satır 470-482: 1120px altı ekranlar için tek kolon responsive görünümü.
+   ========================================================================== */

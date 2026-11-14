@@ -1,7 +1,7 @@
 /**
  * @file CraterCanvasRenderer.js
- * @description Google Earth ve NASA Trek tarzı 2D/3D Mars Krater görselleştirme motoru.
- * Prosedürel Mars yüzeyi, yıldızlı uzay fonu, MOLA konturları, asit/fırtına filtreleri ve 3D yükseklik projeksiyonu çizer.
+ * @description Yakınlaştırılmış hiper-yerel Mars Krater yüzeyini 2D/3D modlarında çizen motor.
+ * MOLA konturları, THEMIS termal, USGS Boxwork sırtları, asit yağmuru, kum kasırgası filtreleri ve EVA rotalarını işler.
  */
 
 export class CraterCanvasRenderer {
@@ -9,32 +9,13 @@ export class CraterCanvasRenderer {
    * CraterCanvasRenderer yapıcı metodu
    */
   constructor() {
-    this.spaceStars = this.generateSpaceStars(140);
     this.textureCache = new Map();
-  }
-
-  /**
-   * Harita arka planındaki Google Earth uzay boşluğu için sabit yıldız koordinatları üretir
-   * @param {number} count - Yıldız adedi
-   * @returns {Array} Yıldız listesi
-   */
-  generateSpaceStars(count) {
-    const stars = [];
-    for (let i = 0; i < count; i++) {
-      stars.push({
-        rx: (Math.sin(i * 12.9898) * 43758.5453) % 1,
-        ry: (Math.cos(i * 78.233) * 43758.5453) % 1,
-        size: (i % 3 === 0) ? 1.4 : 0.8,
-        alpha: 0.35 + ((i * 7) % 60) / 100
-      });
-    }
-    return stars;
   }
 
   /**
    * Seçili krater için prosedürel yüksek detaylı yüzey dokusu oluşturur (önbellekli)
    * @param {string} craterId - Krater kimliği
-   * @returns {HTMLCanvasElement} Önbelleklenmiş yüzey doku tuvali
+   * @returns {HTMLCanvasElement} Önbelleklenmiş doku tuvali
    */
   getOrCreateTerrainTexture(craterId) {
     if (this.textureCache.has(craterId)) {
@@ -48,91 +29,87 @@ export class CraterCanvasRenderer {
     const octx = offscreen.getContext("2d");
     const cx = size / 2;
     const cy = size / 2;
-    const r = size * 0.42;
+    const r = size * 0.43;
 
-    // 1. Ejecta dış krater püskürtü zemin dokusu
+    // 1. Ejecta dış krater püskürtü çemberi
     const ejecta = octx.createRadialGradient(cx, cy, r * 0.85, cx, cy, size * 0.5);
-    ejecta.addColorStop(0, "rgba(110, 52, 34, 0.85)");
-    ejecta.addColorStop(0.6, "rgba(62, 30, 20, 0.45)");
+    ejecta.addColorStop(0, "rgba(130, 62, 38, 0.85)");
+    ejecta.addColorStop(0.65, "rgba(65, 32, 22, 0.42)");
     ejecta.addColorStop(1, "rgba(0, 0, 0, 0)");
     octx.fillStyle = ejecta;
     octx.fillRect(0, 0, size, size);
 
-    // 2. Krater ana çanağı (Kuzeybatı güneş ışığı, Güneydoğu gölge)
+    // 2. Krater ana çanağı (Kuzeybatı güneş ışığı, Güneydoğu krater duvarı gölgesi)
     const floorGrad = octx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
     if (craterId === "korolev-crater") {
-      floorGrad.addColorStop(0, "#7c4a38");
-      floorGrad.addColorStop(0.5, "#4d2c20");
-      floorGrad.addColorStop(1, "#1e100b");
+      floorGrad.addColorStop(0, "#8c5642");
+      floorGrad.addColorStop(0.5, "#563225");
+      floorGrad.addColorStop(1, "#22120c");
     } else {
-      floorGrad.addColorStop(0, "#9c4e33");
-      floorGrad.addColorStop(0.45, "#6b3320");
-      floorGrad.addColorStop(1, "#26120b");
+      floorGrad.addColorStop(0, "#b15d3e");
+      floorGrad.addColorStop(0.45, "#783a24");
+      floorGrad.addColorStop(1, "#2b150d");
     }
     octx.fillStyle = floorGrad;
     octx.beginPath();
     octx.arc(cx, cy, r, 0, Math.PI * 2);
     octx.fill();
 
-    // 3. Krater içi mikro kratercikler ve kayaç benekleri (deterministik desen)
-    for (let i = 0; i < 65; i++) {
+    // 3. Krater içi mikro kratercikler ve regolit taş dokusu
+    for (let i = 0; i < 85; i++) {
       const angle = i * 2.39996;
-      const dist = Math.sqrt(i / 65) * (r * 0.86);
+      const dist = Math.sqrt(i / 85) * (r * 0.88);
       const px = cx + Math.cos(angle) * dist;
       const py = cy + Math.sin(angle) * dist;
-      const pr = 2 + (i % 6);
+      const pr = 1.6 + (i % 6);
 
-      octx.fillStyle = i % 2 === 0 ? "rgba(255, 160, 120, 0.14)" : "rgba(15, 8, 5, 0.35)";
+      octx.fillStyle = i % 2 === 0 ? "rgba(255, 175, 130, 0.16)" : "rgba(12, 6, 4, 0.36)";
       octx.beginPath();
       octx.arc(px, py, pr, 0, Math.PI * 2);
       octx.fill();
     }
 
-    // 4. Kratere özgü jeomorfolojik özellikler
+    // 4. Kratere özgü jeomorfolojik detaylar
     if (craterId === "gale-crater") {
-      // Mount Sharp (Aeolis Mons) merkez dağ katmanları
-      for (let step = 4; step >= 1; step--) {
-        const mr = (r * 0.45) * (step / 4);
-        octx.fillStyle = step === 1 ? "#b86b4b" : `rgba(${130 - step * 15}, ${64 - step * 8}, ${40 - step * 5}, 0.88)`;
+      for (let step = 5; step >= 1; step--) {
+        const mr = (r * 0.48) * (step / 5);
+        octx.fillStyle = step === 1 ? "#cc7d56" : `rgba(${145 - step * 14}, ${72 - step * 8}, ${45 - step * 4}, 0.9)`;
         octx.beginPath();
-        octx.arc(cx + 12, cy + 8, mr, 0, Math.PI * 2);
+        octx.arc(cx + 14, cy + 8, mr, 0, Math.PI * 2);
         octx.fill();
-        octx.strokeStyle = "rgba(0,0,0,0.35)";
-        octx.lineWidth = 1.5;
+        octx.strokeStyle = "rgba(0, 0, 0, 0.32)";
+        octx.lineWidth = 1.3;
         octx.stroke();
       }
     } else if (craterId === "jezero-crater") {
-      // Neretva Vallis Antik Nehir Kanalı ve Delta Yelpazesi
-      octx.strokeStyle = "rgba(40, 20, 12, 0.8)";
+      octx.strokeStyle = "rgba(38, 19, 12, 0.85)";
       octx.lineWidth = 14;
       octx.beginPath();
       octx.moveTo(cx - r * 1.05, cy - r * 0.45);
       octx.quadraticCurveTo(cx - r * 0.65, cy - r * 0.2, cx - r * 0.25, cy - r * 0.05);
       octx.stroke();
 
-      // Delta çökelti yelpazesi
       const deltaGrad = octx.createRadialGradient(cx - r * 0.25, cy - r * 0.05, 5, cx, cy, r * 0.55);
-      deltaGrad.addColorStop(0, "rgba(195, 130, 95, 0.85)");
+      deltaGrad.addColorStop(0, "rgba(205, 138, 102, 0.88)");
       deltaGrad.addColorStop(1, "rgba(110, 60, 40, 0)");
       octx.fillStyle = deltaGrad;
       octx.beginPath();
       octx.arc(cx - r * 0.1, cy + r * 0.05, r * 0.52, 0, Math.PI * 2);
       octx.fill();
     } else if (craterId === "korolev-crater") {
-      // Kalıcı Saf Su Buzu Kalkanı
-      const iceGrad = octx.createRadialGradient(cx, cy, 10, cx, cy, r * 0.68);
+      const iceGrad = octx.createRadialGradient(cx, cy, 10, cx, cy, r * 0.7);
       iceGrad.addColorStop(0, "#ffffff");
-      iceGrad.addColorStop(0.7, "#dbeafe");
-      iceGrad.addColorStop(1, "rgba(191, 219, 254, 0.15)");
+      iceGrad.addColorStop(0.72, "#dbeafe");
+      iceGrad.addColorStop(1, "rgba(191, 219, 254, 0.12)");
       octx.fillStyle = iceGrad;
       octx.beginPath();
-      octx.arc(cx, cy, r * 0.68, 0, Math.PI * 2);
+      octx.arc(cx, cy, r * 0.7, 0, Math.PI * 2);
       octx.fill();
     }
 
     // 5. Krater dış kenar duvarı (Rim Scarp)
-    octx.strokeStyle = "rgba(255, 150, 110, 0.65)";
-    octx.lineWidth = 4;
+    octx.strokeStyle = "rgba(255, 160, 115, 0.7)";
+    octx.lineWidth = 3.5;
     octx.beginPath();
     octx.arc(cx, cy, r, 0, Math.PI * 2);
     octx.stroke();
@@ -142,86 +119,108 @@ export class CraterCanvasRenderer {
   }
 
   /**
-   * Ana harita çizim fonksiyonu (Tüm katmanları ve 2D/3D görünümü işler)
-   * @param {CanvasRenderingContext2D} ctx - Tuval bağlamı
-   * @param {Object} state - Harita durum nesnesi
+   * Ana yerel krater çizim fonksiyonu (arka plandaki yıldızları şeffaf bırakır)
    */
   render(ctx, state) {
-    const { width, height, panX, panY, zoom, activeCrater, layers, viewMode, filterAcidRain, filterDustStorm, waypoints, selectedWaypoint } = state;
+    const {
+      width, height, panX, panY, zoom, activeCrater, layers,
+      viewMode, filterAcidRain, filterDustStorm, waypoints,
+      selectedWaypoint, terrainExaggeration, basemapOpacity,
+      showGraticule, showNomenclature, measurePoints
+    } = state;
 
-    // 1. Zifiri siyah Google Earth uzay zemini ve yıldızlar
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, width, height);
-    this.drawBackdropStars(ctx, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     const centerX = width / 2 + panX;
     const centerY = height / 2 + panY;
-    const radius = Math.min(width, height) * 0.41 * zoom;
+    const localZoom = Math.max(0.7, zoom * 0.85);
+    const radius = Math.min(width, height) * 0.39 * localZoom;
     const is3D = viewMode === "3d";
+    const exag = terrainExaggeration || 1.0;
+
+    // İsteğe bağlı koordinat graticule ağı (zemin)
+    if (showGraticule) {
+      this.drawLocalGraticule(ctx, width, height, centerX, centerY, localZoom);
+    }
 
     ctx.save();
-    // 3D Perspektif Modunda zemini yatay eksende eğ (Google Earth tilt)
     if (is3D) {
       ctx.translate(centerX, centerY);
       ctx.scale(1.12, 0.56);
       ctx.translate(-centerX, -centerY);
     }
 
-    // 2. Optik Mars Krater Yüzey Dokusu
+    // 1. Optik Mars Krater Yüzey Dokusu
     if (layers.optical) {
+      ctx.save();
+      ctx.globalAlpha = basemapOpacity ?? 1.0;
       const tex = this.getOrCreateTerrainTexture(activeCrater.id);
-      const texSize = radius * 2.38;
+      const texSize = radius * 2.34;
       ctx.drawImage(tex, centerX - texSize / 2, centerY - texSize / 2, texSize, texSize);
+      ctx.restore();
     }
 
-    // 3. MOLA Topografik DEM Konturları
+    // 2. MOLA Topografik DEM Konturları
     if (layers.topography) {
       this.drawTopographyContours(ctx, centerX, centerY, radius, activeCrater.elevation_datum_m);
     }
 
-    // 4. THEMIS Termal Kızılötesi Kaya Yoğunluğu
+    // 3. THEMIS Termal Kızılötesi Kaya Yoğunluğu
     if (layers.thermal) {
       this.drawThermalOverlay(ctx, centerX, centerY, radius);
     }
 
-    // 5. USGS Jeoloji & Boxwork Formasyonları
+    // 4. USGS Jeoloji & 2025-26 Boxwork Sırtları
     if (layers.geology) {
-      this.drawGeologyOverlay(ctx, centerX, centerY, radius, zoom, activeCrater.id);
+      this.drawGeologyOverlay(ctx, centerX, centerY, radius, localZoom, activeCrater.id, showNomenclature);
     }
 
-    // 6. Sol Alt Filtre: Asit Yağmuru / Asidik Sülfat Sisi Filtresi
+    // 5. Sol Alt Filtre: Asit Yağmuru / Asidik Sülfat Sisi
     if (filterAcidRain) {
       this.drawAcidRainFilter(ctx, centerX, centerY, radius);
     }
 
-    // 7. Sol Alt Filtre: Kum Yağmuru / Kasırga Filtresi
+    // 6. Sol Alt Filtre: Kum Yağmuru / Kasırga Rüzgar Jeti
     if (filterDustStorm) {
       this.drawDustStormFilter(ctx, centerX, centerY, radius);
     }
 
-    // 8. EVA Rotası (Zemin Projeksiyonu)
+    // 7. 2D Görünüm EVA Rotası
     if (layers.evaRoute && !is3D) {
-      this.drawEvaRoute2D(ctx, centerX, centerY, zoom, waypoints, selectedWaypoint, filterAcidRain, filterDustStorm);
+      this.drawEvaRoute2D(ctx, centerX, centerY, localZoom, waypoints, selectedWaypoint, filterAcidRain, filterDustStorm);
     }
 
     ctx.restore();
 
-    // 9. 3D Modunda dikey yükselti sütunları ve yükseklik projeksiyonu (eğilmemiş ekran ekseninde dikey yükselir)
+    // 8. 3D Modunda dikey yükselti sütunları (Terrain Exaggeration çarpanı ile)
     if (is3D) {
-      this.draw3DElevationOverlays(ctx, centerX, centerY, zoom, activeCrater, waypoints, selectedWaypoint, layers.evaRoute, filterAcidRain, filterDustStorm);
+      this.draw3DElevationOverlays(
+        ctx, centerX, centerY, localZoom, activeCrater, waypoints,
+        selectedWaypoint, layers.evaRoute, filterAcidRain, filterDustStorm, exag
+      );
+    }
+
+    // 9. Aktif Mesafe Ölçüm Cetveli (Trek Calculate Distance aracı)
+    if (measurePoints && measurePoints.length > 0) {
+      this.drawMeasureRuler(ctx, centerX, centerY, localZoom, is3D, measurePoints, exag);
     }
   }
 
   /**
-   * Harita arka planındaki yıldızları çizer
+   * Enlem/boylam ızgarası çizer (Graticule)
    */
-  drawBackdropStars(ctx, w, h) {
-    for (const s of this.spaceStars) {
-      const sx = Math.abs(s.rx) * w;
-      const sy = Math.abs(s.ry) * h;
-      ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
-      ctx.fillRect(sx, sy, s.size, s.size);
+  drawLocalGraticule(ctx, w, h, cx, cy, zoom) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 0.8;
+    const step = 64 * zoom;
+    for (let x = cx % step; x < w; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
     }
+    for (let y = cy % step; y < h; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    ctx.restore();
   }
 
   /**
@@ -231,7 +230,7 @@ export class CraterCanvasRenderer {
     const steps = 5;
     for (let i = 1; i <= steps; i++) {
       const stepR = (r / (steps + 0.5)) * i;
-      ctx.strokeStyle = `rgba(56, 189, 248, ${0.22 + i * 0.08})`;
+      ctx.strokeStyle = `rgba(56, 189, 248, ${0.24 + i * 0.08})`;
       ctx.lineWidth = 1.1;
       ctx.setLineDash([5, 4]);
       ctx.beginPath();
@@ -250,7 +249,7 @@ export class CraterCanvasRenderer {
    */
   drawThermalOverlay(ctx, cx, cy, r) {
     ctx.save();
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.36;
     const grad = ctx.createRadialGradient(cx + 25, cy - 15, 10, cx, cy, r * 0.85);
     grad.addColorStop(0, "#a855f7");
     grad.addColorStop(0.55, "#3b82f6");
@@ -265,7 +264,7 @@ export class CraterCanvasRenderer {
   /**
    * USGS Jeoloji ve 2025-26 Boxwork Mineral Ağları katmanı
    */
-  drawGeologyOverlay(ctx, cx, cy, r, zoom, craterId) {
+  drawGeologyOverlay(ctx, cx, cy, r, zoom, craterId, showLabels) {
     if (craterId !== "gale-crater") return;
     ctx.save();
     const boxX = cx + 95 * zoom;
@@ -285,9 +284,11 @@ export class CraterCanvasRenderer {
       ctx.stroke();
     }
     ctx.setLineDash([]);
-    ctx.fillStyle = "#facc15";
-    ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
-    ctx.fillText("⚑ BOXWORK RİTJLERİ", boxX - 45, boxY - 24 * zoom);
+    if (showLabels) {
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
+      ctx.fillText("⚑ BOXWORK RİTJLERİ", boxX - 45, boxY - 24 * zoom);
+    }
     ctx.restore();
   }
 
@@ -298,14 +299,14 @@ export class CraterCanvasRenderer {
     ctx.save();
     const acidX = cx + r * 0.28;
     const acidY = cy + r * 0.22;
-    const acidGrad = ctx.createRadialGradient(acidX, acidY, 8, acidX, acidY, r * 0.42);
-    acidGrad.addColorStop(0, "rgba(245, 158, 11, 0.42)");
-    acidGrad.addColorStop(0.7, "rgba(234, 179, 8, 0.18)");
+    const acidGrad = ctx.createRadialGradient(acidX, acidY, 8, acidX, acidY, r * 0.44);
+    acidGrad.addColorStop(0, "rgba(245, 158, 11, 0.45)");
+    acidGrad.addColorStop(0.7, "rgba(234, 179, 8, 0.2)");
     acidGrad.addColorStop(1, "rgba(234, 179, 8, 0)");
 
     ctx.fillStyle = acidGrad;
     ctx.beginPath();
-    ctx.arc(acidX, acidY, r * 0.42, 0, Math.PI * 2);
+    ctx.arc(acidX, acidY, r * 0.44, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.strokeStyle = "#f59e0b";
@@ -318,7 +319,7 @@ export class CraterCanvasRenderer {
 
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
-    ctx.fillText("⚗ ASİDİK SÜLFAT SİSİ (pH ~2.4)", acidX - 65, acidY + r * 0.42);
+    ctx.fillText("⚗ ASİT YAĞMURU / SÜLFAT SİSİ (pH 2.4)", acidX - 85, acidY + r * 0.43);
     ctx.restore();
   }
 
@@ -330,18 +331,16 @@ export class CraterCanvasRenderer {
     const stormX = cx - r * 0.3;
     const stormY = cy + r * 0.1;
 
-    // Kasırga toz bulutu halkaları
-    const stormGrad = ctx.createRadialGradient(stormX, stormY, 5, stormX, stormY, r * 0.48);
-    stormGrad.addColorStop(0, "rgba(220, 38, 38, 0.4)");
+    const stormGrad = ctx.createRadialGradient(stormX, stormY, 5, stormX, stormY, r * 0.5);
+    stormGrad.addColorStop(0, "rgba(220, 38, 38, 0.44)");
     stormGrad.addColorStop(1, "rgba(220, 38, 38, 0)");
     ctx.fillStyle = stormGrad;
     ctx.beginPath();
-    ctx.arc(stormX, stormY, r * 0.48, 0, Math.PI * 2);
+    ctx.arc(stormX, stormY, r * 0.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Fırtına yön oku
     ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2.4;
     ctx.setLineDash([10, 5]);
     ctx.beginPath();
     ctx.moveTo(cx - r * 0.85, cy + r * 0.48);
@@ -351,23 +350,22 @@ export class CraterCanvasRenderer {
 
     ctx.fillStyle = "#f87171";
     ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
-    ctx.fillText("🌪 KUM FIRTINASI JETİ (TAU 3.4 // 28 m/s)", cx - r * 0.82, cy + r * 0.56);
+    ctx.fillText("🌪 KUM FIRTINASI / KASIRGA (TAU 3.4)", cx - r * 0.82, cy + r * 0.56);
     ctx.restore();
   }
 
   /**
-   * 2D Görünüm modunda EVA Marswalk rotasını ve waypoint noktalarını çizer
+   * 2D Görünüm EVA rotası ve istasyonları çizer
    */
   drawEvaRoute2D(ctx, cx, cy, zoom, waypoints, selectedWaypoint, filterAcid, filterStorm) {
     if (!waypoints.length) return;
     ctx.save();
 
-    // Segment bazlı güvenli / riskli renk kodlu rota çizimi
     for (let i = 0; i < waypoints.length - 1; i++) {
       const p1 = waypoints[i];
       const p2 = waypoints[i + 1];
-      const isAcidHazard = filterAcid && (p1.acidRisk || p2.acidRisk);
       const isStormHazard = filterStorm && (p1.stormRisk || p2.stormRisk);
+      const isAcidHazard = filterAcid && (p1.acidRisk || p2.acidRisk);
 
       ctx.strokeStyle = isStormHazard ? "#ef4444" : (isAcidHazard ? "#f59e0b" : "#22c55e");
       ctx.lineWidth = 3.2;
@@ -383,8 +381,8 @@ export class CraterCanvasRenderer {
       const isSelected = selectedWaypoint && selectedWaypoint.id === wp.id;
 
       ctx.beginPath();
-      ctx.arc(x, y, (wp.highlight ? 9 : 6.5) * zoom, 0, Math.PI * 2);
-      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#eab308" : "#22c55e");
+      ctx.arc(x, y, (wp.highlight ? 9 : 6.5), 0, Math.PI * 2);
+      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#e03c31" : "#22c55e");
       ctx.fill();
       ctx.lineWidth = 2;
       ctx.strokeStyle = "#000000";
@@ -392,31 +390,30 @@ export class CraterCanvasRenderer {
 
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillText(wp.name, x + 11 * zoom, y + 4);
+      ctx.fillText(wp.name, x + 11, y + 4);
     });
 
     ctx.restore();
   }
 
   /**
-   * 3D Perspektif Modunda yükseltilmiş rota sütunları ve Mount Sharp 3D zirve işaretlerini çizer
+   * 3D Perspektif Modunda Terrain Exaggeration dikey yükselti sütunlarını çizer
    */
-  draw3DElevationOverlays(ctx, cx, cy, zoom, crater, waypoints, selectedWaypoint, showRoute, filterAcid, filterStorm) {
+  draw3DElevationOverlays(ctx, cx, cy, zoom, crater, waypoints, selectedWaypoint, showRoute, filterAcid, filterStorm, exag) {
     ctx.save();
-    // Mount Sharp 3D Zirve Konisi İşareti
     if (crater.id === "gale-crater") {
       const peakBaseY = cy + 8 * 0.56;
-      const peakTopY = peakBaseY - 75 * zoom;
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
-      ctx.lineWidth = 1.5;
+      const peakTopY = peakBaseY - 70 * zoom * exag;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.58)";
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.moveTo(cx + 12 * 1.12, peakBaseY);
-      ctx.lineTo(cx + 12 * 1.12, peakTopY);
+      ctx.moveTo(cx + 14 * 1.12, peakBaseY);
+      ctx.lineTo(cx + 14 * 1.12, peakTopY);
       ctx.stroke();
 
       ctx.fillStyle = "#e03c31";
       ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillText("▲ MOUNT SHARP (5,500m ZİRVE)", cx - 55, peakTopY - 6);
+      ctx.fillText("▲ MOUNT SHARP ZİRVE (5.5 KM)", cx - 55, peakTopY - 6);
     }
 
     if (!showRoute || !waypoints.length) {
@@ -424,11 +421,10 @@ export class CraterCanvasRenderer {
       return;
     }
 
-    // 3D Projeksiyonlu EVA Durakları (Yüksekliğe göre dikey yükselme)
     const projPoints = waypoints.map((wp) => {
       const gx = cx + wp.relX * zoom * 1.12;
       const gy = cy + wp.relY * zoom * 0.56;
-      const elevOffset = Math.max(10, ((wp.elev + 4600) / 25) * zoom);
+      const elevOffset = Math.max(10, ((wp.elev + 4600) / 26) * zoom * exag);
       return { wp, gx, gy, tx: gx, ty: gy - elevOffset };
     });
 
@@ -458,8 +454,8 @@ export class CraterCanvasRenderer {
       ctx.setLineDash([]);
 
       ctx.beginPath();
-      ctx.arc(tx, ty, 6.5 * zoom, 0, Math.PI * 2);
-      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#eab308" : "#22c55e");
+      ctx.arc(tx, ty, 6.5, 0, Math.PI * 2);
+      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#e03c31" : "#22c55e");
       ctx.fill();
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 1.8;
@@ -472,21 +468,51 @@ export class CraterCanvasRenderer {
 
     ctx.restore();
   }
+
+  /**
+   * Mars Trek Calculate Distance mesafe ölçüm cetvelini çizer
+   */
+  drawMeasureRuler(ctx, cx, cy, zoom, is3D, points, exag) {
+    if (points.length < 1) return;
+    ctx.save();
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#e03c31";
+    ctx.lineWidth = 2;
+    const screenPts = points.map((pt) => {
+      const sx = cx + pt.relX * zoom * (is3D ? 1.12 : 1.0);
+      const sy = cy + pt.relY * zoom * (is3D ? 0.56 : 1.0) - (is3D ? 18 * exag : 0);
+      return { sx, sy };
+    });
+
+    ctx.beginPath();
+    screenPts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy)));
+    ctx.stroke();
+
+    screenPts.forEach((p) => {
+      ctx.beginPath(); ctx.arc(p.sx, p.sy, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    });
+
+    if (screenPts.length >= 2) {
+      let totalKm = 0;
+      for (let i = 0; i < points.length - 1; i++) {
+        totalKm += Math.hypot(points[i + 1].relX - points[i].relX, points[i + 1].relY - points[i].relY) * 0.085;
+      }
+      const last = screenPts[screenPts.length - 1];
+      ctx.font = "bold 11px 'Public Sans Web', 'Public Sans', sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`Ruler: ${totalKm.toFixed(2)} km EVA`, last.sx + 10, last.sy - 8);
+    }
+    ctx.restore();
+  }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc harita çizim motoru (Renderer) başlığı ve açıklaması.
-   - Satır 7: CraterCanvasRenderer sınıfının dışa aktarılması.
-   - Satır 8-14: constructor; uzay yıldızları listesini ve offscreen yüzey dokusu önbelleğini (Map) başlatır.
-   - Satır 16-29: generateSpaceStars; Google Earth siyah uzay boşluğu için deterministik konumlarda yıldızlar oluşturur.
-   - Satır 31-125: getOrCreateTerrainTexture; krater çanağı, güneş ışığı yönlü kenar duvarı, mikro kratercikler ve kratere özgü jeomorfolojik şekilleri (Mount Sharp, Neretva Deltası, Korolev Buzulu) offscreen tuvale çizer.
-   - Satır 127-180: render; zifiri siyah yıldızlı fon, 3D eğim projeksiyonu ve tüm katman/filtre çizim sırasını yürütür.
-   - Satır 182-220: drawBackdropStars, drawTopographyContours ve drawThermalOverlay yardımcı çizim fonksiyonları.
-   - Satır 222-246: drawGeologyOverlay; Gale Kraterindeki 2025-2026 Boxwork sırtlarını çizer.
-   - Satır 248-298: drawAcidRainFilter ve drawDustStormFilter; sol alttaki asit ve kum fırtınası filtrelerini harita üzerinde görselleştirir.
-   - Satır 300-338: drawEvaRoute2D; 2D görünümde rota segmentlerini tehlike rengine göre (Yeşil Güvenli, Sarı Asit, Kırmızı Fırtına) çizer.
-   - Satır 340-405: draw3DElevationOverlays; 3D modunda irtifaya göre dikey yükselen waypoint sütunları ve Mount Sharp zirvesini çizer.
-   - Satır 406: CraterCanvasRenderer sınıfı sonu.
+   - Satır 1-5: JSDoc hiper-yerel krater çizim motoru tanıtımı.
+   - Satır 7-13: CraterCanvasRenderer yapıcısı; doku önbelleği başlatılır.
+   - Satır 15-113: getOrCreateTerrainTexture; krater çanağı, Mount Sharp, Neretva deltası ve Korolev buzulu yüzey dokularını önbellekli oluşturur.
+   - Satır 115-189: render; arka plan yıldızlarını görünür tutarak 2D/3D eğim, MOLA, THEMIS, Boxwork, asit/fırtına filtreleri ve cetvel aracını çizer.
+   - Satır 191-294: drawLocalGraticule, drawTopographyContours, drawThermalOverlay, drawGeologyOverlay, drawAcidRainFilter, drawDustStormFilter katman yardımcıları.
+   - Satır 296-393: drawEvaRoute2D, draw3DElevationOverlays (Terrain Exaggeration destekli), drawMeasureRuler EVA rota ve mesafe çizim fonksiyonları.
    ========================================================================== */

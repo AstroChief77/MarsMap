@@ -1,11 +1,10 @@
 /**
  * @file app.js
- * @description AstroChief Mars Crater Navigator ana uygulama yöneticisi (Orchestrator).
- * Yıldız simülasyonu, krater harita motoru ve telemetri bileşenlerini koordine eder.
+ * @description AstroChief Mars Crater Navigator ana koordinasyon sınıfı.
+ * Kurumsal Google Maps tarzı header, kenar çubuğu, yıldız tuvali ve alt bölümleri başlatır.
  */
 
 import { Starfield } from "./components/Starfield.js";
-import { HudTelemetry } from "./components/HudTelemetry.js";
 import { Navbar } from "./components/Navbar.js";
 import { CraterMapViewer } from "./components/CraterMapViewer.js";
 import { DetailsSection } from "./components/DetailsSection.js";
@@ -19,9 +18,8 @@ export class AstroChiefApp {
    */
   constructor() {
     this.starfield = new Starfield("starfield-canvas");
-    this.hudTelemetry = new HudTelemetry("hud-telemetry-container");
     this.navbar = new Navbar("navbar-container");
-    this.craterViewer = new CraterMapViewer("crater-viewer-container");
+    this.craterViewer = new CraterMapViewer("crater-viewer-container", this.starfield);
     this.details = new DetailsSection("details-container");
     this.resources = new ResourcesSection("resources-container");
     this.teams = new TeamSection("teams-container");
@@ -29,33 +27,33 @@ export class AstroChiefApp {
   }
 
   /**
-   * Uygulamayı ve tüm alt bileşenleri sırasıyla başlatır
+   * Uygulamayı sırasıyla ayağa kaldırır
    */
   start() {
-    console.log("[AstroChief] Mars Crater Navigator başlatılıyor...");
-
-    // 1. Zifiri siyah uzay ve yıldız motorunu başlat
     this.starfield.init();
 
-    // 2. Telemetri ve Navigasyon
-    this.hudTelemetry.init();
-    this.navbar.init();
+    // Kurumsal Header ile Harita Denetleyicisini birbirine bağla (Sol Üst Factory Reset + Arama + Sidebar)
+    this.navbar.init(
+      {
+        onFactoryReset: () => this.craterViewer.performFactoryReset(),
+        onChangeSetting: (key, val) => this.craterViewer.updateSetting(key, val),
+        onToggleSidebar: () => this.craterViewer.toggleSidebar(),
+        onSearchQuery: (q) => this.craterViewer.setSearchQuery(q)
+      },
+      this.craterViewer
+    );
 
-    // 3. Google Earth / NASA Trek Tarzı Etkileşimli Krater Haritası
     this.craterViewer.init();
-
-    // 4. Detay, Kaynak, Ekip ve Alt Bilgi Bileşenleri
     this.details.init();
     this.resources.init();
     this.teams.init();
     this.footer.init();
 
     this.initSmoothScroll();
-    console.log("[AstroChief] Sistem aktif: Mars Krater Keşif Haritası Çevrimiçi.");
   }
 
   /**
-   * Pürüzsüz sayfa içi kaydırma
+   * Sayfa içi çapa kaydırmasını yumuşatır
    */
   initSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
@@ -65,17 +63,13 @@ export class AstroChiefApp {
         const targetElement = document.querySelector(targetId);
         if (targetElement) {
           e.preventDefault();
-          targetElement.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
+          targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       });
     });
   }
 }
 
-// DOM hazır olduğunda uygulamayı çalıştır
 document.addEventListener("DOMContentLoaded", () => {
   const app = new AstroChiefApp();
   app.start();
@@ -84,12 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc ana modül açıklaması ve koordinasyon tanımı.
-   - Satır 7-14: Starfield, HudTelemetry, Navbar, CraterMapViewer, Details, Resources, Teams ve Footer bileşenlerinin içe aktarımı.
-   - Satır 16: AstroChiefApp sınıfının dışa aktarılması.
-   - Satır 17-29: constructor; ilgili DOM konteyner ID'leri ile tüm alt sınıfları başlatır.
-   - Satır 31-52: start metodu; yıldız simülasyonunu, canlı telemetri çubuğunu, krater harita motorunu ve alt bölümleri sırayla ayağa kaldırır.
-   - Satır 54-71: initSmoothScroll; tüm çapa linkleri için pürüzsüz kaydırma sağlar.
-   - Satır 73-77: DOMContentLoaded dinleyicisi; sayfa yüklendiğinde uygulamayı otomatik başlatır.
-   - Satır 78: Dosya sonu.
+   - Satır 1-5: JSDoc ana uygulama koordinatörü tanıtımı.
+   - Satır 7-13: Yıldız simülasyonu, kurumsal Header, harita denetleyicisi ve içerik bölümlerinin içe aktarılması.
+   - Satır 15-26: constructor; tüm alt bileşen örneklerini oluşturur.
+   - Satır 28-50: start; yıldız tuvalini, Header ayar/arama bağlarını, haritayı ve Challenge bölümlerini başlatır.
+   - Satır 52-70: initSmoothScroll ve DOMContentLoaded başlatıcı bloğu.
    ========================================================================== */

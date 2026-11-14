@@ -1,0 +1,241 @@
+/**
+ * @file cards.css
+ * @description NASA kaynak kartları (Resources) ve ekip manifestosu (Teams) %60 Beyaz, %30 Siyah, %10 Kırmızı stilleri.
+ */
+
+/* ==========================================================================
+   NASA FERAGATNAME (DISCLAIMER)
+   ========================================================================== */
+.nasa-disclaimer-box {
+  background: var(--surface-offwhite);
+  border: 2px solid var(--space-black);
+  border-left: 6px solid var(--mars-red);
+  border-radius: var(--radius-xs);
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 2.2rem;
+}
+
+.disclaimer-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.disclaimer-icon {
+  font-size: 1.1rem;
+}
+
+.disclaimer-title {
+  font-size: 0.88rem;
+  color: var(--mars-red);
+  letter-spacing: 0.04em;
+}
+
+.disclaimer-text {
+  font-size: 0.82rem;
+  color: var(--ink-black);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   KAYNAK KARTLARI (RESOURCES GRID)
+   ========================================================================== */
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 1.6rem;
+}
+
+.resource-card {
+  background: var(--surface-white);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-sm);
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resource-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 6px 6px 0px var(--space-black);
+}
+
+.resource-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.resource-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-offwhite);
+  border: 1.5px solid var(--space-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.resource-tag {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  background: var(--space-black);
+  color: var(--surface-white);
+}
+
+.badge-mars-orange { background: var(--mars-red); }
+.badge-mars-red    { background: var(--space-black); }
+.badge-mars-amber  { background: var(--mars-red-dark); }
+.badge-mars-blue   { background: var(--space-black); }
+.badge-mars-purple { background: var(--mars-red); }
+
+.resource-title {
+  font-size: 1.1rem;
+  color: var(--ink-black);
+  line-height: 1.35;
+  margin-bottom: 0.55rem;
+}
+
+.resource-description {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+  margin-bottom: 1.35rem;
+}
+
+.btn-resource-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--space-black);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-xs);
+  color: var(--surface-white);
+  font-size: 0.82rem;
+  transition: all 0.2s ease;
+}
+
+.btn-resource-link:hover {
+  background: var(--mars-red);
+  border-color: var(--mars-red);
+  color: var(--surface-white);
+}
+
+/* ==========================================================================
+   EKİP KARTLARI (TEAMS GRID)
+   ========================================================================== */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.6rem;
+}
+
+.team-card {
+  background: var(--surface-white);
+  border: 2px solid var(--space-black);
+  border-radius: var(--radius-sm);
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 6px 6px 0px var(--mars-red);
+}
+
+.team-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.team-avatar-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.team-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--space-black);
+}
+
+.team-status-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: var(--mars-red);
+  border: 2px solid var(--surface-white);
+  border-radius: 50%;
+}
+
+.team-badge {
+  font-size: 0.68rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  background: var(--space-black);
+  color: var(--surface-white);
+}
+
+.team-icon-badge {
+  font-size: 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.team-member-name {
+  font-size: 1.2rem;
+  color: var(--ink-black);
+  margin-bottom: 0.2rem;
+}
+
+.team-member-role {
+  font-size: 0.82rem;
+  color: var(--mars-red);
+  margin-bottom: 0.75rem;
+}
+
+.team-member-description {
+  font-size: 0.82rem;
+  color: var(--ink-dark);
+  line-height: 1.55;
+  margin-bottom: 1.2rem;
+}
+
+.team-card-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1.5px solid var(--border-light);
+}
+
+.mission-tag {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc kartlar CSS başlığı.
+   - Satır 6-31: NASA yasal uyarı kutusu (.nasa-disclaimer-box) kırmızı sol çerçeve ile.
+   - Satır 33-112: Kaynak kartları; beyaz zemin, siyah kenarlık, kırmızı/siyah aksiyon butonları.
+   - Satır 114-198: Mürettebat kartları; beyaz zemin, siyah çerçeve, kırmızı hover gölgesi ve rol vurgusu.
+   ========================================================================== */

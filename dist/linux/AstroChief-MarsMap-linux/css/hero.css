@@ -1,0 +1,156 @@
+/**
+ * @file hero.css
+ * @description Ana karşılama alanı (Hero), Mars gezegen simülasyonu ve aksiyon butonları stilleri.
+ */
+
+.hero-section {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem 6rem;
+  overflow: hidden;
+}
+
+/* Mars Atmosferik Arkaplan Işıması */
+.hero-glow-bg {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(255, 87, 34, 0.22) 0%, rgba(193, 68, 14, 0.08) 50%, transparent 75%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1.2rem;
+  background: rgba(255, 87, 34, 0.12);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--border-radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-highlight);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 0 15px rgba(255, 87, 34, 0.2);
+}
+
+.hero-badge .pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--mars-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--mars-primary);
+  animation: pulseAnimation 2s infinite ease-in-out;
+}
+
+@keyframes pulseAnimation {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 5.5vw, 4.2rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
+  color: var(--text-main);
+}
+
+.hero-title .gradient-text {
+  background: linear-gradient(135deg, #ffffff 30%, #ff8a65 70%, #ff5722 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-description {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--text-muted);
+  max-width: 760px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+
+/* Hero Aksiyon Butonları */
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--mars-primary) 0%, var(--mars-deep) 100%);
+  border-radius: var(--border-radius-full);
+  box-shadow: 0 8px 24px rgba(255, 87, 34, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(255, 87, 34, 0.55);
+  filter: brightness(1.12);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-full);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  color: var(--text-highlight);
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc hero alanı stil dosyası açıklaması.
+   - Satır 6-14: .hero-section ana kapsayıcı yüksekliği, hizalama ve taşma ayarları.
+   - Satır 16-28: .hero-glow-bg Mars kızıl atmosfer ışık parlaması efekti.
+   - Satır 30-36: .hero-content içerik merkezi hizalama ve z-index.
+   - Satır 38-51: .hero-badge hap şeklinde görev durumu etiketi.
+   - Satır 53-62: .pulse-dot ve pulseAnimation sinyal atan kalp atışı animasyonu.
+   - Satır 64-78: .hero-title ve .gradient-text büyük ve gradyanlı tipografi başlığı.
+   - Satır 80-86: .hero-description giriş paragrafı boyutu ve satır aralığı.
+   - Satır 88-95: .hero-cta-group buton kümesi yerleşimi.
+   - Satır 97-128: .btn-primary ve .btn-secondary buton tasarımları, gölgeleri ve hover reaksiyonları.
+   ========================================================================== */
