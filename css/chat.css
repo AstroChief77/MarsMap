@@ -1,0 +1,442 @@
+/**
+ * @file chat.css
+ * @description AstroChief Mars Görev İletişim & Dosya Aktarım Paneli Stilleri.
+ * Tema standartları: %60 Beyaz (#ffffff, #f8fafc), %30 Siyah/Koyu Uzay (#020617, #0f172a), %10 Kırmızı (#d92b2b).
+ * Yazı tipi: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif.
+ */
+
+/* ==========================================================================
+   1. SAĞ ALT SABİT SOHBET BUTONU (TRIGGER)
+   ========================================================================== */
+.mission-chat-trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+  color: #ffffff;
+  border: 1px solid rgba(217, 43, 43, 0.4);
+  border-radius: 9999px;
+  padding: 12px 20px;
+  font-family: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(217, 43, 43, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.mission-chat-trigger:hover {
+  transform: translateY(-2px);
+  border-color: #d92b2b;
+  box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.6), 0 0 20px rgba(217, 43, 43, 0.4);
+}
+
+.mission-chat-trigger .chat-badge-icon {
+  width: 20px;
+  height: 20px;
+  fill: #d92b2b;
+}
+
+.mission-chat-trigger .chat-unread-badge {
+  background: #d92b2b;
+  color: #ffffff;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* ==========================================================================
+   2. SOHBET MODAL PANELİ (WINDOW)
+   ========================================================================== */
+.mission-chat-panel {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  height: 580px;
+  max-height: calc(100vh - 120px);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(217, 43, 43, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  overflow: hidden;
+  font-family: "Public Sans Web", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: missionChatSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mission-chat-panel.hidden {
+  display: none !important;
+}
+
+@keyframes missionChatSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   3. BAŞLIK VE KİMLİK / ROL BARI (HEADER)
+   ========================================================================== */
+.mission-chat-header {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #d92b2b;
+}
+
+.mission-chat-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mission-chat-status-dot {
+  width: 10px;
+  height: 10px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.mission-chat-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.mission-chat-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.mission-chat-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Kullanıcı Kimlik Seçimi */
+.mission-chat-user-selector {
+  background: #f8fafc;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.mission-chat-user-selector label {
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mission-chat-select {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+}
+
+.mission-chat-select:focus {
+  border-color: #d92b2b;
+}
+
+/* ==========================================================================
+   4. MESAJLAR LİSTESİ (BODY)
+   ========================================================================== */
+.mission-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+}
+
+.mission-chat-empty {
+  margin: auto;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 24px;
+}
+
+.mission-message-item {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  animation: messageFadeIn 0.2s ease-out;
+}
+
+.mission-message-item.own-message {
+  align-self: flex-end;
+  background: #ffffff;
+  border-left: 3px solid #d92b2b;
+  box-shadow: 0 2px 6px rgba(217, 43, 43, 0.08);
+}
+
+@keyframes messageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mission-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 11px;
+}
+
+.mission-message-author {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.mission-message-role {
+  background: rgba(217, 43, 43, 0.1);
+  color: #d92b2b;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.mission-message-time {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.mission-message-body {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+/* Dosya Eklenti Kartı */
+.mission-message-file-card {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #0f172a;
+  transition: all 0.2s;
+}
+
+.mission-message-file-card:hover {
+  background: #e2e8f0;
+  border-color: #d92b2b;
+}
+
+.mission-file-icon {
+  font-size: 20px;
+}
+
+.mission-file-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mission-file-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.mission-file-size {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.mission-file-image-preview {
+  margin-top: 8px;
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   5. DOSYA EKLEME & YÜKLEME ÇUBUĞU (ATTACHMENT PREVIEW)
+   ========================================================================== */
+.mission-chat-attachment-bar {
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #0f172a;
+}
+
+.mission-chat-attachment-bar.hidden {
+  display: none;
+}
+
+.mission-chat-remove-file {
+  background: transparent;
+  border: none;
+  color: #d92b2b;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+/* ==========================================================================
+   6. MESAJ VE DOSYA GÖNDERME ALANI (FOOTER)
+   ========================================================================== */
+.mission-chat-footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 14px;
+}
+
+.mission-chat-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mission-chat-attach-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #475569;
+}
+
+.mission-chat-attach-btn:hover {
+  background: #e2e8f0;
+  border-color: #d92b2b;
+  color: #d92b2b;
+}
+
+.mission-chat-input {
+  flex: 1;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+}
+
+.mission-chat-input:focus {
+  border-color: #d92b2b;
+  background: #ffffff;
+}
+
+.mission-chat-send-btn {
+  background: #d92b2b;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.mission-chat-send-btn:hover {
+  background: #b91c1c;
+}
+
+.mission-chat-send-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.mission-chat-security-badge {
+  text-align: center;
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-8: Stil dosyası başlığı, %60 Beyaz / %30 Siyah / %10 Kırmızı kuralları.
+   - Satır 11-45: Sağ alt köşe sabit sohbet açma/kapama butonu (.mission-chat-trigger).
+   - Satır 48-84: Sohbet modal paneli pencere kapsayıcısı ve açılış animasyonu.
+   - Satır 87-142: Panel başlığı, canlı durum rozeti (.mission-chat-status-dot) ve kapat butonu.
+   - Satır 145-167: Ekip üyesi rol ve isim seçici şeridi (.mission-chat-user-selector).
+   - Satır 170-220: Mesaj akışı liste kapsayıcısı ve mesaj balonları (.mission-message-item).
+   - Satır 222-262: Aktarılan dosya kartı, indirme bağlantısı ve görsel önizleme kutusu.
+   - Satır 265-283: Yüklenmek üzere seçilen dosya önizleme şeridi.
+   - Satır 286-350: Mesaj metin kutusu, dosya ataş butonu ve kırmızı gönder butonu.
+   ========================================================================== */
