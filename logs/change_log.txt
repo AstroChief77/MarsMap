@@ -120,6 +120,19 @@
 [2026-11-14 12:32:33] [CREATE/UPDATE] js/components/MarsGlobeViewer.js olusturuldu; SettingsMenu.js (1. secenek Factory Reset) ve navbar olmayan tam ekran gezinebilen kureye baglandi (pathfind backend'e birakildi).
 [2026-11-14 12:33:22] [UPDATE] index.html, js/app.js, css/base.css, css/globe_viewer.css, css/style.css ve version.json (v2.4.0) guncellendi.
 [2026-11-14 12:36:25] [UPDATE] tools/build_tool.ps1 güncellendi (Açık çalışan MarsMap-win64.exe kilitliyken web ve data/tiles dosyalarının masaüstüne hatasız güncellenmesi sağlandı).
+[2026-11-14 12:38:10] [BACKUP] backups/snapshot_20261114_v25_hires_backend klasorune v2.5.0 oncesi 13 dosya yedeklendi.
+[2026-11-14 12:39:40] [UPDATE] data/datasets/jpl_mars_trek_layers.json & tools/fetch_mars_tiles.ps1 guncellendi (cors_enabled, max_crater_zoom=5, max_remote_zoom=9, manifest.json + z3-z5 krater karolari indirildi; toplam 465 karo).
+[2026-11-14 12:41:05] [CREATE] js/services/BackendApiService.js & BACKEND_API.md olusturuldu (7 /api/v1/* endpoint, ?api= / ASTROCHIEF_CONFIG / Settings URL kancalari ve JSON semalari).
+[2026-11-14 12:42:30] [UPDATE] js/services/StateStorageService.js & MarsTileLoader.js guncellendi (LRU 220 karo bellek piramidi z=0..7, HiDPI hedef zoom hesabi, Local -> Proxy -> CORS WMTS akisi).
+[2026-11-14 12:44:15] [UPDATE] js/renderers/MarsGlobeRenderer.js guncellendi (1:1 HiDPI viewport-cropped raytracer, screenToLatLon, 14x zoom ve Backend Mavi #2563eb / Soluk Mavi #93c5fd rota yuvasi).
+[2026-11-14 12:45:40] [UPDATE] js/components/SettingsMenu.js & MarsGlobeViewer.js guncellendi (A/B koordinat secim modu, window.astroChiefGlobe JS kancasi, Top-Right Backend Rota Kancasi).
+[2026-11-14 12:48:50] [UPDATE] css/globe_viewer.css, index.html, version.json (v2.5.0), SOURCES.md ve logs/change_log.txt guncellendi.
+[2026-11-14 12:56:15] [BACKUP] backups/snapshot_20261114_v25_satdock klasorune 5 dosya yedeklendi.
+[2026-11-14 12:56:45] [CREATE] ForAgents/FRONTEND_AGENT_NOTES.md, js/components/SatelliteDockMenu.js, css/satellite_dock.css ve data/assets/{acid_rain_mars.jpg, dust_storm_mars.jpg} olusturuldu (readme.md v2.5 kurallarina uyumlu Uydular Paneli + 2D/3D + fotografli Asit/Kasirga siddetleri).
+[2026-11-14 12:57:05] [UPDATE] StateStorageService.js, BackendApiService.js, MarsGlobeViewer.js, css/style.css ve BACKEND_API.md guncellendi (acid_rain_intensity & dust_storm_intensity destegi).
+[2026-11-14 13:02:10] [BACKUP] backups/snapshot_20261114_v25_foveated klasorune 6 dosya yedeklendi.
+[2026-11-14 13:02:20] [CLEANUP] Uretilen data/assets/ klasoru silindi; css/satellite_dock.css dogrudan data/datasets/images/perseverance_supercam_sol2031.jpg ve data/tiles/mars-viking-mdim21/5/15/56.jpg dosyalarina baglandi.
+[2026-11-14 13:02:40] [OPTIMIZE] MarsTileLoader.js, MarsGlobeRenderer.js, MarsGlobeViewer.js, SettingsMenu.js ve StateStorageService.js guncellendi (Krater Odakli Foveated Optimize Render: hedef krater 1:1 HiDPI + bilineer + z2..z7, diger taraflar 2x2 piksel & z<=1 + hizli nearest-tap).
 [2026-11-14 13:05:00] [BACKUP] backups/snapshot_20261114_v2_4_before_rewrite/ dizinine sıfırdan yazım öncesi tam proje yedeği alındı.
 [2026-11-14 13:06:10] [CREATE] res/fonts/ dizini oluşturuldu; Google Fonts yerine tamamen çevrimdışı 10 adet PublicSans-{400..900}-{latin,latin-ext}.woff2 yerel font dosyası kaydedildi.
 [2026-11-14 13:06:30] [CREATE] css/fonts.css oluşturuldu (@font-face ile 'Public Sans Web', sans-serif ailesi yerel res/fonts/ altından tanımlandı).
@@ -130,6 +143,20 @@
 [2026-11-14 13:18:00] [REWRITE] js/services/ (StateStorageService.js, FpsGuardService.js, DatasetLoader.js, MarsTileLoader.js, HazardFieldService.js, RouteGeometryHelper.js, RoutePlannerService.js) sıfırdan yazıldı (Progressive LOD, FPS < 10 ayar geri alma koruması, Mavi/Soluk Mavi çift rota ve yol yorumları).
 [2026-11-14 13:21:00] [REWRITE] js/renderers/ (StarfieldRenderer.js, OverlayDrawHelper.js, RouteCanvasRenderer.js, Map2DRenderer.js, Map3DRenderer.js) sıfırdan yazıldı.
 [2026-11-14 13:24:00] [REWRITE] js/components/ (SettingsPanel.js, SatellitesPanel.js, RouteInspectorPanel.js, MissionInfoModal.js, MarsNavigatorController.js), js/app.js ve index.html sıfırdan yazıldı.
+[2026-11-14 13:25:05] [BACKUP] backups/snapshot_20261114_chat_feature klasorune 4 dosya yedeklendi.
+[2026-11-14 13:25:35] [CREATE] api/chat.php olusturuldu (Guvenli SQLite3 Mars Gorev Iletisim ve Dosya Aktarim API'si: XSS korumasi, IP Rate Limiting, MIME denetimi, 15MB limit, rastgele tokenli dosya adi, PDO SQL enjeksiyon korumasi).
+[2026-11-14 13:26:05] [CREATE] css/chat.css olusturuldu (%60 Beyaz / %30 Siyah / %10 Kirmizi AstroChief tasarim sistemi uyumlu sag-alt iletisim paneli, dosya kartlari ve animasyonlar).
+[2026-11-14 13:26:35] [CREATE] js/components/MissionChat.js olusturuldu (Gercek zamanli polling, ekip rolleri, dosya yukleme onizlemesi ve guvenli DOM render bileseni).
+[2026-11-14 13:26:45] [UPDATE] css/style.css guncellendi (chat.css iceri aktarildi).
+[2026-11-14 13:26:59] [UPDATE] js/app.js guncellendi (MissionChat bileseni baslatici zincirine baglandi).
+[2026-11-14 13:35:00] [CREATE] chat/index.html olusturuldu (fesnex.com/chat/ ve mars.kubitron.com/chat/ uzerinden tam ekran erisilebilir Mars Gorev Iletisim & Dosya Aktarim sayfasi).
+[2026-11-14 13:45:10] [BACKUP] backups/snapshot_20261114_autodeploy klasorune logs/change_log.txt ve ForAgents/FRONTEND_AGENT_NOTES.md yedeklendi.
+[2026-11-14 13:45:25] [CREATE] .gitattributes, .github/workflows/deploy-mars-web.yml, tools/server/{deploy_web_sync.sh, install_autodeploy.sh, README.md} ve api/github_webhook.php olusturuldu (GitHub main -> mars.kubitron.com otomatik web dagitim otomasyonu).
+[2026-11-14 13:45:35] [UPDATE] ForAgents/FRONTEND_AGENT_NOTES.md ve logs/change_log.txt guncellendi.
+[2026-11-14 14:00:30] [BACKUP] backups/snapshot_20261114_autodeploy2 klasorune deploy betikleri yedeklendi.
+[2026-11-14 14:00:45] [UPDATE] deploy_web_sync.sh, install_autodeploy.sh, deploy-mars-web.yml ve tools/server/README.md ozel (private) GitHub reposu Deploy Key + Protect filtreleriyle guncellendi.
+[2026-11-14 14:07:30] [BACKUP] backups/snapshot_20261114_autodeploy3 klasorune deploy-mars-web.yml yedeklendi.
+[2026-11-14 14:07:45] [UPDATE] deploy-mars-web.yml icine DEPLOY_SSH_KEY CRLF temizligi (tr -d '\r') ve mars:www-data sahipligi korumasi eklendi.
 [2026-11-14 14:22:20] [BACKUP] backups/snapshot_20261114_v3_pre_build/ dizinine derleme öncesi son düzenleme yedeği alındı.
 [2026-11-14 14:23:05] [UPDATE] js/renderers/Map2DRenderer.js ve RouteCanvasRenderer.js güncellendi (rotLon merkezli yatay wrap projeksiyonu, yüksek zoom segment koruması ve krater yol yorum hizalaması).
 [2026-11-14 14:23:15] [UPDATE] version.json v3.0.0 sürümüne yükseltildi; SOURCES.md yerel res/ font ve fotoğraf arşivleri ile güncellendi.
@@ -153,3 +180,4 @@
 [2026-11-14 15:12:00] [CREATE] data/offlineDatasets.js oluşturuldu (data/datasets/*.json dosyalarının file:// çift tıklama ortamı için çevrimdışı IIFE kopyaları).
 [2026-11-14 15:14:00] [UPDATE] Tüm JS modülleri (data/*, js/models/*, js/services/*, js/renderers/*, js/components/*, js/app.js) window.AstroChief ad alanına ve index.html sıralı <script defer> yapısına geçirildi.
 [2026-11-14 15:15:30] [UPDATE] DatasetLoader.js, MarsTileLoader.js, Map3DRenderer.js (getImageData kısıtında gerçek karo şeritli 3D küre yedeği) ve tools/build.py (--target all ile Windows win64 klasörü/ZIP + Linux paketi) güncellendi.
+[2026-11-14 14:11:45] [UPDATE] github_webhook.php ve deploy-mars-web.yml icinde v3.0.0 res/ dizini de web senkronizasyonuna eklendi.

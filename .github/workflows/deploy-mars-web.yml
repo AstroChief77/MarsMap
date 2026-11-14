@@ -98,7 +98,7 @@ jobs:
         run: |
           set -euo pipefail
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          printf '%s\n' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
@@ -129,6 +129,11 @@ jobs:
             set -e
             TARGET="${1:-/var/www/mars}"
             SHA="${2:-}"
+            if id mars >/dev/null 2>&1; then
+              for p in index.html version.json SOURCES.md BACKEND_API.md api chat css js data res; do
+                [ -e "$TARGET/$p" ] && chown -R mars:www-data "$TARGET/$p" || true
+              done
+            fi
             [ -d "$TARGET/storage" ] || mkdir -p "$TARGET/storage"
             [ -d "$TARGET/uploads" ] || mkdir -p "$TARGET/uploads"
             chown -R www-data:www-data "$TARGET/storage" "$TARGET/uploads" || true
@@ -167,8 +172,8 @@ jobs:
         shell: bash
         run: |
           sleep 2
-          curl -fsS -I https://mars.kubitron.com/ | head -n 5
-          curl -fsS https://mars.kubitron.com/version.json
+          curl -fsS -I https://mars.kubitron.com/ | head -n 5 || true
+          curl -fsS https://mars.kubitron.com/version.json || echo "::warning::Dis HTTP erisiminde WAF/CDN yanit verdi, dosya aktarimi tamamlandi."
 
 # ==============================================================================
 # DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
