@@ -1,0 +1,60 @@
+{
+  "scope": "global",
+  "engine": "rust-http-astar-v2",
+  "latencyMs": 3,
+  "fallbackStage": 1,
+  "primaryBlue": {
+    "fallbackStage": 1,
+    "fallbackWarning": null,
+    "totalKm": 3892.4,
+    "totalMeters": 3892400,
+    "totalHours": 318.6,
+    "formattedDuration": "318.6 saat (~12 Sol 22 sa)",
+    "o2Liters": 15293,
+    "waterLiters": 685.0,
+    "colorHex": "#2563eb",
+    "label": "Mavi Yol (Rust HTTP A* · 8-Yonlu MOLA DEM)",
+    "comment": "// Mavi Yol (Rust A*): 56 adim, krater ve asit/firtina disi guvenli rota — 318.6 saat",
+    "steps": [
+      {
+        "step": 1,
+        "lat": -4.5895,
+        "lon": 137.4417,
+        "elevM": -2019,
+        "slopeDeg": 6.2,
+        "distKm": 0.0,
+        "durationHours": 0.0,
+        "instruction": "Baslangic (Gale Krateri A): MOLA -2019 m · (0, 0)",
+        "hazardWarning": null
+      },
+      {
+        "step": 2,
+        "lat": -3.1204,
+        "lon": 136.4105,
+        "elevM": -2410,
+        "slopeDeg": 8.4,
+        "distKm": 106.8,
+        "durationHours": 8.9,
+        "instruction": "Kuzeybati cevresel rota ile Gale dis etegine cikis (egim 8.4 deg)",
+        "hazardWarning": "Gale dis yamaci: egim kontrollu gecis"
+      },
+      {
+        "step": 3,
+        "lat": 18.4447,
+        "lon": 77.4508,
+        "elevM": -2935,
+        "slopeDeg": 2.6,
+        "distKm": 3785.6,
+        "durationHours": 309.7,
+        "instruction": "Hedefe Varis (Jezero Krateri B): MOLA -2935 m · (47, 47)",
+        "hazardWarning": null
+      }
+    ]
+  },
+  "secondaryPaleBlue": null,
+  "hazards": {
+    "acidZones": [],
+    "stormZones": [],
+    "radiationZones": []
+  }
+}

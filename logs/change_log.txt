@@ -39,3 +39,8 @@
 [2026-11-14 11:21:46] [BACKUP] backups/change_log_backup_20261114_1122.txt oluşturuldu (Değişiklik öncesi yedek).
 [2026-11-14 11:22:00] [CREATE] deploy_desktop.ps1 oluşturuldu (Güncel sürümü masaüstündeki AstroChief-MarsMap klasörüne kopyalayan PowerShell betiği).
 [2026-11-14 11:22:05] [CREATE] deploy_desktop.bat oluşturuldu (Tek tıkla masaüstüne güncel sürüm dağıtım başlatıcısı).
+[2026-11-15 00:40:05] [BACKUP] backups/change_log_backup_20261115_ornek_json.txt oluşturuldu (Mustafa branch ornek_json ekleme öncesi yedek; readme.md dokunulmadı).
+[2026-11-15 00:40:06] [CREATE] ornek_json.json oluşturuldu (Gale -> Jezero 48x48 MOLA DEM, eğim, blockedMask, krater kataloğu ve Prameters.md fizik verilerini içeren örnek POST /api/v1/route yükü, 391 satır).
+[2026-11-15 00:40:06] [CREATE] ornek_json/krater_yakin_senaryo.json oluşturuldu (Gale Batı Eteği -> Gale Doğu Düzlüğü yakın ölçekli krater engelli örnek senaryo JSON, 383 satır).
+[2026-11-15 00:40:06] [CREATE] ornek_json/ornek_yanit_response.json oluşturuldu (Backend'in döneceği fallbackStage ve steps[] şemasını gösteren örnek 200 OK JSON yanıtı, 60 satır).
+[2026-11-15 00:40:06] [CREATE] ornek_json/README.md oluşturuldu (terrainGrid indeksleme, blockedMask bitmaskesi, açısal eğim, 8-yönlü komşuluk + string-pulling ve Prameters.md formül rehberi, 44 satır).
