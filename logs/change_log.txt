@@ -181,3 +181,7 @@
 [2026-11-14 15:14:00] [UPDATE] Tüm JS modülleri (data/*, js/models/*, js/services/*, js/renderers/*, js/components/*, js/app.js) window.AstroChief ad alanına ve index.html sıralı <script defer> yapısına geçirildi.
 [2026-11-14 15:15:30] [UPDATE] DatasetLoader.js, MarsTileLoader.js, Map3DRenderer.js (getImageData kısıtında gerçek karo şeritli 3D küre yedeği) ve tools/build.py (--target all ile Windows win64 klasörü/ZIP + Linux paketi) güncellendi.
 [2026-11-14 14:11:45] [UPDATE] github_webhook.php ve deploy-mars-web.yml icinde v3.0.0 res/ dizini de web senkronizasyonuna eklendi.
+[2026-11-14 14:40:00] [BACKUP] backups/snapshot_20261114_lan_server/ dizinine serve.ps1, tools/WinLauncher.cs, chat/index.html ve logs/change_log.txt yedeklendi.
+[2026-11-14 14:40:20] [UPDATE] chat/index.html 9. satirdaki harici Google Fonts CDN @import kaldirilarak yerel ../css/fonts.css ve Public Sans Web fontuna gecirildi.
+[2026-11-14 14:40:40] [UPDATE] tools/WinLauncher.cs ve serve.ps1 URLACL gerektirmeyen coklu is parcacikli 0.0.0.0 TcpListener LAN sunucusuna ve guvenli web beyaz listesine yukseltildi.
+[2026-11-14 14:55:00] [CREATE] tools/github_autodeploy.ps1 olusturuldu (GitHub origin/main izleme, otomatik build_tool.ps1 derleme ve port 3000 kesintisiz yenileme otomasyonu).
