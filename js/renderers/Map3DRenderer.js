@@ -206,6 +206,9 @@
 
       if (computedRoutes && computedRoutes.scope === "global") {
         this.routeRenderer.drawGlobalDualRoutes(ctx, project3D, computedRoutes, showRouteComments, width, height);
+        if (state.demoSim && state.demoSim.active) {
+          this.routeRenderer.drawDemoSimulation(ctx, project3D, computedRoutes, state.demoSim, width, height);
+        }
       }
 
       const hitTargets = this.overlays.drawMarkers(ctx, project3D, craters, landingSites, activeCrater?.id);

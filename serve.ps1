@@ -216,6 +216,11 @@ namespace AstroChiefServe
             {
                 cleanRel = "chat/index.html";
             }
+            if (cleanRel.Equals("demo", StringComparison.OrdinalIgnoreCase) ||
+                cleanRel.Equals("demo/", StringComparison.OrdinalIgnoreCase))
+            {
+                cleanRel = "demo/index.html";
+            }
 
             if (cleanRel.StartsWith("api/", StringComparison.OrdinalIgnoreCase))
             {
@@ -250,7 +255,8 @@ namespace AstroChiefServe
                 rel.Equals("version.json", StringComparison.OrdinalIgnoreCase) ||
                 rel.Equals("SOURCES.md", StringComparison.OrdinalIgnoreCase) ||
                 rel.Equals("BACKEND_API.md", StringComparison.OrdinalIgnoreCase) ||
-                rel.Equals("chat/index.html", StringComparison.OrdinalIgnoreCase))
+                rel.Equals("chat/index.html", StringComparison.OrdinalIgnoreCase) ||
+                rel.Equals("demo/index.html", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -259,6 +265,7 @@ namespace AstroChiefServe
             return rel.StartsWith("css/", StringComparison.OrdinalIgnoreCase) ||
                    rel.StartsWith("js/", StringComparison.OrdinalIgnoreCase) ||
                    rel.StartsWith("data/", StringComparison.OrdinalIgnoreCase) ||
+                   rel.StartsWith("demo/", StringComparison.OrdinalIgnoreCase) ||
                    rel.StartsWith("res/", StringComparison.OrdinalIgnoreCase);
         }
 

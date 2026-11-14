@@ -69,7 +69,7 @@ fi
 
 # 3. Yalnizca web dosyalarinin son commit SHA'sini kontrol et (--depth 1 sığ klonda bos donerse HEAD SHA kullan)
 LATEST_WEB_SHA="$(git -C "$STAGE_DIR" log -n 1 --pretty=format:%H -- \
-  index.html version.json SOURCES.md BACKEND_API.md api chat css js data res)"
+  index.html version.json SOURCES.md BACKEND_API.md api chat demo css js data res)"
 if [ -z "$LATEST_WEB_SHA" ]; then
   LATEST_WEB_SHA="$(git -C "$STAGE_DIR" rev-parse HEAD)"
 fi
@@ -112,6 +112,7 @@ rsync -avz --delete \
   --include='BACKEND_API.md' \
   --include='api/***' \
   --include='chat/***' \
+  --include='demo/***' \
   --include='css/***' \
   --include='js/***' \
   --include='data/***' \
@@ -127,7 +128,7 @@ rsync -avz --delete \
 
 # 6. Dizin sahipliklerini ve Nginx / PHP-FPM durumunu koru
 if [ -n "$WEB_OWNER" ] && id "${WEB_OWNER%%:*}" >/dev/null 2>&1; then
-  for p in index.html version.json SOURCES.md BACKEND_API.md api chat css js data res; do
+  for p in index.html version.json SOURCES.md BACKEND_API.md api chat demo css js data res; do
     [ -e "$WEB_ROOT/$p" ] && chown -R "$WEB_OWNER" "$WEB_ROOT/$p" || true
   done
 fi

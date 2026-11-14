@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # AstroChief - Otomatik Windows & Linux Derleme ve Masaustu Dagitim Araci
 # Kullanim: powershell -ExecutionPolicy Bypass -File .\tools\build_tool.ps1
 # ==============================================================================
@@ -27,11 +27,11 @@ Write-Host " [AstroChief Build Tool] Surum v$Version Derleniyor..." -ForegroundC
 Write-Host "==================================================================" -ForegroundColor Cyan
 
 # 1. Modul satir siniri dogrulamasi (Ana kod dosyasi disinda < 800 satir kurali)
-$CodeFiles = Get-ChildItem -Path (Join-Path $RootDir "js"), (Join-Path $RootDir "css"), (Join-Path $RootDir "data"), (Join-Path $RootDir "tools") -Recurse -File -Include *.js,*.css,*.ps1,*.cs,*.py,*.sh
+$CodeFiles = Get-ChildItem -Path (Join-Path $RootDir "js"), (Join-Path $RootDir "css"), (Join-Path $RootDir "data"), (Join-Path $RootDir "tools"), (Join-Path $RootDir "demo"), (Join-Path $RootDir "chat") -Recurse -File -Include *.js,*.css,*.ps1,*.cs,*.py,*.sh,*.html
 foreach ($cf in $CodeFiles) {
     $lc = (Get-Content $cf.FullName).Count
-    if ($lc -gt 800) {
-        throw "KURAL IHLALI: $($cf.Name) dosyasi $lc satir (>800)!"
+    if ($lc -ge 800) {
+        throw "KURAL IHLALI: $($cf.Name) dosyasi $lc satir (>=800)!"
     }
 }
 Write-Host "[OK] Tum modul dosyalari (< 800 satir) kuralindan gecti." -ForegroundColor Gray
@@ -51,7 +51,7 @@ function Copy-RuntimeBundle {
         $src = Join-Path $RootDir $f
         if (Test-Path $src) { Copy-Item -Path $src -Destination $TargetFolder -Force }
     }
-    foreach ($dir in @("css", "js", "data", "res", "ForAgents")) {
+    foreach ($dir in @("css", "js", "data", "res", "demo", "chat", "ForAgents")) {
         $srcDir = Join-Path $RootDir $dir
         if (Test-Path $srcDir) {
             $dstDir = Join-Path $TargetFolder $dir
@@ -65,16 +65,25 @@ function Copy-RuntimeBundle {
 Write-Host "[Windows] Uygulama paketi ve yerel calistirici (.exe) derleniyor..." -ForegroundColor Yellow
 Copy-RuntimeBundle -TargetFolder $WinStage
 
-$CscPath = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-$WinCs   = Join-Path $ToolsDir "WinLauncher.cs"
-$WinExe  = Join-Path $WinStage "MarsMap-win64.exe"
+$CscPath   = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+$WinCs     = Join-Path $ToolsDir "WinLauncher.cs"
+$WinExe    = Join-Path $WinStage "MarsMap-win64.exe"
+$WinExeTmp = Join-Path $WinStage "MarsMap-win64.tmp.exe"
 
 if (Test-Path $CscPath) {
-    & $CscPath /nologo /optimize+ /out:$WinExe $WinCs
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $WinExe)) {
+    if (Test-Path $WinExeTmp) { Remove-Item -Path $WinExeTmp -Force -ErrorAction SilentlyContinue }
+    & $CscPath /nologo /optimize+ /out:$WinExeTmp $WinCs
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $WinExeTmp)) {
         throw "Windows launcher derlemesi basarisiz oldu!"
     }
-    Write-Host "[OK] Windows EXE derlendi: $WinExe" -ForegroundColor Green
+    try {
+        if (Test-Path $WinExe) { Remove-Item -Path $WinExe -Force }
+        Move-Item -Path $WinExeTmp -Destination $WinExe -Force
+        Write-Host "[OK] Windows EXE derlendi: $WinExe" -ForegroundColor Green
+    } catch {
+        Remove-Item -Path $WinExeTmp -Force -ErrorAction SilentlyContinue
+        Write-Warning "MarsMap-win64.exe su anda acik oldugu icin guncellenemedi; mevcut EXE korundu ($($_.Exception.Message))."
+    }
 } else {
     Write-Warning "csc.exe bulunamadi; PowerShell baslatici kullanilacak."
 }
@@ -151,10 +160,10 @@ if (-not $SkipDesktopDeploy) {
 DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------------
 - Satır 1-27: Parametreler, proje sürüm dosyası (version.json) okuma ve çıktı klasör yolları.
-- Satır 29-37: Tüm JS/CSS/araç modüllerinin < 800 satır kuralına uyduğunu doğrular.
-- Satır 39-63: Temiz dist dizinleri oluşturur; Copy-RuntimeBundle ile css, js, data, res ve ForAgents kopyalar.
-- Satır 65-85: Windows hedefi için .NET csc.exe ile MarsMap-win64.exe dosyasını derler ve ZIP arşivi üretir.
-- Satır 87-112: Linux hedefi için LF (\n) satır sonlu launch-linux.sh ve SHA256SUMS üretir, .tar.gz paketi oluşturur.
-- Satır 114-149: Güncel derlenmiş sürümü Windows Masaüstündeki AstroChief-MarsMap klasörüne yükler.
+- Satır 29-37: Tüm JS/CSS/HTML/araç modüllerinin < 800 satır kuralına uyduğunu doğrular (`demo` ve `chat` dahil).
+- Satır 39-63: Temiz dist dizinleri oluşturur; Copy-RuntimeBundle ile css, js, data, res, demo, chat ve ForAgents kopyalar.
+- Satır 65-95: Windows hedefi için .NET csc.exe ile MarsMap-win64.exe geçici derlemesini üretir (kilitliyse uyarır) ve ZIP arşivi oluşturur.
+- Satır 97-122: Linux hedefi için LF (\n) satır sonlu launch-linux.sh ve SHA256SUMS üretir, .tar.gz paketi oluşturur.
+- Satır 124-157: Güncel derlenmiş sürümü Windows Masaüstündeki AstroChief-MarsMap klasörüne yükler.
 ================================================================================
 #>

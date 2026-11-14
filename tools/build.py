@@ -70,8 +70,8 @@ class CodeRuleAuditor:
 
     def check_line_limits_and_footers(self):
         """Main kodu disinda < 800 satir ve her kod dosyasinda alt satir aciklama blogu kontrolu."""
-        scan_roots = ["js", "css", "data", "tools", "api", "chat", "backend/src"]
-        code_exts = {".js", ".css", ".py", ".sh", ".ps1", ".cs", ".php", ".rs"}
+        scan_roots = ["js", "css", "data", "tools", "api", "chat", "demo", "backend/src"]
+        code_exts = {".js", ".css", ".py", ".sh", ".ps1", ".cs", ".php", ".rs", ".html"}
         candidates = [self.root_dir / "index.html", self.root_dir / "build.sh"]
         for sub in scan_roots:
             sub_dir = self.root_dir / sub
@@ -117,7 +117,7 @@ class PlatformPackager:
         self.version = version
         self.dist_root = root_dir / "dist"
         self.runtime_files = ["index.html", "SOURCES.md", "LICENSE", "version.json"]
-        self.runtime_dirs = ["css", "js", "data", "res", "ForAgents"]
+        self.runtime_dirs = ["css", "js", "data", "res", "demo", "chat", "ForAgents"]
 
     def copy_common_bundle(self, stage_dir: Path):
         """Ortak web, yerel res/, data/ ve ForAgents dosyalarini hedef dizine kopyalar."""

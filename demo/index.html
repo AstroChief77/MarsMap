@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="../">
+  <title>AstroChief | /demo Mars Hayatta Kalma Simülasyonu</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%23d92b2b%22/><circle cx=%2250%22 cy=%2250%22 r=%2222%22 fill=%22%23ffffff%22 opacity=%220.22%22/></svg>">
+  <link rel="stylesheet" href="./css/fonts.css?v=4.3">
+  <link rel="stylesheet" href="./css/variables.css?v=4.3">
+  <link rel="stylesheet" href="./css/base.css?v=4.3">
+  <link rel="stylesheet" href="./css/demo_studio.css?v=4.3">
+</head>
+<body class="demo-studio-body">
+  <canvas id="demo-starfield" aria-hidden="true"></canvas>
+
+  <div class="sim-shell">
+    <header class="sim-topbar">
+      <div class="sim-brand-wrap">
+        <span class="sim-brand">ASTRO<span>CHIEF</span></span>
+        <span class="sim-route-pill">/demo SİMÜLASYON</span>
+      </div>
+
+      <div class="sim-preset-row">
+        <button type="button" class="sim-btn" data-preset="gale-elysium-rover">🚙 Gale → Elysium Rover</button>
+        <button type="button" class="sim-btn" data-preset="gale-eva-walk">🧑‍🚀 Gale Mount Sharp EVA</button>
+        <button type="button" class="sim-btn" data-preset="storm-jezero-stress">🌪 Şiddetli Fırtına Testi</button>
+        <button type="button" class="sim-btn" data-preset="robotic-perseverance">🤖 Perseverance 2D</button>
+      </div>
+
+      <div class="sim-top-right">
+        <button type="button" class="sim-btn active" data-view="3d">3D</button>
+        <button type="button" class="sim-btn" data-view="2d">2D</button>
+        <span class="sim-pill-badge" id="sim-latency-pill">🦀 ...</span>
+        <span class="sim-pill-badge" id="sim-fps-pill">60 FPS</span>
+        <a href="./index.html" class="sim-btn red">← Ana Harita</a>
+      </div>
+    </header>
+
+    <main class="sim-workspace">
+      <canvas id="demo-map-canvas" aria-label="Mars Simülasyon Haritası"></canvas>
+
+      <aside class="sim-left-card" aria-label="Simülasyon Girdi Parametreleri">
+        <div class="sim-sec-title">1. BİRİM &amp; ÖN REZERV PARAMETRELERİ</div>
+        <div class="sim-veh-grid">
+          <button type="button" class="sim-veh-btn active" data-veh="rover">🚙 Rover</button>
+          <button type="button" class="sim-veh-btn" data-veh="eva">🧑‍🚀 İnsan EVA</button>
+          <button type="button" class="sim-veh-btn" data-veh="robot">🤖 Bilim</button>
+        </div>
+
+        <div class="sim-field-row">
+          <label class="sim-field">Başlangıç O₂ (L)
+            <input type="number" id="sim-o2-inp" min="0" max="3000" step="10" value="420">
+          </label>
+          <label class="sim-field">Başlangıç Su (L)
+            <input type="number" id="sim-water-inp" min="0" max="200" step="1" value="24">
+          </label>
+        </div>
+
+        <div class="sim-field-row">
+          <label class="sim-field">Batarya (kWh)
+            <input type="number" id="sim-energy-inp" min="0.5" max="200" step="0.5" value="65">
+          </label>
+          <label class="sim-field">Hedef Hız (<span id="sim-speed-readout">14.5 km/sa</span>)
+            <input type="range" id="sim-speed-inp" min="4" max="19" step="0.5" value="14.5">
+          </label>
+        </div>
+
+        <div class="sim-sec-title">2. ROTA &amp; HARİTA KATMANI</div>
+        <label class="sim-field">Başlangıç Noktası (A)
+          <select id="sim-origin-sel"></select>
+        </label>
+        <label class="sim-field">Hedef Noktası (B)
+          <select id="sim-dest-sel"></select>
+        </label>
+        <div class="sim-field-row">
+          <button type="button" class="sim-btn" id="sim-btn-pick">🎯 Haritadan Hedef Seç</button>
+          <select id="sim-layer-sel" style="padding:5px;border:1.5px solid var(--line-light);border-radius:6px;font-size:11px;font-weight:800;">
+            <option value="mars-viking-mdim21">Viking Optik</option>
+            <option value="mars-mola-elevation">MOLA Topografya</option>
+            <option value="mars-themis-day-ir">THEMIS Termal</option>
+            <option value="mars-global-geology">USGS Jeoloji</option>
+          </select>
+        </div>
+
+        <div class="sim-sec-title">3. ÇEVRESEL ETKENLER &amp; OLAY TESTİ</div>
+        <div class="sim-haz-row">
+          <label><input type="checkbox" id="sim-acid-chk" checked> Asit Yağmuru</label>
+          <select id="sim-acid-int">
+            <option value="hafif">Hafif (pH 3.8)</option>
+            <option value="orta" selected>Orta (pH 2.4)</option>
+            <option value="siddetli">Şiddetli (pH 1.3)</option>
+          </select>
+        </div>
+        <div class="sim-haz-row">
+          <label><input type="checkbox" id="sim-storm-chk" checked> Kum Fırtınası</label>
+          <select id="sim-storm-int">
+            <option value="hafif">Hafif (τ 1.2)</option>
+            <option value="orta" selected>Orta (τ 2.8)</option>
+            <option value="siddetli">Şiddetli (τ 4.5)</option>
+          </select>
+        </div>
+        <div class="sim-haz-row">
+          <label><input type="checkbox" id="sim-rad-chk" checked> α / β / γ Foton Radyasyonu</label>
+          <span style="font-size:10px;color:var(--ink-muted);">RAD/GCR</span>
+        </div>
+
+        <div class="sim-inject-row">
+          <button type="button" class="sim-btn" id="sim-btn-surge">🌪 Fırtına Patlat</button>
+          <button type="button" class="sim-btn" id="sim-btn-leak">⚠ O₂ Sızıntısı (+1.2 L/dk)</button>
+        </div>
+      </aside>
+
+      <aside class="sim-right-card" aria-label="Canlı Simülasyon Telemetrisi">
+        <div class="sim-sec-title">CANLI GÖREV TELEMETRİSİ</div>
+        <div class="sim-kpi-grid">
+          <div class="sim-kpi"><span class="sim-kpi-lbl">GEÇEN SÜRE</span><strong class="sim-kpi-val" id="sim-time-val">0 sa 0 dk</strong></div>
+          <div class="sim-kpi"><span class="sim-kpi-lbl">MESAFE</span><strong class="sim-kpi-val" id="sim-dist-val">0.0 / 0.0 km</strong></div>
+          <div class="sim-kpi"><span class="sim-kpi-lbl">ANLIK HIZ</span><strong class="sim-kpi-val" id="sim-speed-val">14.5 km/sa</strong></div>
+          <div class="sim-kpi"><span class="sim-kpi-lbl">MOLA RAKIM &amp; EĞİM</span><strong class="sim-kpi-val" id="sim-elev-val">0 m (0°)</strong></div>
+        </div>
+
+        <div class="sim-bar-box">
+          <div class="sim-bar-head"><span>Oksijen (O₂)</span><span id="sim-o2-val">420 L</span></div>
+          <div class="sim-bar-track"><div class="sim-bar-fill" id="sim-o2-bar" style="width:100%;"></div></div>
+        </div>
+        <div class="sim-bar-box">
+          <div class="sim-bar-head"><span>Soğutma &amp; İçme Suyu</span><span id="sim-water-val">24.0 L</span></div>
+          <div class="sim-bar-track"><div class="sim-bar-fill water" id="sim-water-bar" style="width:100%;"></div></div>
+        </div>
+        <div class="sim-bar-box">
+          <div class="sim-bar-head"><span>Batarya &amp; Güç</span><span id="sim-energy-val">65.0 kWh</span></div>
+          <div class="sim-bar-track"><div class="sim-bar-fill energy" id="sim-energy-bar" style="width:100%;"></div></div>
+        </div>
+
+        <div class="sim-kpi"><span class="sim-kpi-lbl">SOLUNUM &amp; KÜMÜLATİF RADYASYON</span><strong class="sim-kpi-val" id="sim-co2-rad-val">CO₂: 0 L · Doz: 0.00 mSv</strong></div>
+
+        <div class="sim-sec-title">ZAMAN SERİSİ PROFİLİ (O₂ / BATARYA / RAKIM)</div>
+        <canvas id="sim-chart-canvas"></canvas>
+        <div class="sim-chart-legend">
+          <span style="color:#2563eb;">■ O₂ (%)</span>
+          <span style="color:#16a34a;">■ Enerji (%)</span>
+          <span style="color:#d92b2b;">■ MOLA Rakım / %20 Walkback</span>
+        </div>
+
+        <div class="sim-sec-title">SİMÜLASYON OLAY GÜNLÜĞÜ</div>
+        <div class="sim-log-box" id="sim-event-log"></div>
+      </aside>
+
+      <div class="sim-transport-bar" aria-label="Simülasyon Oynatma Kontrolü">
+        <button type="button" class="sim-btn red" id="sim-btn-play">▶ Başlat</button>
+        <button type="button" class="sim-btn" id="sim-btn-reset">↺ Sıfırla</button>
+        <input type="range" id="sim-scrubber" class="sim-scrubber" min="0" max="1000" value="0" aria-label="Simülasyon İlerleme">
+        <span class="sim-pill-badge" id="sim-pct-pill">0%</span>
+        <div class="sim-speed-row">
+          <button type="button" class="sim-btn" data-sim-speed="1">1x</button>
+          <button type="button" class="sim-btn" data-sim-speed="5">5x</button>
+          <button type="button" class="sim-btn active" data-sim-speed="20">20x</button>
+          <button type="button" class="sim-btn" data-sim-speed="60">60x</button>
+          <button type="button" class="sim-btn" data-sim-speed="240">240x</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script defer src="./data/offlineDatasets.js?v=4.3"></script>
+  <script defer src="./data/craterLocations.js?v=4.3"></script>
+  <script defer src="./data/craterWaypointsData.js?v=4.3"></script>
+  <script defer src="./data/i18n/localesTrEnDe.js?v=4.3"></script>
+  <script defer src="./data/i18n/localesFrEs.js?v=4.3"></script>
+  <script defer src="./data/i18n/localesJaKoArHe.js?v=4.3"></script>
+  <script defer src="./data/i18n/localesDemo.js?v=4.3"></script>
+
+  <script defer src="./js/models/AppConfig.js?v=4.3"></script>
+  <script defer src="./js/services/I18nService.js?v=4.3"></script>
+  <script defer src="./js/services/DatasetLoader.js?v=4.3"></script>
+  <script defer src="./js/services/MarsTileLoader.js?v=4.3"></script>
+  <script defer src="./js/services/MarsTopographyService.js?v=4.3"></script>
+  <script defer src="./js/services/HazardFieldService.js?v=4.3"></script>
+  <script defer src="./js/services/BackendApiService.js?v=4.3"></script>
+  <script defer src="./js/services/RouteGeometryHelper.js?v=4.3"></script>
+  <script defer src="./js/services/RoutePlannerService.js?v=4.3"></script>
+  <script defer src="./js/services/MarsSimulationEngine.js?v=4.3"></script>
+
+  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.3"></script>
+  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/Map2DRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/Map3DFallbackRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/Map3DRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/SimulationChartRenderer.js?v=4.3"></script>
+
+  <script defer src="./js/components/DemoStudioController.js?v=4.3"></script>
+</body>
+</html>
+
+<!--
+==========================================================================
+DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+--------------------------------------------------------------------------
+- Satir 1-14: /demo HTML5 belgesi, kok goreceli <base href="../"> tanimi ve yerel CSS paketi.
+- Satir 15-42: Yildiz tuvali ve ust simulasyon arac cubugu (hazir senaryolar, 2D/3D, 5 sn Rust ping, Ana Harita donusu).
+- Satir 43-102: Sol parametre giris karti (Rover/Insan EVA/Bilim secimi, O2/Su/Batarya/Hiz, rota ve firtina/sizinti enjeksiyonu).
+- Satir 104-142: Sag canli telemetri karti (saat, mesafe, hiz, MOLA rakim, O2/Su/Batarya cubuklari, coklu egri grafik ve olay gunlugu).
+- Satir 144-156: Alt zaman kontrol ve hiz carpani (1x-240x) oynatma cubugu.
+- Satir 158-184: Paylasilan harita/Rust WASM modulleri ile MarsSimulationEngine, SimulationChartRenderer ve DemoStudioController betikleri.
+==========================================================================
+-->

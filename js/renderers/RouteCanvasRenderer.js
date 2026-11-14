@@ -171,6 +171,80 @@
       });
       ctx.restore();
     }
+
+    /**
+     * Demo modunda Mavi rota uzerinde katedilen parlak izi, animasyonlu Rover/Astronot isaretcisini ve canli telemetri etiketini cizer
+     */
+    drawDemoSimulation(ctx, projFn, routes, demoSim, viewW, viewH, maxJumpPx = 240) {
+      if (!demoSim || !demoSim.active || !demoSim.ready) return;
+      const pts = routes?.primaryBlue?.points;
+      if (!Array.isArray(pts) || pts.length < 2) return;
+
+      const trailPts = [];
+      const limitIdx = Math.min(pts.length - 1, Math.max(0, demoSim.segIdx || 0));
+      for (let i = 0; i <= limitIdx; i++) trailPts.push(pts[i]);
+      trailPts.push({ lat: demoSim.lat, lon: demoSim.lon });
+
+      if (trailPts.length >= 2) {
+        this.strokeGeoPath(ctx, projFn, trailPts, "rgba(56, 189, 248, 0.55)", 7.5, [], maxJumpPx);
+        this.strokeGeoPath(ctx, projFn, trailPts, "#ffffff", 2.4, [6, 5], maxJumpPx);
+      }
+
+      const p = projFn(demoSim.lat, demoSim.lon);
+      if (!p || !p.visible || p.x < -60 || p.x > viewW + 60 || p.y < -60 || p.y > viewH + 60) return;
+
+      const pulse = 0.5 + 0.5 * Math.sin(demoSim.pulsePhase || 0);
+      const ringR = 13 + pulse * 9;
+      const isAstro = demoSim.vehicle === "astronaut";
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(217, 43, 43, ${(0.82 - pulse * 0.52).toFixed(2)})`;
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 11.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#0d0f12";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = isAstro ? "#ffffff" : "#d92b2b";
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.4;
+      if (isAstro) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 2.2, 3.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(p.x - 2.2, p.y - 3.3, 4.4, 2.0);
+        ctx.strokeStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.moveTo(p.x - 3.4, p.y + 5.6);
+        ctx.lineTo(p.x - 2.2, p.y + 1.5);
+        ctx.lineTo(p.x + 2.2, p.y + 1.5);
+        ctx.lineTo(p.x + 3.4, p.y + 5.6);
+        ctx.stroke();
+      } else {
+        ctx.fillRect(p.x - 5.5, p.y - 2.0, 11.0, 4.5);
+        ctx.fillStyle = "#d92b2b";
+        ctx.fillRect(p.x - 2.0, p.y - 5.5, 2.2, 3.5);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(p.x - 1.5, p.y - 6.2, 4.5, 1.8);
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(p.x - 4.0, p.y + 4.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x + 4.0, p.y + 4.2, 2.0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tag = `${isAstro ? "EVA" : "ROVER"} ${demoSim.progressPct}% · ${demoSim.traveledKm.toFixed(1)} km · ${demoSim.remainingO2L}L O₂`;
+      this.drawRouteCommentBox(ctx, p.x, p.y - 28, tag, "#d92b2b", viewW, viewH);
+      ctx.restore();
+    }
   }
 
   ns.RouteCanvasRenderer = RouteCanvasRenderer;
@@ -184,5 +258,6 @@
    - Satir 38-67: drawGlobalDualRoutes; kuresel haritada Soluk Mavi uzun ve Mavi kisa guvenli yollari, isaret cizgilerini ve yorum kutularini cizer.
    - Satir 72-82: drawLeaderLine; rota egrisi ile yol yorumu kutusu arasini ince kesikli cizgiyle baglar.
    - Satir 87-115: strokeGeoPath; cografik rota noktalarini antimeridyen sicramalarini atlayarak cizer ve ekran noktalarini doner.
-   - Satir 120-200: drawCraterEvaRoutes; krater icindeki Mavi/Soluk Mavi EVA rotalari, cakismasiz yorum kutulari ve koyu haleli durak etiketlerini cizer.
+   - Satir 107-173: drawCraterEvaRoutes; krater icindeki Mavi EVA rotalari, cakismasiz yorum kutulari ve koyu haleli durak etiketlerini cizer.
+   - Satir 175-248: drawDemoSimulation; juri demo modunda Mavi rota uzerindeki parlak izi, animasyonlu Rover/EVA Astronot isaretcisini ve canli telemetri etiketini cizer.
    ========================================================================== */

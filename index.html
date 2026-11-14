@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
@@ -32,7 +32,9 @@
     <!-- Bildirim / FPS Koruma UyarÄ± BandÄ± -->
     <div id="app-toast" class="app-toast" role="status" aria-live="polite"></div>
 
-    <!-- GÃ¶rev, NASA KaynaklarÄ± ve Ekip Bilgi ModalÄ± -->
+    <!-- Demo Control Bar -->
+    <div id="demo-bar-root" class="demo-bar-root"></div>
+
     <div id="mission-modal-root"></div>
   </main>
 
@@ -45,6 +47,7 @@
   <script defer src="./data/i18n/localesTrEnDe.js?v=4.3"></script>
   <script defer src="./data/i18n/localesFrEs.js?v=4.3"></script>
   <script defer src="./data/i18n/localesJaKoArHe.js?v=4.3"></script>
+  <script defer src="./data/i18n/localesDemo.js?v=4.3"></script>
 
   <script defer src="./js/models/AppConfig.js?v=4.3"></script>
   <script defer src="./js/models/ResourceItem.js?v=4.3"></script>
@@ -60,6 +63,7 @@
   <script defer src="./js/services/BackendApiService.js?v=4.3"></script>
   <script defer src="./js/services/RouteGeometryHelper.js?v=4.3"></script>
   <script defer src="./js/services/RoutePlannerService.js?v=4.3"></script>
+  <script defer src="./js/services/DemoScenarioService.js?v=4.3"></script>
 
   <script defer src="./js/renderers/StarfieldRenderer.js?v=4.3"></script>
   <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.3"></script>
@@ -71,6 +75,7 @@
   <script defer src="./js/components/SettingsPanel.js?v=4.3"></script>
   <script defer src="./js/components/SatellitesPanel.js?v=4.3"></script>
   <script defer src="./js/components/RouteInspectorPanel.js?v=4.3"></script>
+  <script defer src="./js/components/DemoControlBar.js?v=4.3"></script>
   <script defer src="./js/components/MissionInfoModal.js?v=4.3"></script>
   <script defer src="./js/components/MarsNavigatorController.js?v=4.3"></script>
   <script defer src="./js/app.js?v=4.3"></script>

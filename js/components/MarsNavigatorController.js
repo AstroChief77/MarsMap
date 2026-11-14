@@ -7,7 +7,7 @@
 
 (function (ns) {
   "use strict";
-  const { CRATERS_DATA, CRATER_WAYPOINTS_DATA, AppConfig, StateStorageService, FpsGuardService, DatasetLoader, MarsTileLoader, HazardFieldService, BackendApiService, RoutePlannerService, Map2DRenderer, Map3DRenderer, SettingsPanel, SatellitesPanel, RouteInspectorPanel, MissionInfoModal } = ns;
+  const { CRATERS_DATA, CRATER_WAYPOINTS_DATA, AppConfig, StateStorageService, FpsGuardService, DatasetLoader, MarsTileLoader, HazardFieldService, BackendApiService, RoutePlannerService, Map2DRenderer, Map3DRenderer, SettingsPanel, SatellitesPanel, RouteInspectorPanel, MissionInfoModal, DemoScenarioService, DemoControlBar } = ns;
 
   class MarsNavigatorController {
     /**
@@ -67,6 +67,9 @@
         onSelectGlobalScope: () => this.switchToGlobalRouteScope(),
         onSelectCrater: (craterId) => this.flyToCraterById(craterId),
         onOpenInfoModal: () => this.missionModal.open(),
+        onToggleDemo: () => {
+          window.location.href = window.location.protocol === "file:" ? "./demo/index.html" : "./demo/";
+        },
         onBackendUrlSave: (url) => this.handleBackendUrlSave(url),
         onBackendUrlTest: (url) => this.handleBackendUrlTest(url)
       });
@@ -87,6 +90,15 @@
         }
       });
       this.missionModal = new MissionInfoModal(document.getElementById("mission-modal-root"));
+      const demoMount = document.getElementById("demo-bar-root");
+      if (DemoScenarioService) {
+        const wired = DemoScenarioService.attach(demoMount, {
+          getState: () => this.state, getRoutes: () => this.backendRoutes,
+          applyDemoScenario: (sc) => this.applyDemoScenario(sc), scheduleRender: (t) => this.scheduleRender(t),
+          renderUi: () => this.renderUi(), showToast: (m, w) => this.showToast(m, w)
+        });
+        this.demoService = wired.service; this.demoBar = wired.bar;
+      }
     }
 
     /**
@@ -118,6 +130,7 @@
       this.startBackendLatencyMonitor();
       this.refreshAll();
       this.refreshBackendHazardsAndRoute();
+      try { if (new URLSearchParams(window.location.search).get("demo") === "1") this.demoService?.startDemo(0); } catch (_e) {}
     }
 
     getLocalizedCraters() { return this.i18n ? CRATERS_DATA.map((c) => this.i18n.localizeCrater(c)) : CRATERS_DATA; }
@@ -181,6 +194,7 @@
       this.animFrame = null; this.renderRafId = null;
       this.isDragging = false; this.isOrbitDragging = false; this.isZooming = false; this.isAnimating = false;
       this.pickMode = null;
+      this.demoService?.resetSilent?.();
       if (this.canvas) this.canvas.style.cursor = "";
       this.backendRoutes = null; this.backendHazards = null;
       this.backendStatusText = ""; this.lastRequestPayload = null;
@@ -257,6 +271,15 @@
       return this.cachedBundle;
     }
 
+    applyDemoScenario(scen) {
+      if (!scen) return;
+      Object.assign(this.state, scen.patch || {});
+      if (scen.camera) { this.state.camPitch = scen.camera.pitch ?? 28; this.state.camYaw = 0; }
+      this.backendRoutes = null; this.persistState(); this.renderBottomRight(); this.refreshAll();
+      if (scen.camera) this.animateTo(scen.camera.lat, scen.camera.lon, scen.camera.zoom);
+      this.scheduleBackendRouteFetch(30);
+    }
+
     refreshAll() {
       this.cachedBundle = null;
       this.renderUi(); this.requestTilesForView(); this.drawMap(); this.updateTelemetryBar();
@@ -271,7 +294,7 @@
       const { origin, destination } = this.getActiveEndpoints();
       const reqPayload = this.lastRequestPayload || this.buildCurrentRequestPayload(origin, destination, activeCrater);
 
-      this.settingsPanel.render(this.state, craters, this.backendStatusText);
+      this.settingsPanel.render(this.state, craters, this.backendStatusText, Boolean(this.demoService?.active));
       this.satellitesPanel.render(this.state, this.tileLoader.getLayers());
       this.inspectorPanel.render(
         this.state, activeCrater, this.landingSites, wps, this.selectedWaypoint, computedRoutes, radZones,
@@ -281,6 +304,7 @@
           backendStatusText: this.backendStatusText, lastRequestPayload: reqPayload
         }
       );
+      this.demoBar?.render(this.demoService?.getUiState());
     }
 
     renderBottomRight() {
@@ -395,7 +419,8 @@
         customOrigin: origin, customDestination: destination,
         progressiveLodRender: s.progressiveLodRender, showGraticule: s.showGraticule,
         showNomenclature: s.showNomenclature, showRadiationZones: s.showRadiationZones,
-        showRouteComments: s.showRouteComments, routeScope: s.routeScope, highQualityGlobeRay: s.highQualityGlobeRay
+        showRouteComments: s.showRouteComments, routeScope: s.routeScope, highQualityGlobeRay: s.highQualityGlobeRay,
+        demoSim: this.demoService?.getRenderPayload() || null
       };
 
       this.hitTargets = s.viewMode === "3d"
@@ -762,9 +787,8 @@
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc ve IIFE modul tanimi.
    - Satir 12-60: constructor ve t; 9 dilli i18n, HiDPI olcek, rAF birlestirme, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
-   - Satir 62-145: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme panellerini ve 9 dil gecisini yonetir.
-   - Satir 147-230: applyGuardedSetting, performFactoryReset ve krater/kuresel rota gecis metodlari (FPS < 10 geri alma ve fabrika sifirlama sonrasi rota yenileme).
-   - Satir 232-295: getActiveHazardBundle, computeActiveRoutes, buildCurrentRequestPayload, getRouteAndHazardBundle ve renderUi yardimcilari.
+   - Satir 62-145: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme, Demo Modu panellerini ve 9 dil gecisini yonetir.
+   - Satir 147-295: applyGuardedSetting, performFactoryReset, applyDemoScenario ve veri/rota/UI yenileme yardimcilari.
    - Satir 297-415: renderBottomRight, updateTelemetryBar, requestTilesForView ve drawMap; yerellestirilmis telemetri ve HiDPI 2D/3D cizim.
    - Satir 417-595: bindCanvasEvents, bindGlobalEvents, startInertia, animateTo ve applyZoom; yalnizca pickMode aktifken hedef secen guvenli tiklama ve 80x 3D zoom.
    - Satir 597-776: pixelToGeo, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.

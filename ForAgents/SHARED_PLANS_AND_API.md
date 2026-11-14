@@ -70,3 +70,9 @@ Tüm ayar değişiklikleri **mutlaka** `MarsNavigatorController.applyGuardedSett
 - `backups/` klasöründeki mevcut yedekleri ASLA silme/değiştirme; düzenleme öncesi yeni tarihli yedek al.
 - Tüm değişiklikleri `logs/change_log.txt` dosyasına işleyip her kod dosyasının sonuna satır-işlev açıklaması ekle.
 
+
+## 4. Demo Modu Arayüz ve URL Sözleşmesi (`v4.3.0`)
+- `/demo` ve `/demo/` (yerel dosya için `./demo/index.html`) adanmış **Mars Hayatta Kalma & Rota Simülasyon Stüdyosu** giriş noktasıdır; ana haritadaki (`/` veya `index.html`) `#btn-demo-mode` düğmesi doğrudan `./demo/` yoluna yönlendirir.
+- `index.html?demo=1` açıldığında `DemoScenarioService` ana harita üzerinde hızlı jüri demo katmanını da başlatabilir.
+- `DemoStudioController` & `MarsSimulationEngine`, yalnızca mevcut `MarsTopographyService`, `HazardFieldService`, `BackendApiService` (`document.baseURI` ile `/demo/` uyumlu WASM/HTTP yükleme), `RoutePlannerService`, `Map3DRenderer` ve `Map2DRenderer` (`RouteCanvasRenderer.drawDemoSimulation`) sözleşmelerini kullanır.
+- Paketleme ve CI (`build_tool.ps1`, `build.py`, `deploy-mars-web.yml`), `demo/` dizinini ve tüm alt modülleri `< 800` satır kuralıyla (`<= 799`) doğrular ve dağıtıma ekler.

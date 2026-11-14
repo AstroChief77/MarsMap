@@ -11,6 +11,7 @@ on:
       - "BACKEND_API.md"
       - "api/**"
       - "chat/**"
+      - "demo/**"
       - "css/**"
       - "js/**"
       - "data/**"
@@ -39,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          over=$(find api chat css js -type f \( -name "*.js" -o -name "*.css" -o -name "*.php" -o -name "*.html" \) -exec awk 'END{ if (NR >= 800) print FILENAME ":" NR }' {} \;)
+          over=$(find api chat demo css js -type f \( -name "*.js" -o -name "*.css" -o -name "*.php" -o -name "*.html" \) -exec awk 'END{ if (NR >= 800) print FILENAME ":" NR }' {} \;)
           if [ -n "$over" ]; then
             echo "HATA: 800 satir sinirini asan dosya var:"
             echo "$over"
@@ -114,6 +115,7 @@ jobs:
             --include='BACKEND_API.md' \
             --include='api/***' \
             --include='chat/***' \
+            --include='demo/***' \
             --include='css/***' \
             --include='js/***' \
             --include='data/***' \
@@ -130,7 +132,7 @@ jobs:
             TARGET="${1:-/var/www/mars}"
             SHA="${2:-}"
             if id mars >/dev/null 2>&1; then
-              for p in index.html version.json SOURCES.md BACKEND_API.md api chat css js data res; do
+              for p in index.html version.json SOURCES.md BACKEND_API.md api chat demo css js data res; do
                 [ -e "$TARGET/$p" ] && chown -R mars:www-data "$TARGET/$p" || true
               done
             fi

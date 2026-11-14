@@ -69,7 +69,7 @@ if (!is_array($payload) || ($payload['ref'] ?? '') !== 'refs/heads/main') {
 }
 
 // 3. Yalnizca web dosyalari etkilendiyse senkronizasyon baslat
-$webPrefixes = ['index.html', 'version.json', 'SOURCES.md', 'BACKEND_API.md', 'api/', 'chat/', 'css/', 'js/', 'data/', 'res/'];
+$webPrefixes = ['index.html', 'version.json', 'SOURCES.md', 'BACKEND_API.md', 'api/', 'chat/', 'demo/', 'css/', 'js/', 'data/', 'res/'];
 $hasWebChange = false;
 $commits = $payload['commits'] ?? [];
 if (empty($commits)) {
