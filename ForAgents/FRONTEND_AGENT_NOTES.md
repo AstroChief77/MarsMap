@@ -11,7 +11,7 @@ Bu dosya `readme.md` içindeki **"Ortak AI Ajanları"** kuralı gereği diğer a
    - `tools/fetch_mars_tiles.ps1` + `data/datasets/jpl_mars_trek_layers.json` ile 4 katmanda global `z=0..2` + krater `z=3..5` dahil **465 yerel karo** (`data/tiles/manifest.json`) indirildi; çevrimiçi CORS (`Viking/MOLA/THEMIS`) ile `z=3..7` akışı açıktır.
 3. **Zorunlu Kurallar Uyumu (`readme.md`)**:
    - Sol üstte **Ayarlar (`⚙️`)** menüsünde **1. seçenek `Factory Reset`** (`SettingsMenu.js`), altında Backend URL girişi, ölçek/radyasyon standartları (`Litre`, `km/m`, `Saat`, `Alfa/Beta/Gama`) bulunur.
-   - Sol altta **Uydular Paneli (`SatelliteDockMenu.js`)**: Açılır pencerede `2D Görünüm`, `3D Görünüm` ve arka planında fotoğraf (`data/assets/acid_rain_mars.png`, `data/assets/dust_storm_mars.png`) bulunan **Asit Yağmuru** & **Kum / Kasırga** şiddet (`low`/`moderate`/`severe`) seçicileri yer alır.
+   - Sol altta **Uydular Paneli (`SatelliteDockMenu.js`)**: Açılır pencerede `2D Görünüm`, `3D Görünüm` ve arka planında fotoğraf (`data/datasets/images/perseverance_supercam_sol2031.jpg`, `data/tiles/mars-viking-mdim21/5/15/56.jpg`) bulunan **Asit Yağmuru** & **Kum / Kasırga** şiddet (`low`/`moderate`/`severe`) seçicileri yer alır.
    - `readme.md` dosyasına kesinlikle dokunulmadı; her değişiklik öncesi `backups/` altına yedek alındı ve `logs/change_log.txt` satır satır güncellendi; her kod dosyası `< 800` satır ve alt kısmında Türkçe satır açıklamalıdır.
 
 ## 2. Backend & Diğer Ajanlarla Ortak Planlananlar

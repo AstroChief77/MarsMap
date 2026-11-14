@@ -65,6 +65,27 @@ export class MarsTileLoader {
     return this.layers.find((l) => l.id === layerId) || this.layers[0] || null;
   }
 
+  /**
+   * Iki Mars koordinati arasindaki kuresel acisal mesafeyi derece cinsinden dondurur
+   */
+  angularDistanceDeg(lat1, lon1, lat2, lon2) {
+    const rad = Math.PI / 180;
+    const p1 = lat1 * rad;
+    const p2 = lat2 * rad;
+    const dl = (lon2 - lon1) * rad;
+    const cosD = Math.sin(p1) * Math.sin(p2) + Math.cos(p1) * Math.cos(p2) * Math.cos(dl);
+    return Math.acos(Math.max(-1, Math.min(1, cosD))) / rad;
+  }
+
+  tileCenterLatLon(z, y, x) {
+    const cols = 1 << (z + 1);
+    const rows = 1 << z;
+    return {
+      lat: 90 - ((y + 0.5) / rows) * 180,
+      lon: -180 + ((x + 0.5) / cols) * 360
+    };
+  }
+
   hasLocalTile(layerId, z, y, x) {
     const set = this.manifestSets.get(layerId);
     return set ? set.has(`${z}/${y}/${x}`) : z <= 1;
@@ -180,6 +201,15 @@ export class MarsTileLoader {
         let dLon = Math.abs(lonCenter - rotLon) % 360;
         if (dLon > 180) dLon = 360 - dLon;
         if (dLon <= adjLonSpan + (360 / cols)) {
+          // Optimize render: z>=2 karolarini yalnizca hedef krater odak bolgesi ve cevresinden cek
+          if (z >= 2 && viewState.craterFocusOptimize !== false && viewState.activeCrater?.coordinates) {
+            const c = viewState.activeCrater.coordinates;
+            const tileHalfDiagDeg = (180 / rows) * 0.9;
+            const maxFocusDeg = z === 2 ? 40 : 23;
+            if (this.angularDistanceDeg(latCenter, lonCenter, c.lat, c.lon) > maxFocusDeg + tileHalfDiagDeg) {
+              continue;
+            }
+          }
           const rec = this.loadSingleTile(layer, z, y, x);
           if (rec && rec.sourceKind === "nasa-wmts") sourceLabel = "./data/tiles + NASA WMTS";
           if (rec && rec.sourceKind === "backend-proxy") sourceLabel = "Backend Proxy + data/tiles";
@@ -302,6 +332,32 @@ export class MarsTileLoader {
     return false;
   }
 
+  /**
+   * Krater disi bolgeler icin bilineer hesaplama gerektirmeyen hizli tek-piksel (nearest) ornekleme
+   */
+  sampleFastRGB(layerId, maxZ, u, v, outRgb) {
+    for (let z = maxZ; z >= 0; z--) {
+      const cols = 1 << (z + 1);
+      const rows = 1 << z;
+      const gx = u * cols;
+      const gy = v * rows;
+      const tx = Math.min(cols - 1, gx | 0);
+      const ty = Math.min(rows - 1, gy | 0);
+      const rec = this.tileCache.get(`${layerId}:${z}/${ty}/${tx}`);
+      if (!rec || rec.status !== "ready" || !rec.pixels) continue;
+
+      const px = Math.min(255, ((gx - tx) * 255.0) | 0);
+      const py = Math.min(255, ((gy - ty) * 255.0) | 0);
+      const i = ((py << 8) + px) << 2;
+      const d = rec.pixels;
+      outRgb[0] = d[i];
+      outRgb[1] = d[i + 1];
+      outRgb[2] = d[i + 2];
+      return true;
+    }
+    return false;
+  }
+
   hasAnyReadyTile(layerId) {
     for (const rec of this.tileCache.values()) {
       if (rec.layerId === layerId && rec.status === "ready") return true;
@@ -336,9 +392,9 @@ export class MarsTileLoader {
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-8: JSDoc hibrit yerel + NASA WMTS/Backend LRU karo piramidi tanimi.
-   - Satir 10-58: constructor & initCatalog; manifest.json ve jpl_mars_trek_layers.json yukler.
-   - Satir 60-115: hasLocalTile, resolveTileSource, computeTargetZoom; ekran piksel yogunluguna gore z=0..7 duzeyini belirler.
-   - Satir 117-179: requestVisibleTiles & requestWindowForZoom; yalnizca gorunur penceredeki karolari talep eder.
-   - Satir 181-225: evictIfNeeded & loadSingleTile; 256x256 karolarin ham piksel tamponlarini LRU bellege alir.
-   - Satir 227-264: sampleBilinearRGB, hasAnyReadyTile, getTileImage ve getLayerStats metodlari.
+   - Satir 10-86: constructor, initCatalog ve kuresel aci mesafesi (angularDistanceDeg) yardimcilari.
+   - Satir 88-145: hasLocalTile, resolveTileSource, computeTargetZoom; z=0..7 hedef duzeyini belirler.
+   - Satir 147-220: requestVisibleTiles & requestWindowForZoom; z>=2 karolarini yalnizca krater odak bolgesi icin ceker.
+   - Satir 222-279: evictIfNeeded & loadSingleTile; 256x256 karolari LRU bellege alir.
+   - Satir 281-389: sampleBilinearRGB (krater ici), sampleFastRGB (krater disi hizli), getTileImage ve getLayerStats.
    ========================================================================== */

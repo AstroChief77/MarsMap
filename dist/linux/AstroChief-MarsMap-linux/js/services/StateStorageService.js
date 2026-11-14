@@ -23,8 +23,11 @@ export class StateStorageService {
       activeCraterIndex: 0,
       viewMode: "3d",             // '3d' Tam Kalite Kure | '2d' Equirectangular Harita
       filterAcidRain: true,
+      acidIntensity: "moderate",  // 'low' | 'moderate' | 'severe'
       filterDustStorm: true,
+      stormIntensity: "moderate", // 'low' | 'moderate' | 'severe'
       progressiveLodRender: true, // Yakinlastikca tam ekran pikselinde ust zoom (z=0..7)
+      craterFocusOptimize: true,  // Aktif krater 1:1 net, diger taraflar optimize (1/4x, z<=1) render
       showRadiationZones: true,   // Alfa, Beta, Gama ve Foton Bombardiman alanlari
       showNomenclature: true,
       showGraticule: false,

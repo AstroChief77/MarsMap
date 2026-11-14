@@ -17,6 +17,7 @@ export class MarsGlobeRenderer {
     this.bufW = 0;
     this.bufH = 0;
     this.rgbScratch = new Float32Array(3);
+    this.lastRenderStats = { hasFocus: true, craterName: "", savedPct: 0, totalPx: 0 };
   }
 
   ensureCropBuffer(bw, bh) {
@@ -103,7 +104,8 @@ export class MarsGlobeRenderer {
       width, height, rotLat, rotLon, zoom, activeLayerId, isDragging,
       craters, activeCrater, basemapOpacity, filterAcidRain, filterDustStorm,
       showGraticule, showNomenclature, showRadiationZones, hazardsData,
-      landingSites, startPoint, goalPoint, backendRoutes, progressiveLodRender
+      landingSites, startPoint, goalPoint, backendRoutes, progressiveLodRender,
+      craterFocusOptimize = true
     } = state;
 
     ctx.clearRect(0, 0, width, height);
@@ -165,6 +167,23 @@ export class MarsGlobeRenderer {
       const sinP0 = Math.sin(phi0);
       const cosP0 = Math.cos(phi0);
 
+      // Aktif krater kamera uzayi odak vektoru (foveated optimize render)
+      const hasFocus = craterFocusOptimize !== false && Boolean(activeCrater?.coordinates);
+      let fx = 0, fy = 0, fz = 1;
+      const cosFocus = 0.9455; // ~19 derece merkez tam 1:1 HiDPI netlik konisi
+      const cosMid = 0.8192;   // ~35 derece gecis halkasi (disi z<=1 & 2x2 kaba)
+      if (hasFocus) {
+        const cPhi = (activeCrater.coordinates.lat * Math.PI) / 180;
+        const cLam = (activeCrater.coordinates.lon * Math.PI) / 180;
+        const cosCP = Math.cos(cPhi);
+        const cx0 = cosCP * Math.sin(cLam - lam0);
+        const cy0 = Math.sin(cPhi);
+        const cz0 = cosCP * Math.cos(cLam - lam0);
+        fx = cx0;
+        fy = cy0 * cosP0 - cz0 * sinP0;
+        fz = cy0 * sinP0 + cz0 * cosP0;
+      }
+
       const twoPi = Math.PI * 2;
       const invTwoPi = 1 / twoPi;
       const invPi = 1 / Math.PI;
@@ -175,10 +194,14 @@ export class MarsGlobeRenderer {
       const minLight = zoom > 2.2 ? 0.72 : 0.42;
       const rgb = this.rgbScratch;
 
+      let totalGlobePx = 0;
+      let skippedOffFocusPx = 0;
+
       for (let by = 0; by < bh; by++) {
         const ny = (cy - (sy0 + (by + 0.5) * invScale)) * invRadius;
         const ny2 = ny * ny;
         const rowOff = by * bw;
+        const isOddRow = (by & 1) === 1;
 
         for (let bx = 0; bx < bw; bx++) {
           const idx = (rowOff + bx) * 4;
@@ -189,7 +212,34 @@ export class MarsGlobeRenderer {
             continue;
           }
 
+          totalGlobePx++;
           const nz = Math.sqrt(1.0 - r2);
+          const craterDot = hasFocus ? (nx * fx + ny * fy + nz * fz) : 1.0;
+          const inCraterFocus = craterDot >= cosFocus;
+
+          // Krater disi bolgelerde 2x2 blok atlama (diger taraflar daha az render edilir)
+          if (hasFocus && !inCraterFocus && r2 < 0.93) {
+            if (isOddRow && by > 0) {
+              const upIdx = idx - bw * 4;
+              if (out[upIdx + 3] > 0) {
+                out[idx] = out[upIdx];
+                out[idx + 1] = out[upIdx + 1];
+                out[idx + 2] = out[upIdx + 2];
+                out[idx + 3] = out[upIdx + 3];
+                skippedOffFocusPx++;
+                continue;
+              }
+            }
+            if ((bx & 1) === 1 && bx > 0 && out[idx - 1] > 0) {
+              out[idx] = out[idx - 4];
+              out[idx + 1] = out[idx - 3];
+              out[idx + 2] = out[idx - 2];
+              out[idx + 3] = out[idx - 1];
+              skippedOffFocusPx++;
+              continue;
+            }
+          }
+
           const vy = ny * cosP0 + nz * sinP0;
           const vz = -ny * sinP0 + nz * cosP0;
           const lat = Math.asin(vy > 1 ? 1 : vy < -1 ? -1 : vy);
@@ -199,7 +249,14 @@ export class MarsGlobeRenderer {
           u = u - Math.floor(u);
           const v = Math.min(0.99999, Math.max(0, (halfPi - lat) * invPi));
 
-          if (!this.tileLoader.sampleBilinearRGB(activeLayerId, targetZ, u, v, rgb)) {
+          const pixelMaxZ = inCraterFocus
+            ? targetZ
+            : (craterDot >= cosMid ? Math.min(targetZ, 2) : Math.min(targetZ, 1));
+          const sampled = inCraterFocus
+            ? this.tileLoader.sampleBilinearRGB(activeLayerId, pixelMaxZ, u, v, rgb)
+            : this.tileLoader.sampleFastRGB(activeLayerId, pixelMaxZ, u, v, rgb);
+
+          if (!sampled) {
             out[idx] = 35; out[idx + 1] = 24; out[idx + 2] = 20; out[idx + 3] = opacityAlpha;
             continue;
           }
@@ -213,6 +270,13 @@ export class MarsGlobeRenderer {
           out[idx + 3] = opacityAlpha;
         }
       }
+
+      this.lastRenderStats = {
+        hasFocus,
+        craterName: activeCrater?.name || "Gale",
+        savedPct: totalGlobePx > 0 ? Math.round((skippedOffFocusPx / totalGlobePx) * 100) : 0,
+        totalPx: totalGlobePx
+      };
 
       this.cropCtx.putImageData(this.cropImgData, 0, 0);
       ctx.save();
@@ -254,7 +318,8 @@ export class MarsGlobeRenderer {
       width, height, rotLat, rotLon, zoom, activeLayerId,
       craters, activeCrater, filterAcidRain, filterDustStorm,
       showGraticule, showNomenclature, showRadiationZones,
-      startPoint, goalPoint, backendRoutes, progressiveLodRender
+      startPoint, goalPoint, backendRoutes, progressiveLodRender,
+      craterFocusOptimize = true
     } = state;
 
     ctx.clearRect(0, 0, width, height);
@@ -268,7 +333,7 @@ export class MarsGlobeRenderer {
     const maxZ = this.tileLoader.computeTargetZoom({ zoom, sphereRadiusPx: mapW / (2 * Math.PI), progressiveLodRender }, layer);
 
     for (let z = 0; z <= maxZ; z++) {
-      this.drawTileLevel2D(ctx, activeLayerId, z, ox, oy, mapW, mapH, width, height);
+      this.drawTileLevel2D(ctx, activeLayerId, z, ox, oy, mapW, mapH, width, height, activeCrater, craterFocusOptimize);
     }
 
     ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
@@ -388,11 +453,14 @@ export class MarsGlobeRenderer {
     ctx.restore();
   }
 
-  drawTileLevel2D(ctx, layerId, z, ox, oy, mapW, mapH, viewW, viewH) {
+  drawTileLevel2D(ctx, layerId, z, ox, oy, mapW, mapH, viewW, viewH, activeCrater = null, craterFocusOptimize = true) {
     const cols = 1 << (z + 1);
     const rows = 1 << z;
     const tw = mapW / cols;
     const th = mapH / rows;
+    const useFocus = z >= 2 && craterFocusOptimize && Boolean(activeCrater?.coordinates);
+    const maxDeg = z === 2 ? 40 : 23;
+    const halfDiag = (180 / rows) * 0.9;
 
     for (const wrapOffset of [-mapW, 0, mapW]) {
       const baseX = ox + wrapOffset;
@@ -400,9 +468,15 @@ export class MarsGlobeRenderer {
       for (let y = 0; y < rows; y++) {
         const py = oy + y * th;
         if (py + th < 0 || py > viewH) continue;
+        const latC = 90 - ((y + 0.5) / rows) * 180;
         for (let x = 0; x < cols; x++) {
           const px = baseX + x * tw;
           if (px + tw < 0 || px > viewW) continue;
+          if (useFocus) {
+            const lonC = -180 + ((x + 0.5) / cols) * 360;
+            const c = activeCrater.coordinates;
+            if (this.tileLoader.angularDistanceDeg(latC, lonC, c.lat, c.lon) > maxDeg + halfDiag) continue;
+          }
           const img = this.tileLoader.getTileImage(layerId, z, y, x);
           if (img) ctx.drawImage(img, px, py, tw + 0.6, th + 0.6);
         }
@@ -548,10 +622,10 @@ export class MarsGlobeRenderer {
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc HiDPI 1:1 viewport-kesitli kure ve backend rota cizim motoru.
-   - Satir 8-35: constructor, ensureCropBuffer ve getSphereRadius.
-   - Satir 37-85: projectLatLonToSphere ve screenToLatLon (imlec/tiklama -> gercek Mars lat/lon).
-   - Satir 87-205: renderGlobe; yalnizca gorunen ekran penceresini HiDPI 1:1 isin izlemeyle sampleBilinearRGB uzerinden cizer.
-   - Satir 207-285: render2DTiled & drawTileLevel2D; 2D haritada tam cozunurluklu karolari basar.
-   - Satir 287-424: drawBackendRoutes, strokeGeoPolyline, drawEndpointPin, krater pinleri, graticule ve radyasyon katmanlari.
+   - Satir 1-6: JSDoc HiDPI 1:1 viewport-kesitli kure ve krater odakli foveated optimize cizim motoru.
+   - Satir 8-36: constructor, ensureCropBuffer ve getSphereRadius.
+   - Satir 38-97: projectLatLonToSphere ve screenToLatLon (imlec/tiklama -> gercek Mars lat/lon).
+   - Satir 99-316: renderGlobe; aktif krater odak konisini (~19 deg) 1:1 HiDPI + bilineer, diger taraflari 2x2 kaba + z<=1 optimize cizer.
+   - Satir 318-485: render2DTiled & drawTileLevel2D; 2D haritada krater disi z>=2 yukunu keser.
+   - Satir 487-620: drawBackendRoutes, strokeGeoPolyline, krater pinleri, graticule ve radyasyon katmanlari.
    ========================================================================== */
