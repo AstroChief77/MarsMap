@@ -20,6 +20,7 @@
 
     toggleOpen(forceState) {
       this.isOpen = typeof forceState === "boolean" ? forceState : !this.isOpen;
+      if (this.isOpen) this.handlers.onPopoverOpen?.();
       this.mountEl.querySelector("#btn-settings")?.classList.toggle("active", this.isOpen);
       this.mountEl.querySelector("#settings-dropdown")?.classList.toggle("open", this.isOpen);
     }
@@ -50,12 +51,6 @@
       const selStart = wasInputFocused ? activeEl.selectionStart : null;
       const selEnd = wasInputFocused ? activeEl.selectionEnd : null;
 
-      const craterButtons = craters.map((c) => {
-        const short = c.id === "gale-crater" ? `📍 ${esc(t("originWord"))} (Gale)` : (c.id === "jezero-crater" ? "🎯 Jezero" : "🎯 Korolev");
-        const active = state.activeCraterId === c.id;
-        return `<button class="nav-target-btn ${active ? "active" : ""}" data-crater-nav="${esc(c.id)}">${short}</button>`;
-      }).join("");
-
       const langChipsHtml = langs.map((l) => `
         <button type="button"
                 class="lang-chip-btn ${l.code === currentLang ? "active" : ""}"
@@ -64,10 +59,6 @@
           <span class="lang-chip-badge">${esc(l.badge)}</span>
           <span class="lang-chip-name">${esc(l.label)}</span>
         </button>
-      `).join("");
-
-      const langSelectOptions = langs.map((l) => `
-        <option value="${esc(l.code)}" ${l.code === currentLang ? "selected" : ""}>🌐 ${esc(l.badge)} · ${esc(l.label)}</option>
       `).join("");
 
       const statusText = backendStatus || (state.backendApiUrl ? t("backendReady") : t("backendFallbackActive"));
@@ -161,15 +152,20 @@
           </div>
         </div>
 
-        <nav class="top-nav-pill" aria-label="${esc(t("navGlobalRoute"))}">
+        <nav class="top-nav-pill" aria-label="Mars Arama">
           <span class="brand-tag">ASTRO<span>CHIEF</span></span>
-          <button class="nav-target-btn ${state.routeScope === "global" ? "active" : ""}" id="btn-scope-global">${esc(t("navGlobalRoute"))}</button>
-          ${craterButtons}
+          <form class="nav-search-form" id="nav-search-form">
+            <input
+              type="text"
+              class="nav-search-input"
+              id="nav-search-input"
+              placeholder="Yer veya koordinat (-4.59, 137.44)"
+              aria-label="Yer veya koordinat ara"
+            />
+            <button type="submit" class="nav-search-btn" id="btn-nav-search">Ara</button>
+          </form>
           <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}">${demoActive ? "■" : "▶"} ${esc(t("demoBtnLabel"))}</button>
           <button class="nav-info-btn" id="btn-open-mission-modal" title="${esc(t("navInfoTitle"))}">${esc(t("navInfo"))}</button>
-          <select class="nav-lang-select" id="sel-top-lang" aria-label="${esc(t("languageLabel"))}" title="${esc(t("languageLabel"))}">
-            ${langSelectOptions}
-          </select>
         </nav>
       `;
 
@@ -220,14 +216,10 @@
         });
       });
 
-      this.mountEl.querySelector("#btn-scope-global")?.addEventListener("click", () => {
-        this.handlers.onSelectGlobalScope?.();
-      });
-
-      this.mountEl.querySelectorAll("[data-crater-nav]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          this.handlers.onSelectCrater?.(btn.getAttribute("data-crater-nav"));
-        });
+      this.mountEl.querySelector("#nav-search-form")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const val = this.mountEl.querySelector("#nav-search-input")?.value || "";
+        this.handlers.onSearchQuery?.(val);
       });
 
       this.mountEl.querySelector("#btn-demo-mode")?.addEventListener("click", () => {

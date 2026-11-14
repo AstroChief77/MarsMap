@@ -60,11 +60,64 @@
 
     t(key, vars = {}) { return this.i18n ? this.i18n.t(key, vars) : key; }
 
+    /**
+     * Ust arama cubugundan koordinat (lat, lon) veya yer/krater adi aramasini isler
+     */
+    handleSearchQuery(rawQuery) {
+      const q = String(rawQuery || "").trim();
+      if (!q) return;
+      const coordMatch = q.match(/^\s*([-+]?\d+(?:\.\d+)?)\s*°?\s*([NSns])?\s*[,;\s]\s*([-+]?\d+(?:\.\d+)?)\s*°?\s*([EWew])?\s*$/);
+      if (coordMatch) {
+        let lat = parseFloat(coordMatch[1]);
+        let lon = parseFloat(coordMatch[3]);
+        if (coordMatch[2] && coordMatch[2].toUpperCase() === "S") lat = -Math.abs(lat);
+        if (coordMatch[4] && coordMatch[4].toUpperCase() === "W") lon = -Math.abs(lon);
+        if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+          this.animateTo(lat, lon, Math.max(this.state.zoom || 1, 2.2));
+          this.showToast(`${lat.toFixed(2)}°, ${lon.toFixed(2)}°`);
+          return;
+        }
+      }
+      const norm = q.toLowerCase();
+      const craterHit = (this.craters || []).find((c) => c.name.toLowerCase().includes(norm) || c.id.toLowerCase().includes(norm));
+      if (craterHit) {
+        this.flyToCraterById(craterHit.id);
+        return;
+      }
+      const siteHit = (this.landingSites || []).find((s) => s.name.toLowerCase().includes(norm) || s.id.toLowerCase().includes(norm));
+      if (siteHit) {
+        this.animateTo(siteHit.lat, siteHit.lon, Math.max(this.state.zoom || 1, 2.2));
+        this.showToast(siteHit.name);
+        return;
+      }
+      const landmarks = [
+        { name: "Olympus Mons", lat: 18.65, lon: -133.8, zoom: 2.35 },
+        { name: "Valles Marineris", lat: -13.9, lon: -59.2, zoom: 2.25 },
+        { name: "Ascraeus Mons", lat: 11.9, lon: -104.5, zoom: 2.3 },
+        { name: "Arsia Mons", lat: -8.3, lon: -120.1, zoom: 2.3 },
+        { name: "Elysium Mons", lat: 25.0, lon: 147.2, zoom: 2.3 },
+        { name: "Hellas Planitia", lat: -42.4, lon: 70.5, zoom: 1.85 },
+        { name: "Syrtis Major", lat: 8.4, lon: 69.5, zoom: 2.0 },
+        { name: "Gale Crater", lat: -5.08, lon: 137.85, zoom: 2.6 },
+        { name: "Jezero Crater", lat: 18.38, lon: 77.58, zoom: 2.6 },
+        { name: "Korolev Crater", lat: 72.77, lon: 164.42, zoom: 2.4 }
+      ];
+      const lmHit = landmarks.find((l) => l.name.toLowerCase().includes(norm));
+      if (lmHit) {
+        this.animateTo(lmHit.lat, lmHit.lon, lmHit.zoom);
+        this.showToast(lmHit.name);
+        return;
+      }
+      this.showToast(`"${q}" için konum veya koordinat bulunamadı`, true);
+    }
+
     initUiPanels() {
       this.settingsPanel = new SettingsPanel(document.getElementById("top-left-dock"), {
         onFactoryReset: () => this.performFactoryReset(),
         onLanguageChange: (code) => this.changeLanguage(code),
         onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label),
+        onSearchQuery: (q) => this.handleSearchQuery(q),
+        onPopoverOpen: () => this.satellitesPanel?.close(),
         onSelectGlobalScope: () => this.switchToGlobalRouteScope(),
         onSelectCrater: (craterId) => this.flyToCraterById(craterId),
         onOpenInfoModal: () => this.missionModal.open(),
@@ -75,7 +128,8 @@
         onBackendUrlTest: (url) => this.handleBackendUrlTest(url)
       });
       this.satellitesPanel = new SatellitesPanel(document.getElementById("bottom-left-dock"), {
-        onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label)
+        onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label),
+        onPopoverOpen: () => this.settingsPanel?.close()
       });
       this.inspectorPanel = new RouteInspectorPanel(document.getElementById("top-right-dock"), {
         onToggleInspector: (open) => { this.state.inspectorOpen = open; this.persistState(); this.renderUi(); },
@@ -308,7 +362,7 @@
 
     renderBottomRight() {
       if (!this.bottomRightEl) return;
-      const pitch = Math.round(this.state.camPitch ?? 28);
+      const pitch = Math.round(this.state.camPitch ?? 0);
       this.bottomRightEl.innerHTML = `
         <div class="zoom-stack">
           <button class="zoom-btn" id="btn-zoom-in" title="${this.t("zoomInTitle")}">＋</button>
@@ -327,7 +381,7 @@
       this.bottomRightEl.querySelector("#btn-zoom-out")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 0.69));
       this.bottomRightEl.querySelector("#btn-3d-tilt")?.addEventListener("click", () => {
         this.state.viewMode = "3d";
-        this.state.camPitch = (this.state.camPitch ?? 28) < 20 ? 34 : (this.state.camPitch < 50 ? 58 : 0);
+        this.state.camPitch = (this.state.camPitch ?? 0) < 20 ? 34 : (this.state.camPitch < 50 ? 58 : 0);
         this.renderBottomRight(); this.scheduleRender(true); this.schedulePersistState();
       });
       this.bottomRightEl.querySelector("#btn-3d-peak")?.addEventListener("click", () => {
@@ -346,7 +400,7 @@
       });
       this.bottomRightEl.querySelector("#btn-cam-reset")?.addEventListener("click", () => {
         const c = this.getActiveCrater();
-        this.state.camPitch = 28; this.state.camYaw = 0;
+        this.state.camPitch = 0; this.state.camYaw = 0;
         this.renderBottomRight(); this.animateTo(c.coordinates.lat, c.coordinates.lon, 1.05);
       });
     }

@@ -300,8 +300,14 @@
         }
 
         if (!pixels) {
-          if (out32) out32[pIdx] = 0xff141823;
-          else { const o = pIdx << 2; out[o] = 35; out[o + 1] = 24; out[o + 2] = 20; out[o + 3] = 255; }
+          const gridLine = (Math.abs((cu * (1 << targetZ)) % 1) < 0.02 || Math.abs((cv * (1 << (targetZ - 1))) % 1) < 0.02);
+          const scan = (((cv * 360) | 0) & 1) ? 1.0 : 0.86;
+          const shade = (0.35 + diff * 0.65) * scan;
+          const ri = Math.min(255, ((gridLine ? 120 : 78) * shade) | 0);
+          const gi = Math.min(255, ((gridLine ? 58 : 34) * shade) | 0);
+          const bi = Math.min(255, ((gridLine ? 40 : 24) * shade) | 0);
+          if (out32) out32[pIdx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
+          else { const o = pIdx << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
           return true;
         }
 
@@ -608,16 +614,21 @@
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#140b09";
+      const grad = ctx.createRadialGradient(cx - radius * 0.25, cy - radius * 0.25, radius * 0.1, cx, cy, radius);
+      grad.addColorStop(0, "#5c2718");
+      grad.addColorStop(0.7, "#2d130c");
+      grad.addColorStop(1, "#120806");
+      ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = "#d92b2b";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "800 12px 'Public Sans Web', sans-serif";
-      ctx.textAlign = "center";
-      const loadingMsg = ns.i18n ? ns.i18n.t("loadingGlobeText") : "Mars 3D dokusu ./data/tiles/ dizininden yükleniyor...";
-      ctx.fillText(loadingMsg, cx, cy);
+      ctx.clip();
+      ctx.strokeStyle = "rgba(224, 90, 50, 0.22)";
+      ctx.lineWidth = 1;
+      for (let y = cy - radius; y <= cy + radius; y += 6) {
+        ctx.beginPath();
+        ctx.moveTo(cx - radius, y);
+        ctx.lineTo(cx + radius, y);
+        ctx.stroke();
+      }
       ctx.restore();
     }
 

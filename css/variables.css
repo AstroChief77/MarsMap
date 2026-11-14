@@ -4,31 +4,31 @@
  */
 
 :root {
-  /* %60 Beyaz Ana Yüzeyler */
-  --bg-white: #ffffff;
-  --bg-offwhite: #f8f9fa;
-  --bg-soft: #f1f3f5;
+  /* Koyu Kozmik Mars Cam Yüzeyleri */
+  --bg-white: rgba(13, 17, 26, 0.90);
+  --bg-offwhite: rgba(22, 27, 39, 0.88);
+  --bg-soft: rgba(34, 41, 58, 0.92);
 
-  /* %30 Siyah Uzay Zemini, Yazılar ve Çerçeveler */
+  /* Uzay Zemini, Açık Metinler ve Çerçeveler */
   --space-black: #000000;
-  --ink-black: #0d0f12;
-  --ink-dark: #262b33;
-  --ink-muted: #5b6370;
+  --ink-black: #f1f5f9;
+  --ink-dark: #cbd5e1;
+  --ink-muted: #94a3b8;
 
-  /* %10 NASA / Mars Kırmızısı Vurgular */
-  --mars-red: #d92b2b;
-  --mars-red-dark: #b41e1e;
-  --mars-red-tint: rgba(217, 43, 43, 0.10);
+  /* NASA / Mars Kırmızısı Vurgular */
+  --mars-red: #e03e2d;
+  --mars-red-dark: #b91c1c;
+  --mars-red-tint: rgba(224, 62, 45, 0.16);
 
   /* Güvenli Rota Renk Standartları */
-  --route-blue: #2563eb;
+  --route-blue: #3b82f6;
   --route-pale-blue: #93c5fd;
 
   /* Çizgi ve Gölgeler */
-  --line-light: #e4e7ec;
-  --line-dark: #1f242c;
-  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.32);
-  --shadow-btn: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --line-light: rgba(255, 255, 255, 0.14);
+  --line-dark: rgba(235, 118, 62, 0.42);
+  --shadow-card: 0 14px 36px rgba(0, 0, 0, 0.68);
+  --shadow-btn: 0 6px 20px rgba(0, 0, 0, 0.55);
 
   /* ZORUNLU FONT AİLESİ: Public Sans Web, sans-serif */
   --font-main: 'Public Sans Web', sans-serif;

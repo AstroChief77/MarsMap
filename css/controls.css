@@ -26,7 +26,8 @@
   border-radius: var(--r-sm);
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 2px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(14px);
   font-size: 20px;
   cursor: pointer;
   display: inline-flex;
@@ -38,8 +39,9 @@
 
 .icon-square-btn:hover,
 .icon-square-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--mars-red);
+  color: #ffffff;
+  border-color: var(--mars-red);
 }
 
 /* Sol Ust Ayarlar Menusu (1. Secenek Factory Reset) */
@@ -48,11 +50,12 @@
   top: calc(100% + 8px);
   left: 0;
   width: 330px;
-  max-height: calc(100vh - 96px);
+  max-height: calc(100vh - 180px);
   overflow-y: auto;
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 1.5px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(16px);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   padding: 10px;
@@ -75,7 +78,7 @@
   padding: 10px 12px;
   border-radius: var(--r-sm);
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   text-align: left;
   transition: background 0.15s ease, transform 0.12s ease;
 }
@@ -257,7 +260,7 @@
   padding: 5px 7px;
   border-radius: 5px;
   border: 1px solid var(--line-light);
-  background: var(--bg-white);
+  background: var(--bg-offwhite);
   color: var(--ink-black);
   font-size: 11px;
   font-weight: 700;
@@ -266,13 +269,13 @@
 }
 
 .lang-chip-btn:hover {
-  border-color: var(--ink-black);
+  border-color: var(--mars-red);
   background: var(--bg-soft);
 }
 
 .lang-chip-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--mars-red);
+  color: #ffffff;
   border-color: var(--mars-red);
 }
 
@@ -284,7 +287,7 @@
   padding: 1px 4px;
   border-radius: 4px;
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -296,16 +299,17 @@
   white-space: nowrap;
 }
 
-/* Hizli Hedef ve Bilgi Seridi */
+/* Hizli Arama ve Bilgi Seridi */
 .top-nav-pill {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   background: var(--bg-white);
-  border: 2px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(14px);
   border-radius: var(--r-sm);
-  padding: 6px;
+  padding: 5px 6px;
   box-shadow: var(--shadow-btn);
 }
 
@@ -315,46 +319,71 @@
   letter-spacing: 0.04em;
   padding: 7px 11px;
   border-radius: 6px;
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .brand-tag span {
   color: var(--mars-red);
 }
 
-.nav-target-btn {
-  padding: 8px 13px;
+.nav-search-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line-light);
   border-radius: 6px;
-  font-size: 13px;
-  font-weight: 800;
+  padding: 3px 4px 3px 9px;
+}
+
+.nav-search-form:focus-within {
+  border-color: var(--mars-red);
+}
+
+.nav-search-input {
+  width: 215px;
+  background: transparent;
+  border: none;
+  outline: none;
   color: var(--ink-black);
-  cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
-.nav-target-btn:hover {
-  background: var(--bg-soft);
+.nav-search-input::placeholder {
+  color: var(--ink-muted);
+  font-weight: 600;
 }
 
-.nav-target-btn.active {
+.nav-search-btn {
+  padding: 5px 10px;
+  border-radius: 5px;
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nav-search-btn:hover {
+  background: var(--mars-red-dark);
 }
 
 .nav-info-btn {
-  padding: 8px 13px;
+  padding: 7px 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
-  border: 1.5px solid var(--line-light);
+  border: 1px solid var(--line-light);
   color: var(--ink-dark);
   cursor: pointer;
 }
 
 .nav-info-btn:hover {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .nav-lang-select {
@@ -390,19 +419,20 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-white);
-  border: 2px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(14px);
   border-radius: var(--r-sm);
   overflow: hidden;
   box-shadow: var(--shadow-btn);
 }
 
 .zoom-btn {
-  width: 48px;
-  height: 46px;
+  width: 46px;
+  height: 44px;
   font-size: 20px;
   font-weight: 900;
   color: var(--ink-black);
-  border-bottom: 1.5px solid var(--line-light);
+  border-bottom: 1px solid var(--line-light);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -422,9 +452,10 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: var(--bg-white);
+  color: var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(14px);
   border-radius: var(--r-xs);
   padding: 8px 14px;
   font-size: 12px;
