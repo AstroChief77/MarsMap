@@ -275,3 +275,33 @@
     3. Etkilesim sirasindaki ara tampon olcegi (scale) 64.000 pikselden 260.000 piksele (4 kat cozunurluk) ve duragan olcek 920.000-1.650.000 piksele yukseltildi.
 - js/services/MarsTileLoader.js & js/components/MarsNavigatorController.js:
   * Tekerlekle yakinlastirma (isZooming) sirasinda z=3..5 yerel karolarinin bekletilmeden aninda yuklenmesi ve cozulmesi saglandi; computeTargetZoom esikleri erken yuksek-LOD sececek sekilde iyilestirildi.
+
+================================================================================
+TARIH / SAAT : 2026-11-14 (UI Buton Boyutlari, Resim Kartlarina Tiklayarak Ac/Kapa ve 3D/2D Mars Merkez Kilidi Duzeltmesi)
+YEDEK KLASORU: backups/snapshot_20261114_fix_ui_and_centering/
+DEGISIKLIK NEDENI:
+  Kullanicinin "Butonlar çok küçük resime basınca aç kapa olmuyor, Kontroller sikilmiş marsı ortalamamız lazım sürekli" geri bildirimi uzerine:
+  1. Ust bar, sag alt HUD ve sol alt Uydular panelindeki tum butonlar buyutulerek rahat tiklanabilir boyutlara cikarildi.
+  2. Uydular panelindeki Mars bolge fotografli kartlarin (2D/3D gorunum, Asit Yagmuru, Kum Firtinasi, Foton Radyasyon) dogrudan resmine/kartina tiklandiginda ac/kapa (toggle) yapmasi saglandi.
+  3. 3D MOLA topografya kamerasindaki egim kaynakli asagi kayma (sphereCy kaymasi) tamamen kaldirilarak Mars kuresi ve 2D harita ekranin tam merkezine (cx, cy) kilitlendi; surukleme kontrollerindeki camYaw eksen terslikleri sifirlanarak 1:1 piksel kilitli akici kontrol saglandi.
+
+DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
+  1) js/components/SatellitesPanel.js (Satir 1-236):
+     - Satir 43-128: .sat-photo-card kartlarina data-card-toggle ve .active sinifi eklendi; resmin her yerine tiklandiginda ilgili katmanin acilip kapanmasi saglandi.
+  2) css/satellites_panel.css (Satir 1-285) & css/controls.css (Satir 1-300):
+     - Tetikleyici butonlar, ust bar butonlari, zoom/3D HUD butonlari (48x46 px) ve Uydular paneli resim kartlari buyutuldu.
+  3) js/services/MarsTopographyService.js (Satir 1-291) & js/renderers/Map3DRenderer.js (Satir 1-786):
+     - 3D kure merkezi (cx, cy) noktasina %100 sabitlendi; zoom veya 3D egim (camPitch) degistiginde gezegenin ekran disina kaymasi onlendi.
+  4) js/renderers/Map2DRenderer.js (Satir 1-305) & js/services/RouteGeometryHelper.js (Satir 1-279):
+     - 2D haritada dikey oy ofseti ekran merkezine kilitlendi ve 3D/2D piksel->koordinat donusumleri guncellendi.
+  5) js/components/MarsNavigatorController.js (Satir 1-789):
+     - camYaw sifirlanarak ters/capraz surukleme hatasi giderildi; C ve Bosluk (Space) tuslari ile sag alt ⌂ butonu Mars'i aninda merkeze alacak sekilde iyilestirildi.
+================================================================================
+
+[2026-11-14T20:37:00+03:00] v3.9 SINGLE PRIMARY ROUTE ONLY (NO ALTERNATIVE ROUTE):
+- Yedek Klasoru: backups/snapshot_20261114_no_alt_route/
+- js/services/BackendApiService.js & js/services/RoutePlannerService.js:
+  * Alternatif yol (secondaryPaleBlue / Soluk Mavi) hesaplamasi tamamen kaldirildi; Rust WASM find_rover_path yalnizca tekil birincil güvenli rotayi (primaryBlue) uretir.
+- js/components/RouteInspectorPanel.js & js/renderers/RouteCanvasRenderer.js:
+  * Sag ust Rota Planlayici panelinden "Soluk Mavi (Güvenli Uzun)" karti ve sekme degistirici (step-tabs) kaldirildi.
+  * 2D ve 3D harita uzerinden kesikli soluk mavi alternatif cizgi ve yorum kutusu kaldirilarak yalnizca tekil Mavi Yol (#2563eb) birakildi.
