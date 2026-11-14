@@ -2,17 +2,15 @@
 /* eslint-disable */
 
 /**
- * JS tarafından doğrudan çağrılan ana Rust hesaplama fonksiyonu.
- * Harita dizisini (tek boyutlu dizi veya 2D), boyutları, başlangıç ve hedefi JS verir.
- * Çıktı olarak JSON formatında yolu ve toplam maliyeti döner.
+ * Find the optimal path using A* algorithm.
  */
-export function find_rover_path(grid_flat: Int32Array | number[], width: number, height: number, start_x: number, start_y: number, goal_x: number, goal_y: number): string;
+export function find_rover_path(grid_flat: Int32Array | number[], width: number, height: number, start_x: number, start_y: number, goal_x: number, goal_y: number, begin_oxy: number): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly find_rover_path: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number];
+    readonly find_rover_path: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
@@ -40,11 +38,3 @@ export function initSync(module: { module: SyncInitInput } | SyncInitInput): Ini
  * @returns {Promise<InitOutput>}
  */
 export default function __wbg_init (module_or_path?: { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>): Promise<InitOutput>;
-
-/* ==========================================================================
-   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
-   --------------------------------------------------------------------------
-   - Satir 1-10: find_rover_path TypeScript tip bildirimi.
-   - Satir 11-23: InitInput, InitOutput ve SyncInitInput WebAssembly tip arayuzleri.
-   - Satir 24-42: initSync ve __wbg_init modul baslatma fonksiyon imzalari.
-   ========================================================================== */
