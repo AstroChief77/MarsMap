@@ -32,6 +32,10 @@ AstroChief
 
 # Tasarım Kuralları
 
+-Orta alanda harita olmak zorunda.
+
+-Sol altta 2D görünüm, 3D görünüm, asit yağmuru filtresi, kum yağmuru/kasırga filtresi gibi filtreler olmak zorunda.
+
 -Yazı fontu "Public Sans Web" ailesi,sans-serif olmalıdır
 
 -Tema %60 beyaz, %30 Siyah, %10 Kırmızı, genel tema bu şekşilde olmalıdır başka renklerde kullanılabilir.
