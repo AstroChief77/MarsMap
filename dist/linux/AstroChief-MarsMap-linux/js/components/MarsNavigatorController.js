@@ -315,8 +315,8 @@
         </div>
       `;
 
-      this.bottomRightEl.querySelector("#btn-zoom-in")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 1.3));
-      this.bottomRightEl.querySelector("#btn-zoom-out")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 0.77));
+      this.bottomRightEl.querySelector("#btn-zoom-in")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 1.45));
+      this.bottomRightEl.querySelector("#btn-zoom-out")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 0.69));
       this.bottomRightEl.querySelector("#btn-3d-tilt")?.addEventListener("click", () => {
         this.state.viewMode = "3d";
         this.state.camPitch = (this.state.camPitch ?? 28) < 20 ? 34 : (this.state.camPitch < 50 ? 58 : 0);
@@ -370,8 +370,8 @@
       const { activeLayerId, rotLat, rotLon, zoom, viewMode, progressiveLodRender } = this.state;
       this.tileLoader.requestVisibleTiles(activeLayerId, {
         rotLat, rotLon, zoom, dpr: this.dpr || 1, viewportW: vw, viewportH: vh,
-        mapWidthPx: Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 12.0),
-        sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 22.0),
+        mapWidthPx: Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 32.0),
+        sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0),
         viewMode, progressiveLodRender
       });
     }
@@ -438,7 +438,7 @@
         const vw = this.viewWidth || 1280, vh = this.viewHeight || 720;
         let stepLon, stepLat;
         if (this.state.viewMode === "3d") {
-          const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(this.state.zoom, 0.55), 22.0);
+          const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(this.state.zoom, 0.55), 80.0);
           const degPerPx = 57.29578 / Math.max(80, radius);
           const yawRad = ((this.state.camYaw || 0) * Math.PI) / 180;
           const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
@@ -461,7 +461,7 @@
       this.canvas.addEventListener("wheel", (e) => {
         e.preventDefault();
         const clampedDelta = Math.max(-180, Math.min(180, e.deltaY));
-        this.applyZoom(this.state.zoom * Math.pow(1.0016, -clampedDelta));
+        this.applyZoom(this.state.zoom * Math.pow(1.0022, -clampedDelta));
       }, { passive: false });
 
       this.canvas.addEventListener("click", (e) => {
@@ -552,7 +552,7 @@
       if (this.animFrame) cancelAnimationFrame(this.animFrame);
       clearTimeout(this.zoomSettleTimer);
       this.isZooming = false;
-      const maxZ = this.state.viewMode === "3d" ? 22.0 : 12.0;
+      const maxZ = this.state.viewMode === "3d" ? 80.0 : 32.0;
       const clampedZoom = Math.min(Math.max(targetZoom, 0.65), maxZ);
       let dLon = targetLon - this.state.rotLon;
       if (dLon > 180) dLon -= 360;
@@ -585,7 +585,7 @@
     }
 
     applyZoom(nextZoom) {
-      const maxZ = this.state.viewMode === "3d" ? 22.0 : 12.0;
+      const maxZ = this.state.viewMode === "3d" ? 80.0 : 32.0;
       this.state.zoom = Math.min(Math.max(nextZoom, 0.65), maxZ);
       this.isZooming = true;
       clearTimeout(this.zoomSettleTimer);
