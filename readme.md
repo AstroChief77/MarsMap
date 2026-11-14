@@ -28,6 +28,11 @@ AstroChief
 
 -Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli(test edebilmek için).
 
+# Tasarım Kuralları
+
+-Yazı fontu "Public Sans Web" ailesi,sans-serif olmalıdır
+
+-Tema %60 beyaz, %30 Siyah, %10 Kırmızı, genel tema bu şekşilde olmalıdır başka renklerde kullanılabilir.
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
@@ -54,6 +59,5 @@ Buse:Başkan yardımcısı
 
 -Kullanılan kaynaklar ve API'ler SOURCES.md dosyasına işlenecek: Tamamlandı.
 
--NASA ve USGS veri setleri indirilip yapılandırılacak ve kataloglanacak: Tamamlandı.
-
 -Tüm değişiklikler satır satır loglanacak: Tamamlandı.
+
