@@ -34,3 +34,7 @@ Frontend tarafında **tüm backend uç noktaları, A/B koordinat seçimi ve rota
   - Katı Güvenlik: Yalnızca beyaz listedeki uzantılara izin verilir (`.jpg`, `.png`, `.webp`, `.pdf`, `.txt`, `.log`, `.json`, `.geojson`, `.csv`, `.zip`), MIME analizi yapılır, dosyalar rastgele 32 baytlık kriptografik token ile adlandırılır.
   - Nginx Güvenlik Kuralları: `storage/` ve `backups/` dizinlerine HTTP'den erişim engellendi (`404`), `uploads/` dizininde her türlü script çalıştırılması (`.php`, `.sh`, `.exe` vb.) `403 Forbidden` ile bloke edildi.
   - Arayüz (`MissionChat.js` & `chat.css`): Sağ altta sabit açılır buton, ekip rolleri (Atahan Kaptan, Akif Lead Dev vb.), gerçek zamanlı polling ve dosya önizlemeleri.
+
+## 4. GitHub -> `mars.kubitron.com` Otomatik Web Dağıtım (CI/CD)
+- **GitHub Actions (`.github/workflows/deploy-mars-web.yml`)**: `main` dalına web dosyası (`index.html`, `version.json`, `api/`, `chat/`, `css/`, `js/`, `data/`) pushlandığında `<800` satır, JSON ve `manifest.json` kontrolü yapar; `DEPLOY_SSH_KEY` + `DEPLOY_USER` (veya `DEPLOY_WEBHOOK_URL`) tanımlıysa `storage/` ve `uploads/` dizinlerini koruyarak `mars.kubitron.com` sunucusuna deploy eder.
+- **Sunucu Otomasyonu (`tools/server/deploy_web_sync.sh`, `install_autodeploy.sh`, `api/github_webhook.php`)**: VPS üzerinde 30 saniyelik Systemd timer veya HMAC-SHA256 doğrulamalı GitHub Webhook ile web değişikliklerini çeker (`chat.db` ve `uploads/` korunur). Kurulum adımları: `tools/server/README.md`.

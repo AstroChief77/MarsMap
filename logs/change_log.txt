@@ -140,3 +140,6 @@
 [2026-11-14 13:26:45] [UPDATE] css/style.css guncellendi (chat.css iceri aktarildi).
 [2026-11-14 13:26:59] [UPDATE] js/app.js guncellendi (MissionChat bileseni baslatici zincirine baglandi).
 [2026-11-14 13:35:00] [CREATE] chat/index.html olusturuldu (fesnex.com/chat/ ve mars.kubitron.com/chat/ uzerinden tam ekran erisilebilir Mars Gorev Iletisim & Dosya Aktarim sayfasi).
+[2026-11-14 13:45:10] [BACKUP] backups/snapshot_20261114_autodeploy klasorune logs/change_log.txt ve ForAgents/FRONTEND_AGENT_NOTES.md yedeklendi.
+[2026-11-14 13:45:25] [CREATE] .gitattributes, .github/workflows/deploy-mars-web.yml, tools/server/{deploy_web_sync.sh, install_autodeploy.sh, README.md} ve api/github_webhook.php olusturuldu (GitHub main -> mars.kubitron.com otomatik web dagitim otomasyonu).
+[2026-11-14 13:45:35] [UPDATE] ForAgents/FRONTEND_AGENT_NOTES.md ve logs/change_log.txt guncellendi.
