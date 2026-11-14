@@ -442,8 +442,11 @@
           const degPerPx = 57.29578 / Math.max(80, radius);
           const yawRad = ((this.state.camYaw || 0) * Math.PI) / 180;
           const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-          stepLon = (-dx * cosY - dy * sinY) * degPerPx;
-          stepLat = (dy * cosY - dx * sinY) * degPerPx;
+          const dEast = -dx * cosY + dy * sinY;
+          const dNorth = dx * sinY + dy * cosY;
+          const cosLat = Math.max(0.3, Math.cos((this.state.rotLat * Math.PI) / 180));
+          stepLon = (dEast / cosLat) * degPerPx;
+          stepLat = dNorth * degPerPx;
         } else {
           const mapW = Math.max(vw * 0.86, 620) * Math.min(Math.max(this.state.zoom, 0.65), 12.0);
           stepLon = (-dx / mapW) * 360;

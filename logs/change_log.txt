@@ -245,3 +245,7 @@
 - js/renderers/OverlayDrawHelper.js: `projectToSphere()` fonksiyonu `camPitch`, `camYaw` ve MOLA yükseklik (`elevM`) dönüşümüyle güncellendi, böylece sağ tıkla küre eğildiğinde pinler, rotalar ve tehlike bölgeleri 3D yüzeyle birlikte döner.
 - js/components/MarsNavigatorController.js: Sağ tık sürükleme sırasında telemetri çubuğundaki `3D Eğim` değeri canlı güncelleniyor.
 - index.html: Önbellek kırıcı `?v=3.4` sürümüne yükseltildi.
+
+[2026-11-14 17:34] 3D Açı (camYaw) Değişkenken Sürükleme Yönü Düzeltmesi (v3.5)
+- js/components/MarsNavigatorController.js: `mousemove` 3D sürükleme hesabındaki `sin(camYaw)` işaret hatası (`dEast = -dx*cosY + dy*sinY`, `dNorth = dx*sinY + dy*cosY`) ve enlem kosinüs ölçeklemesi düzeltildi.
+- index.html: Önbellek kırıcı `?v=3.5` sürümüne yükseltildi.
