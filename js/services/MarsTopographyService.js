@@ -43,36 +43,37 @@
 
       const features = [
         // Dev Volkanlar (Gerçek MOLA Zirve Rakımları - Metre)
-        { lat: 18.65, lon: -133.8, rad: 3.4, dh: 17400, shape: "shield", caldera: 0.42 }, // Olympus Mons (+21,229 m)
-        { lat: 11.9, lon: -104.5, rad: 2.1, dh: 13200, shape: "shield", caldera: 0.32 },  // Ascraeus Mons (+18,209 m)
-        { lat: 0.8, lon: -113.4, rad: 2.0, dh: 9200, shape: "shield", caldera: 0.34 },    // Pavonis Mons (+14,058 m)
-        { lat: -8.9, lon: -120.1, rad: 2.4, dh: 12900, shape: "shield", caldera: 0.45 },  // Arsia Mons (+17,779 m)
-        { lat: 25.0, lon: 147.3, rad: 2.1, dh: 12600, shape: "shield", caldera: 0.25 },   // Elysium Mons (+14,127 m)
-        { lat: 40.5, lon: -109.6, rad: 6.8, dh: 5400, shape: "shield", caldera: 0.28 },   // Alba Mons (+6,815 m)
-        { lat: 32.1, lon: 150.2, rad: 1.2, dh: 4900, shape: "shield", caldera: 0.22 },    // Hecates Tholus (+4,800 m)
-        { lat: 18.9, lon: 150.5, rad: 1.1, dh: 4400, shape: "shield", caldera: 0.24 },    // Albor Tholus (+4,500 m)
-        { lat: 24.0, lon: -97.4, rad: 1.5, dh: 4300, shape: "shield", caldera: 0.25 },    // Uranius Mons (+4,853 m)
+        { id: "olympus-mons", name: "Olympus Mons", lat: 18.65, lon: -133.8, rad: 3.4, dh: 17400, shape: "shield", caldera: 0.42 },
+        { id: "ascraeus-mons", name: "Ascraeus Mons", lat: 11.9, lon: -104.5, rad: 2.1, dh: 13200, shape: "shield", caldera: 0.32 },
+        { id: "pavonis-mons", name: "Pavonis Mons", lat: 0.8, lon: -113.4, rad: 2.0, dh: 9200, shape: "shield", caldera: 0.34 },
+        { id: "arsia-mons", name: "Arsia Mons", lat: -8.9, lon: -120.1, rad: 2.4, dh: 12900, shape: "shield", caldera: 0.45 },
+        { id: "elysium-mons", name: "Elysium Mons", lat: 25.0, lon: 147.3, rad: 2.1, dh: 12600, shape: "shield", caldera: 0.25 },
+        { id: "alba-mons", name: "Alba Mons", lat: 40.5, lon: -109.6, rad: 6.8, dh: 5400, shape: "shield", caldera: 0.28 },
+        { id: "hecates-tholus", name: "Hecates Tholus", lat: 32.1, lon: 150.2, rad: 1.2, dh: 4900, shape: "shield", caldera: 0.22 },
+        { id: "albor-tholus", name: "Albor Tholus", lat: 18.9, lon: 150.5, rad: 1.1, dh: 4400, shape: "shield", caldera: 0.24 },
+        { id: "uranius-mons", name: "Uranius Mons", lat: 24.0, lon: -97.4, rad: 1.5, dh: 4300, shape: "shield", caldera: 0.25 },
 
         // Bölgesel Kubbeler ve Platolar
-        { lat: -2.0, lon: -108.0, rad: 34.0, dh: 4850, shape: "bulge" },                  // Tharsis Bulge (+5,000 m)
-        { lat: 24.5, lon: 148.0, rad: 15.0, dh: 2600, shape: "bulge" },                   // Elysium Rise
-        { lat: 8.4, lon: 69.5, rad: 14.0, dh: 1850, shape: "bulge" },                     // Syrtis Major Planum
-        { lat: -28.0, lon: -70.0, rad: 16.0, dh: 3400, shape: "bulge" },                  // Solis & Thaumasia Planum
+        { id: "tharsis-bulge", name: "Tharsis Bulge", lat: -2.0, lon: -108.0, rad: 34.0, dh: 4850, shape: "bulge" },
+        { id: "elysium-rise", name: "Elysium Rise", lat: 24.5, lon: 148.0, rad: 15.0, dh: 2600, shape: "bulge" },
+        { id: "syrtis-major", name: "Syrtis Major Planum", lat: 8.4, lon: 69.5, rad: 14.0, dh: 1850, shape: "bulge" },
+        { id: "solis-thaumasia", name: "Solis & Thaumasia Planum", lat: -28.0, lon: -70.0, rad: 16.0, dh: 3400, shape: "bulge" },
 
         // Dev Çarpma Havzaları (Derin Çukurlar)
-        { lat: -42.4, lon: 70.5, rad: 19.5, dh: -8400, shape: "basin", rim: 2200 },       // Hellas Planitia (-7,152 m)
-        { lat: -49.7, lon: -44.0, rad: 10.5, dh: -6200, shape: "basin", rim: 1800 },      // Argyre Planitia (-5,200 m)
-        { lat: 12.9, lon: 87.0, rad: 8.2, dh: -4500, shape: "basin", rim: 1200 },         // Isidis Planitia (-3,800 m)
-        { lat: 46.7, lon: 117.5, rad: 24.0, dh: -1950, shape: "bulge" },                  // Utopia Planitia (-4,230 m)
-        { lat: 22.0, lon: -40.0, rad: 16.0, dh: -2400, shape: "bulge" },                  // Chryse Planitia (-2,690 m)
-        { lat: 24.0, lon: -158.0, rad: 15.0, dh: -2100, shape: "bulge" },                 // Amazonis Planitia (-3,800 m)
+        { id: "hellas-planitia", name: "Hellas Planitia", lat: -42.4, lon: 70.5, rad: 19.5, dh: -8400, shape: "basin", rim: 2200 },
+        { id: "argyre-planitia", name: "Argyre Planitia", lat: -49.7, lon: -44.0, rad: 10.5, dh: -6200, shape: "basin", rim: 1800 },
+        { id: "isidis-planitia", name: "Isidis Planitia", lat: 12.9, lon: 87.0, rad: 8.2, dh: -4500, shape: "basin", rim: 1200 },
+        { id: "utopia-planitia", name: "Utopia Planitia", lat: 46.7, lon: 117.5, rad: 24.0, dh: -1950, shape: "bulge" },
+        { id: "chryse-planitia", name: "Chryse Planitia", lat: 22.0, lon: -40.0, rad: 16.0, dh: -2400, shape: "bulge" },
+        { id: "amazonis-planitia", name: "Amazonis Planitia", lat: 24.0, lon: -158.0, rad: 15.0, dh: -2100, shape: "bulge" },
 
         // NASA Görev Odak Kraterleri (Gale + Mount Sharp, Jezero, Korolev, Gusev)
-        { lat: -4.59, lon: 137.44, rad: 1.85, dh: -3800, shape: "crater", peak: 5500 },   // Gale Crater (-4,400m) & Mount Sharp (+5,500m)
-        { lat: 18.44, lon: 77.45, rad: 1.15, dh: -2200, shape: "crater", peak: 650 },     // Jezero Crater (-2,570m)
-        { lat: 73.0, lon: 165.0, rad: 1.65, dh: -1800, shape: "crater", peak: 1850 },     // Korolev Crater & Buz Kubbesi
-        { lat: -14.57, lon: 175.47, rad: 1.75, dh: -2300, shape: "crater", peak: 850 }    // Gusev Crater (-1,940m)
+        { id: "gale-crater", name: "Gale Krateri & Mount Sharp", lat: -4.59, lon: 137.44, rad: 1.85, dh: -3800, shape: "crater", peak: 5500 },
+        { id: "jezero-crater", name: "Jezero Krateri", lat: 18.44, lon: 77.45, rad: 1.15, dh: -2200, shape: "crater", peak: 650 },
+        { id: "korolev-crater", name: "Korolev Krateri", lat: 73.0, lon: 165.0, rad: 1.65, dh: -1800, shape: "crater", peak: 1850 },
+        { id: "gusev-crater", name: "Gusev Krateri", lat: -14.57, lon: 175.47, rad: 1.75, dh: -2300, shape: "crater", peak: 850 }
       ];
+      this.demFeatures = features;
 
       for (let y = 0; y < h; y++) {
         const lat = 90 - ((y + 0.5) / h) * 180;
@@ -531,6 +532,23 @@
         insideMap: true
       };
     }
+
+    /** Backend rota planlayicisi icin Mars krater, havza ve volkan katalogunu km cinsinden doner */
+    getDemFeaturesCatalog() {
+      const kmPerDeg = (2 * Math.PI * (this.MARS_RADIUS_M / 1000)) / 360;
+      return (this.demFeatures || []).map((f) => ({
+        id: f.id,
+        name: f.name,
+        lat: f.lat,
+        lon: f.lon,
+        radiusDeg: f.rad,
+        radiusKm: Number((f.rad * kmPerDeg).toFixed(1)),
+        shape: f.shape,
+        reliefM: f.dh,
+        rimM: f.rim || 0,
+        centralPeakM: f.peak || 0
+      }));
+    }
   }
 
   ns.MarsTopographyService = MarsTopographyService;
@@ -541,11 +559,11 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc NASA MGS MOLA DEM topografya ve 3D kamera/yukseltme servisi tanimi.
-   - Satir 11-31: constructor; Mars yaricapi (3389.5 km), rakim sinirlari (-8200m..+21229m) ve 1024x512 DEM tamponlarini kurar.
-   - Satir 33-163: buildPhysicalMolaDemGrid; Olympus Mons (+21229m), Tharsis, Valles Marineris (-7000m), Hellas (-7152m), Gale/Mount Sharp (+5500m) ve Jezero verileriyle fiziksel DEM uretir.
-   - Satir 165-261: syncWithMolaTiles, decodeMolaPixelMeters ve blendMolaTileIntoDem; ./data/tiles/mars-mola-elevation/ karolarini gercek zamanli DEM izgarasina kaynastirir.
-   - Satir 263-295: recomputeSlopeNormals; her piksel icin Dogu ve Kuzey 3D yuzey egim normallerini hesaplar.
-   - Satir 297-345: getElevationMetersUV, getElevationMeters ve getSurfaceTelemetry; bilineer enterpolasyonla gercek rakim (m) ve egim (derece) doner.
-   - Satir 347-420: getRadialScaleFactor, buildCameraBasis ve projectToElevatedSphere; 3D kamera egimi (Pitch/Yaw) ve gercek MOLA rakimiyla 3D nokta projeksiyonu yapar.
-   - Satir 422-490: screenToElevatedMars3D; 3D yukseltilmis arazi uzerinde iteratif isin-yuzey kesismesiyle koordinat ve rakim secer.
+   - Satir 11-32: constructor; Mars yaricapi (3389.5 km), rakim sinirlari (-8200m..+21229m) ve 1024x512 DEM tamponlarini kurar.
+   - Satir 34-169: buildPhysicalMolaDemGrid; Olympus Mons, Tharsis, Valles Marineris, Hellas, Gale/Mount Sharp ve Jezero katalogunu (this.demFeatures) ve fiziksel DEM'i uretir.
+   - Satir 171-287: syncWithMolaTiles, decodeMolaPixelMeters ve blendMolaTileIntoDem; ./data/tiles/mars-mola-elevation/ karolarini gercek zamanli DEM izgarasina kaynastirir.
+   - Satir 289-321: recomputeSlopeNormals; her piksel icin Dogu ve Kuzey 3D yuzey egim normallerini hesaplar.
+   - Satir 323-372: getElevationMetersUV, getElevationMeters ve getSurfaceTelemetry; bilineer enterpolasyonla gercek rakim (m) ve egim (derece) doner.
+   - Satir 374-420: getRadialScaleFactor, buildCameraBasis ve projectToElevatedSphere; 3D kamera egimi (Pitch/Yaw) ve gercek MOLA rakimiyla 3D nokta projeksiyonu yapar.
+   - Satir 422-559: screenToElevatedMars3D ve getDemFeaturesCatalog; 3D yuzey kesismesi ve backend icin km bazli krater/volkan katalogunu saglar.
    ========================================================================== */

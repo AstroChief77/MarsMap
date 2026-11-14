@@ -161,7 +161,7 @@
       }
     }
 
-    /** Tum cevresel etkenleri (radyasyon, asit, firtina, gercek MOLA egimi, astronot O2) ve 24x24 Rust gridini hazirlar */
+    /** Tum cevresel etkenleri (radyasyon, asit, firtina, gercek MOLA DEM matrisi, krater katalogu ve Prameters.md verisi) hazirlar */
     buildRouteRequestPayload({ scope, origin, destination, state, activeCrater, hazardBundle, craterRadZones, planner }) {
       const acidSpec = (hazardBundle && hazardBundle.acidSpec) || {};
       const stormSpec = (hazardBundle && hazardBundle.stormSpec) || {};
@@ -171,84 +171,159 @@
       const origLon = Number(Number(origin.lon || 0).toFixed(4));
       const destLat = Number(Number(destination.lat || 0).toFixed(4));
       const destLon = Number(Number(destination.lon || 0).toFixed(4));
-      const origTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(origLat, origLon) : { elevM: 0, slopeDeg: 0 };
-      const destTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(destLat, destLon) : { elevM: 0, slopeDeg: 0 };
+      const origTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(origLat, origLon) : { elevM: 0, slopeDeg: 0, gx: 0, gy: 0 };
+      const destTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(destLat, destLon) : { elevM: 0, slopeDeg: 0, gx: 0, gy: 0 };
       const beginOxy = Math.max(0, Math.round(Number(state.oxygenReserveLiters || 420)));
-      const gridSize = 24;
+      const gridSize = 48;
 
-      return {
+      const factors = {
+        acidRain: {
+          enabled: Boolean(state.filterAcidRain),
+          intensity: state.acidIntensity || "orta",
+          ph: parseFloat(String(acidSpec.ph || "2.4").replace(/[^\d.-]/g, "")) || 2.4,
+          speedMultiplier: Number(acidSpec.speedMult || 0.78),
+          detourScale: Number(acidSpec.detourScale || 1.0),
+          zones: ((hazardBundle && hazardBundle.acidZones) || []).map((z) => ({
+            id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg, ph: z.ph
+          }))
+        },
+        dustStorm: {
+          enabled: Boolean(state.filterDustStorm),
+          intensity: state.stormIntensity || "orta",
+          opticalDepthTau: parseFloat(String(stormSpec.tau || "2.8").replace(/[^\d.-]/g, "")) || 2.8,
+          speedMultiplier: Number(stormSpec.speedMult || 0.70),
+          detourScale: Number(stormSpec.detourScale || 1.0),
+          zones: ((hazardBundle && hazardBundle.stormZones) || []).map((z) => ({
+            id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg, tau: z.tau
+          }))
+        },
+        radiation: {
+          enabled: Boolean(state.showRadiationZones),
+          maxSafeAlphaMicroSvPerSec: 0.05,
+          maxSafeBetaMsvPerHour: 1.00,
+          maxSafeGammaMsvPerHour: 0.50,
+          backgroundMsvPerDay: 0.64,
+          careerLimitMsv: 600,
+          zones: radZones.map((z) => ({
+            id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg,
+            alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel, photonFlux: z.photonFlux
+          })),
+          craterZones: (craterRadZones || []).map((z) => ({
+            id: z.id, name: z.name, relX: z.relX, relY: z.relY, radius: z.radius,
+            alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel, photonFlux: z.photonFlux
+          }))
+        },
+        terrain: {
+          source: "NASA MOLA DEM (MarsTopographyService)",
+          demGridResolution: { width: 1024, height: 512, equatorPixelKm: 20.8 },
+          planetRadiusKm: 3389.5,
+          planetRadiusM: 3389500,
+          gravityMs2: 3.721,
+          craterId: activeCrater ? activeCrater.id : "gale-crater",
+          craterName: activeCrater ? activeCrater.name : "Gale Krateri & Mount Sharp",
+          maxSlopeDiff: 3,
+          maxSafeRoverSlopeDeg: 25.0,
+          maxSafeEvaSlopeDeg: 30.0,
+          wheelSlipLimit: 0.40,
+          rockRoughnessLimitCm: 30,
+          obstacleCode: -999,
+          nearbyFeatures: []
+        },
+        astronaut: {
+          oxygenReserveLiters: beginOxy,
+          walkbackReserveRatio: 0.25,
+          minWalkbackO2Liters: Math.round(beginOxy * 0.25),
+          o2NominalLPerMin: 0.80,
+          o2ExploreLPerMin: 1.01,
+          o2HeavyClimbLPerMin: 2.00,
+          o2Peak10MinLPerMin: 2.52,
+          o2MaxLPerMin: 4.00,
+          o2LitersPerHour: 48.0,
+          waterReserveLiters: Number(state.waterReserveLiters || 24),
+          waterNominalLPerMin: 0.015,
+          waterLitersPerHour: 2.15,
+          evaSpeedKmH: 3.6,
+          evaSpeedMPerMin: 60.0,
+          evaLongWalkKmH: 2.7
+        },
+        vehicleAndPhysics: {
+          vehicleType: "pressurized-rover",
+          roverNominalSpeedKmH: 10.0,
+          roverSpeedKmH: planner ? planner.roverSpeedKmH : 14.5,
+          roverSpeedMPerMin: 241.7,
+          roverMaxSafeSpeedKmH: 19.0,
+          roboticReferenceSpeedKmH: 0.152,
+          roverBatteryKwh: 75.0,
+          roverWalkbackBatteryRatio: 0.35,
+          roverPropulsionWhPerMin: 166.7,
+          roverHotelLoadWhPerMin: 30.0,
+          roverScienceWhPerMin: 4.2,
+          roverTotalDriveWhPerMin: 200.8,
+          evaSuitBatteryKwh: 1.5,
+          evaSuitPowerWhPerMin: 1.08,
+          marsSolHours: 24.66,
+          marsSolMinutes: 1479.59,
+          surfacePressureMbar: 6.36,
+          solarIrradianceWm2: 586.2,
+          effectiveSpeedFormula: "v_eff = v_flat * max(0.40, 1 - slopeDeg / 46.0) * k_acid * k_storm"
+        }
+      };
+
+      const origObj = {
+        id: origin.id || "custom-origin",
+        name: origin.name || "Konumumuz (A)",
+        lat: origLat,
+        lon: origLon,
+        elevM: origTele.elevM,
+        slopeDeg: origTele.slopeDeg,
+        gradX: Number((origTele.gx || 0).toFixed(3)),
+        gradY: Number((origTele.gy || 0).toFixed(3))
+      };
+      const destObj = {
+        id: destination.id || "custom-destination",
+        name: destination.name || "Hedef Konum (B)",
+        lat: destLat,
+        lon: destLon,
+        elevM: destTele.elevM,
+        slopeDeg: destTele.slopeDeg,
+        gradX: Number((destTele.gx || 0).toFixed(3)),
+        gradY: Number((destTele.gy || 0).toFixed(3))
+      };
+
+      const rich = this.gridHelper && typeof this.gridHelper.buildRichTerrainPayload === "function"
+        ? this.gridHelper.buildRichTerrainPayload(origObj, destObj, factors, gridSize, gridSize, 0.38)
+        : null;
+      if (rich) {
+        factors.terrain.nearbyFeatures = rich.nearbyFeatures;
+        factors.terrain.demCatalogCount = rich.allFeaturesCount;
+      }
+
+      const payload = {
+        apiVersion: "4.3.2",
         scope: scope || "global",
-        origin: {
-          id: origin.id || "custom-origin",
-          name: origin.name || "Konumumuz (A)",
-          lat: origLat,
-          lon: origLon,
-          elevM: origTele.elevM,
-          slopeDeg: origTele.slopeDeg
-        },
-        destination: {
-          id: destination.id || "custom-destination",
-          name: destination.name || "Hedef Konum (B)",
-          lat: destLat,
-          lon: destLon,
-          elevM: destTele.elevM,
-          slopeDeg: destTele.slopeDeg
-        },
+        origin: origObj,
+        destination: destObj,
+        routeGeometrySummary: rich ? rich.routeGeometrySummary : null,
         rustWasmCall: {
           fn: `find_rover_path(grid_flat, ${gridSize}, ${gridSize}, 0, 0, ${gridSize - 1}, ${gridSize - 1}, ${beginOxy})`,
           module: "js/wasm/backend_bg.wasm",
-          dataFeed: "NASA MOLA DEM (1024x512) + Aktif Tehlikeler + PLSS O2",
+          dataFeed: "NASA MOLA DEM (48x48 koridor) + Aktif Tehlikeler + Krater Katalogu + Prameters.md",
           gridSize,
-          beginOxy
+          beginOxy,
+          start: { x: 0, y: 0 },
+          goal: { x: gridSize - 1, y: gridSize - 1 }
         },
-        factors: {
-          acidRain: {
-            enabled: Boolean(state.filterAcidRain),
-            intensity: state.acidIntensity || "orta",
-            ph: parseFloat(String(acidSpec.ph || "2.4").replace(/[^\d.-]/g, "")) || 2.4,
-            speedMultiplier: Number(acidSpec.speedMult || 0.78),
-            detourScale: Number(acidSpec.detourScale || 1.0),
-            zones: ((hazardBundle && hazardBundle.acidZones) || []).map((z) => ({
-              id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg, ph: z.ph
-            }))
-          },
-          dustStorm: {
-            enabled: Boolean(state.filterDustStorm),
-            intensity: state.stormIntensity || "orta",
-            opticalDepthTau: parseFloat(String(stormSpec.tau || "2.8").replace(/[^\d.-]/g, "")) || 2.8,
-            speedMultiplier: Number(stormSpec.speedMult || 0.70),
-            detourScale: Number(stormSpec.detourScale || 1.0),
-            zones: ((hazardBundle && hazardBundle.stormZones) || []).map((z) => ({
-              id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg, tau: z.tau
-            }))
-          },
-          radiation: {
-            enabled: Boolean(state.showRadiationZones),
-            zones: radZones.map((z) => ({
-              id: z.id, name: z.name, lat: z.lat, lon: z.lon, radiusDeg: z.radiusDeg,
-              alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel, photonFlux: z.photonFlux
-            })),
-            craterZones: (craterRadZones || []).map((z) => ({
-              id: z.id, name: z.name, relX: z.relX, relY: z.relY, radius: z.radius,
-              alphaLevel: z.alphaLevel, betaLevel: z.betaLevel, gammaLevel: z.gammaLevel, photonFlux: z.photonFlux
-            }))
-          },
-          terrain: {
-            source: "NASA MOLA DEM (MarsTopographyService)",
-            planetRadiusKm: 3389.5,
-            craterId: activeCrater ? activeCrater.id : "gale-crater",
-            maxSlopeDiff: 3,
-            maxSafeRoverSlopeDeg: 25,
-            obstacleCode: -999
-          },
-          astronaut: {
-            oxygenReserveLiters: beginOxy,
-            o2NominalLPerMin: 0.80,
-            waterReserveLiters: Number(state.waterReserveLiters || 24),
-            roverSpeedKmH: planner ? planner.roverSpeedKmH : 14.5
-          }
-        }
+        terrainGrid: rich ? rich.terrainGrid : null,
+        factors
       };
+
+      if (rich) {
+        Object.defineProperty(payload, "_corridorCache", {
+          value: { width: gridSize, corridor: rich.corridor, strictFlat: rich.strictFlat },
+          enumerable: false
+        });
+      }
+      return payload;
     }
 
     /** Ozel HTTP backend varsa once HTTP /api/v1/route, yoksa derlenmis Rust WASM (`find_rover_path`) veya yerel A* ile hesaplar */
@@ -293,7 +368,10 @@
         if (!res.ok) throw new Error(`Backend HTTP ${res.status}`);
         const raw = await res.json();
         if (raw && raw.rustRawOutput && !raw.primaryBlue && !raw.primary_route) {
-          const primaryBlue = this.convertWasmPathToRoute(raw.rustRawOutput, payload.origin, payload.destination, "#2563eb", "Mavi Yol (Rust HTTP A*)", planner, payload, 0.38);
+          const gW = Number(raw.gridWidth || payload.terrainGrid?.width || payload.rustWasmCall?.gridSize || 48);
+          const gH = Number(raw.gridHeight || payload.terrainGrid?.height || gW);
+          const latF = Number(payload.terrainGrid?.lateralFactor || 0.38);
+          const primaryBlue = this.convertWasmPathToRoute(raw.rustRawOutput, payload.origin, payload.destination, "#2563eb", "Mavi Yol (Rust HTTP A*)", planner, payload, latF, gW, gH);
           return {
             scope: payload.scope || "global",
             source: "rust-backend",
@@ -360,32 +438,40 @@
      */
     computeViaRustWasm(payload, planner) {
       const t0 = performance.now();
-      const width = Number(payload.rustWasmCall?.gridSize || 24);
+      const width = Number(payload.rustWasmCall?.gridSize || payload.terrainGrid?.width || 48);
       const height = width;
       const orig = payload.origin;
       const dest = payload.destination;
       const beginOxy = Math.max(0, Math.round(Number(payload.factors?.astronaut?.oxygenReserveLiters ?? 420)));
-      const lateralFactor = 0.38;
+      const lateralFactor = Number(payload.terrainGrid?.lateralFactor || 0.38);
       const useWasm = typeof this.wasmFindPath === "function";
+      const cache = payload._corridorCache;
 
       const runSolver = (grid) => useWasm
         ? JSON.parse(this.wasmFindPath(grid, width, height, 0, 0, width - 1, height - 1, beginOxy))
         : this.solvePathLocalAStar(grid, width, height, beginOxy);
 
-      const corridor = this.sampleMolaCorridor(orig, dest, width, height, lateralFactor);
+      const corridor = cache && cache.width === width && cache.corridor
+        ? cache.corridor
+        : this.sampleMolaCorridor(orig, dest, width, height, lateralFactor);
 
       // Asama 1: Tam MOLA + tam tehlike ve >25 deg ucurum engellemesi
-      let flatGrid = this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 1.0, stepScale: 1.0, enforceCliffs: true });
+      let fallbackStage = 1;
+      let flatGrid = cache && cache.width === width && cache.strictFlat
+        ? cache.strictFlat
+        : this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 1.0, stepScale: 1.0, enforceCliffs: true });
       let parsedPrimary = runSolver(flatGrid);
 
       // Asama 2: Tum yollar tikandiysa tehlike cekirdegini daralt ve egim adimini genislet
       if (!parsedPrimary.success) {
+        fallbackStage = 2;
         flatGrid = this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 0.55, stepScale: 1.45, enforceCliffs: false });
         parsedPrimary = runSolver(flatGrid);
       }
 
       // Asama 3: Halen tikaliysa garantili gecilebilir gercek MOLA profiliyle tamamla
       if (!parsedPrimary.success) {
+        fallbackStage = 3;
         flatGrid = this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 0.0, stepScale: 1.85, enforceCliffs: false, smoothNeighbors: true });
         parsedPrimary = runSolver(flatGrid);
       }
@@ -397,6 +483,13 @@
         useWasm ? "Mavi Yol (Rust WASM A* · MOLA DEM)" : "Mavi Yol (Yerlesik A* · MOLA DEM)",
         planner, payload, lateralFactor, width, height, corridor
       );
+      primaryBlue.fallbackStage = fallbackStage;
+      if (fallbackStage >= 2) {
+        primaryBlue.fallbackWarning = fallbackStage === 2
+          ? "Uyari: Tum yollar tikandigi icin egim/tehlike esnetildi (Asama 2)"
+          : "Uyari: Guvenli gecit bulunamadi, acil duzlestirilmis rota (Asama 3)";
+        primaryBlue.comment = `${primaryBlue.comment} [${primaryBlue.fallbackWarning}]`;
+      }
 
       const hazards = {
         acidZones: payload.factors?.acidRain?.zones || [],
@@ -409,6 +502,7 @@
         source: "rust-backend",
         engine: engineLabel,
         latencyMs,
+        fallbackStage,
         rustRawOutput: parsedPrimary,
         origin: orig,
         destination: dest,
@@ -419,7 +513,7 @@
     }
 
     /** Rust `find_rover_path` ciktisini gercek Mars MOLA yuksekligi, tehlike uyarisi ve O2 metrikleriyle adimlara donusturur */
-    convertWasmPathToRoute(rustRes, orig, dest, colorHex, label, planner, payload, lateralFactor = 0.38, gridW = 24, gridH = 24, corridor = null) {
+    convertWasmPathToRoute(rustRes, orig, dest, colorHex, label, planner, payload, lateralFactor = 0.38, gridW = 48, gridH = 48, corridor = null) {
       const path = Array.isArray(rustRes.path) && rustRes.path.length > 0
         ? rustRes.path
         : [{ x: 0, y: 0, z: 0 }, { x: gridW - 1, y: gridH - 1, z: 0 }];
@@ -632,7 +726,7 @@
    --------------------------------------------------------------------------
    - Satir 1-50: Sinif baslangici, MolaAStarGridHelper baglantisi ve ensureWasmLoaded (js/wasm/backend_bg.wasm v4.2 yukleyicisi).
    - Satir 52-164: normalizeBaseUrl, resolveInitialUrl, testConnection ve pingHttpHealth (Rust WASM ping + HTTP saglik kontrolu).
-   - Satir 165-319: buildRouteRequestPayload, requestStepRoute ve fetchHttpRoute; MOLA rakim/egim, tehlike faktorleri ve PLSS O2 verisini paketler ve yonlendirir.
-   - Satir 321-359: MolaAStarGridHelper delegasyonlari (wrapLon, shortestDeltaLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid, solvePathLocalAStar).
-   - Satir 361-629: computeViaRustWasm, convertWasmPathToRoute, haversineMarsKm, fetchHazards ve normalizeRouteResponse/normalizeHazards.
+   - Satir 165-396: buildRouteRequestPayload, requestStepRoute ve fetchHttpRoute; 48x48 MOLA DEM/egim matrisi, krater katalogu, Prameters.md fizigi ve tehlike faktorlerini paketler.
+   - Satir 398-433: MolaAStarGridHelper delegasyonlari (wrapLon, shortestDeltaLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid, solvePathLocalAStar).
+   - Satir 435-720: computeViaRustWasm (Asama 1-3 fallback uyarili), convertWasmPathToRoute, haversineMarsKm, fetchHazards ve normalizeRouteResponse/normalizeHazards.
    ========================================================================== */
