@@ -40,34 +40,34 @@
       const gw = Math.max(40, w - padL - padR);
       const gh = Math.max(30, h - padT - padB);
 
-      ctx.fillStyle = "#f8f9fa";
+      ctx.fillStyle = "#0b0f18";
       ctx.fillRect(padL, padT, gw, gh);
-      ctx.strokeStyle = "#e4e7ec";
+      ctx.strokeStyle = "#1e293b";
       ctx.lineWidth = 1;
       ctx.strokeRect(padL, padT, gw, gh);
 
-      // Yatay %25, %50, %75 izgarasi ve y-ekseni etiketleri
+      // Yatay %20 (Walkback), %50, %100 izgarasi ve y-ekseni etiketleri
       ctx.font = "700 9px 'Public Sans Web', sans-serif";
-      ctx.fillStyle = "#5b6370";
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       [0, 20, 50, 100].forEach((pct) => {
         const y = padT + gh - (pct / 100) * gh;
-        ctx.strokeStyle = pct === 20 ? "rgba(217, 43, 43, 0.45)" : "#e4e7ec";
+        ctx.strokeStyle = pct === 20 ? "rgba(224, 62, 45, 0.58)" : "#1e293b";
         ctx.setLineDash(pct === 20 ? [4, 3] : []);
         ctx.beginPath();
         ctx.moveTo(padL, y);
         ctx.lineTo(padL + gw, y);
         ctx.stroke();
-        ctx.fillStyle = pct === 20 ? "#b41e1e" : "#5b6370";
+        ctx.fillStyle = pct === 20 ? "#f87171" : "#94a3b8";
         ctx.fillText(`${pct}%`, padL - 4, y);
       });
       ctx.setLineDash([]);
 
       if (!Array.isArray(samples) || samples.length < 2) {
-        ctx.fillStyle = "#5b6370";
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "800 10.5px 'Public Sans Web', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("Rota bekleniyor...", padL + gw / 2, padT + gh / 2);
+        ctx.fillText("Ön görev parametreleri (O₂, Enerji, Su) girin...", padL + gw / 2, padT + gh / 2);
         return;
       }
 
@@ -75,7 +75,7 @@
       const maxE = Math.max(minE + 200, summary?.maxElevM ?? 5000);
       const eSpan = maxE - minE;
 
-      // 1. MOLA Rakim dolgu alani (acik kirmizi)
+      // 1. MOLA Rakim dolgu alani (saydam kirmizi)
       ctx.beginPath();
       ctx.moveTo(padL, padT + gh);
       samples.forEach((s, idx) => {
@@ -86,18 +86,18 @@
       });
       ctx.lineTo(padL + gw, padT + gh);
       ctx.closePath();
-      ctx.fillStyle = "rgba(217, 43, 43, 0.12)";
+      ctx.fillStyle = "rgba(224, 62, 45, 0.16)";
       ctx.fill();
 
       // 2. Batarya (%) yesil egrisi
-      this.strokeSeries(ctx, samples, (s) => s.energyPct, padL, padT, gw, gh, "#16a34a", 1.8);
+      this.strokeSeries(ctx, samples, (s) => s.energyPct, padL, padT, gw, gh, "#22c55e", 2.0);
       // 3. Oksijen (%) mavi egrisi
-      this.strokeSeries(ctx, samples, (s) => s.o2Pct, padL, padT, gw, gh, "#2563eb", 2.3);
+      this.strokeSeries(ctx, samples, (s) => s.o2Pct, padL, padT, gw, gh, "#3b82f6", 2.4);
 
-      // 4. Canli zaman imleci (kirmizi dikey cizgi + noktalar)
+      // 4. Canli zaman imleci (parlak beyaz dikey cizgi + noktalar)
       const p = Math.max(0, Math.min(1, progress || 0));
       const cx = padL + p * gw;
-      ctx.strokeStyle = "#0d0f12";
+      ctx.strokeStyle = "#f1f5f9";
       ctx.lineWidth = 1.4;
       ctx.beginPath();
       ctx.moveTo(cx, padT);
@@ -107,12 +107,12 @@
       const idx = Math.min(samples.length - 1, Math.round(p * (samples.length - 1)));
       const cur = samples[idx];
       if (cur) {
-        this.drawDot(ctx, cx, padT + gh - (cur.energyPct / 100) * gh, "#16a34a");
-        this.drawDot(ctx, cx, padT + gh - (cur.o2Pct / 100) * gh, "#2563eb");
+        this.drawDot(ctx, cx, padT + gh - (cur.energyPct / 100) * gh, "#22c55e");
+        this.drawDot(ctx, cx, padT + gh - (cur.o2Pct / 100) * gh, "#3b82f6");
       }
 
       // Alt eksen kilometre etiketi
-      ctx.fillStyle = "#5b6370";
+      ctx.fillStyle = "#94a3b8";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
       ctx.fillText("0 km", padL, padT + gh + 4);
@@ -142,8 +142,8 @@
       ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#0b0f18";
+      ctx.lineWidth = 1.6;
       ctx.stroke();
     }
   }
@@ -155,7 +155,7 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc /demo simulasyon coklu egri tuval grafigi sinifi.
-   - Satir 10-18: constructor ve setCanvas; 2D grafik baglamini hazirlar.
-   - Satir 20-108: render; HiDPI tuvalde %20 Walkback esigi, MOLA rakim alani, Batarya ve O2 egrileri ile canli imleci cizer.
-   - Satir 110-137: strokeSeries ve drawDot; zaman serisi egrilerini ve aktif nokta isaretcilerini cizer.
+   - Satir 10-19: constructor ve setCanvas; 2D grafik baglamini hazirlar.
+   - Satir 21-121: render; koyu uzay temali HiDPI tuvalde %20 Walkback esigi, MOLA rakim alani, Batarya (%22c55e) ve O2 (%3b82f6) egrileri ile canli imleci cizer.
+   - Satir 123-148: strokeSeries ve drawDot; zaman serisi egrilerini ve aktif nokta isaretcilerini cizer.
    ========================================================================== */

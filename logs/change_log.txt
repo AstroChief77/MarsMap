@@ -404,3 +404,24 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * computeViaRustWasm icinde Asama 1/2/3 fallback takibi (fallbackStage & fallbackWarning) ve HTTP A* icin dinamik 48x48 gridW/gridH eslemesi baglandi; non-enumerable _corridorCache ile cift ornekleme onlendi.
 - BACKEND_API.md, index.html & demo/index.html: API sartnamesi + Rust serde sablonlari v4.3.2'ye guncellendi, guncel servis betikleri ?v=4.3.2 onbellek kiriciya alindi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T01:45:00+03:00] feat(mission-gate,v4.4.0): Birlesik Rover+Insan Seferi, Bilim Sekmesinin Kaldirilmasi & Zorunlu O2/Enerji/Su Parametre Kapisi:
+- Yedek Klasoru: backups/snapshot_20261115_joint_rover_o2_gate/
+- js/services/MissionBudgetHelper.js (Yeni Dosya, Satir 1-239):
+  * Ayrik rover/insan/robot modlari kaldirildi; birlesik rover-crew (14.5 km/h) ve joint-eva-escort (3.6 km/h) profilleri, parsePositive, validateMissionParams ve dakika/saat/km-h/m-dk/O2(%+L)/Enerji(%+kWh)/%20 Walkback butce hesabi eklendi.
+- js/models/AppConfig.js, js/services/StateStorageService.js & js/services/SettingsPanel.js:
+  * Depolama anahtari v4.4 olarak yenilendi; oxygenReserveLiters, energyReserveKwh ve waterReserveLiters varsayilan null (bos) baslatildi; missionParamsConfirmed kapisi ve null-guvenli rezerv gosterimi eklendi.
+- js/services/MarsSimulationEngine.js, RoutePlannerService.js, BackendApiService.js, RouteCanvasRenderer.js & SimulationChartRenderer.js:
+  * normalizeMode() ve buildTimeline() zorunlu parametre kapisina baglandi; haritada birlesik Rover+Ekip ve Rover+Yaya EVA isaretcileri ile koyu kozmik tema grafik paleti uygulandi.
+- js/services/DemoScenarioService.js, DemoControlBar.js, data/i18n/localesDemo.js & data/i18n/localesMission.js:
+  * 9 dilli zorunlu kapi/varis ozeti/durak cevirileri eklendi; demo oynatma, senaryo secimi ve zaman kaydirici pozitif O2/Enerji/Su parametreleri olmadan engellendi.
+- js/components/RouteInspectorPanel.js, MarsMapInteractionHelper.js, MarsNavigatorController.js & index.html:
+  * .insp-param-box, #insp-latency-pill-card (5sn ping), varis ozeti, %20 Walkback uyarisi, #btn-start-joint-journey, Sol 2031 durak fotografi karti ve ?v=4.6 betik yuklemeleri eklendi; handleSearchQuery krater/inis sahasi arama duzeltmesi yapildi.
+- demo/index.html & js/components/DemoStudioController.js (< 800 satir = 778 satir):
+  * "Bilim" sekmesi ve robotic-perseverance senaryosu kaldirildi; 4. senaryo jezero-delta-2d (Jezero 2D Delta Gecisi) oldu; O2/Enerji/Su girilmeden hesap/oynatma engellendi ve varis ozet kutusu (#sim-arrival-box) eklendi.
+- css/style.css, satellites_panel.css, controls.css, demo.css, inspector.css & demo_studio.css (?v=4.6):
+  * Koyu kozmik temadaki ters cevrilmis --ink-black / --bg-white kontrast hatalari (beyaz /demo panelleri, koyu metinli buton/toast/foto kartlari) giderildi; .insp-param-box, .route-summary-grid ve .sim-arrival-box stilleri eklendi.
+  * Son E2E görsel denetim duzeltmeleri: hideToast() ile kapi uyarisi gecerli giriste temizlendi; .app-toast ust ortaya alindi; sag alt .zoom-stack yatay hizalanip .inspector-card alt kenari cakismasi giderildi; flyToCraterById/handlePresetEndpointChange ile aktif krater durak fotografi (Sol 2031) aninda senkronlandi; demo/index.html Ortak Hiz satiri tek satira hizalandi.
+- version.json (v4.4.0), ForAgents/PROJECT_STATE.md & ForAgents/SHARED_PLANS_AND_API.md guncellendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+

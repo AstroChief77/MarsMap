@@ -195,9 +195,9 @@
 .backend-url-input {
   width: 100%;
   padding: 5px 7px;
-  border: 1px solid var(--ink-black);
+  border: 1px solid var(--line-light);
   border-radius: 5px;
-  background: var(--bg-white);
+  background: rgba(10, 14, 22, 0.9);
   font-size: 11px;
   font-weight: 700;
   color: var(--ink-black);
@@ -211,22 +211,23 @@
 .backend-mini-btn {
   flex: 1;
   padding: 5px 8px;
-  border: 1px solid var(--ink-black);
+  border: 1px solid var(--line-light);
   border-radius: 5px;
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--bg-soft);
+  color: #ffffff;
   font-size: 11px;
   font-weight: 800;
+  cursor: pointer;
 }
 
 .backend-mini-btn.ghost {
-  background: var(--bg-white);
+  background: var(--bg-offwhite);
   color: var(--ink-black);
 }
 
 .backend-mini-btn:hover {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   border-color: var(--mars-red);
 }
 
@@ -389,7 +390,7 @@
 .nav-lang-select {
   padding: 7px 11px;
   border-radius: 6px;
-  border: 1.5px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
   background: var(--bg-offwhite);
   color: var(--ink-black);
   font-size: 12.5px;
@@ -417,7 +418,7 @@
 
 .zoom-stack {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: var(--bg-white);
   border: 1.5px solid var(--line-light);
   backdrop-filter: blur(14px);
@@ -427,12 +428,12 @@
 }
 
 .zoom-btn {
-  width: 46px;
-  height: 44px;
-  font-size: 20px;
+  width: 38px;
+  height: 36px;
+  font-size: 17px;
   font-weight: 900;
   color: var(--ink-black);
-  border-bottom: 1px solid var(--line-light);
+  border-right: 1px solid var(--line-light);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -440,7 +441,7 @@
 }
 
 .zoom-btn:last-child {
-  border-bottom: none;
+  border-right: none;
 }
 
 .zoom-btn:hover {
@@ -479,26 +480,26 @@
 .zoom-btn-3d {
   font-size: 12.5px !important;
   font-weight: 900 !important;
-  background: var(--ink-black) !important;
-  color: var(--bg-white) !important;
+  background: rgba(10, 14, 22, 0.95) !important;
+  color: #ffffff !important;
   border-color: var(--mars-red) !important;
 }
 
 .zoom-btn-peak {
   font-size: 18px !important;
   background: var(--mars-red) !important;
-  color: var(--bg-white) !important;
+  color: #ffffff !important;
 }
 
 /* Toast ve FPS Koruma Uyari Bandi */
 .app-toast {
   position: absolute;
-  bottom: 22px;
+  top: 72px;
   left: 50%;
-  transform: translateX(-50%) translateY(14px);
+  transform: translateX(-50%) translateY(-10px);
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 1.5px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
   border-radius: var(--r-pill);
   padding: 8px 16px;
   font-size: 12px;
@@ -519,8 +520,8 @@
 
 .app-toast.warn {
   background: var(--mars-red);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 @media (max-width: 820px) {
@@ -532,11 +533,11 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc kontroller ve %60 Beyaz / %30 Siyah / %10 Kirmizi stil tanimi.
-   - Satir 7-42: Sol ust ayar ikonu konteyneri ve kare ayarlar dugmesi.
-   - Satir 44-232: Ayarlar acilir penceresi; 1. secenek kirmizi Factory Reset dugmesi, fabrika birim kutusu, FPS korumali anahtarlar ve backend kutusu.
-   - Satir 234-296: Sol ust Ayarlar menusu icindeki 9 dilli (ko, ja, tr, de, en, he, ar, fr, es) izgarali dil secim cip butonlari.
-   - Satir 298-370: Ust hizli hedef krater secimi (Genel Mars, Gale, Jezero, Korolev), Bilgi butonu ve hizli 9 dil secim acilir listesi (.nav-lang-select).
-   - Satir 372-440: Sag alt zoom yigini, koordinat/karo telemetri bandi ve canli FPS rozeti.
-   - Satir 442-485: Orta alt bildirim ve FPS < 10 koruma uyari toast bandi.
+   - Satir 1-5: JSDoc kontroller ve koyu kozmik Mars tema tanimi.
+   - Satir 7-45: Sol ust ayar ikonu konteyneri ve kare ayarlar dugmesi.
+   - Satir 47-238: Ayarlar acilir penceresi; 1. secenek kirmizi Factory Reset dugmesi, fabrika birim kutusu, FPS korumali anahtarlar ve backend kutusu.
+   - Satir 240-300: Sol ust Ayarlar menusu icindeki 9 dilli secim cip butonlari.
+   - Satir 302-405: Ust arama cubugu, marka rozeti, Demo/Bilgi dugmeleri ve dil secicisi.
+   - Satir 407-492: Sag alt zoom yigini (2D/3D/Peak), koordinat/karo telemetri bandi ve canli FPS rozeti.
+   - Satir 494-531: Orta alt bildirim, parametre kapi uyarisi ve FPS < 10 koruma toast bandi.
    ========================================================================== */

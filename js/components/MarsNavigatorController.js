@@ -53,6 +53,8 @@
       this.zoomSettleTimer = null; this.dragSettleTimer = null; this.persistTimer = null; this.routeDebounceTimer = null;
       this.latencyTimer = null; this.toastTimer = null; this.lastTelemetryText = "";
       this.lastFpsVal = -1; this.lastHoverTs = 0; this.lastTelemTs = 0;
+      this.budget = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
+      this.paramAttempted = false;
       this.interactionHelper = ns.MarsMapInteractionHelper ? new ns.MarsMapInteractionHelper(this) : null;
 
       this.initUiPanels();
@@ -79,16 +81,20 @@
         }
       }
       const norm = q.toLowerCase();
-      const craterHit = (this.craters || []).find((c) => c.name.toLowerCase().includes(norm) || c.id.toLowerCase().includes(norm));
+      const craterHit = this.getLocalizedCraters().find((c) => c.name.toLowerCase().includes(norm) || c.id.toLowerCase().includes(norm));
       if (craterHit) {
         this.flyToCraterById(craterHit.id);
         return;
       }
       const siteHit = (this.landingSites || []).find((s) => s.name.toLowerCase().includes(norm) || s.id.toLowerCase().includes(norm));
       if (siteHit) {
-        this.animateTo(siteHit.lat, siteHit.lon, Math.max(this.state.zoom || 1, 2.2));
-        this.showToast(siteHit.name);
-        return;
+        const sLat = Number(siteHit.latitude ?? siteHit.lat);
+        const sLon = Number(siteHit.longitude ?? siteHit.lon);
+        if (Number.isFinite(sLat) && Number.isFinite(sLon)) {
+          this.animateTo(sLat, sLon, Math.max(this.state.zoom || 1, 2.2));
+          this.showToast(siteHit.name);
+          return;
+        }
       }
       const landmarks = [
         { name: "Olympus Mons", lat: 18.65, lon: -133.8, zoom: 2.35 },
@@ -133,9 +139,12 @@
       });
       this.inspectorPanel = new RouteInspectorPanel(document.getElementById("top-right-dock"), {
         onToggleInspector: (open) => { this.state.inspectorOpen = open; this.persistState(); this.renderUi(); },
+        onChangeExpeditionMode: (m) => this.onChangeExpeditionMode(m),
+        onChangeMissionParam: (k, v) => this.onChangeMissionParam(k, v),
         onChangeGlobalEndpoints: (key, siteId) => this.handlePresetEndpointChange(key, siteId),
         onTogglePickMode: (mode) => this.togglePickMode(mode),
-        onSendBackendRoute: () => this.fetchBackendRouteNow(true),
+        onSendBackendRoute: () => this.confirmAndCalculateRoute(),
+        onStartJointJourney: () => this.startJointJourney(),
         onChangeStepTab: (tab) => { this.state.activeStepRouteTab = tab === "secondary" ? "secondary" : "primary"; this.persistState(); this.renderUi(); },
         onFocusCoords: (lat, lon) => this.animateTo(lat, lon, Math.max(this.state.zoom, 1.35)),
         onSelectWaypoint: (wpId) => {
@@ -149,6 +158,8 @@
       if (DemoScenarioService) {
         const wired = DemoScenarioService.attach(demoMount, {
           getState: () => this.state, getRoutes: () => this.backendRoutes,
+          ensureMissionParamsReady: (open) => this.ensureMissionParamsReady(open),
+          onChangeExpeditionMode: (m) => this.onChangeExpeditionMode(m),
           applyDemoScenario: (sc) => this.applyDemoScenario(sc), scheduleRender: (t) => this.scheduleRender(t),
           renderUi: () => this.renderUi(), showToast: (m, w) => this.showToast(m, w)
         });
@@ -176,6 +187,7 @@
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       this.starfield?.setEnabled(this.state.showStarfield);
+      if (this.demoService) this.demoService.expeditionMode = this.state.expeditionMode || "rover-crew";
 
       this.resizeCanvas();
       this.renderBottomRight();
@@ -184,8 +196,87 @@
       this.fpsGuard.start();
       this.startBackendLatencyMonitor();
       this.refreshAll();
-      this.refreshBackendHazardsAndRoute();
+      this.refreshBackendHazardsAndHealth();
       try { if (new URLSearchParams(window.location.search).get("demo") === "1") this.demoService?.startDemo(0); } catch (_e) {}
+    }
+
+    getMissionParamCheck() {
+      if (this.budget) return this.budget.validateMissionParams(this.state);
+      const miss = [];
+      if (!(this.state.oxygenReserveLiters > 0)) miss.push("o2");
+      if (!(this.state.energyReserveKwh > 0)) miss.push("energy");
+      if (!(this.state.waterReserveLiters > 0)) miss.push("water");
+      if (!(this.state.targetSpeedKmH > 0)) miss.push("speed");
+      return { valid: miss.length === 0, missingKeys: miss, mode: this.state.expeditionMode || "rover-crew", profile: { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 }, normalized: { startO2Pct: 0, startEnergyPct: 0 } };
+    }
+
+    hasValidMissionParams() { return this.getMissionParamCheck().valid; }
+
+    ensureMissionParamsReady(openInspector = true) {
+      const check = this.getMissionParamCheck();
+      if (check.valid) return true;
+      this.paramAttempted = true;
+      if (openInspector && !this.state.inspectorOpen) {
+        this.state.inspectorOpen = true;
+        this.persistState();
+      }
+      this.renderUi();
+      const map = { o2: "#inp-mission-o2", energy: "#inp-mission-energy", water: "#inp-mission-water", speed: "#inp-mission-speed" };
+      const sel = map[check.missingKeys[0]];
+      if (sel) setTimeout(() => document.querySelector(sel)?.focus?.(), 20);
+      this.showToast(this.t("demoGateBlockedToast"), true);
+      return false;
+    }
+
+    onChangeExpeditionMode(mode) {
+      const normalized = this.budget ? this.budget.normalizeModeId(mode) : (mode === "joint-eva-escort" ? "joint-eva-escort" : "rover-crew");
+      const prof = this.budget ? this.budget.getModeProfile(normalized) : { defaultSpeedKmH: normalized === "joint-eva-escort" ? 3.6 : 14.5 };
+      this.state.expeditionMode = normalized;
+      this.state.targetSpeedKmH = prof.defaultSpeedKmH;
+      if (this.demoService) this.demoService.expeditionMode = normalized;
+      this.backendRoutes = null; this.cachedBundle = null;
+      this.persistState();
+      this.renderUi();
+      if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(30);
+    }
+
+    onChangeMissionParam(key, rawVal) {
+      const fieldMap = { o2: "oxygenReserveLiters", energy: "energyReserveKwh", water: "waterReserveLiters", speed: "targetSpeedKmH" };
+      const field = fieldMap[key];
+      if (!field) return;
+      const parsed = this.budget ? this.budget.parsePositive(rawVal) : (Number(rawVal) > 0 ? Number(rawVal) : null);
+      this.state[field] = parsed;
+      const check = this.getMissionParamCheck();
+      if (!check.valid) {
+        const hadRoutes = Boolean(this.backendRoutes || this.state.missionParamsConfirmed);
+        this.state.missionParamsConfirmed = false;
+        this.backendRoutes = null; this.cachedBundle = null;
+        this.demoService?.resetSilent?.();
+        this.schedulePersistState();
+        if (hadRoutes) this.renderUi();
+        else this.inspectorPanel?.syncParamGateUi?.(this.state, check, this.paramAttempted);
+        return;
+      }
+      this.paramAttempted = false;
+      this.hideToast();
+      this.schedulePersistState();
+      this.inspectorPanel?.syncParamGateUi?.(this.state, check, false);
+      if (this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(180);
+    }
+
+    async confirmAndCalculateRoute() {
+      if (!this.ensureMissionParamsReady(true)) return;
+      this.paramAttempted = false;
+      this.hideToast();
+      this.state.missionParamsConfirmed = true;
+      this.persistState();
+      await this.fetchBackendRouteNow(true);
+    }
+
+    async startJointJourney() {
+      if (!this.ensureMissionParamsReady(true)) return;
+      if (!this.state.missionParamsConfirmed || !this.backendRoutes) await this.confirmAndCalculateRoute();
+      if (this.backendRoutes) this.demoService?.startCurrentRoute?.();
     }
 
     getLocalizedCraters() { return this.i18n ? CRATERS_DATA.map((c) => this.i18n.localizeCrater(c)) : CRATERS_DATA; }
@@ -228,7 +319,7 @@
         this.starfield?.setEnabled(this.state.showStarfield);
         this.persistState();
         this.refreshAll();
-        this.refreshBackendHazardsAndRoute();
+        this.refreshBackendHazardsAndHealth();
         this.showToast(this.t("toastFpsRevert", { fps: measuredFps, label: failedLabel }), true);
       });
 
@@ -247,18 +338,20 @@
       if (this.renderRafId) cancelAnimationFrame(this.renderRafId);
       this.renderRafId = null;
       this.pickMode = null;
+      this.paramAttempted = false;
       this.demoService?.resetSilent?.();
       if (this.canvas) this.canvas.style.cursor = "";
       this.backendRoutes = null; this.backendHazards = null;
       this.backendStatusText = ""; this.lastRequestPayload = null;
       this.state = this.storage.factoryReset();
       if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
+      if (this.demoService) this.demoService.expeditionMode = this.state.expeditionMode || "rover-crew";
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       this.starfield?.setEnabled(this.state.showStarfield);
       this.renderBottomRight();
       this.refreshAll();
-      this.refreshBackendHazardsAndRoute();
+      this.refreshBackendHazardsAndHealth();
       this.showToast(this.t("toastFactoryReset"));
     }
 
@@ -268,7 +361,7 @@
       this.persistState();
       this.animateTo(-2.0, 96.0, 1.02);
       this.renderUi();
-      this.scheduleBackendRouteFetch(120);
+      if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(120);
     }
 
     flyToCraterById(craterId) {
@@ -278,6 +371,8 @@
       if (this.canvas) this.canvas.style.cursor = "";
       this.state.activeCraterId = crater.id;
       this.state.routeScope = "global";
+      const wps = this.getActiveWaypoints();
+      this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       if (crater.id !== "gale-crater") {
         this.state.customDestination = { id: crater.id, name: crater.name, lat: crater.coordinates.lat, lon: crater.coordinates.lon };
         this.state.useCustomCoordinates = true;
@@ -286,7 +381,7 @@
       this.persistState();
       this.refreshAll();
       this.animateTo(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.state.zoom, 1.25));
-      this.scheduleBackendRouteFetch(120);
+      if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(120);
     }
 
     getActiveEndpoints() {
@@ -325,8 +420,16 @@
     }
 
     applyDemoScenario(scen) {
-      if (!scen) return;
+      if (!scen || !this.ensureMissionParamsReady(true)) return;
+      this.paramAttempted = false;
+      this.state.missionParamsConfirmed = true;
       Object.assign(this.state, scen.patch || {});
+      if (scen.expeditionMode) {
+        const mode = this.budget ? this.budget.normalizeModeId(scen.expeditionMode) : scen.expeditionMode;
+        const prof = this.budget ? this.budget.getModeProfile(mode) : null;
+        this.state.expeditionMode = mode;
+        if (prof) this.state.targetSpeedKmH = prof.defaultSpeedKmH;
+      }
       if (scen.camera) { this.state.camPitch = scen.camera.pitch ?? 28; this.state.camYaw = 0; }
       this.backendRoutes = null; this.persistState(); this.renderBottomRight(); this.refreshAll();
       if (scen.camera) this.animateTo(scen.camera.lat, scen.camera.lon, scen.camera.zoom);
@@ -346,6 +449,7 @@
       const radZones = Array.isArray(hazardBundle?.radiationZones) ? hazardBundle.radiationZones : [];
       const { origin, destination } = this.getActiveEndpoints();
       const reqPayload = this.lastRequestPayload || this.buildCurrentRequestPayload(origin, destination, activeCrater);
+      const paramCheck = this.getMissionParamCheck();
 
       this.settingsPanel.render(this.state, craters, this.backendStatusText, Boolean(this.demoService?.active));
       this.satellitesPanel.render(this.state, this.tileLoader.getLayers());
@@ -354,7 +458,8 @@
         {
           activeOrigin: origin, activeDestination: destination, pickMode: this.pickMode,
           backendLoading: this.backendLoading, backendLatencyMs: this.backendLatencyMs,
-          backendStatusText: this.backendStatusText, lastRequestPayload: reqPayload
+          backendStatusText: this.backendStatusText, lastRequestPayload: reqPayload,
+          paramCheck, paramAttempted: this.paramAttempted
         }
       );
       this.demoBar?.render(this.demoService?.getUiState());
@@ -516,11 +621,17 @@
       if (site) {
         const pt = { id: site.id, name: site.name, lat: site.latitude, lon: site.longitude };
         if (key === "globalOriginId") this.state.customOrigin = pt;
-        else this.state.customDestination = pt;
+        else {
+          this.state.customDestination = pt;
+          if (siteId === "perseverance-jezero") this.state.activeCraterId = "jezero-crater";
+          else if (siteId === "curiosity-gale") this.state.activeCraterId = "gale-crater";
+          const wps = this.getActiveWaypoints();
+          this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
+        }
       }
       this.backendRoutes = null;
       this.persistState(); this.refreshAll();
-      this.scheduleBackendRouteFetch(40);
+      if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(40);
     }
 
     togglePickMode(mode) {
@@ -538,7 +649,7 @@
       this.backendStatusText = clean ? this.t("backendConnecting") : this.t("backendLocalActive");
       this.persistState(); this.refreshAll();
       if (!clean) this.showToast(this.t("toastBackendUrlCleared"));
-      await this.refreshBackendHazardsAndRoute();
+      await this.refreshBackendHazardsAndHealth();
     }
 
     async handleBackendUrlTest(rawUrl) {
@@ -549,7 +660,7 @@
       this.showToast(res.message, !res.ok);
     }
 
-    async refreshBackendHazardsAndRoute() {
+    async refreshBackendHazardsAndHealth() {
       if (!this.backendApi) return;
       const baseUrl = this.state.backendApiUrl || "";
       const health = await this.backendApi.testConnection(baseUrl);
@@ -562,7 +673,11 @@
         this.cachedBundle = null;
         this.scheduleRender(false);
       }
-      await this.fetchBackendRouteNow();
+      if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) await this.fetchBackendRouteNow();
+    }
+
+    async refreshBackendHazardsAndRoute() {
+      return this.refreshBackendHazardsAndHealth();
     }
 
     startBackendLatencyMonitor() {
@@ -593,11 +708,16 @@
 
     scheduleBackendRouteFetch(delayMs = 180) {
       clearTimeout(this.routeDebounceTimer);
+      if (!this.hasValidMissionParams() || !this.state.missionParamsConfirmed) return;
       this.routeDebounceTimer = setTimeout(() => this.fetchBackendRouteNow(), delayMs);
     }
 
     async fetchBackendRouteNow(isManual = false) {
       if (!this.backendApi) return;
+      if (!this.hasValidMissionParams() || !this.state.missionParamsConfirmed) {
+        if (isManual) this.ensureMissionParamsReady(true);
+        return;
+      }
       const baseUrl = this.state.backendApiUrl || "http://127.0.0.1:8080";
       const seq = ++this.requestSeq;
       this.backendLoading = true;
@@ -641,6 +761,8 @@
       this.updateTelemetryBar();
     }
 
+    hideToast() { clearTimeout(this.toastTimer); document.getElementById("app-toast")?.classList.remove("show"); }
+
     showToast(msg, isWarn = false) {
       const toast = document.getElementById("app-toast");
       if (!toast) return;
@@ -659,11 +781,10 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-16: JSDoc ve IIFE modul tanimi.
-   - Satir 17-62: constructor ve t; 9 dilli i18n, HiDPI olcek, MarsMapInteractionHelper, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
-   - Satir 63-167: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme, Demo Modu panellerini ve 9 dil gecisini yonetir.
-   - Satir 168-286: applyGuardedSetting, performFactoryReset, switchToGlobalRouteScope, applyDemoScenario ve rota/tehlike demeti yardimcilari.
-   - Satir 287-429: renderUi, renderBottomRight, updateTelemetryBar, requestTilesForView ve drawMap; yerellestirilmis telemetri ve HiDPI 2D/3D cizim.
-   - Satir 431-457: MarsMapInteractionHelper delegasyonlari (bindCanvasEvents, bindGlobalEvents, animateTo, applyZoom), resizeCanvas ve pixelToGeo.
-   - Satir 458-603: handlePresetEndpointChange, togglePickMode, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
+   - Satir 17-64: constructor ve t; MissionBudgetHelper, 9 dilli i18n, HiDPI olcek, MarsMapInteractionHelper, Rust Backend/WASM ve FPS koruma sistemini kurar.
+   - Satir 65-281: handleSearchQuery, initUiPanels, init ve zorunlu on-gorev parametre kapisi (getMissionParamCheck, ensureMissionParamsReady, onChangeExpeditionMode, confirmAndCalculateRoute, startJointJourney).
+   - Satir 283-466: applyGuardedSetting, performFactoryReset, krater/demo gecisleri, renderUi, renderBottomRight ve telemetri/cizim dongusu.
+   - Satir 468-615: Sag alt kontrol cubugu, drawMap delegasyonlari, resizeCanvas ve pixelToGeo ters projeksiyonu.
+   - Satir 617-776: Hedef secimi, backend saglik/tehlike ve kapi korumali rota hesaplama, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
    ========================================================================== */
 

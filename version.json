@@ -1,7 +1,7 @@
 {
   "name": "AstroChief-MarsMap",
-  "version": "4.3.0",
-  "buildDate": "2026-11-14",
+  "version": "4.4.0",
+  "buildDate": "2026-11-15",
   "targets": ["linux-x64", "windows-x64"],
-  "description": "NASA Space Apps 2026 - Rehberli Juri Demo Modu (v4.3), 9 Dil Destekli, Varsayilan 3D Harita, Rust WASM/HTTP A* ve MOLA DEM"
+  "description": "NASA Space Apps 2026 - Birlesik Rover+Insan Ortak Seferi, Bilim Sekmesi Kaldirildi, Zorunlu On-Gorev O2/Enerji/Su Parametre Kapisi, Koyu Kozmik Kontrast (v4.4.0)"
 }

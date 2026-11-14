@@ -10,8 +10,8 @@
   font-size: 12.5px;
   font-weight: 900;
   background: var(--mars-red);
-  color: var(--bg-white);
-  border: 1.5px solid var(--ink-black);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.12s ease;
 }
@@ -21,8 +21,8 @@
 }
 
 .nav-demo-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: rgba(10, 14, 22, 0.95);
+  color: #ffffff;
   border-color: var(--mars-red);
 }
 
@@ -41,7 +41,8 @@
   pointer-events: auto;
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 2px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(16px);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   font-family: var(--font-main);
@@ -96,8 +97,9 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: rgba(10, 14, 22, 0.95);
+  color: #ffffff;
+  border: 1px solid var(--line-light);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.05em;
@@ -133,6 +135,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .demo-scen-pill,
@@ -155,14 +158,14 @@
 .demo-speed-btn.active,
 .demo-mini-btn.active,
 .demo-veh-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--mars-red);
+  color: #ffffff;
+  border-color: var(--mars-red);
 }
 
 .demo-ctrl-btn.primary {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   border-color: var(--mars-red-dark);
   padding: 4px 10px;
 }
@@ -173,7 +176,7 @@
 
 .demo-mini-btn.danger:hover {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   border-color: var(--mars-red);
 }
 
@@ -230,7 +233,7 @@
 .demo-metric-chip.warn {
   background: var(--mars-red-tint);
   border-color: var(--mars-red);
-  color: var(--mars-red-dark);
+  color: #fca5a5;
 }
 
 @media (max-width: 820px) {
@@ -243,9 +246,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Demo modu CSS sablonu ve kurumsal tema aciklamasi.
-   - Satir 7-26: .nav-demo-btn; ust cubuktaki kirmizi/siyah Demo baslatma dugmesi.
-   - Satir 28-64: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakisimsiz konumlandirma ve kucultulmus hap gorunumu.
-   - Satir 66-160: .demo-panel, senaryo secici, oynat/duraklat, ilerleme kaydirici ve anlatim karti stilleri.
-   - Satir 162-215: .demo-tele-row, .demo-metric-chip ve dar ekran duyarli kurallari.
+   - Satir 1-5: JSDoc Ortak Sefer Demo Kontrol Cubugu CSS stilleri.
+   - Satir 7-28: .nav-demo-btn; ust cubuktaki kirmizi/koyu uzay temali Demo dugmesi.
+   - Satir 30-79: .demo-bar-root, .demo-panel ve .demo-collapsed-pill koyu kozmik cam kartlari.
+   - Satir 81-188: Rozet, senaryo, birlesik Rover+Ekip / Rover+Yaya EVA mod dugmeleri ve oynatma kontrolleri.
+   - Satir 190-245: .demo-tele-row, .demo-metric-chip (uyari durumu #fca5a5 kontrastli) ve duyarli kurallar.
    ========================================================================== */

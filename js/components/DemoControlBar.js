@@ -29,16 +29,25 @@
     updateLiveTelemetry(tele) {
       if (!this.mountEl || !tele) return;
       const pctEl = this.mountEl.querySelector("#demo-pct-val");
+      const timeEl = this.mountEl.querySelector("#demo-time-val");
       const distEl = this.mountEl.querySelector("#demo-dist-val");
       const elevEl = this.mountEl.querySelector("#demo-elev-val");
       const o2El = this.mountEl.querySelector("#demo-o2-val");
+      const energyEl = this.mountEl.querySelector("#demo-energy-val");
       const scrubEl = this.mountEl.querySelector("#demo-scrubber");
       if (pctEl) pctEl.textContent = `${tele.progressPct}%`;
+      if (timeEl) timeEl.textContent = `⏱ ${tele.elapsedMin || 0} ${this.t("minsUnit")}`;
       if (distEl) distEl.textContent = `${tele.traveledKm.toFixed(1)} / ${tele.totalKm.toFixed(1)} km`;
       if (elevEl) elevEl.textContent = `${tele.elevM >= 0 ? "+" : ""}${tele.elevM} m`;
       if (o2El) {
-        o2El.textContent = `${tele.remainingO2L} L`;
-        o2El.classList.toggle("warn", tele.remainingO2L < 95);
+        const pctTxt = Number.isFinite(tele.o2Pct) ? ` (%${Math.round(tele.o2Pct)})` : "";
+        o2El.textContent = `${tele.remainingO2L} L${pctTxt} O₂`;
+        o2El.classList.toggle("warn", Number(tele.o2Pct) < 20);
+      }
+      if (energyEl) {
+        const ePctTxt = Number.isFinite(tele.energyPct) ? ` (%${Math.round(tele.energyPct)})` : "";
+        energyEl.textContent = `${Number(tele.remainingEnergyKwh || 0).toFixed(1)} kWh${ePctTxt}`;
+        energyEl.classList.toggle("warn", Number(tele.energyPct) < 35);
       }
       if (scrubEl && !this.isScrubbing) {
         scrubEl.value = String(Math.round((tele.progress || 0) * 1000));
@@ -55,8 +64,10 @@
       const dirAttr = (ns.i18n && ns.i18n.isRtl()) ? 'dir="rtl"' : 'dir="ltr"';
       const activeScen = uiState.scenarios[uiState.scenarioIdx] || uiState.scenarios[0];
       const tele = uiState.telemetry || {
-        progressPct: 0, traveledKm: 0, totalKm: 0, elevM: 0, remainingO2L: 420, speedKmH: 14.5, progress: 0
+        progressPct: 0, traveledKm: 0, totalKm: 0, elapsedMin: 0, elevM: 0,
+        remainingO2L: 420, o2Pct: 100, remainingEnergyKwh: 75, energyPct: 100, speedKmH: 14.5, progress: 0
       };
+      const curMode = uiState.expeditionMode || "rover-crew";
 
       if (uiState.collapsed) {
         this.mountEl.innerHTML = `
@@ -122,14 +133,16 @@
 
           <div class="demo-tele-row">
             <div class="demo-vehicle-switch">
-              <button type="button" class="demo-veh-btn ${uiState.vehicle === "rover" ? "active" : ""}" data-demo-veh="rover">🚙 ${this.esc(this.t("demoVehicleRover"))}</button>
-              <button type="button" class="demo-veh-btn ${uiState.vehicle === "astronaut" ? "active" : ""}" data-demo-veh="astronaut">🧑‍🚀 ${this.esc(this.t("demoVehicleEva"))}</button>
+              <button type="button" class="demo-veh-btn ${curMode === "rover-crew" ? "active" : ""}" data-demo-veh="rover-crew">🚙🧑‍🚀 ${this.esc(this.t("demoModeRoverCrew"))}</button>
+              <button type="button" class="demo-veh-btn ${curMode === "joint-eva-escort" ? "active" : ""}" data-demo-veh="joint-eva-escort">🚙🥾 ${this.esc(this.t("demoModeJointEva"))}</button>
             </div>
             <div class="demo-metrics-chips">
+              <span class="demo-metric-chip" id="demo-time-val">⏱ ${tele.elapsedMin || 0} ${this.esc(this.t("minsUnit"))}</span>
               <span class="demo-metric-chip">⚡ ${tele.speedKmH} ${this.esc(this.t("demoSpeedUnit"))}</span>
               <span class="demo-metric-chip" id="demo-dist-val">${tele.traveledKm.toFixed(1)} / ${tele.totalKm.toFixed(1)} km</span>
               <span class="demo-metric-chip" id="demo-elev-val">${tele.elevM >= 0 ? "+" : ""}${tele.elevM} m</span>
-              <span class="demo-metric-chip ${tele.remainingO2L < 95 ? "warn" : ""}" id="demo-o2-val">${tele.remainingO2L} L O₂</span>
+              <span class="demo-metric-chip ${Number(tele.o2Pct) < 20 ? "warn" : ""}" id="demo-o2-val">${tele.remainingO2L} L (%${Math.round(tele.o2Pct ?? 100)}) O₂</span>
+              <span class="demo-metric-chip ${Number(tele.energyPct) < 35 ? "warn" : ""}" id="demo-energy-val">${Number(tele.remainingEnergyKwh || 0).toFixed(1)} kWh</span>
             </div>
           </div>
         </section>
@@ -176,9 +189,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc alt-orta Rehberli Demo Kontrol Cubugu bileseni tanimi.
-   - Satir 10-24: constructor, t ve esc; DOM baglantisi, 9-dil cevirisi ve XSS kacisi.
-   - Satir 26-42: updateLiveTelemetry; rAF animasyonu sirasinda sayac ve kaydiriciyi yerinden oynatmadan gunceller.
-   - Satir 44-119: render; kucultulmus hap veya tam juri demo karti (senaryo secimi, hiz, arac secimi, telemetri) cizer.
-   - Satir 121-151: bindEvents; oynat/duraklat, ileri/geri, arac tipi, hiz carpani ve ilerleme cubugu olaylarini baglar.
+   - Satir 1-5: JSDoc alt-orta Ortak Sefer Kontrol Cubugu bileseni tanimi.
+   - Satir 10-26: constructor, t ve esc; DOM baglantisi, 9-dil cevirisi ve XSS kacisi.
+   - Satir 28-54: updateLiveTelemetry; rAF animasyonu sirasinda dk, km, rakim, %O2/L ve kWh sayaclarini gunceller.
+   - Satir 56-154: render; kucultulmus hap veya tam kontrol karti (birlesik Rover+Ekip / Rover+Yaya EVA modlari, senaryo, hiz, telemetri) cizer.
+   - Satir 156-187: bindEvents; oynat/duraklat, ileri/geri, ortak sefer modu, hiz carpani ve ilerleme cubugu olaylarini baglar.
    ========================================================================== */
