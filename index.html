@@ -3,64 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AstroChief - Mars yüzey keşfi, NASA açık verileri, jeolojik haritalama ve rover rota optimizasyon portalı şablonu.">
-  <title>AstroChief | Mars Exploration & Research Mission</title>
+  <meta name="description" content="AstroChief - NASA Space Apps Challenge 2026 'Interplanetary Survival Guide: Martian Map' astronot krater keşif haritası ve Marswalk navigasyon aracı.">
+  <title>AstroChief | Mars Crater Map &amp; Astronaut Navigator</title>
   
-  <!-- Favicon / İkon -->
+  <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪐</text></svg>">
   
-  <!-- CSS Stilleri -->
+  <!-- CSS Stilleri (Public Sans Web Bold & Temiz Siyah Uzay Teması) -->
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
 
-  <!-- Üst Gezinti Çubuğu (Navbar Container) -->
-  <header id="navbar-container"></header>
+  <!-- Zifiri Siyah Uzay & Parıldayan Gerçekçi Yıldızlar Tuvali -->
+  <canvas id="starfield-canvas"></canvas>
 
-  <!-- Ana Karşılama Alanı (Hero Section) -->
-  <main>
-    <section id="hero" class="hero-section">
-      <div class="hero-glow-bg"></div>
-      <div class="hero-content">
-        <div class="hero-badge">
-          <span class="pulse-dot"></span>
-          <span>Mission AstroChief — Active Phase</span>
-        </div>
-        <h1 class="hero-title">
-          Explore the Red Planet with <span class="gradient-text">AstroChief</span>
-        </h1>
-        <p class="hero-description">
-          NASA açık veri setleri, JPL Mars Trek 3D modelleri, USGS jeolojik haritaları ve Curiosity / Perseverance gezici verilerini bir araya getiren yeni nesil keşif arayüzü şablonu.
-        </p>
-        <div class="hero-cta-group">
-          <a href="#details" class="btn-primary">
-            <span>Mission Details</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 9l-7 7-7-7"/>
-            </svg>
-          </a>
-          <a href="#resources" class="btn-secondary">
-            <span>NASA Data & Resources</span>
-          </a>
-          <a href="#teams" class="btn-secondary">
-            <span>Flight Crew</span>
-          </a>
-        </div>
-      </div>
-    </section>
+  <!-- Uygulama İçerik Katmanı -->
+  <div id="app-content-wrapper">
 
-    <!-- Details Bölümü Kapsayıcısı (Details Section Mount) -->
-    <div id="details-container"></div>
+    <!-- En Üst Astronot Canlı Telemetri Çubuğu (EVA HUD) -->
+    <div id="hud-telemetry-container"></div>
 
-    <!-- Resources Bölümü Kapsayıcısı (Resources Section Mount) -->
-    <div id="resources-container"></div>
+    <!-- Görev Kontrol Gezinti Çubuğu (Navbar Container) -->
+    <header id="navbar-container"></header>
 
-    <!-- Teams Bölümü Kapsayıcısı (Teams Section Mount) -->
-    <div id="teams-container"></div>
-  </main>
+    <!-- Ana Çalışma Alanı -->
+    <main>
+      <!-- Google Earth / NASA Trek Tarzı Etkileşimli Krater Haritası -->
+      <section id="crater-viewer-section" class="section-crater-viewer">
+        <div id="crater-viewer-container"></div>
+      </section>
 
-  <!-- Sayfa Alt Bilgisi (Footer Mount) -->
-  <div id="footer-container"></div>
+      <!-- NASA Space Apps 2026 Meydan Okuma Detayları (Details Section) -->
+      <div id="details-container"></div>
+
+      <!-- Resmi NASA Kaynakları ve Yasal Uyarı Metni (Resources Section) -->
+      <div id="resources-container"></div>
+
+      <!-- AstroChief Uçuş Mürettebatı (Teams Section) -->
+      <div id="teams-container"></div>
+    </main>
+
+    <!-- Sayfa Alt Bilgisi (Footer Container) -->
+    <div id="footer-container"></div>
+
+  </div>
 
   <!-- ES6 Modüler JavaScript Giriş Noktası -->
   <script type="module" src="./js/app.js"></script>
@@ -72,18 +58,20 @@
 ==========================================================================
 DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------
-- Satır 1-2: HTML5 standart doctype ve tr dil etiketi.
-- Satır 3-13: head bloğu; UTF-8 karakter kümesi, responsive viewport, SEO meta açıklaması, başlık, SVG favicon ve css/style.css bağlantısı.
+- Satır 1-2: Standart HTML5 doctype ve tr dil bildirimi.
+- Satır 3-13: head bölümü; UTF-8, mobil uyumlu viewport, SEO meta açıklaması, başlık, favicon ve css/style.css yüklemesi.
 - Satır 14: body etiketi başlangıcı.
-- Satır 17: #navbar-container; Navbar.js bileşeninin dinamik olarak render edileceği üst konteyner.
-- Satır 20: main ana içerik alanı başlangıcı.
-- Satır 21-47: #hero bölümü; Mars ışık ışıması efekti, aktif görev rozeti (pulse-dot), ana başlık (gradient-text), açıklama ve 3 adet yönlendirme butonu (Details, Resources, Teams).
-- Satır 50: #details-container; DetailsSection.js bileşeninin mount noktası.
-- Satır 53: #resources-container; ResourcesSection.js (NASA Disclaimer ve veri kartları) mount noktası.
-- Satır 56: #teams-container; TeamSection.js (AstroChief mürettebatı) mount noktası.
-- Satır 57: main etiketi kapanışı.
-- Satır 60: #footer-container; Footer.js bileşeninin mount noktası.
-- Satır 63: js/app.js modüler script yüklemesi (ES6 Module).
-- Satır 65-66: body ve html etiketlerinin kapanışı.
+- Satır 17: #starfield-canvas; zifiri siyah zemin üzerinde 320 yıldızın parıldadığı arka plan çizim tuvali.
+- Satır 20: #app-content-wrapper; içerik elemanlarını yıldızların üzerinde tutan üst katman sarmalayıcısı.
+- Satır 23: #hud-telemetry-container; astronot kask vizörü (EVA clock, O2 marjı, radyasyon) mount noktası.
+- Satır 26: #navbar-container; Mission Control navigasyon mount noktası.
+- Satır 29: main ana içerik alanı.
+- Satır 31-33: #crater-viewer-section; Google Earth esintili interaktif krater motorunun yerleştiği ana çalışma alanı.
+- Satır 36: #details-container; Space Apps 2026 detayları, çok katmanlı entegrasyon ve Boxwork hedefleri.
+- Satır 39: #resources-container; NASA resmi yasal uyarı kutusu ve 5 veri kaynağı.
+- Satır 42: #teams-container; AstroChief mürettebat manifestosu.
+- Satır 46: #footer-container; sayfa alt bilgi alanı.
+- Satır 50: js/app.js ES6 modül başlatıcısı.
+- Satır 52-53: Kapanış etiketleri.
 ==========================================================================
 -->

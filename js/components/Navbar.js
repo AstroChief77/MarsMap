@@ -1,6 +1,6 @@
 /**
  * @file Navbar.js
- * @description Üst navigasyon çubuğunu ve mobil menü etkileşimini yöneten sınıf.
+ * @description Görev Kontrol üst navigasyon çubuğu ve hızlı geçiş menüsü.
  */
 
 export class Navbar {
@@ -27,13 +27,13 @@ export class Navbar {
    */
   render() {
     this.container.innerHTML = `
-      <nav class="main-navbar">
-        <div class="nav-brand">
-          <a href="#hero" class="brand-link">
-            <span class="brand-logo-icon">🪐</span>
-            <span class="brand-text">Astro<span class="highlight">Chief</span></span>
+      <nav class="main-navbar-clean">
+        <div class="nav-brand-clean">
+          <a href="#crater-viewer-section" class="brand-link-clean">
+            <span class="brand-radar-icon">◎</span>
+            <span class="brand-title-clean">ASTRO<span class="text-mars">CHIEF</span></span>
           </a>
-          <span class="brand-subtext">Mars Exploration Initiative</span>
+          <span class="brand-sub-badge">EVA CRATER NAVIGATOR // 2026</span>
         </div>
 
         <button class="nav-toggle" id="nav-toggle" aria-label="Menüyü Aç/Kapat" aria-expanded="false">
@@ -42,18 +42,16 @@ export class Navbar {
           <span class="hamburger-bar"></span>
         </button>
 
-        <div class="nav-menu" id="nav-menu">
-          <ul class="nav-links">
-            <li><a href="#details" class="nav-link">Details</a></li>
-            <li><a href="#resources" class="nav-link">Resources</a></li>
-            <li><a href="#teams" class="nav-link">Teams</a></li>
+        <div class="nav-menu-clean" id="nav-menu">
+          <ul class="nav-links-clean">
+            <li><a href="#crater-viewer-section" class="nav-link-clean active">Crater Map</a></li>
+            <li><a href="#details" class="nav-link-clean">Details &amp; Science</a></li>
+            <li><a href="#resources" class="nav-link-clean">NASA Data</a></li>
+            <li><a href="#teams" class="nav-link-clean">Flight Crew</a></li>
           </ul>
-          <div class="nav-actions">
-            <a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener noreferrer" class="btn-nav-action">
-              <span>Mars Trek</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17l9.2-9.2M17 17V7H7"/>
-              </svg>
+          <div class="nav-actions-clean">
+            <a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener noreferrer" class="btn-clean-action">
+              <span>JPL Mars Trek ↗</span>
             </a>
           </div>
         </div>
@@ -76,8 +74,7 @@ export class Navbar {
         toggleBtn.classList.toggle("is-active", this.isMenuOpen);
       });
 
-      // Menü linkine tıklandığında mobil menüyü otomatik kapat
-      const links = navMenu.querySelectorAll(".nav-link");
+      const links = navMenu.querySelectorAll(".nav-link-clean");
       links.forEach((link) => {
         link.addEventListener("click", () => {
           if (this.isMenuOpen) {
@@ -90,14 +87,14 @@ export class Navbar {
       });
     }
 
-    // Scroll anında navbar stilini güncelleme
+    // Scroll anında navbar arkaplan opaklığını yönetir
     window.addEventListener("scroll", () => {
-      const nav = this.container.querySelector(".main-navbar");
+      const nav = this.container.querySelector(".main-navbar-clean");
       if (nav) {
-        if (window.scrollY > 40) {
-          nav.classList.add("scrolled");
+        if (window.scrollY > 30) {
+          nav.classList.add("scrolled-dark");
         } else {
-          nav.classList.remove("scrolled");
+          nav.classList.remove("scrolled-dark");
         }
       }
     });
@@ -107,12 +104,11 @@ export class Navbar {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc Navbar modülü açıklaması.
+   - Satır 1-4: JSDoc Navbar modülü tanıtımı.
    - Satır 6: Navbar sınıfının dışa aktarımı.
-   - Satır 7-10: constructor JSDoc açıklaması.
-   - Satır 11-14: Hedef kapsayıcı DOM elementini seçer ve menü durumunu (isMenuOpen) başlatır.
-   - Satır 16-23: init metodu; DOM'a render edip event dinleyicilerini tetikler.
-   - Satır 25-58: render metodu; logo, menü linkleri (Details, Resources, Teams) ve CTA butonunu oluşturur.
-   - Satır 60-98: attachEventListeners metodu; mobil menü toggle işlemi, link tıklama kapanışı ve sayfa kaydırma (scroll) efektini yönetir.
-   - Satır 99: Navbar sınıfı sonu.
+   - Satır 7-15: constructor; hedef element ID'si ve menü durumunu saklar.
+   - Satır 17-23: init metodu; render ve event atamasını yapar.
+   - Satır 25-54: render metodu; temiz radar logolu marka başlığı, bağlantı linkleri ve JPL Mars Trek dış bağlantısını üretir.
+   - Satır 56-94: attachEventListeners metodu; mobil menü açılış/kapanışı ve sayfa kaydırma anındaki opaklık efektini yönetir.
+   - Satır 95: Navbar sınıfı sonu.
    ========================================================================== */

@@ -1,139 +1,123 @@
 /**
  * @file footer.css
- * @description Sayfa alt alanı (footer), telif hakkı ve NASA bildirim stilleri.
+ * @description Görev Kontrol alt bilgi (Footer), NASA bildirimleri ve telif hakları stilleri.
  */
 
-.main-footer {
-  background: #080a0e;
-  border-top: 1px solid var(--border-light);
-  padding: 4.5rem 1.5rem 2.5rem;
-  margin-top: 5rem;
+.main-footer-clean {
+  background: #040508;
+  border-top: 1px solid var(--border-clean);
+  padding: 3.5rem 1.5rem 2rem;
+  margin-top: 4rem;
 }
 
-.footer-top {
-  max-width: var(--container-max-width);
+.footer-top-clean {
+  max-width: var(--max-width-container);
   margin: 0 auto;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: 3rem;
-  padding-bottom: 3.5rem;
-  border-bottom: 1px solid var(--border-light);
+  gap: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border-clean);
 }
 
-.footer-brand {
-  max-width: 360px;
+.footer-brand-clean {
+  max-width: 380px;
 }
 
-.footer-logo {
+.footer-logo-clean {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-bottom: 0.9rem;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  color: #ffffff;
+  margin-bottom: 0.8rem;
 }
 
-.footer-logo-icon {
-  font-size: 1.5rem;
-}
-
-.footer-logo-text .highlight {
+.footer-logo-clean .radar {
   color: var(--mars-primary);
 }
 
-.footer-tagline {
-  font-size: 0.9rem;
+.footer-desc-clean {
+  font-size: 0.82rem;
   color: var(--text-dim);
   line-height: 1.6;
 }
 
-.footer-group-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-main);
-  text-transform: uppercase;
+.footer-col-title {
+  font-size: 0.82rem;
+  color: #ffffff;
   letter-spacing: 0.08em;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
 }
 
-.footer-links {
+.footer-list-clean {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.55rem;
 }
 
-.footer-links a {
-  font-size: 0.88rem;
+.footer-list-clean a {
+  font-size: 0.8rem;
   color: var(--text-muted);
-  transition: color var(--transition-fast), padding-left var(--transition-fast);
 }
 
-.footer-links a:hover {
-  color: var(--mars-accent);
-  padding-left: 4px;
+.footer-list-clean a:hover {
+  color: var(--mars-primary);
 }
 
-.footer-bottom {
-  max-width: var(--container-max-width);
-  margin: 2.5rem auto 0;
+.footer-bottom-clean {
+  max-width: var(--max-width-container);
+  margin: 2rem auto 0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 
-.footer-compliance {
+.footer-disclaimer-clean {
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-sm);
-  padding: 1rem 1.4rem;
-}
-
-.compliance-text {
-  font-size: 0.82rem;
+  border: 1px solid var(--border-clean);
+  border-radius: var(--radius-xs);
+  padding: 0.8rem 1.2rem;
+  font-size: 0.76rem;
   color: var(--text-dim);
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
-.compliance-text strong {
-  color: var(--text-muted);
-}
-
-.footer-copyright {
+.footer-credits-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-dim);
 }
 
-.mission-status-badge {
-  color: #22c55e;
-  font-weight: 600;
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
+.active-telemetry-badge {
+  color: var(--hud-green);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
 }
 
 @media (max-width: 768px) {
-  .footer-top {
+  .footer-top-clean {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2rem;
   }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc footer stil dosyası açıklaması.
-   - Satır 6-11: .main-footer koyu uzay zemin rengi ve üst boşluklar.
-   - Satır 13-21: .footer-top grid yapısı (marka ve 2 link sütunu).
-   - Satır 23-44: Marka logosu, vurgusu ve alt açıklama metni.
-   - Satır 46-66: Footer link sütun başlıkları ve link hover efektleri.
-   - Satır 68-75: .footer-bottom dikey yerleşimi.
-   - Satır 77-89: NASA yasal uyarı kutucuğu (.footer-compliance) ve tipografisi.
-   - Satır 91-105: Telif hakkı metni ve aktif yeşil görev rozeti.
-   - Satır 107-112: Mobil cihazlar için footer sütunlarının tek kolona dönüşmesi.
+   - Satır 1-4: JSDoc footer CSS başlığı.
+   - Satır 6-11: .main-footer-clean zemin ve boşluk ayarları.
+   - Satır 13-21: .footer-top-clean 3 sütunlu düzeni.
+   - Satır 23-44: Marka logosu, radar ikonu ve alt açıklama.
+   - Satır 46-66: Footer link sütunları.
+   - Satır 68-75: .footer-bottom-clean dikey yerleşimi.
+   - Satır 77-87: NASA yasal uyarı kutucuğu (.footer-disclaimer-clean).
+   - Satır 89-103: Telif hakları ve aktif telemetri rozeti.
+   - Satır 105-110: Mobil uyumluluk.
+   - Satır 111: Dosya sonu.
    ========================================================================== */

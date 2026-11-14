@@ -1,9 +1,13 @@
 /**
  * @file app.js
- * @description AstroChief ana uygulama giriş noktası ve bileşen yöneticisi (Orchestrator).
+ * @description AstroChief Mars Crater Navigator ana uygulama yöneticisi (Orchestrator).
+ * Yıldız simülasyonu, krater harita motoru ve telemetri bileşenlerini koordine eder.
  */
 
+import { Starfield } from "./components/Starfield.js";
+import { HudTelemetry } from "./components/HudTelemetry.js";
 import { Navbar } from "./components/Navbar.js";
+import { CraterMapViewer } from "./components/CraterMapViewer.js";
 import { DetailsSection } from "./components/DetailsSection.js";
 import { ResourcesSection } from "./components/ResourcesSection.js";
 import { TeamSection } from "./components/TeamSection.js";
@@ -14,7 +18,10 @@ export class AstroChiefApp {
    * AstroChiefApp yapıcı metodu
    */
   constructor() {
+    this.starfield = new Starfield("starfield-canvas");
+    this.hudTelemetry = new HudTelemetry("hud-telemetry-container");
     this.navbar = new Navbar("navbar-container");
+    this.craterViewer = new CraterMapViewer("crater-viewer-container");
     this.details = new DetailsSection("details-container");
     this.resources = new ResourcesSection("resources-container");
     this.teams = new TeamSection("teams-container");
@@ -22,23 +29,33 @@ export class AstroChiefApp {
   }
 
   /**
-   * Uygulamayı ve alt bileşenlerini sırasıyla başlatır
+   * Uygulamayı ve tüm alt bileşenleri sırasıyla başlatır
    */
   start() {
-    console.log("[AstroChiefApp] Görev kontrol sistemi başlatılıyor...");
+    console.log("[AstroChief] Mars Crater Navigator başlatılıyor...");
 
+    // 1. Zifiri siyah uzay ve yıldız motorunu başlat
+    this.starfield.init();
+
+    // 2. Telemetri ve Navigasyon
+    this.hudTelemetry.init();
     this.navbar.init();
+
+    // 3. Google Earth / NASA Trek Tarzı Etkileşimli Krater Haritası
+    this.craterViewer.init();
+
+    // 4. Detay, Kaynak, Ekip ve Alt Bilgi Bileşenleri
     this.details.init();
     this.resources.init();
     this.teams.init();
     this.footer.init();
 
     this.initSmoothScroll();
-    this.logSystemStatus();
+    console.log("[AstroChief] Sistem aktif: Mars Krater Keşif Haritası Çevrimiçi.");
   }
 
   /**
-   * Sayfa içi çapa (anchor) bağlantıları için akıcı kaydırma (smooth scroll) etkinleştirir
+   * Pürüzsüz sayfa içi kaydırma
    */
   initSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
@@ -56,19 +73,9 @@ export class AstroChiefApp {
       });
     });
   }
-
-  /**
-   * Konsola sistem ve telemetri durumunu yazdırır
-   */
-  logSystemStatus() {
-    console.log(
-      "%c[AstroChief] Mars Exploration Portal Online.",
-      "color: #ff5722; font-weight: bold; font-size: 14px;"
-    );
-  }
 }
 
-// DOM tamamen yüklendiğinde uygulamayı otomatik başlat
+// DOM hazır olduğunda uygulamayı çalıştır
 document.addEventListener("DOMContentLoaded", () => {
   const app = new AstroChiefApp();
   app.start();
@@ -77,13 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc app.js dosya açıklaması ve orkestrasyon tanımı.
-   - Satır 6-10: Navbar, DetailsSection, ResourcesSection, TeamSection ve Footer bileşenlerinin içe aktarılması.
-   - Satır 12: AstroChiefApp sınıfı bildirimi.
-   - Satır 13-22: constructor metodu; alt bileşenleri ilgili DOM konteyner kimlikleri ile başlatır.
-   - Satır 24-37: start metodu; konsol logu bırakır, bileşenlerin init metotlarını tetikler, smooth scroll ve sistem durumunu çalıştırır.
-   - Satır 39-56: initSmoothScroll metodu; tüm içi çapa bağlantılarını pürüzsüz kaydırma ile bağlar.
-   - Satır 58-65: logSystemStatus metodu; konsola renkli telemetri hazır mesajı gönderir.
-   - Satır 66: AstroChiefApp sınıfının sonu.
-   - Satır 68-72: DOMContentLoaded dinleyicisi; sayfa hazır olduğunda AstroChiefApp nesnesini oluşturup start() metodunu çağırır.
+   - Satır 1-5: JSDoc ana modül açıklaması ve koordinasyon tanımı.
+   - Satır 7-14: Starfield, HudTelemetry, Navbar, CraterMapViewer, Details, Resources, Teams ve Footer bileşenlerinin içe aktarımı.
+   - Satır 16: AstroChiefApp sınıfının dışa aktarılması.
+   - Satır 17-29: constructor; ilgili DOM konteyner ID'leri ile tüm alt sınıfları başlatır.
+   - Satır 31-52: start metodu; yıldız simülasyonunu, canlı telemetri çubuğunu, krater harita motorunu ve alt bölümleri sırayla ayağa kaldırır.
+   - Satır 54-71: initSmoothScroll; tüm çapa linkleri için pürüzsüz kaydırma sağlar.
+   - Satır 73-77: DOMContentLoaded dinleyicisi; sayfa yüklendiğinde uygulamayı otomatik başlatır.
+   - Satır 78: Dosya sonu.
    ========================================================================== */

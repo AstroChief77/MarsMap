@@ -1,19 +1,20 @@
 /**
  * @file DetailsSection.js
- * @description Proje detayları (Details), görev hedefleri ve mimarisini render eden sınıf.
+ * @description NASA Space Apps Challenge 2026 "Interplanetary Survival Guide: Martian Map"
+ * meydan okuması hedeflerini, bilimsel kapsamını ve astronot Marswalk güvenlik parametrelerini açıklayan bileşen.
  */
 
 export class DetailsSection {
   /**
    * DetailsSection yapıcı metodu
-   * @param {string} containerId - Bileşenin yerleştirileceği hedef element ID'si
+   * @param {string} containerId - Bileşenin yerleştirileceği HTML ID
    */
   constructor(containerId = "details-container") {
     this.container = document.getElementById(containerId);
   }
 
   /**
-   * Bileşeni başlatır ve DOM'a yansıtır
+   * Bileşeni başlatır ve ekrana basar
    */
   init() {
     if (!this.container) return;
@@ -21,80 +22,79 @@ export class DetailsSection {
   }
 
   /**
-   * Details bölümünün HTML yapısını oluşturur
+   * Details bölümünün HTML çıktısını üretir
    */
   render() {
     this.container.innerHTML = `
-      <section id="details" class="section-details">
-        <div class="section-header">
-          <div class="section-badge">Mission Scope</div>
-          <h2 class="section-title">Mission Details & Architecture</h2>
-          <p class="section-subtitle">
-            AstroChief projesi, Mars yüzey keşif verilerini, jeolojik haritaları ve gezici rotalarını bir araya getirerek derinlemesine gezegensel analiz sunan yeni nesil bir araştırma ve operasyon portalıdır.
+      <section id="details" class="section-details-dark">
+        <div class="section-header-clean">
+          <div class="challenge-event-badge">2026 NASA SPACE APPS CHALLENGE // INTERPLANETARY SURVIVAL GUIDE</div>
+          <h2 class="clean-section-title">Martian Map & Human Marswalk Navigator</h2>
+          <p class="clean-section-subtitle">
+            İlk astronotlar Mars'a ayak bastığında, regional küresel haritaların ötesinde; anlık yüzey eğimlerini, atmosferik toz risklerini, jeolojik Boxwork katmanlarını ve yaşam destek marjlarını tek ekranda birleştiren yüksek çözünürlüklü bir navigasyon aracına ihtiyaç duyacaktır.
           </p>
         </div>
 
-        <div class="details-grid">
-          <!-- Detay Kartı 1: Keşif & Veri Entegrasyonu -->
-          <div class="detail-card">
-            <div class="detail-card-icon">🚀</div>
-            <h3 class="detail-card-title">Gezegen Yüzeyi Keşfi</h3>
-            <p class="detail-card-desc">
-              NASA JPL Mars Trek ve Perseverance verileri temel alınarak iniş sahaları, kraterler ve yüzey morfolojisi çok katmanlı olarak incelenir.
+        <!-- 3 Temel Meydan Okuma Sütunu (Challenge Pillars) -->
+        <div class="challenge-pillars-grid">
+          <div class="pillar-card">
+            <div class="pillar-num">01</div>
+            <h3 class="pillar-title">Çok Katmanlı Veri Entegrasyonu</h3>
+            <p class="pillar-desc">
+              NASA JPL Mars Trek ve USGS haritalama verilerini hiper-yerel (krater ölçeğinde) birleştiriyoruz: Optik (HiRISE), Topografik (MOLA DEM), Termal (THEMIS IR) ve jeolojik katmanlar astronotun emrinde.
             </p>
-            <ul class="detail-list">
-              <li>Jezero Krateri ve Gale Krateri odaklı saha analizi</li>
-              <li>Topoğrafik yükseklik ve eğim haritalandırması</li>
-              <li>Sıcaklık ve atmosferik toz fırtınası korelasyonu</li>
+            <ul class="pillar-check-list">
+              <li>MOLA sayısal yükseklik modeliyle eğim ve kontur çıkarımı</li>
+              <li>THEMIS termal verisiyle yüzey kaya bolluğu tahmini</li>
+              <li>Perseverance ve Curiosity gerçek ham görselleriyle zemin doğrulaması</li>
             </ul>
           </div>
 
-          <!-- Detay Kartı 2: Jeolojik Katmanlar & Haritalama -->
-          <div class="detail-card highlight-card">
-            <div class="detail-card-icon">🗺️</div>
-            <h3 class="detail-card-title">USGS Jeolojik Haritalama</h3>
-            <p class="detail-card-desc">
-              Standartlaştırılmış jeolojik katmanlar ve mineral dağılımları USGS-NASA Geologic Mapping Program standartlarına göre modellenir.
+          <div class="pillar-card pillar-card-accent">
+            <div class="pillar-num">02</div>
+            <h3 class="pillar-title">Astronot Güvenliği & Hareket Kabiliyeti</h3>
+            <p class="pillar-desc">
+              Astronotlar ağır basınçlı uzay giysileriyle (spacesuit) yürüyecek ve numune taşıyacaktır. Rota motorumuz dik yamaçları, tekerlek batma riskini ve toz fırtınası koridorlarını gerçek zamanlı hesaplar.
             </p>
-            <ul class="detail-list">
-              <li>Noachian, Hesperian ve Amazonian dönem katmanları</li>
-              <li>Hidrasyon mineralleri ve kil tabakası tespiti</li>
-              <li>Spektral veri katmanları ile interaktif analiz</li>
+            <ul class="pillar-check-list">
+              <li>Maksimum 25° güvenli tırmanış eğim sınırı kontrolü</li>
+              <li>Bagnold kumulları gibi yumuşak regolit tuzaklarından kaçınma</li>
+              <li>Uzay radyasyonu ve mevsimsel fırtına optik derinliği (Tau) izleme</li>
             </ul>
           </div>
 
-          <!-- Detay Kartı 3: Gezici (Rover) Rota Optimizasyonu -->
-          <div class="detail-card">
-            <div class="detail-card-icon">🚜</div>
-            <h3 class="detail-card-title">Rover Rota & Tırmanış Planı</h3>
-            <p class="detail-card-desc">
-              Curiosity'nin Mount Sharp tırmanış modeli örnek alınarak, geziciler için eğim, enerji verimliliği ve bilimsel hedeflere göre rotalar görselleştirilir.
+          <div class="pillar-card">
+            <div class="pillar-num">03</div>
+            <h3 class="pillar-title">Boxwork Formasyonları & Bilimsel Hedefler</h3>
+            <p class="pillar-desc">
+              NASA'nın 2025-2026 meydan okumasında belirttiği üzere, Curiosity'nin Mount Sharp'ta incelediği 'Boxwork' mineral sırtları ve antik yaşanabilir göllerden asidik sülfat çölüne geçiş katmanları keşif rotamızın kalbindedir.
             </p>
-            <ul class="detail-list">
-              <li>Eğim ve zemin sertliği bazlı yol tahmini</li>
-              <li>Otonom sürüş ve numune alma noktası işaretleme</li>
-              <li>Flyover simülasyonları ve 3D rota projeksiyonu</li>
+            <ul class="pillar-check-list">
+              <li>Yellowknife Bay ve Glen Torridon smektit kili istasyonları</li>
+              <li>Vera Rubin Ridge hematit demir oksit damarları</li>
+              <li>Gediz Vallis moloz seli ve antik su kanalları</li>
             </ul>
           </div>
         </div>
 
-        <!-- Görev İstatistikleri ve Önemli Veriler Şeridi -->
-        <div class="mission-metrics-strip">
-          <div class="metric-item">
-            <span class="metric-value">1,000,000+</span>
-            <span class="metric-label">Perseverance Ham Görsel</span>
+        <!-- Görev Mimarisi ve Format Vizyonu -->
+        <div class="hud-format-box">
+          <div class="hud-format-header">
+            <span class="hud-terminal-prompt">&gt; ASTRONAUT HUD &amp; MISSION CONTROL ARCHITECTURE</span>
           </div>
-          <div class="metric-item">
-            <span class="metric-value">5.5 km</span>
-            <span class="metric-label">Mount Sharp Tırmanış İrtifası</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-value">3D Trek</span>
-            <span class="metric-label">JPL İnteraktif Yüzey Modeli</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-value">100% NASA</span>
-            <span class="metric-label">Açık Veri & Bilimsel Standart</span>
+          <div class="hud-format-body">
+            <div class="format-item">
+              <span class="format-tag">[HABITAT DISPLAY]</span>
+              <p>Mürettebatın iniş modülünde veya yüzey habitatında rotayı planladığı büyük harita çalışma ekranı.</p>
+            </div>
+            <div class="format-item">
+              <span class="format-tag">[EVA TABLET &amp; ROVER]</span>
+              <p>Basınçlı gezici araçta (Pressurized Rover) sürücünün ve astronotun gerçek zamanlı takip ettiği telemetri arayüzü.</p>
+            </div>
+            <div class="format-item">
+              <span class="format-tag">[HELMET VISOR HUD]</span>
+              <p>Astronot kask vizörüne yansıtılan anlık eğim, O2 marjı ve bir sonraki waypoint istikameti göstergeleri.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -105,11 +105,10 @@ export class DetailsSection {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc sınıf tanıtımı ve modül bilgisi.
-   - Satır 6: DetailsSection sınıfının export edilmesi.
-   - Satır 7-10: constructor dokümantasyonu.
-   - Satır 11-13: constructor, kapsayıcı DOM ID'sini saklar.
-   - Satır 15-20: init metodu, elemanın varlığını kontrol edip render'ı çağırır.
-   - Satır 22-89: render metodu; başlık, 3 temel görev sütun kartı ve istatistik şeridini (metrics strip) DOM'a yazar.
-   - Satır 90: DetailsSection sınıfının bitişi.
+   - Satır 1-5: JSDoc Space Apps 2026 meydan okuma bilgisi ve dosya başlığı.
+   - Satır 7: DetailsSection sınıfının export edilmesi.
+   - Satır 8-15: constructor; hedef DOM konteyner ID'sini saklar.
+   - Satır 17-22: init metodu; bileşeni ekrana çizer.
+   - Satır 24-95: render metodu; yarışma başlığı, 3 temel sütun (Çok katmanlı entegrasyon, astronot güvenliği/hareket kabiliyeti, Boxwork bilimsel hedefleri) ve Habitat/HUD format vizyon kutusunu DOM'a yazar.
+   - Satır 96: DetailsSection sınıfı sonu.
    ========================================================================== */
