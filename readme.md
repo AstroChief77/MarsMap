@@ -57,6 +57,8 @@ AstroChief
 -Tema %60 beyaz, %30 Siyah, %10 Kırmızı, genel tema bu şekşilde olmalıdır başka renklerde kullanılabilir.
 
 -Kodu yazmayı bitirdiğinde derleyip githuba yükle.
+
+-Backend den veri geldiğinde gelen verinin ne kadar gecikmeyle gelidği yazıcak bu her 5 saniyede güncellenicek, sağ üstte gözükücek.
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
