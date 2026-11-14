@@ -1,7 +1,7 @@
 /**
  * @file SettingsPanel.js
  * @description Sol ust Ayarlar simgesi, ilk secenegi ZORUNLU "Factory Reset" olan menu,
- * 10 dilli (zh, ko, ja, tr, de, en, he, ar, fr, es) dil secici ve hizli hedef seridi bileseni.
+ * 9 dilli (ko, ja, tr, de, en, he, ar, fr, es) dil secici ve hizli hedef seridi bileseni.
  */
 
 (function (ns) {

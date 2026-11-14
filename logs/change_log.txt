@@ -214,4 +214,6 @@
 [2026-11-14 16:15:00] [UPDATE] js/models/AppConfig.js, js/services/HazardFieldService.js, js/services/RouteGeometryHelper.js, js/services/RoutePlannerService.js, js/renderers/OverlayDrawHelper.js ve js/renderers/Map2DRenderer.js 10 dil desteğine kavuşturuldu.
 [2026-11-14 16:16:00] [UPDATE] js/components/SettingsPanel.js (1. seçenek Factory Reset korundu + 10 dil seçici ızgara eklendi), SatellitesPanel.js, RouteInspectorPanel.js, MissionInfoModal.js ve MarsNavigatorController.js 10 dil desteğiyle güncellendi.
 [2026-11-14 16:17:00] [UPDATE] index.html, css/controls.css, version.json (v3.1.0), ForAgents/PROJECT_STATE.md ve ForAgents/FRONTEND_AGENT_NOTES.md güncellendi.
+[2026-11-14 16:26:00] [BACKUP] backups/snapshot_20261114_remove_zh/ dizinine Çince (zh) dilinin kaldırılması öncesi tüm ilgili dosyaların yedeği alındı.
+[2026-11-14 16:27:00] [UPDATE/REMOVE] Kullanıcı talebi ("Çince yasak") doğrultusunda Çince (zh) dil desteği tamamen kaldırıldı; data/i18n/localesFrEsZh.js yerine yalnızca Fransızca ve İspanyolca içeren data/i18n/localesFrEs.js oluşturuldu, I18nService.js, index.html, version.json ve ForAgents belgeleri 9 dil (TR, EN, DE, FR, ES, KO, JA, HE, AR) olarak güncellendi.
 

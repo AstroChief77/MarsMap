@@ -1,7 +1,7 @@
 /**
  * @file I18nService.js
- * @description AstroChief Mars Navigator 10 dilli uluslararasilastirma (i18n) servis sinifi.
- * Desteklenen diller: Cince (Basitlestirilmis - zh), Korece (ko), Japonca (ja), Turkce (tr),
+ * @description AstroChief Mars Navigator 9 dilli uluslararasilastirma (i18n) servis sinifi.
+ * Desteklenen diller: Korece (ko), Japonca (ja), Turkce (tr),
  * Almanca (de), Ingilizce (en), Ibranice (he), Arapca (ar), Fransizca (fr), Ispanyolca (es).
  */
 
@@ -21,7 +21,6 @@
         { code: "de", label: "Deutsch", badge: "DE", dir: "ltr" },
         { code: "fr", label: "Français", badge: "FR", dir: "ltr" },
         { code: "es", label: "Español", badge: "ES", dir: "ltr" },
-        { code: "zh", label: "中文 (简体)", badge: "ZH", dir: "ltr" },
         { code: "ko", label: "한국어", badge: "KO", dir: "ltr" },
         { code: "ja", label: "日本語", badge: "JA", dir: "ltr" },
         { code: "he", label: "עברית", badge: "HE", dir: "rtl" },
@@ -32,7 +31,7 @@
     }
 
     /**
-     * Desteklenen 10 dilin listesini dondurur
+     * Desteklenen 9 dilin listesini dondurur
      * @returns {Array} Dil tanimlari
      */
     getSupportedLanguages() {
@@ -154,10 +153,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc 10 dilli i18n servis sinifi tanimi.
-   - Satir 10-32: constructor; 10 dil listesini (tr, en, de, fr, es, zh, ko, ja, he, ar) ve varsayilan dili baslatir.
-   - Satir 34-68: getSupportedLanguages, getLang, isRtl ve setLang metodlari.
-   - Satir 70-86: applyDocumentAttributes; html[lang], sayfa basligi ve RTL gorunum sinifini gunceller.
-   - Satir 88-107: t(key, vars); sozlukten metni cozer ve dinamik parametrelere gore bicimlendirir.
-   - Satir 109-145: getIntensityLabel, localizeCrater ve localizeTeamMember yardimcilari.
+   - Satir 1-6: JSDoc 9 dilli i18n servis sinifi tanimi.
+   - Satir 10-31: constructor; 9 dil listesini (tr, en, de, fr, es, ko, ja, he, ar) ve varsayilan dili baslatir.
+   - Satir 33-67: getSupportedLanguages, getLang, isRtl ve setLang metodlari.
+   - Satir 69-85: applyDocumentAttributes; html[lang], sayfa basligi ve RTL gorunum sinifini gunceller.
+   - Satir 87-106: t(key, vars); sozlukten metni cozer ve dinamik parametrelere gore bicimlendirir.
+   - Satir 108-144: getIntensityLabel, localizeCrater ve localizeTeamMember yardimcilari.
    ========================================================================== */
