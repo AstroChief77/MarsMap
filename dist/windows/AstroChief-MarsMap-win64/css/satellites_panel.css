@@ -16,16 +16,17 @@
 .sat-trigger-btn {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 10px 16px;
+  gap: 10px;
+  padding: 13px 22px;
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 1.5px solid var(--ink-black);
+  border: 2px solid var(--ink-black);
   border-radius: var(--r-sm);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
   box-shadow: var(--shadow-btn);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
 .sat-trigger-btn:hover,
@@ -35,18 +36,18 @@
 }
 
 .sat-live-dot {
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--mars-red);
   flex-shrink: 0;
 }
 
 .sat-mode-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 5px;
   background: var(--mars-red);
   color: var(--bg-white);
 }
@@ -56,21 +57,21 @@
  * hemen dekode edilmesi saglanir. */
 .sat-popover {
   position: absolute;
-  bottom: calc(100% + 10px);
+  bottom: calc(100% + 12px);
   left: 0;
-  width: 348px;
+  width: 386px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 110px);
   overflow-y: auto;
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 1.5px solid var(--ink-black);
+  border: 2px solid var(--ink-black);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
@@ -123,23 +124,46 @@
 
 .sat-photo-card {
   position: relative;
+  width: 100%;
   border-radius: var(--r-sm);
   overflow: hidden;
   background-color: #14161a;
   background-size: cover;
   background-position: center;
-  border: 2px solid var(--ink-black);
+  border: 2.5px solid var(--ink-black);
   color: var(--bg-white);
-  text-align: left;
-  transition: transform 0.12s ease, border-color 0.15s ease;
+  text-align: start;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sat-photo-card::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.56) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.62) 100%);
+  transition: background 0.15s ease, backdrop-filter 0.15s ease;
   z-index: 0;
+}
+
+.sat-photo-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--mars-red);
+}
+
+.sat-photo-card:active {
+  transform: translateY(0);
+}
+
+.sat-photo-card:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: 2px;
+}
+
+.sat-photo-card.inactive::before {
+  background: rgba(10, 12, 16, 0.68);
+  backdrop-filter: grayscale(0.85);
 }
 
 .sat-photo-card > * {
@@ -148,8 +172,8 @@
 }
 
 .sat-view-btn {
-  height: 82px;
-  padding: 10px;
+  height: 94px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -157,42 +181,43 @@
 
 .sat-photo-card.active {
   border-color: var(--mars-red);
-  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.32);
+  box-shadow: 0 0 0 3px rgba(217, 43, 43, 0.38);
 }
 
 .sat-card-kicker {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.06em;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
 }
 
 .sat-card-label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.98);
 }
 
 .sat-active-badge {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
   background: var(--mars-red);
   color: var(--bg-white);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 900;
-  padding: 2px 6px;
+  padding: 3px 7px;
   border-radius: 4px;
 }
 
-/* Asit Yagmuru ve Firtina Kartlari (Arka Planda Bolge Fotograflari) */
+/* Asit Yagmuru ve Firtina Kartlari (Arka Planda Bolge Fotograflari - Tum Resme Basilir) */
 .sat-hazard-card {
-  min-height: 76px;
-  padding: 11px 12px;
+  min-height: 92px;
+  padding: 13px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
+  align-items: stretch;
+  gap: 10px;
 }
 
 .sat-bg-2d {
@@ -216,26 +241,31 @@
 }
 
 .sat-hazard-head {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 
 .sat-hazard-title {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 900;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .sat-switch {
-  padding: 3px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 13px;
   border-radius: var(--r-pill);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 900;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.55);
   color: var(--bg-white);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  pointer-events: none;
 }
 
 .sat-switch.on {
@@ -246,23 +276,24 @@
 .sat-intensity-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+  gap: 6px;
 }
 
 .sat-int-btn {
-  padding: 5px 4px;
+  padding: 7px 6px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 800;
-  background: rgba(0, 0, 0, 0.56);
-  color: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.64);
+  color: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
   text-align: center;
+  cursor: pointer;
   transition: background 0.14s ease, border-color 0.14s ease;
 }
 
 .sat-int-btn:hover {
-  background: rgba(0, 0, 0, 0.82);
+  background: rgba(0, 0, 0, 0.88);
 }
 
 .sat-int-btn.active {
@@ -272,26 +303,27 @@
 }
 
 .sat-int-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  opacity: 0.42;
+  pointer-events: none;
 }
 
 /* Uydu Katman Secici */
 .sat-layer-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
+  gap: 7px;
 }
 
 .sat-layer-chip {
-  padding: 6px 8px;
+  padding: 9px 10px;
   border-radius: 6px;
-  border: 1px solid var(--line-light);
+  border: 1.5px solid var(--line-light);
   background: var(--bg-offwhite);
   color: var(--ink-black);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   text-align: center;
+  cursor: pointer;
 }
 
 .sat-layer-chip:hover {
@@ -308,9 +340,9 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc Uydular paneli ve fotograf arkaplanli secenek kurallari.
-   - Satir 8-52: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
-   - Satir 54-116: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
-   - Satir 118-186: 2D ve 3D gorsel kartlari, #14161a koyu zemin, okunabilirlik katmani ve aktif kirmizi cerceve.
-   - Satir 188-277: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari ve siddet butonlari (Hafif/Orta/Siddetli).
-   - Satir 279-305: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
+   - Satir 8-53: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
+   - Satir 55-116: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
+   - Satir 118-210: Tum gorsel kartlari (.sat-photo-card) icin hover/focus vurgusu, RTL uyumlu aktif rozet ve kapali gri filtre stilleri.
+   - Satir 212-308: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari, salt durum rozeti (.sat-switch pointer-events: none) ve kapaliyken tiklamayi karta geciren siddet butonlari.
+   - Satir 310-337: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
    ========================================================================== */

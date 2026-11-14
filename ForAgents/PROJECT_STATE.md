@@ -55,3 +55,10 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - Sağ tık sürükleme (veya `Shift + Sol tık`, `Q/E` ve `R/F` tuşları) ile 3D kamera yüzey eğimi (`camPitch: 0°..70°`) ve pusula yönü (`camYaw: 0°..360°`).
   - Sağ alt HUD üzerinde `3D Eğim` (`28°/34°/58°/0°`) ve `⛰ Zirve Gez` (Olympus Mons, Valles Marineris, Mount Sharp, Ascraeus Mons, Hellas) kısayolları ile canlı MOLA Rakım (`m`) ve Eğim (`°`) telemetrisi.
 
+## 6. Resme Basılır Uydular Kartları & 800 Satır Modüler Bölünme (v3.9)
+- **Doğrudan Fotoğraf Kartı Etkileşimi (`SatellitesPanel.js`, `css/satellites_panel.css`)**:
+  - Küçük `<button class="sat-switch">` yerine yalnızca görsel durum rozeti (`<span class="sat-switch" aria-hidden="true">`, `pointer-events: none`) bırakılarak `2D`/`3D`, `Asit Yağmuru`, `Kum Fırtınası` ve `Radyasyon / Foton Kuşağı` kartlarının tamamı doğrudan resme basılarak açılıp kapanır hale getirildi (Radyasyon kartı yerel `<button type="button">` yapıldı).
+  - Kapalı (`.inactive`) kartlarda soluk/gri katman ve devre dışı (`pointer-events: none`) şiddet düğmeleriyle kartın herhangi bir yerine tıklamanın katmanı tek seferde açması sağlandı; klavye (`Enter`/`Space`), `aria-pressed` ve RTL (`inset-block-start` / `inset-inline-end`) desteği tamamlandı.
+- **< 800 Satır Kuralı Uyumu (`Map3DFallbackRenderer.js`, `Map3DRenderer.js`, `js/wasm/backend.js`, `index.html`)**:
+  - `origin/main` (`8bec84d`) üzerinde 800 satır sınırında duran `Map3DRenderer.js` içindeki `drawFallbackShadedSphere` metodu `Map3DFallbackRenderer.js` sınıfına bölündü (`Map3DRenderer.js` -> 637 satır) ve `js/wasm/backend.js` sonuna `DOSYA SATIR VE ISLEV ACIKLAMALARI` özeti eklendi.
+  - Düzenleme öncesi tüm temiz `8bec84d` kaynakları `backups/snapshot_20261114_image_click_cards/` dizinine yedeklendi; `./build.sh` ile derlenip masaüstüne güncellendi.
