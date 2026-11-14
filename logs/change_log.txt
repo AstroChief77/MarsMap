@@ -35,3 +35,7 @@
 [2026-11-14 11:12:25] [GIT] origin/main dalına nihai push işlemi başlatıldı.
 [2026-11-14 11:14:23] [CREATE] serve.ps1 oluşturuldu (PowerShell dahili HttpListener yerel web sunucusu).
 [2026-11-14 11:14:29] [CREATE] preview.bat oluşturuldu (Kullanıcının tek tıkla tarayıcıda localhost:3000 açabilmesi için başlatıcı).
+[2026-11-14 11:21:30] [GIT] origin/main üzerindeki readme.md güncellemesi (50ec554: masaüstüne güncel sürüm yükleme kuralı) yerel dala birleştirildi.
+[2026-11-14 11:21:46] [BACKUP] backups/change_log_backup_20261114_1122.txt oluşturuldu (Değişiklik öncesi yedek).
+[2026-11-14 11:22:00] [CREATE] deploy_desktop.ps1 oluşturuldu (Güncel sürümü masaüstündeki AstroChief-MarsMap klasörüne kopyalayan PowerShell betiği).
+[2026-11-14 11:22:05] [CREATE] deploy_desktop.bat oluşturuldu (Tek tıkla masaüstüne güncel sürüm dağıtım başlatıcısı).
