@@ -1,7 +1,7 @@
 {
   "name": "AstroChief-MarsMap",
-  "version": "3.9.0",
+  "version": "4.3.0",
   "buildDate": "2026-11-14",
   "targets": ["linux-x64", "windows-x64"],
-  "description": "NASA Space Apps 2026 - 9 Dil Destekli (KO, JA, TR, DE, EN, HE, AR, FR, ES), Varsayilan 3D Harita, Uydular Paneli ve Guvenli Rota Planlayici"
+  "description": "NASA Space Apps 2026 - Rehberli Juri Demo Modu (v4.3), 9 Dil Destekli, Varsayilan 3D Harita, Rust WASM/HTTP A* ve MOLA DEM"
 }

@@ -111,9 +111,13 @@
         );
       } else if (routeScope === "global") {
         // Kuresel Inis Sahalari Arasi Guvenli Mavi / Soluk Mavi Rotalar
+        const jumpLimit = Math.max(240, mapW * 0.45);
         this.routeRenderer.drawGlobalDualRoutes(
-          ctx, project2D, computedRoutes, showRouteComments, width, height, Math.max(240, mapW * 0.45)
+          ctx, project2D, computedRoutes, showRouteComments, width, height, jumpLimit
         );
+        if (state.demoSim && state.demoSim.active) {
+          this.routeRenderer.drawDemoSimulation(ctx, project2D, computedRoutes, state.demoSim, width, height, jumpLimit);
+        }
       } else if (activeAnchor && activeAnchor.visible) {
         // Krater modunda uzak olcekte krater EVA koridorunu ve yol yorumlarini goster
         const miniScale = Math.max(0.24, zoom * 0.28);

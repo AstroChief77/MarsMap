@@ -32,7 +32,7 @@
     /**
      * Sol ust Ayarlar + Factory Reset + 9 Dil Secici + Hedef Seridini DOM'a cizer
      */
-    render(state, craters, backendStatus = "") {
+    render(state, craters, backendStatus = "", demoActive = false) {
       if (!this.mountEl) return;
       const i18n = ns.i18n;
       const t = (k, v) => (i18n ? i18n.t(k, v) : k);
@@ -165,6 +165,7 @@
           <span class="brand-tag">ASTRO<span>CHIEF</span></span>
           <button class="nav-target-btn ${state.routeScope === "global" ? "active" : ""}" id="btn-scope-global">${esc(t("navGlobalRoute"))}</button>
           ${craterButtons}
+          <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}">${demoActive ? "■" : "▶"} ${esc(t("demoBtnLabel"))}</button>
           <button class="nav-info-btn" id="btn-open-mission-modal" title="${esc(t("navInfoTitle"))}">${esc(t("navInfo"))}</button>
           <select class="nav-lang-select" id="sel-top-lang" aria-label="${esc(t("languageLabel"))}" title="${esc(t("languageLabel"))}">
             ${langSelectOptions}
@@ -227,6 +228,10 @@
         btn.addEventListener("click", () => {
           this.handlers.onSelectCrater?.(btn.getAttribute("data-crater-nav"));
         });
+      });
+
+      this.mountEl.querySelector("#btn-demo-mode")?.addEventListener("click", () => {
+        this.handlers.onToggleDemo?.();
       });
 
       this.mountEl.querySelector("#btn-open-mission-modal")?.addEventListener("click", () => {

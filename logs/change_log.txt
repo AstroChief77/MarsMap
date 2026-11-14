@@ -327,3 +327,41 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 - js/services/BackendApiService.js (Satir 1-639): Sahte Math.sin dalga yuksekligi ve sabit (x===5,10,14) engel kodlari kaldirildi; MarsTopographyService gercek NASA MOLA DEM rakim/egimi, aktif asit/firtina/radyasyon engelleri, >25 derece krater/ucurum siniri ve eginOxy (PLSS O2) degerleri Rust WASM A* izgarasina baglandi.
 - js/services/MarsTileLoader.js (Satir 124-136) & index.html: HTTP/HTTPS ortaminda karo URL'lerine ?v=4.2 eklendi (Cloudflare 404 negatif onbellek temizligi) ve tum modul surumleri ?v=4.2 yapildi.
 - readme.md Kurali: readme.md degistirilmedi.
+
+[2026-11-14T23:03:00+03:00] feat(v4.3.0): Rehberli Juri Demo Modu & Canli Rover/EVA Simulasyonu:
+- Yedek Klasoru: backups/snapshot_20261114_demo_mode/
+- data/i18n/localesDemo.js (Yeni Dosya, Satir 1-249):
+  * 9 dilin tamami (tr, en, de, fr, es, ja, ko, he, ar) icin demo buton, kontrol cubugu ve 4 juri senaryosu cevirileri eklendi.
+- js/services/DemoScenarioService.js (Yeni Dosya, Satir 1-415):
+  * 4 hazir juri senaryosu, rAF animasyon dongusu, Haversine segment enterpolasyonu, Rover/EVA O2 telemetrisi ve otomatik tur zamanlayicisi olusturuldu.
+- js/components/DemoControlBar.js (Yeni Dosya, Satir 1-162):
+  * Alt-orta alanda cakismasiz demo kontrol cubugu (senaryo secici, oynat/duraklat, 1x-10x hiz, ilerleme kaydirici, Rover/EVA secimi ve canli telemetri) eklendi.
+- css/demo.css (Yeni Dosya, Satir 1-215) & css/style.css:
+  * %60 Beyaz / %30 Siyah / %10 Kirmizi tema ve Public Sans Web fontuyla .nav-demo-btn ve .demo-panel stilleri eklendi.
+- js/renderers/RouteCanvasRenderer.js (Satir 175-248), Map3DRenderer.js (Satir 207-212), Map2DRenderer.js (Satir 112-120):
+  * drawDemoSimulation ile 2D/3D haritada Mavi rota uzerinde parlak iz, nabiz halkali Rover/EVA Astronot isaretcisi ve canli telemetri etiketi cizildi.
+- js/components/SettingsPanel.js & MarsNavigatorController.js & index.html:
+  * Ust bara Demo dugmesi, ?demo=1 URL parametresi, Factory Reset demo temizligi ve v4.3 script yuklemeleri eklendi (MarsNavigatorController < 800 satir korundu).
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-14T23:10:00+03:00] feat(v4.3.0): Adanmis /demo Mars Hayatta Kalma & Rota Simulasyon Studyosu:
+- demo/index.html (Yeni Dosya, Satir 1-194) & css/demo_studio.css (Yeni Dosya, Satir 1-330):
+  * <base href="../"> ile root CSS/JS/WASM/res varliklarini paylasan, sifir dis CDN bagimlilikli 3 panelli HUD simulasyon studyosu olusturuldu (sag ustte 5 sn backend gecikme hapi, 3D/2D tuval, zaman/oynatma bari).
+- js/services/MarsSimulationEngine.js (Yeni Dosya, Satir 1-319):
+  * Prameters.md NASA/SEV/EVA/Perseverance kaynakli 3 arac profili, gorev oncesi O2/su/enerji/hiz ayarlari, Asit Yagmuru / Toz Firtinasi / Alfa-Beta-Gama Radyasyon cezalari, canli sizinti/firtina enjeksiyonu ve %20 geri donus esigi eklendi.
+- js/renderers/SimulationChartRenderer.js (Yeni Dosya, Satir 1-146):
+  * HiDPI <canvas> uzerinde O2 %, Enerji %, MOLA Rakim egrileri, %20 walkback kritik cizgisi ve canli oynatma imleci eklendi.
+- js/components/DemoStudioController.js (Yeni Dosya, Satir 1-522):
+  * Hazir senaryolar, Rust WASM/HTTP A* mavi rota + zaman cizelgesi hesaplama, canli 2D/3D arac animasyonu, 5 sn gecikme izleme, olay gunlugu ve 1x-240x hiz / zaman kaydirma (scrub) denetimi baglandi.
+- js/services/BackendApiService.js (Satir 26-29):
+  * WASM yukleme adresi window.location.href yerine document.baseURI kullanilarak /demo/ alt dizininden sorunsuz yuklenir hale getirildi.
+- serve.ps1, tools/WinLauncher.cs & js/components/MarsNavigatorController.js (Satir 70-72):
+  * /demo ve /demo/ istekleri demo/index.html dosyasina yonlendirildi; ana haritadaki Demo dugmesi dogrudan ./demo/ studyosuna baglandi.
+- tools/build_tool.ps1, tools/build.py, .github/workflows/deploy-mars-web.yml, ForAgents/PROJECT_STATE.md, ForAgents/SHARED_PLANS_AND_API.md:
+  * demo/ klasoru ve .html dosyalari paketleme + <800 satir CI denetimine eklendi; kilitli EXE durumunda temp derleme uyarisi eklendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-14T23:26:45+03:00] fix(demo): /demo 404 Sunucu, Ag & Dagitim Kapsama Duzeltmesi:
+- tools/WinLauncher.cs (Satir 288-292) & serve.ps1 (Satir 265-269): IsAllowedWebPath beyaz listesine demo/ alt yolu eklendi.
+- .github/workflows/deploy-mars-web.yml (Satir 116-135) & tools/server/deploy_web_sync.sh (Satir 71-133): Canli web rsync/git-log/chown listelerine demo/ eklendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.

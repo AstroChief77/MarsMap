@@ -73,3 +73,18 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - `api/chat.php`: `send_message` için `POST` zorunluluğu, `limit` alt sınırı (`max(1, min(..., 100))`), sıkı MIME doğrulaması (`in_array($detectedMime, $allowedMimes, true)`), tam dosya içerik taraması, `storage/` ve `uploads/` `.htaccess` koruması, `REMOTE_ADDR` tabanlı yarışsız (`INSERT OR IGNORE`) hız sınırı ve çift kaçış düzeltmesi uygulandı.
   - `chat/index.html`: `../css/chat.css` ve `../api/chat.php` yolları, `uploads/` doğrulaması, `seenMessageIds` tekilleştirmesi ve `rel="noopener noreferrer"` eklendi.
   - Dağıtım ve başlatıcı betiklerinde (`install_autodeploy.sh`, `deploy_web_sync.sh`, `launch-linux.sh`, `WinLauncher.cs`, `serve.ps1`) süreç listesinde token ifşası, `python3 -c` argüman enjeksiyonu, sığ klon boş SHA döngüsü ve `0.0.0.0` varsayılan LAN yayını (`127.0.0.1` loopback varsayılanı ile) kapatıldı.
+
+## 9. Rehberli Jüri Demo Modu & Canlı Rota Simülasyonu (`v4.3.0`)
+- **`DemoScenarioService.js` & `DemoControlBar.js` (`css/demo.css`, `data/i18n/localesDemo.js`)**:
+  - Üst gezinti şeridine tek tıkla açılan **▶ Demo** düğmesi ve `?demo=1` URL başlatma desteği eklendi.
+  - 4 hazır jüri senaryosu (*Gale → Jezero Güvenli Rota*, *Şiddetli Asit & Fırtına Yeniden Rotalama*, *Gale 3D MOLA & Elysium*, *2D Karo Piramidi & Çoklu Katman*), otomatik tur (`Oto-Tur`), oynat/duraklat, `1x–10x` hız seçici, ilerleme kaydırıcı (`scrubber`) ve 9 dilde anlatım ipuçları eklendi.
+- **Canlı Rover / EVA Astronot Rota Simülasyonu (`RouteCanvasRenderer.drawDemoSimulation`, `Map3DRenderer.js`, `Map2DRenderer.js`)**:
+  - Hesaplanan Mavi rota (`primaryBlue.points`) üzerinde Haversine mesafe enterpolasyonuyla hareket eden animasyonlu **Basınçlı Rover** veya **EVA Astronot** işaretçisi, katedilen parlak iz ve canlı `km` / MOLA rakım / kalan `O₂ (L)` etiketi 2D ve 3D görünümlerde çalışacak şekilde bağlandı.
+
+## 10. Adanmış `/demo` Mars Hayatta Kalma & Rota Simülasyon Stüdyosu (`v4.3.0`)
+- **`/demo` (`demo/index.html`, `css/demo_studio.css`, `DemoStudioController.js`, `MarsSimulationEngine.js`, `SimulationChartRenderer.js`)**:
+  - Ana gezinti çubuğundaki `▶ Demo` düğmesi (`/`) ve `/demo` / `/demo/` URL yolları doğrudan bu adanmış simülasyon stüdyosunu açar (`serve.ps1` ve `WinLauncher.cs` routing destekli, `<base href="../">` ile göreli asset/WASM uyumlu).
+  - `MarsSimulationEngine`: `Prameters.md` kalibrasyonlu 3 profil (`rover` Basınçlı SEV 420 L / 180 m/dk, `eva` Astronot 420 L / 52 m/dk, `robot` Bilimsel Rover 0 L O₂ / 2.53 m/dk); Asit Yağmuru, Toz Fırtınası ve α-β-γ Radyasyonu için dinamik O₂, su, enerji ve hız kaybı eğrileri; canlı `O₂ Sızıntısı` / `Fırtına Patlat` enjeksiyonu ve `%20` Geri Dönüş (Walkback) uyarısı üretir.
+  - `SimulationChartRenderer`: Gerçek zamanlı `O₂ %`, `Enerji %`, `MOLA Rakım`, `%20` kritik eşik çizgisi ve canlı zaman imleci çizer.
+  - `BackendApiService.js`: WASM mutlak yol çözümü `document.baseURI` tabanlı hale getirilerek `/demo/` alt dizininde de sorunsuz çalışır duruma getirildi.
+  - `tools/build_tool.ps1`, `tools/build.py` ve `.github/workflows/deploy-mars-web.yml`: `demo` dizini paketlemeye ve `< 800` satır doğrulamasına dahil edildi; kilitli çalışan `MarsMap-win64.exe` için geçici derleme hedefi koruması eklendi.
