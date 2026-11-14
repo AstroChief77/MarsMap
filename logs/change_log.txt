@@ -107,3 +107,8 @@
 [2026-11-14 12:12:25] [CREATE] version.json (v2.2.0), build.bat, tools/WinLauncher.cs, tools/launch-linux.sh ve tools/build_tool.ps1 otomatik Windows+Linux derleme aracı oluşturuldu.
 [2026-11-14 12:12:55] [BUILD] tools/build_tool.ps1 ile Windows (MarsMap-win64.exe + ZIP) ve Linux (launch-linux.sh + TAR.GZ) paketleri hatasız derlendi.
 [2026-11-14 12:13:20] [UPDATE] SOURCES.md ve deploy_desktop.ps1 güncellendi.
+[2026-11-14 12:16:51] [BACKUP] backups/snapshot_20261114_lod_routes klasörüne ilgili JS/CSS/log dosyaları yedeklendi.
+[2026-11-14 12:17:30] [CREATE] js/services/RoutePlannerService.js oluşturuldu (Mavi kısa güvenli rota, Soluk Mavi uzun güvenli alternatif rota, saat/km/m/Litre hesabı ve Alfa/Beta/Gama foton bölgeleri).
+[2026-11-14 12:17:33] [UPDATE] js/services/StateStorageService.js & SettingsMenu.js güncellendi (Factory ayarları: yaklaştıkça LOD render, Litre, km/m, Saat ve Alfa/Beta/Gama + Foton Bombardıman alanları).
+[2026-11-14 12:18:45] [UPDATE] js/renderers/CraterCanvasRenderer.js, CraterDrawers.js, CraterMapViewer.js, css/navbar.css ve css/crater_viewer.css ölçekli LOD kırpma, çift mavi yol ve radyasyon katmanlarıyla güncellendi.
+[2026-11-14 12:19:15] [VERSION] version.json v2.3.0 sürümüne yükseltildi ve Windows/Linux derleme aracı tetiklendi.

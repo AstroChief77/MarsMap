@@ -437,11 +437,100 @@
   }
 }
 
+/* ROTA KARŞILAŞTIRMA & RADYASYON KUTULARI */
+.sidebar-route-box,
+.sidebar-rad-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.route-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-offwhite);
+  border: 1px solid var(--border-hairline);
+  border-radius: 6px;
+}
+
+.route-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.swatch-blue { background: #2563eb; }
+.swatch-pale { background: #93c5fd; border: 1px solid #60a5fa; }
+
+.route-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.route-title {
+  font-size: 0.74rem;
+  color: var(--ink-black);
+}
+
+.route-metrics {
+  font-size: 0.72rem;
+  color: var(--ink-dark);
+}
+
+.route-consumables {
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+}
+
+.sidebar-rad-box {
+  background: var(--surface-offwhite);
+  border: 1px solid var(--border-hairline);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+}
+
+.rad-head {
+  font-size: 0.74rem;
+  color: #6d28d9;
+}
+
+.rad-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--ink-dark);
+}
+
+.rad-grid div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.rad-grid strong {
+  color: var(--ink-black);
+  text-align: right;
+}
+
+.rad-lod-note {
+  margin-top: 0.25rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border-hairline);
+  font-size: 0.68rem;
+  color: var(--mars-red);
+}
+
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
    - Satır 1-4: JSDoc Google Maps düzeni krater harita stilleri tanıtımı.
-   - Satır 6-20: .corp-maps-workspace tam ekran (100vh - header) esnek yerleşimi.
-   - Satır 22-240: Sol kenar çubuğu (.maps-sidebar), krater düğmeleri, katman onay kutuları, istasyon kartı stilleri.
-   - Satır 242-386: Orta harita tuvali (.corp-map-pane), sol alttaki zorunlu 2D/3D/Asit/Fırtına filtreleri ve sağ alttaki sade zoom yığını.
+   - Satır 6-240: Sol kenar çubuğu (.maps-sidebar), krater düğmeleri, katman onay kutuları ve nokta kartı stilleri.
+   - Satır 242-430: Orta harita tuvali, sol alttaki 2D/3D/Asit/Fırtına filtreleri ve sağ alt zoom kontrolü.
+   - Satır 432-525: Mavi/Soluk Mavi rota karşılaştırma kutusu, Alfa/Beta/Gama foton radyasyon kutusu ve LOD bilgisi stilleri.
    ========================================================================== */

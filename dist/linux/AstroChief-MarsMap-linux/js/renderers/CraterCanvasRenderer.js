@@ -1,7 +1,8 @@
 /**
  * @file CraterCanvasRenderer.js
- * @description Yakınlaştırılmış hiper-yerel Mars Krater yüzeyini 2D/3D modlarında çizen motor.
- * MOLA konturları, THEMIS termal, USGS Boxwork sırtları, asit yağmuru, kum kasırgası filtreleri ve EVA rotalarını işler.
+ * @description Yaklaştıkça kademeli render (Progressive LOD & Viewport Culling) yapan krater çizim motoru.
+ * Sadece ekranda görünen alanı çizer; Mavi (kısa güvenli yol), Soluk Mavi (uzun güvenli yol)
+ * ve Alfa/Beta/Gama Foton Bombardıman alanlarını 2D/3D modlarında görselleştirir.
  */
 
 export class CraterCanvasRenderer {
@@ -13,9 +14,25 @@ export class CraterCanvasRenderer {
   }
 
   /**
-   * Seçili krater için prosedürel yüksek detaylı yüzey dokusu oluşturur (önbellekli)
-   * @param {string} craterId - Krater kimliği
-   * @returns {HTMLCanvasElement} Önbelleklenmiş doku tuvali
+   * Görünür ekran kırpma kontrolü (Viewport Culling):
+   * Kural gereği yalnızca ekrandaki görünür pencereye düşen detaylar çizilir, tamamı render edilmez.
+   */
+  isInsideViewport(x, y, margin, width, height) {
+    return x >= -margin && x <= width + margin && y >= -margin && y <= height + margin;
+  }
+
+  /**
+   * Yakınlaştırma ölçeğine göre Level-of-Detail (LOD) kademesini hesaplar
+   */
+  computeLodTier(zoom, progressiveEnabled) {
+    if (!progressiveEnabled) return 3;
+    if (zoom < 1.25) return 1;      // LOD 1: Genel krater silüeti + ana rota
+    if (zoom < 1.95) return 2;      // LOD 2: MOLA konturları + Radyasyon/Foton + Orta ölçek ızgara
+    return 3;                       // LOD 3: Hiper-yerel kayaç/ventifact + Boxwork matrisi + segment saat/km etiketleri
+  }
+
+  /**
+   * Seçili krater için temel doku tuvali oluşturur (önbellekli)
    */
   getOrCreateTerrainTexture(craterId) {
     if (this.textureCache.has(craterId)) {
@@ -31,7 +48,6 @@ export class CraterCanvasRenderer {
     const cy = size / 2;
     const r = size * 0.43;
 
-    // 1. Ejecta dış krater püskürtü çemberi
     const ejecta = octx.createRadialGradient(cx, cy, r * 0.85, cx, cy, size * 0.5);
     ejecta.addColorStop(0, "rgba(130, 62, 38, 0.85)");
     ejecta.addColorStop(0.65, "rgba(65, 32, 22, 0.42)");
@@ -39,7 +55,6 @@ export class CraterCanvasRenderer {
     octx.fillStyle = ejecta;
     octx.fillRect(0, 0, size, size);
 
-    // 2. Krater ana çanağı (Kuzeybatı güneş ışığı, Güneydoğu krater duvarı gölgesi)
     const floorGrad = octx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
     if (craterId === "korolev-crater") {
       floorGrad.addColorStop(0, "#8c5642");
@@ -55,21 +70,6 @@ export class CraterCanvasRenderer {
     octx.arc(cx, cy, r, 0, Math.PI * 2);
     octx.fill();
 
-    // 3. Krater içi mikro kratercikler ve regolit taş dokusu
-    for (let i = 0; i < 85; i++) {
-      const angle = i * 2.39996;
-      const dist = Math.sqrt(i / 85) * (r * 0.88);
-      const px = cx + Math.cos(angle) * dist;
-      const py = cy + Math.sin(angle) * dist;
-      const pr = 1.6 + (i % 6);
-
-      octx.fillStyle = i % 2 === 0 ? "rgba(255, 175, 130, 0.16)" : "rgba(12, 6, 4, 0.36)";
-      octx.beginPath();
-      octx.arc(px, py, pr, 0, Math.PI * 2);
-      octx.fill();
-    }
-
-    // 4. Kratere özgü jeomorfolojik detaylar
     if (craterId === "gale-crater") {
       for (let step = 5; step >= 1; step--) {
         const mr = (r * 0.48) * (step / 5);
@@ -107,7 +107,6 @@ export class CraterCanvasRenderer {
       octx.fill();
     }
 
-    // 5. Krater dış kenar duvarı (Rim Scarp)
     octx.strokeStyle = "rgba(255, 160, 115, 0.7)";
     octx.lineWidth = 3.5;
     octx.beginPath();
@@ -119,14 +118,15 @@ export class CraterCanvasRenderer {
   }
 
   /**
-   * Ana yerel krater çizim fonksiyonu (arka plandaki yıldızları şeffaf bırakır)
+   * Ana yerel krater çizim fonksiyonu (Ölçekli LOD + Görünür Pencere Kırpma + Mavi/Soluk Mavi Rotalar)
    */
   render(ctx, state) {
     const {
       width, height, panX, panY, zoom, activeCrater, layers,
       viewMode, filterAcidRain, filterDustStorm, waypoints,
       selectedWaypoint, terrainExaggeration, basemapOpacity,
-      showGraticule, showNomenclature, measurePoints
+      showGraticule, showNomenclature, progressiveLodRender,
+      showRadiationZones, radiationZones, computedRoutes
     } = state;
 
     ctx.clearRect(0, 0, width, height);
@@ -137,10 +137,11 @@ export class CraterCanvasRenderer {
     const radius = Math.min(width, height) * 0.39 * localZoom;
     const is3D = viewMode === "3d";
     const exag = terrainExaggeration || 1.0;
+    const lodTier = this.computeLodTier(zoom, progressiveLodRender);
 
-    // İsteğe bağlı koordinat graticule ağı (zemin)
+    // Görünür pencere kırpma bölgesi (sadece viewport içi çizim)
     if (showGraticule) {
-      this.drawLocalGraticule(ctx, width, height, centerX, centerY, localZoom);
+      this.drawViewportGraticule(ctx, width, height, centerX, centerY, localZoom);
     }
 
     ctx.save();
@@ -150,7 +151,7 @@ export class CraterCanvasRenderer {
       ctx.translate(-centerX, -centerY);
     }
 
-    // 1. Optik Mars Krater Yüzey Dokusu
+    // 1. Optik Krater Yüzey Dokusu
     if (layers.optical) {
       ctx.save();
       ctx.globalAlpha = basemapOpacity ?? 1.0;
@@ -160,56 +161,86 @@ export class CraterCanvasRenderer {
       ctx.restore();
     }
 
-    // 2. MOLA Topografik DEM Konturları
-    if (layers.topography) {
-      this.drawTopographyContours(ctx, centerX, centerY, radius, activeCrater.elevation_datum_m);
+    // 2. LOD 3 Yakınlaştırmada Yalnızca Görünür Alan Kayaç Detayları (Viewport Culled Micro-Rocks)
+    if (lodTier >= 3 && layers.optical) {
+      this.drawLodMicroTerrain(ctx, centerX, centerY, radius, localZoom, width, height, is3D);
     }
 
-    // 3. THEMIS Termal Kızılötesi Kaya Yoğunluğu
+    // 3. LOD >= 2 MOLA Topografik DEM Konturları (metre bazlı)
+    if (layers.topography && lodTier >= 2) {
+      this.drawTopographyContours(ctx, centerX, centerY, radius, activeCrater.elevation_datum_m, width, height);
+    }
+
+    // 4. THEMIS Termal Kızılötesi
     if (layers.thermal) {
       this.drawThermalOverlay(ctx, centerX, centerY, radius);
     }
 
-    // 4. USGS Jeoloji & 2025-26 Boxwork Sırtları
-    if (layers.geology) {
-      this.drawGeologyOverlay(ctx, centerX, centerY, radius, localZoom, activeCrater.id, showNomenclature);
+    // 5. USGS Boxwork Jeolojisi (LOD >= 2 ve görünür alandaysa çizilir)
+    if (layers.geology && lodTier >= 2) {
+      this.drawGeologyOverlay(ctx, centerX, centerY, localZoom, activeCrater.id, showNomenclature, width, height);
     }
 
-    // 5. Sol Alt Filtre: Asit Yağmuru / Asidik Sülfat Sisi
+    // 6. KURAL: Alfa / Beta / Gama Radyasyon ve Foton Bombardımanı Alanları
+    if (showRadiationZones && radiationZones && radiationZones.length) {
+      this.drawRadiationPhotonZones(ctx, centerX, centerY, localZoom, radiationZones, lodTier, width, height);
+    }
+
+    // 7. Sol Alt Filtreler: Asit Yağmuru & Kum Kasırgası
     if (filterAcidRain) {
       this.drawAcidRainFilter(ctx, centerX, centerY, radius);
     }
-
-    // 6. Sol Alt Filtre: Kum Yağmuru / Kasırga Rüzgar Jeti
     if (filterDustStorm) {
       this.drawDustStormFilter(ctx, centerX, centerY, radius);
     }
 
-    // 7. 2D Görünüm EVA Rotası
+    // 8. 2D Görünüm Çift Rota (Mavi: Kısa En Güvenli, Soluk Mavi: Uzun Alternatif)
     if (layers.evaRoute && !is3D) {
-      this.drawEvaRoute2D(ctx, centerX, centerY, localZoom, waypoints, selectedWaypoint, filterAcidRain, filterDustStorm);
+      this.drawDualRoutes2D(ctx, centerX, centerY, localZoom, computedRoutes, waypoints, selectedWaypoint, lodTier, width, height);
     }
 
     ctx.restore();
 
-    // 8. 3D Modunda dikey yükselti sütunları (Terrain Exaggeration çarpanı ile)
+    // 9. 3D Görünüm Yükseltilmiş Sütunlar ve Çift Rota
     if (is3D) {
       this.draw3DElevationOverlays(
         ctx, centerX, centerY, localZoom, activeCrater, waypoints,
-        selectedWaypoint, layers.evaRoute, filterAcidRain, filterDustStorm, exag
+        selectedWaypoint, layers.evaRoute, computedRoutes, exag, lodTier, width, height
       );
     }
 
-    // 9. Aktif Mesafe Ölçüm Cetveli (Trek Calculate Distance aracı)
-    if (measurePoints && measurePoints.length > 0) {
-      this.drawMeasureRuler(ctx, centerX, centerY, localZoom, is3D, measurePoints, exag);
-    }
+    return lodTier;
   }
 
   /**
-   * Enlem/boylam ızgarası çizer (Graticule)
+   * Yaklaşıldığında yalnızca ekranda kalan kareleri render eden mikro kayaç/krater katmanı (LOD 3)
    */
-  drawLocalGraticule(ctx, w, h, cx, cy, zoom) {
+  drawLodMicroTerrain(ctx, cx, cy, radius, zoom, viewW, viewH, is3D) {
+    ctx.save();
+    for (let i = 0; i < 90; i++) {
+      const ang = i * 2.39996;
+      const dist = Math.sqrt(i / 90) * (radius * 0.88);
+      const wx = cx + Math.cos(ang) * dist;
+      const wy = cy + Math.sin(ang) * dist;
+
+      // Görünür pencere projeksiyonu ve frustum kırpma
+      const syScreen = is3D ? cy + (wy - cy) * 0.56 : wy;
+      const sxScreen = is3D ? cx + (wx - cx) * 1.12 : wx;
+      if (!this.isInsideViewport(sxScreen, syScreen, 25, viewW, viewH)) continue;
+
+      const rr = (1.8 + (i % 4)) * Math.min(zoom * 0.65, 2.2);
+      ctx.fillStyle = i % 2 === 0 ? "rgba(255, 190, 145, 0.22)" : "rgba(15, 8, 5, 0.42)";
+      ctx.beginPath();
+      ctx.arc(wx, wy, rr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Sadece ekran içi graticule çizgileri
+   */
+  drawViewportGraticule(ctx, w, h, cx, cy, zoom) {
     ctx.save();
     ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
     ctx.lineWidth = 0.8;
@@ -224,32 +255,37 @@ export class CraterCanvasRenderer {
   }
 
   /**
-   * MOLA Topografik eşyükselti halkalarını çizer
+   * MOLA Topografik kontur halkaları
    */
-  drawTopographyContours(ctx, cx, cy, r, datumElev) {
+  drawTopographyContours(ctx, cx, cy, r, datumElev, viewW, viewH) {
     const steps = 5;
     for (let i = 1; i <= steps; i++) {
       const stepR = (r / (steps + 0.5)) * i;
-      ctx.strokeStyle = `rgba(56, 189, 248, ${0.24 + i * 0.08})`;
+      ctx.strokeStyle = `rgba(56, 189, 248, ${0.22 + i * 0.06})`;
       ctx.lineWidth = 1.1;
       ctx.setLineDash([5, 4]);
       ctx.beginPath();
       ctx.arc(cx, cy, stepR, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.setLineDash([]);
-      ctx.fillStyle = "#38bdf8";
-      ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillText(`${Math.round(datumElev + i * 320)}m`, cx + stepR - 14, cy - 5);
+      const lx = cx + stepR - 14;
+      const ly = cy - 5;
+      if (this.isInsideViewport(lx, ly, 40, viewW, viewH)) {
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
+        ctx.fillText(`${Math.round(datumElev + i * 320)}m`, lx, ly);
+      }
     }
+    ctx.setLineDash([]);
   }
 
   /**
-   * THEMIS Termal Kızılötesi yoğunluk katmanı
+   * THEMIS Termal Kızılötesi katmanı
    */
   drawThermalOverlay(ctx, cx, cy, r) {
     ctx.save();
-    ctx.globalAlpha = 0.36;
+    ctx.globalAlpha = 0.34;
     const grad = ctx.createRadialGradient(cx + 25, cy - 15, 10, cx, cy, r * 0.85);
     grad.addColorStop(0, "#a855f7");
     grad.addColorStop(0.55, "#3b82f6");
@@ -262,26 +298,21 @@ export class CraterCanvasRenderer {
   }
 
   /**
-   * USGS Jeoloji ve 2025-26 Boxwork Mineral Ağları katmanı
+   * USGS Boxwork Mineral Sırtları (görünür penceredeyse render edilir)
    */
-  drawGeologyOverlay(ctx, cx, cy, r, zoom, craterId, showLabels) {
+  drawGeologyOverlay(ctx, cx, cy, zoom, craterId, showLabels, viewW, viewH) {
     if (craterId !== "gale-crater") return;
-    ctx.save();
     const boxX = cx + 95 * zoom;
     const boxY = cy + 72 * zoom;
+    if (!this.isInsideViewport(boxX, boxY, 80, viewW, viewH)) return;
+
+    ctx.save();
     ctx.strokeStyle = "#eab308";
     ctx.lineWidth = 1.6;
     ctx.setLineDash([3, 2]);
-
     for (let off = -22; off <= 22; off += 11) {
-      ctx.beginPath();
-      ctx.moveTo(boxX + off * zoom, boxY - 18 * zoom);
-      ctx.lineTo(boxX + off * zoom, boxY + 18 * zoom);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(boxX - 18 * zoom, boxY + off * zoom);
-      ctx.lineTo(boxX + 18 * zoom, boxY + off * zoom);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(boxX + off * zoom, boxY - 18 * zoom); ctx.lineTo(boxX + off * zoom, boxY + 18 * zoom); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(boxX - 18 * zoom, boxY + off * zoom); ctx.lineTo(boxX + 18 * zoom, boxY + off * zoom); ctx.stroke();
     }
     ctx.setLineDash([]);
     if (showLabels) {
@@ -293,169 +324,244 @@ export class CraterCanvasRenderer {
   }
 
   /**
-   * Asit Yağmuru & Korozif Sülfat Sisi Filtresi katmanı
+   * Alfa (α), Beta (β), Gama (γ) ve Foton Bombardımanı Alanlarını çizer
+   */
+  drawRadiationPhotonZones(ctx, cx, cy, zoom, zones, lodTier, viewW, viewH) {
+    ctx.save();
+    zones.forEach((z) => {
+      const zx = cx + z.relX * zoom;
+      const zy = cy + z.relY * zoom;
+      const zr = z.radius * zoom;
+      if (!this.isInsideViewport(zx, zy, zr + 40, viewW, viewH)) return;
+
+      const grad = ctx.createRadialGradient(zx, zy, 6, zx, zy, zr);
+      grad.addColorStop(0, "rgba(168, 85, 247, 0.36)");
+      grad.addColorStop(1, "rgba(168, 85, 247, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(zx, zy, zr, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(zx, zy, zr * 0.82, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#e9d5ff";
+      ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
+      ctx.fillText(`☢ ${z.name}`, zx - 68, zy - 4);
+      if (lodTier >= 2) {
+        ctx.fillText(`α/β/γ: ${z.gammaLevel} | ${z.photonFlux}`, zx - 74, zy + 9);
+      }
+    });
+    ctx.restore();
+  }
+
+  /**
+   * Asit Yağmuru & Sülfat Sisi Filtresi
    */
   drawAcidRainFilter(ctx, cx, cy, r) {
     ctx.save();
     const acidX = cx + r * 0.28;
     const acidY = cy + r * 0.22;
     const acidGrad = ctx.createRadialGradient(acidX, acidY, 8, acidX, acidY, r * 0.44);
-    acidGrad.addColorStop(0, "rgba(245, 158, 11, 0.45)");
-    acidGrad.addColorStop(0.7, "rgba(234, 179, 8, 0.2)");
+    acidGrad.addColorStop(0, "rgba(245, 158, 11, 0.44)");
     acidGrad.addColorStop(1, "rgba(234, 179, 8, 0)");
-
     ctx.fillStyle = acidGrad;
     ctx.beginPath();
     ctx.arc(acidX, acidY, r * 0.44, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "#f59e0b";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.arc(acidX, acidY, r * 0.36, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
-    ctx.fillText("⚗ ASİT YAĞMURU / SÜLFAT SİSİ (pH 2.4)", acidX - 85, acidY + r * 0.43);
+    ctx.fillText("⚗ ASİT YAĞMURU SİSİ (pH 2.4)", acidX - 65, acidY + r * 0.38);
     ctx.restore();
   }
 
   /**
-   * Kum Yağmuru & Kasırga / Toz Fırtınası Filtresi katmanı
+   * Kum Yağmuru & Kasırga / Toz Fırtınası Filtresi
    */
   drawDustStormFilter(ctx, cx, cy, r) {
     ctx.save();
     const stormX = cx - r * 0.3;
     const stormY = cy + r * 0.1;
-
-    const stormGrad = ctx.createRadialGradient(stormX, stormY, 5, stormX, stormY, r * 0.5);
-    stormGrad.addColorStop(0, "rgba(220, 38, 38, 0.44)");
+    const stormGrad = ctx.createRadialGradient(stormX, stormY, 5, stormX, stormY, r * 0.48);
+    stormGrad.addColorStop(0, "rgba(220, 38, 38, 0.42)");
     stormGrad.addColorStop(1, "rgba(220, 38, 38, 0)");
     ctx.fillStyle = stormGrad;
     ctx.beginPath();
-    ctx.arc(stormX, stormY, r * 0.5, 0, Math.PI * 2);
+    ctx.arc(stormX, stormY, r * 0.48, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 2.4;
-    ctx.setLineDash([10, 5]);
-    ctx.beginPath();
-    ctx.moveTo(cx - r * 0.85, cy + r * 0.48);
-    ctx.lineTo(stormX + 20, stormY - 10);
-    ctx.stroke();
-    ctx.setLineDash([]);
 
     ctx.fillStyle = "#f87171";
     ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
-    ctx.fillText("🌪 KUM FIRTINASI / KASIRGA (TAU 3.4)", cx - r * 0.82, cy + r * 0.56);
+    ctx.fillText("🌪 KUM FIRTINASI / KASIRGA (TAU 3.4)", cx - r * 0.78, cy + r * 0.52);
     ctx.restore();
   }
 
   /**
-   * 2D Görünüm EVA rotası ve istasyonları çizer
+   * KURAL GEREĞİ 2D Görünümde Çift Yol Çizer:
+   * - Mavi (#2563eb): En güvenli ve en kısa yol + süre (saat) + mesafe (km)
+   * - Soluk Mavi (#93c5fd): Yine güvenli fakat daha uzun çevre yolu + süre (saat)
    */
-  drawEvaRoute2D(ctx, cx, cy, zoom, waypoints, selectedWaypoint, filterAcid, filterStorm) {
-    if (!waypoints.length) return;
+  drawDualRoutes2D(ctx, cx, cy, zoom, computedRoutes, waypoints, selectedWaypoint, lodTier, viewW, viewH) {
     ctx.save();
+    const sec = computedRoutes?.secondaryPaleBlue;
+    const pri = computedRoutes?.primaryBlue;
 
-    for (let i = 0; i < waypoints.length - 1; i++) {
-      const p1 = waypoints[i];
-      const p2 = waypoints[i + 1];
-      const isStormHazard = filterStorm && (p1.stormRisk || p2.stormRisk);
-      const isAcidHazard = filterAcid && (p1.acidRisk || p2.acidRisk);
-
-      ctx.strokeStyle = isStormHazard ? "#ef4444" : (isAcidHazard ? "#f59e0b" : "#22c55e");
-      ctx.lineWidth = 3.2;
+    // 1. SOLUK MAVİ: Güvenli fakat daha uzun alternatif yol
+    if (sec && sec.points.length >= 2) {
+      ctx.strokeStyle = "rgba(147, 197, 253, 0.72)"; // Soluk Mavi
+      ctx.lineWidth = 2.8;
+      ctx.setLineDash([7, 5]);
       ctx.beginPath();
-      ctx.moveTo(cx + p1.relX * zoom, cy + p1.relY * zoom);
-      ctx.lineTo(cx + p2.relX * zoom, cy + p2.relY * zoom);
+      sec.points.forEach((p, idx) => {
+        const px = cx + p.relX * zoom;
+        const py = cy + p.relY * zoom;
+        if (idx === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
       ctx.stroke();
+      ctx.setLineDash([]);
+
+      const mid = sec.points[Math.floor(sec.points.length / 2)];
+      const mx = cx + mid.relX * zoom;
+      const my = cy + mid.relY * zoom + 14;
+      if (this.isInsideViewport(mx, my, 80, viewW, viewH)) {
+        ctx.fillStyle = "#bfdbfe";
+        ctx.font = "bold 9px 'Public Sans Web', 'Public Sans', sans-serif";
+        ctx.fillText(`Uzun Güvenli Yol: ${sec.totalKm.toFixed(1)} km (${sec.formattedDuration})`, mx - 45, my);
+      }
     }
 
+    // 2. KOYU / PARLAK MAVİ: En güvenli ve en kısa ana yol
+    if (pri && pri.points.length >= 2) {
+      ctx.strokeStyle = "#2563eb"; // Mavi
+      ctx.lineWidth = 4.0;
+      ctx.beginPath();
+      pri.points.forEach((p, idx) => {
+        const px = cx + p.relX * zoom;
+        const py = cy + p.relY * zoom;
+        if (idx === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+      const midP = pri.points[Math.floor(pri.points.length / 2)];
+      const lx = cx + midP.relX * zoom;
+      const ly = cy + midP.relY * zoom - 12;
+      if (this.isInsideViewport(lx, ly, 80, viewW, viewH)) {
+        ctx.fillStyle = "#60a5fa";
+        ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
+        ctx.fillText(`Kısa Güvenli Yol: ${pri.totalKm.toFixed(1)} km (${pri.formattedDuration})`, lx - 48, ly);
+      }
+    }
+
+    // Duraklar (görünür ekranda ise çizilir)
     waypoints.forEach((wp) => {
       const x = cx + wp.relX * zoom;
       const y = cy + wp.relY * zoom;
+      if (!this.isInsideViewport(x, y, 40, viewW, viewH)) return;
       const isSelected = selectedWaypoint && selectedWaypoint.id === wp.id;
 
       ctx.beginPath();
-      ctx.arc(x, y, (wp.highlight ? 9 : 6.5), 0, Math.PI * 2);
-      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#e03c31" : "#22c55e");
+      ctx.arc(x, y, wp.highlight ? 8.5 : 6.2, 0, Math.PI * 2);
+      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#e03c31" : "#3b82f6");
       ctx.fill();
       ctx.lineWidth = 2;
       ctx.strokeStyle = "#000000";
       ctx.stroke();
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillText(wp.name, x + 11, y + 4);
+      if (lodTier >= 1) {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
+        ctx.fillText(lodTier >= 3 ? `${wp.name} (${wp.elev}m)` : wp.name, x + 11, y + 4);
+      }
     });
 
     ctx.restore();
   }
 
   /**
-   * 3D Perspektif Modunda Terrain Exaggeration dikey yükselti sütunlarını çizer
+   * 3D Perspektif Modunda yükseltilmiş Mavi & Soluk Mavi yollar ile durakları çizer
    */
-  draw3DElevationOverlays(ctx, cx, cy, zoom, crater, waypoints, selectedWaypoint, showRoute, filterAcid, filterStorm, exag) {
+  draw3DElevationOverlays(ctx, cx, cy, zoom, crater, waypoints, selectedWaypoint, showRoute, computedRoutes, exag, lodTier, viewW, viewH) {
     ctx.save();
     if (crater.id === "gale-crater") {
       const peakBaseY = cy + 8 * 0.56;
       const peakTopY = peakBaseY - 70 * zoom * exag;
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.58)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
       ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.moveTo(cx + 14 * 1.12, peakBaseY);
-      ctx.lineTo(cx + 14 * 1.12, peakTopY);
-      ctx.stroke();
-
+      ctx.beginPath(); ctx.moveTo(cx + 14 * 1.12, peakBaseY); ctx.lineTo(cx + 14 * 1.12, peakTopY); ctx.stroke();
       ctx.fillStyle = "#e03c31";
       ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillText("▲ MOUNT SHARP ZİRVE (5.5 KM)", cx - 55, peakTopY - 6);
+      ctx.fillText("▲ MOUNT SHARP (5.5 KM)", cx - 50, peakTopY - 6);
     }
 
-    if (!showRoute || !waypoints.length) {
-      ctx.restore();
-      return;
-    }
+    if (!showRoute) { ctx.restore(); return; }
 
-    const projPoints = waypoints.map((wp) => {
-      const gx = cx + wp.relX * zoom * 1.12;
-      const gy = cy + wp.relY * zoom * 0.56;
-      const elevOffset = Math.max(10, ((wp.elev + 4600) / 26) * zoom * exag);
-      return { wp, gx, gy, tx: gx, ty: gy - elevOffset };
-    });
+    const to3D = (pt) => {
+      const gx = cx + pt.relX * zoom * 1.12;
+      const gy = cy + pt.relY * zoom * 0.56;
+      const elevOffset = Math.max(10, (((pt.elev || -4200) + 4600) / 26) * zoom * exag);
+      return { gx, gy, tx: gx, ty: gy - elevOffset };
+    };
 
-    for (let i = 0; i < projPoints.length - 1; i++) {
-      const a = projPoints[i];
-      const b = projPoints[i + 1];
-      const isStormHazard = filterStorm && (a.wp.stormRisk || b.wp.stormRisk);
-      const isAcidHazard = filterAcid && (a.wp.acidRisk || b.wp.acidRisk);
+    const sec = computedRoutes?.secondaryPaleBlue;
+    const pri = computedRoutes?.primaryBlue;
 
-      ctx.strokeStyle = isStormHazard ? "#ef4444" : (isAcidHazard ? "#f59e0b" : "#22c55e");
-      ctx.lineWidth = 3;
+    // Soluk Mavi 3D Uzun Güvenli Rota
+    if (sec && sec.points.length >= 2) {
+      ctx.strokeStyle = "rgba(147, 197, 253, 0.72)";
+      ctx.lineWidth = 2.6;
+      ctx.setLineDash([7, 5]);
       ctx.beginPath();
-      ctx.moveTo(a.tx, a.ty);
-      ctx.lineTo(b.tx, b.ty);
+      sec.points.forEach((p, idx) => {
+        const q = to3D(p);
+        if (idx === 0) ctx.moveTo(q.tx, q.ty);
+        else ctx.lineTo(q.tx, q.ty);
+      });
       ctx.stroke();
+      ctx.setLineDash([]);
     }
 
-    projPoints.forEach(({ wp, gx, gy, tx, ty }) => {
+    // Mavi 3D En Kısa & Güvenli Rota
+    if (pri && pri.points.length >= 2) {
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3.8;
+      ctx.beginPath();
+      pri.points.forEach((p, idx) => {
+        const q = to3D(p);
+        if (idx === 0) ctx.moveTo(q.tx, q.ty);
+        else ctx.lineTo(q.tx, q.ty);
+      });
+      ctx.stroke();
+
+      const mid = to3D(pri.points[Math.floor(pri.points.length / 2)]);
+      if (this.isInsideViewport(mid.tx, mid.ty, 60, viewW, viewH)) {
+        ctx.fillStyle = "#60a5fa";
+        ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
+        ctx.fillText(`Mavi Yol: ${pri.totalKm.toFixed(1)} km • ${pri.formattedDuration}`, mid.tx - 55, mid.ty - 12);
+      }
+    }
+
+    waypoints.forEach((wp) => {
+      const q = to3D(wp);
+      if (!this.isInsideViewport(q.tx, q.ty, 40, viewW, viewH)) return;
       const isSelected = selectedWaypoint && selectedWaypoint.id === wp.id;
+
       ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
       ctx.lineWidth = 1;
       ctx.setLineDash([2, 2]);
-      ctx.beginPath();
-      ctx.moveTo(gx, gy);
-      ctx.lineTo(tx, ty);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(q.gx, q.gy); ctx.lineTo(q.tx, q.ty); ctx.stroke();
       ctx.setLineDash([]);
 
       ctx.beginPath();
-      ctx.arc(tx, ty, 6.5, 0, Math.PI * 2);
-      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#e03c31" : "#22c55e");
+      ctx.arc(q.tx, q.ty, wp.highlight ? 8 : 6, 0, Math.PI * 2);
+      ctx.fillStyle = isSelected ? "#ffffff" : (wp.highlight ? "#e03c31" : "#3b82f6");
       ctx.fill();
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 1.8;
@@ -463,45 +569,9 @@ export class CraterCanvasRenderer {
 
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 10px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillText(`${wp.name} (${wp.elev}m)`, tx + 10, ty + 3);
+      ctx.fillText(`${wp.name} (${wp.elev}m)`, q.tx + 10, q.ty + 3);
     });
 
-    ctx.restore();
-  }
-
-  /**
-   * Mars Trek Calculate Distance mesafe ölçüm cetvelini çizer
-   */
-  drawMeasureRuler(ctx, cx, cy, zoom, is3D, points, exag) {
-    if (points.length < 1) return;
-    ctx.save();
-    ctx.strokeStyle = "#ffffff";
-    ctx.fillStyle = "#e03c31";
-    ctx.lineWidth = 2;
-    const screenPts = points.map((pt) => {
-      const sx = cx + pt.relX * zoom * (is3D ? 1.12 : 1.0);
-      const sy = cy + pt.relY * zoom * (is3D ? 0.56 : 1.0) - (is3D ? 18 * exag : 0);
-      return { sx, sy };
-    });
-
-    ctx.beginPath();
-    screenPts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy)));
-    ctx.stroke();
-
-    screenPts.forEach((p) => {
-      ctx.beginPath(); ctx.arc(p.sx, p.sy, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    });
-
-    if (screenPts.length >= 2) {
-      let totalKm = 0;
-      for (let i = 0; i < points.length - 1; i++) {
-        totalKm += Math.hypot(points[i + 1].relX - points[i].relX, points[i + 1].relY - points[i].relY) * 0.085;
-      }
-      const last = screenPts[screenPts.length - 1];
-      ctx.font = "bold 11px 'Public Sans Web', 'Public Sans', sans-serif";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(`Ruler: ${totalKm.toFixed(2)} km EVA`, last.sx + 10, last.sy - 8);
-    }
     ctx.restore();
   }
 }
@@ -509,10 +579,10 @@ export class CraterCanvasRenderer {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc hiper-yerel krater çizim motoru tanıtımı.
-   - Satır 7-13: CraterCanvasRenderer yapıcısı; doku önbelleği başlatılır.
-   - Satır 15-113: getOrCreateTerrainTexture; krater çanağı, Mount Sharp, Neretva deltası ve Korolev buzulu yüzey dokularını önbellekli oluşturur.
-   - Satır 115-189: render; arka plan yıldızlarını görünür tutarak 2D/3D eğim, MOLA, THEMIS, Boxwork, asit/fırtına filtreleri ve cetvel aracını çizer.
-   - Satır 191-294: drawLocalGraticule, drawTopographyContours, drawThermalOverlay, drawGeologyOverlay, drawAcidRainFilter, drawDustStormFilter katman yardımcıları.
-   - Satır 296-393: drawEvaRoute2D, draw3DElevationOverlays (Terrain Exaggeration destekli), drawMeasureRuler EVA rota ve mesafe çizim fonksiyonları.
+   - Satır 1-7: JSDoc LOD kırpma, çift güvenli yol ve radyasyon/foton görselleştirme motoru.
+   - Satır 9-33: constructor, isInsideViewport (görünür alan kırpma) ve computeLodTier (yaklaştıkça render kademesi).
+   - Satır 35-109: getOrCreateTerrainTexture; krater dokusu ön-bellek çizimi.
+   - Satır 111-189: render; LOD seviyesine göre katmanları, foton bombardımanı bölgelerini ve Mavi/Soluk Mavi rotaları yürütür.
+   - Satır 191-318: drawLodMicroTerrain, drawViewportGraticule, drawTopographyContours, drawThermalOverlay, drawGeologyOverlay, drawRadiationPhotonZones, drawAcidRainFilter, drawDustStormFilter.
+   - Satır 320-467: drawDualRoutes2D ve draw3DElevationOverlays; haritada Mavi (kısa güvenli yol) ve Soluk Mavi (uzun güvenli alternatif yol) güzergahlarını saat/km etiketiyle çizer.
    ========================================================================== */

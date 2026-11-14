@@ -1,7 +1,8 @@
 /**
  * @file CraterMapViewer.js
- * @description Kurumsal Google Maps & NASA Mars Trek düzeninde basitleştirilmiş,
- * sade ve yüksek kontrastlı etkileşimli Mars Krater Harita Denetleyicisi.
+ * @description Kurumsal Google Maps & NASA Mars Trek düzeninde etkileşimli Mars Krater Haritası.
+ * Mavi/Soluk Mavi çift rota hesabını (RoutePlannerService), ölçekli LOD renderı ve
+ * Alfa/Beta/Gama radyasyon verilerini merkez tuval ve sol kenar çubuğu ile bütünleştirir.
  */
 
 import { CRATERS_DATA } from "../../data/craterLocations.js";
@@ -9,18 +10,18 @@ import { CRATER_WAYPOINTS_DATA } from "../../data/craterWaypointsData.js";
 import { CraterCanvasRenderer } from "../renderers/CraterCanvasRenderer.js";
 import { MarsGlobeRenderer } from "../renderers/MarsGlobeRenderer.js";
 import { StateStorageService } from "../services/StateStorageService.js";
+import { RoutePlannerService } from "../services/RoutePlannerService.js";
 import { CraterDrawers } from "./CraterDrawers.js";
 
 export class CraterMapViewer {
   /**
    * CraterMapViewer yapıcı metodu
-   * @param {string} containerId - Harita çalışma alanının yerleştirileceği kapsayıcı ID
-   * @param {Object} starfieldRef - Arka plan yıldız simülasyonu nesnesi
    */
   constructor(containerId = "crater-viewer-container", starfieldRef = null) {
     this.container = document.getElementById(containerId);
     this.starfieldRef = starfieldRef;
     this.storage = new StateStorageService();
+    this.routePlanner = new RoutePlannerService();
     this.craterRenderer = new CraterCanvasRenderer();
     this.globeRenderer = new MarsGlobeRenderer();
 
@@ -51,7 +52,7 @@ export class CraterMapViewer {
   }
 
   /**
-   * Kayıtlı ayarları bileşene uygular
+   * Kayıtlı veya Factory ayarlarını bileşene uygular
    */
   applyStateSnapshot(snap) {
     this.activeCraterIndex = snap.activeCraterIndex ?? 0;
@@ -60,6 +61,8 @@ export class CraterMapViewer {
     this.viewMode = snap.viewMode || "3d";
     this.filterAcidRain = snap.filterAcidRain !== undefined ? snap.filterAcidRain : true;
     this.filterDustStorm = snap.filterDustStorm !== undefined ? snap.filterDustStorm : true;
+    this.progressiveLodRender = snap.progressiveLodRender !== undefined ? snap.progressiveLodRender : true;
+    this.showRadiationZones = snap.showRadiationZones !== undefined ? snap.showRadiationZones : true;
     this.terrainExaggeration = snap.terrainExaggeration || 1.0;
     this.basemapOpacity = snap.basemapOpacity || 1.0;
     this.showNomenclature = snap.showNomenclature !== undefined ? snap.showNomenclature : true;
@@ -79,9 +82,6 @@ export class CraterMapViewer {
     this.drawMap();
   }
 
-  /**
-   * Header arama çubuğu veya Sidebar düğmesinden gelen eylemler
-   */
   toggleSidebar() {
     this.sidebarCtrl.sidebarOpen = !this.sidebarCtrl.sidebarOpen;
     this.refreshUIAndMap();
@@ -93,16 +93,10 @@ export class CraterMapViewer {
     this.refreshUIAndMap();
   }
 
-  /**
-   * Aktif krater duraklarını getirir
-   */
   getWaypoints() {
     return CRATER_WAYPOINTS_DATA[this.activeCrater.id] || [];
   }
 
-  /**
-   * Güncel durumu kaydeder
-   */
   persistState() {
     this.storage.saveState({
       activeCraterIndex: this.activeCraterIndex,
@@ -110,6 +104,8 @@ export class CraterMapViewer {
       viewMode: this.viewMode,
       filterAcidRain: this.filterAcidRain,
       filterDustStorm: this.filterDustStorm,
+      progressiveLodRender: this.progressiveLodRender,
+      showRadiationZones: this.showRadiationZones,
       terrainExaggeration: this.terrainExaggeration,
       basemapOpacity: this.basemapOpacity,
       showNomenclature: this.showNomenclature,
@@ -120,7 +116,7 @@ export class CraterMapViewer {
   }
 
   /**
-   * Sol Üst Ayarlar -> 1. Seçenek "Factory Reset" sıfırlama işlevi
+   * ZORUNLU KURAL: Sol üst Ayarlar -> 1. Seçenek Factory Reset
    */
   performFactoryReset() {
     this.selectedWaypoint = null;
@@ -139,32 +135,34 @@ export class CraterMapViewer {
       this.starfieldRef.canvas.style.opacity = "1";
     }
     this.refreshUIAndMap();
-    this.showToast("Varsayılan fabrika ayarlarına dönüldü (Factory Reset)");
+    this.showToast("Factory Reset: Ölçekli LOD, km/saat/litre ve radyasyon varsayılanları yüklendi");
   }
 
-  /**
-   * Ayar değişimini uygular
-   */
   updateSetting(key, val) {
     this[key] = val;
     if (key === "showStarfield" && this.starfieldRef?.canvas) {
       this.starfieldRef.canvas.style.opacity = val ? "1" : "0.08";
     }
     this.persistState();
-    this.drawMap();
+    this.refreshUIAndMap();
   }
 
   /**
-   * Kurumsal Google Maps iki parçalı düzeni (Sidebar + Harita + Sol Alt Filtreler) çizer
+   * Harita + Kenar çubuğu + Sol alt zorunlu filtreleri çizer
    */
   render() {
     const waypoints = this.getWaypoints();
+    const computedRoutes = this.routePlanner.computeRoutes(this.activeCrater, waypoints, {
+      filterAcidRain: this.filterAcidRain,
+      filterDustStorm: this.filterDustStorm
+    });
+    const radiationZones = this.routePlanner.getRadiationAndPhotonZones(this.activeCrater.id);
+    const lodTier = this.craterRenderer.computeLodTier(this.zoom, this.progressiveLodRender);
 
     this.container.innerHTML = `
       <div class="corp-maps-workspace" id="corp-maps-workspace">
-        ${this.sidebarCtrl.renderSidebar(this, waypoints)}
+        ${this.sidebarCtrl.renderSidebar(this, waypoints, computedRoutes, radiationZones, lodTier)}
 
-        <!-- MERKEZ ALAN: Yıldızlı Siyah Zeminli Google Earth / Mars Trek Haritası -->
         <div class="corp-map-pane" id="corp-map-pane">
           <canvas id="mars-crater-canvas"></canvas>
 
@@ -186,15 +184,14 @@ export class CraterMapViewer {
             </label>
           </div>
 
-          <!-- SAĞ ALT: Sade Google Maps Zoom & Koordinat Kontrolü -->
           <div class="maps-bottom-right-controls">
             <div class="maps-zoom-stack">
-              <button class="maps-zoom-btn" id="btn-zoom-in" title="Yaklaş">＋</button>
+              <button class="maps-zoom-btn" id="btn-zoom-in" title="Yaklaş (LOD Arttır)">＋</button>
               <button class="maps-zoom-btn" id="btn-zoom-out" title="Uzaklaş">－</button>
               <button class="maps-zoom-btn" id="btn-reset-camera" title="Sıfırla">⌂</button>
             </div>
             <div class="maps-coord-bar" id="trek-hud-coords">
-              ${this.activeCrater.name} • ${this.activeCrater.coordinates.lat.toFixed(2)}°, ${this.activeCrater.coordinates.lon.toFixed(2)}° • ${this.activeCrater.elevation_datum_m}m
+              ${this.activeCrater.name} • ${this.activeCrater.coordinates.lat.toFixed(2)}°, ${this.activeCrater.coordinates.lon.toFixed(2)}° • ${this.activeCrater.elevation_datum_m} m
             </div>
           </div>
 
@@ -207,9 +204,6 @@ export class CraterMapViewer {
     this.bindMapControls();
   }
 
-  /**
-   * Harita tuvalini ve sürükle-yakınlaştır olaylarını bağlar
-   */
   bindCanvas() {
     this.canvas = document.getElementById("mars-crater-canvas");
     this.ctx = this.canvas ? this.canvas.getContext("2d") : null;
@@ -253,9 +247,6 @@ export class CraterMapViewer {
     });
   }
 
-  /**
-   * Global fare bırakma ve yeniden boyutlandırma dinleyicileri
-   */
   bindGlobalListeners() {
     window.addEventListener("mouseup", () => { this.isDragging = false; });
     window.addEventListener("resize", () => {
@@ -264,9 +255,6 @@ export class CraterMapViewer {
     });
   }
 
-  /**
-   * Canvas ölçüsünü orta harita alanına uyarlar
-   */
   resizeCanvas() {
     if (!this.canvas || !this.paneEl) return;
     const rect = this.paneEl.getBoundingClientRect();
@@ -274,9 +262,6 @@ export class CraterMapViewer {
     this.canvas.height = Math.max(rect.height, 520);
   }
 
-  /**
-   * Sol alt ve sağ alt harita kontrollerini bağlar
-   */
   bindMapControls() {
     document.getElementById("btn-mode-2d")?.addEventListener("click", () => {
       this.viewMode = "2d";
@@ -284,20 +269,17 @@ export class CraterMapViewer {
       this.persistState();
       this.refreshUIAndMap();
     });
-
     document.getElementById("btn-mode-3d")?.addEventListener("click", () => {
       this.viewMode = "3d";
       if (this.mapScope === "global2d") this.mapScope = "globe";
       this.persistState();
       this.refreshUIAndMap();
     });
-
     document.getElementById("filter-acid-rain")?.addEventListener("change", (e) => {
       this.filterAcidRain = e.target.checked;
       this.persistState();
       this.refreshUIAndMap();
     });
-
     document.getElementById("filter-dust-storm")?.addEventListener("change", (e) => {
       this.filterDustStorm = e.target.checked;
       this.persistState();
@@ -309,10 +291,8 @@ export class CraterMapViewer {
     document.getElementById("btn-reset-camera")?.addEventListener("click", () => this.flyToOrbit());
   }
 
-  /**
-   * Yakınlaştırmayı ve küreden kratere otomatik geçişi yönetir
-   */
   applyZoom(nextZoom) {
+    const prevTier = this.craterRenderer.computeLodTier(this.zoom, this.progressiveLodRender);
     this.zoom = Math.min(Math.max(nextZoom, 0.6), 3.6);
     if (this.mapScope !== "crater" && this.zoom >= 1.95) {
       this.flyToCrater(this.activeCraterIndex);
@@ -322,12 +302,14 @@ export class CraterMapViewer {
       this.flyToOrbit();
       return;
     }
-    this.drawMap();
+    const nextTier = this.craterRenderer.computeLodTier(this.zoom, this.progressiveLodRender);
+    if (prevTier !== nextTier) {
+      this.refreshUIAndMap();
+    } else {
+      this.drawMap();
+    }
   }
 
-  /**
-   * Küresel Mars yörünge görünümüne döner
-   */
   flyToOrbit() {
     this.mapScope = this.viewMode === "2d" ? "global2d" : "globe";
     this.zoom = 1.0;
@@ -338,9 +320,6 @@ export class CraterMapViewer {
     this.refreshUIAndMap();
   }
 
-  /**
-   * Seçilen kratere yakınlaştırarak yerel harita moduna geçer
-   */
   flyToCrater(index) {
     if (index < 0 || index >= CRATERS_DATA.length) return;
     this.activeCraterIndex = index;
@@ -348,7 +327,7 @@ export class CraterMapViewer {
     this.rotLat = this.activeCrater.coordinates.lat;
     this.rotLon = this.activeCrater.coordinates.lon;
     this.mapScope = "crater";
-    this.zoom = this.activeCrater.default_zoom || 1.15;
+    this.zoom = this.activeCrater.default_zoom || 1.3;
     this.panX = 0;
     this.panY = 0;
     const wps = this.getWaypoints();
@@ -357,9 +336,6 @@ export class CraterMapViewer {
     this.refreshUIAndMap();
   }
 
-  /**
-   * Sol paneldeki istasyon seçimiyle haritayı durağa odaklar
-   */
   focusWaypointById(wpId) {
     const wp = this.getWaypoints().find((w) => w.id === wpId);
     if (!wp) return;
@@ -370,9 +346,6 @@ export class CraterMapViewer {
     this.refreshUIAndMap();
   }
 
-  /**
-   * Harita üzerinde krater pini veya EVA durağı tıklamalarını işler
-   */
   handleCanvasClick(e) {
     const rect = this.canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -405,9 +378,6 @@ export class CraterMapViewer {
     }
   }
 
-  /**
-   * İmleç koordinatını sağ alt bilgi satırına yansıtır
-   */
   updateCursorTelemetry(e) {
     const rect = this.canvas.getBoundingClientRect();
     const dx = e.clientX - rect.left - this.canvas.width / 2 - this.panX;
@@ -419,25 +389,19 @@ export class CraterMapViewer {
 
     const coordsEl = document.getElementById("trek-hud-coords");
     if (coordsEl) {
-      coordsEl.innerText = `${this.activeCrater.name} • ${lat.toFixed(2)}°, ${lon.toFixed(2)}° • ${elev}m`;
+      coordsEl.innerText = `${this.activeCrater.name} • ${lat.toFixed(2)}°, ${lon.toFixed(2)}° • ${elev} m`;
     }
   }
 
-  /**
-   * Kısa sistem bildirimini gösterir
-   */
   showToast(msg) {
     const toast = document.getElementById("trek-toast");
     if (!toast) return;
     toast.innerText = msg;
     toast.classList.add("show");
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => toast.classList.remove("show"), 2500);
+    this.toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
   }
 
-  /**
-   * Görünümü ve tuval çizimini yeniler
-   */
   refreshUIAndMap() {
     this.render();
     this.canvas = document.getElementById("mars-crater-canvas");
@@ -448,7 +412,7 @@ export class CraterMapViewer {
   }
 
   /**
-   * Aktif görünüme göre küre veya yerel krater haritasını çizer
+   * Aktif görünüme göre 3D Küre veya Ölçekli Krater motorunu çizer
    */
   drawMap() {
     if (!this.ctx || !this.canvas) return;
@@ -468,15 +432,23 @@ export class CraterMapViewer {
         basemapOpacity: this.basemapOpacity, showGraticule: this.showGraticule
       });
     } else {
+      const waypoints = this.getWaypoints();
+      const computedRoutes = this.routePlanner.computeRoutes(this.activeCrater, waypoints, {
+        filterAcidRain: this.filterAcidRain,
+        filterDustStorm: this.filterDustStorm
+      });
+      const radiationZones = this.routePlanner.getRadiationAndPhotonZones(this.activeCrater.id);
+
       this.craterRenderer.render(this.ctx, {
         width: this.canvas.width, height: this.canvas.height,
         panX: this.panX, panY: this.panY, zoom: this.zoom,
         activeCrater: this.activeCrater, layers: this.layers,
         viewMode: this.viewMode, filterAcidRain: this.filterAcidRain,
-        filterDustStorm: this.filterDustStorm, waypoints: this.getWaypoints(),
+        filterDustStorm: this.filterDustStorm, waypoints,
         selectedWaypoint: this.selectedWaypoint, terrainExaggeration: this.terrainExaggeration,
         basemapOpacity: this.basemapOpacity, showGraticule: this.showGraticule,
-        showNomenclature: this.showNomenclature, measurePoints: []
+        showNomenclature: this.showNomenclature, progressiveLodRender: this.progressiveLodRender,
+        showRadiationZones: this.showRadiationZones, radiationZones, computedRoutes
       });
     }
   }
@@ -485,11 +457,10 @@ export class CraterMapViewer {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc sadeleştirilmiş kurumsal Google Maps & Mars Trek harita denetleyicisi tanımı.
-   - Satır 7-51: constructor; alt render/depolama servislerini ve sol Google Maps kenar çubuğunu başlatır.
-   - Satır 53-98: applyStateSnapshot, init, toggleSidebar, setSearchQuery, getWaypoints, persistState.
-   - Satır 100-131: performFactoryReset ve updateSetting fabrika sıfırlama ile ayar değişim metotları.
-   - Satır 133-175: render; solda temiz kenar çubuğu, merkezde yıldızlı harita, sol altta 2D/3D/Asit/Fırtına filtreleri ve sağ altta zoom kontrolünü üretir.
-   - Satır 177-273: bindCanvas, bindGlobalListeners, resizeCanvas, bindMapControls olay dinleyicileri.
-   - Satır 275-372: applyZoom, flyToOrbit, flyToCrater, focusWaypointById, handleCanvasClick, updateCursorTelemetry ve drawMap çizim yönlendiricisi.
+   - Satır 1-7: JSDoc çift rota planlama ve LOD krater harita denetleyicisi tanımı.
+   - Satır 8-51: constructor; RoutePlannerService, StateStorageService, CraterDrawers ve render motorlarını başlatır.
+   - Satır 53-138: applyStateSnapshot, init, toggleSidebar, setSearchQuery, getWaypoints, persistState, performFactoryReset, updateSetting.
+   - Satır 140-185: render; hesaplanan Mavi/Soluk Mavi rotalar ve Alfa/Beta/Gama foton verilerini sidebar ve tuvalle bağlar.
+   - Satır 187-305: bindCanvas, bindGlobalListeners, resizeCanvas, bindMapControls, applyZoom (LOD değişiminde UI tazeleme).
+   - Satır 307-412: flyToOrbit, flyToCrater, focusWaypointById, handleCanvasClick, updateCursorTelemetry ve drawMap yönlendiricisi.
    ========================================================================== */
