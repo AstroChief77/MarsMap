@@ -432,27 +432,35 @@
       const north = y0 * Math.cos(phi0) - z0 * Math.sin(phi0);
       const up = y0 * Math.sin(phi0) + z0 * Math.cos(phi0);
 
-      // 2. Pusula bakış yönü (camYaw) dönüşü
+      // 2. Pusula bakış yönü (camYaw) dönüşü (merkez noktası sabit)
       const yawRad = ((camYawDeg || 0) * Math.PI) / 180;
       const cosY = Math.cos(yawRad);
       const sinY = Math.sin(yawRad);
-      const rx = east * cosY - north * sinY;
-      const ry = east * sinY + north * cosY;
+      const x1 = east * cosY - north * sinY;
+      const y1 = east * sinY + north * cosY;
+      const z1 = up;
 
-      // 3. Küre merkezi (cx, cy) asla kaymadan gerçek 3D radyal ve dikey kabartma yükseltmesi
+      // 3. Sağ tık 3D kamera eğimi (camPitch): küre merkezini (cx, cy) asla kaydırmadan 3D açı ve perspektif verir
       const pitchRad = (Math.max(0, Math.min(72, camPitchDeg || 0)) * Math.PI) / 180;
       const sinP = Math.sin(pitchRad);
+      const tiltRad = pitchRad * 0.45;
+      const cosT = Math.cos(tiltRad);
+      const sinT = Math.sin(tiltRad);
+      const yForeshorten = 1.0 - 0.36 * sinP;
 
-      const screenX = rx * rScale;
-      const screenY = ry * rScale + dr * sinP * Math.max(0, up);
-      const depthZ = up * rScale;
+      const y2 = y1 * cosT - z1 * sinT;
+      const z2 = y1 * sinT + z1 * cosT;
+
+      const screenX = x1 * rScale;
+      const screenY = (y2 * rScale + dr * sinP * 1.35 * Math.max(0, z2)) * yForeshorten;
+      const depthZ = z2 * rScale;
 
       return {
         x: cx + screenX * radius,
         y: cy - screenY * radius,
         z: depthZ,
         elevM,
-        visible: up > 0.04
+        visible: z2 > 0.04
       };
     }
 
@@ -463,14 +471,19 @@
     screenToElevatedMars3D(px, py, width, height, rotLatDeg, rotLonDeg, zoom = 1, camPitchDeg = 0, camYawDeg = 0, reliefScale = 1.0) {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 24.0);
-
-      const sx = (px - cx) / radius;
-      const sy = (cy - py) / radius;
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0);
 
       const pitchRad = (Math.max(0, Math.min(72, camPitchDeg || 0)) * Math.PI) / 180;
       const yawRad = ((camYawDeg || 0) * Math.PI) / 180;
       const sinP = Math.sin(pitchRad);
+      const tiltRad = pitchRad * 0.45;
+      const cosT = Math.cos(tiltRad);
+      const sinT = Math.sin(tiltRad);
+      const yForeshorten = 1.0 - 0.36 * sinP;
+
+      const sx = (px - cx) / radius;
+      const sy = ((cy - py) / radius) / yForeshorten;
+
       const cosY = Math.cos(yawRad);
       const sinY = Math.sin(yawRad);
       const phi0 = (rotLatDeg * Math.PI) / 180;
@@ -486,39 +499,23 @@
 
       let dr = 0;
       let rScale = 1.0;
-      let upEst = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, sx * sx + sy * sy)));
+      let z2Est = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, sx * sx + sy * sy)));
       let hitLat = rotLatDeg;
       let hitLon = rotLonDeg;
       let hitInside = false;
 
       for (let iter = 0; iter < 3; iter++) {
         const rx = sx / rScale;
-        const ry = (sy - dr * sinP * upEst) / rScale;
+        const ry = (sy - dr * sinP * 1.35 * z2Est) / rScale;
         const rhoSq = rx * rx + ry * ry;
-        if (rhoSq > 1.0) {
-          if (iter === 0 && sx * sx + sy * sy <= rMaxLimb * rMaxLimb) {
-            const sc = 0.999 / Math.sqrt(rhoSq);
-            const rxL = rx * sc;
-            const ryL = ry * sc;
-            const eastL = rxL * cosY + ryL * sinY;
-            const northL = -rxL * sinY + ryL * cosY;
-            const y0L = northL * cosP0;
-            const z0L = -northL * sinP0;
-            const phiL = Math.asin(Math.max(-1, Math.min(1, y0L)));
-            const lamL = lam0 + Math.atan2(eastL, z0L);
-            const latL = Math.max(-85, Math.min(85, (phiL * 180) / Math.PI));
-            const lonL = (((lamL * 180) / Math.PI + 180) % 360 + 360) % 360 - 180;
-            dr = this.getElevationMeters(latL, lonL) * radFactor;
-            rScale = 1.0 + dr;
-            continue;
-          }
-          break;
-        }
-        upEst = Math.sqrt(1.0 - rhoSq);
-        const east = rx * cosY + ry * sinY;
-        const north = -rx * sinY + ry * cosY;
-        const y0 = north * cosP0 + upEst * sinP0;
-        const z0 = -north * sinP0 + upEst * cosP0;
+        if (rhoSq > 1.0) break;
+        z2Est = Math.sqrt(1.0 - rhoSq);
+        const y1 = ry * cosT + z2Est * sinT;
+        const z1 = -ry * sinT + z2Est * cosT;
+        const east = rx * cosY + y1 * sinY;
+        const north = -rx * sinY + y1 * cosY;
+        const y0 = north * cosP0 + z1 * sinP0;
+        const z0 = -north * sinP0 + z1 * cosP0;
         const phi = Math.asin(Math.max(-1, Math.min(1, y0)));
         const lambda = lam0 + Math.atan2(east, z0);
 
