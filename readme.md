@@ -22,17 +22,17 @@ AstroChief
 
 -Yorum satırı eklenmeli, kodun satır satır ne işe yaradğını kod dosyasının en altına eklenmelidir.
 
--Yazı fontalrı Public Sans Web,sans-serif ailesinden ve bold olmak zorundadaır
+-En güvenli ve kısa yol haritada mavi, yine güvenli olan ama daha uzun olan yol soluk mavi şeklinde gözükmelidir, yollarda yourm satırı olucak ve ne kadar sürede oraya gidebileceğini hesaplayacak.
 
 -Her şey kendine ait bir dosyaya sahip olmalı, claslardan ve nesnelerden oluşmalıdır main kod dosyası dışında hiç bir dosya 800 satırı geçmemelidir, her fonksiyon eğer kompleksliği arttırıyor ise fonksiyonlar farklı dosyalarda açılmalıdır.
 
--Kullanılan kaynaklar ve apiler not edilmeli
+-Kullanılan kaynaklar ve apiler not edilmeli.
 
 -Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli ve hem Windows hem Linux için derlenmeli(test edebilmek için), derleme aracı yaz her seferinde kendin derleme.
 
 # Tasarım Kuralları
 
--Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeniği olmalıdır.
+-Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeneği olmalıdır.
 
 -Factory ayarları şu şekilde olmalıdır, harita ölçeği yaklaştıkça render edilicek tamamı render edilmiyicek, parametreler litre, kilometre/metre, saat, radyasyon alfa beta gama olarak ışıma düzeyi foton bombarduman alanalrı vesaire belirtilmeli.
 
