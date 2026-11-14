@@ -143,6 +143,7 @@
       const clean = this.normalizeBaseUrl(baseUrl);
       if (!clean) throw new Error("Backend URL tanimli degil");
 
+      const started = performance.now();
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), this.defaultTimeoutMs);
       try {
@@ -152,11 +153,12 @@
           body: JSON.stringify(payload),
           signal: ctrl.signal
         });
+        const latencyMs = Math.round(performance.now() - started);
         if (!res.ok) {
           throw new Error(`Backend HTTP ${res.status}`);
         }
         const raw = await res.json();
-        return this.normalizeRouteResponse(raw, payload, planner);
+        return this.normalizeRouteResponse(raw, payload, planner, latencyMs);
       } finally {
         clearTimeout(timer);
       }
@@ -181,7 +183,7 @@
     }
 
     /** camelCase veya snake_case Rust yanitini tek frontend modeline cevirir */
-    normalizeRouteResponse(raw, payload, planner) {
+    normalizeRouteResponse(raw, payload, planner, latencyMs = null) {
       const blueRaw = raw.primaryBlue || raw.primary_route;
       const paleRaw = raw.secondaryPaleBlue || raw.alternative_route || raw.secondary_route;
       if (!blueRaw) throw new Error("Backend yanitinda primaryBlue / primary_route eksik");
@@ -196,6 +198,7 @@
         scope: raw.scope || payload.scope || "global",
         source: "rust-backend",
         engine: raw.engine || raw.backendVersion || "Rust Backend",
+        latencyMs: typeof raw.latencyMs === "number" ? raw.latencyMs : latencyMs,
         origin: raw.origin || payload.origin,
         destination: raw.destination || payload.destination,
         primaryBlue,

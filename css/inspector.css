@@ -177,6 +177,27 @@
   border-color: #16a34a;
 }
 
+.insp-latency-pill {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--ink-black);
+  color: #4ade80;
+  white-space: nowrap;
+}
+
+.insp-latency-pill.offline {
+  background: var(--bg-soft);
+  color: var(--ink-muted);
+  border: 1px solid var(--line-light);
+}
+
+.insp-latency-pill.slow {
+  background: var(--mars-red);
+  color: var(--bg-white);
+}
+
 .insp-coord-box {
   background: var(--bg-offwhite);
   border: 1px solid var(--line-light);
