@@ -124,6 +124,7 @@
 
 .sat-photo-card {
   position: relative;
+  width: 100%;
   border-radius: var(--r-sm);
   overflow: hidden;
   background-color: #14161a;
@@ -131,15 +132,10 @@
   background-position: center;
   border: 2.5px solid var(--ink-black);
   color: var(--bg-white);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   user-select: none;
   transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.sat-photo-card:hover {
-  transform: translateY(-1px);
-  border-color: var(--mars-red);
 }
 
 .sat-photo-card::before {
@@ -147,7 +143,27 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.62) 100%);
+  transition: background 0.15s ease, backdrop-filter 0.15s ease;
   z-index: 0;
+}
+
+.sat-photo-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--mars-red);
+}
+
+.sat-photo-card:active {
+  transform: translateY(0);
+}
+
+.sat-photo-card:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: 2px;
+}
+
+.sat-photo-card.inactive::before {
+  background: rgba(10, 12, 16, 0.68);
+  backdrop-filter: grayscale(0.85);
 }
 
 .sat-photo-card > * {
@@ -183,8 +199,8 @@
 
 .sat-active-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
   background: var(--mars-red);
   color: var(--bg-white);
   font-size: 10px;
@@ -193,13 +209,14 @@
   border-radius: 4px;
 }
 
-/* Asit Yagmuru ve Firtina Kartlari (Arka Planda Bolge Fotograflari) */
+/* Asit Yagmuru ve Firtina Kartlari (Arka Planda Bolge Fotograflari - Tum Resme Basilir) */
 .sat-hazard-card {
   min-height: 92px;
   padding: 13px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: stretch;
   gap: 10px;
 }
 
@@ -224,6 +241,7 @@
 }
 
 .sat-hazard-head {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -237,6 +255,9 @@
 }
 
 .sat-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 5px 13px;
   border-radius: var(--r-pill);
   font-size: 11.5px;
@@ -244,6 +265,7 @@
   background: rgba(0, 0, 0, 0.55);
   color: var(--bg-white);
   border: 1.5px solid rgba(255, 255, 255, 0.7);
+  pointer-events: none;
 }
 
 .sat-switch.on {
@@ -281,8 +303,8 @@
 }
 
 .sat-int-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  opacity: 0.42;
+  pointer-events: none;
 }
 
 /* Uydu Katman Secici */
@@ -318,9 +340,9 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc Uydular paneli ve fotograf arkaplanli secenek kurallari.
-   - Satir 8-52: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
-   - Satir 54-116: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
-   - Satir 118-186: 2D ve 3D gorsel kartlari, #14161a koyu zemin, okunabilirlik katmani ve aktif kirmizi cerceve.
-   - Satir 188-277: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari ve siddet butonlari (Hafif/Orta/Siddetli).
-   - Satir 279-305: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
+   - Satir 8-53: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
+   - Satir 55-116: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
+   - Satir 118-210: Tum gorsel kartlari (.sat-photo-card) icin hover/focus vurgusu, RTL uyumlu aktif rozet ve kapali gri filtre stilleri.
+   - Satir 212-308: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari, salt durum rozeti (.sat-switch pointer-events: none) ve kapaliyken tiklamayi karta geciren siddet butonlari.
+   - Satir 310-337: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
    ========================================================================== */

@@ -72,7 +72,8 @@
         };
         const label = shortNames[layer.id] || layer.name;
         return `
-          <button class="sat-layer-chip ${state.activeLayerId === layer.id ? "active" : ""}"
+          <button type="button"
+                  class="sat-layer-chip ${state.activeLayerId === layer.id ? "active" : ""}"
                   data-sat-layer="${layer.id}">
             ${label}
           </button>
@@ -80,7 +81,8 @@
       }).join("");
 
       const intensityBtn = (kind, level, label, currentVal, enabled) => `
-        <button class="sat-int-btn ${currentVal === level ? "active" : ""}"
+        <button type="button"
+                class="sat-int-btn ${currentVal === level ? "active" : ""}"
                 data-intensity-kind="${kind}"
                 data-intensity-val="${level}"
                 ${enabled ? "" : "disabled"}>
@@ -88,22 +90,32 @@
         </button>
       `;
 
+      const acidStateText = state.filterAcidRain ? t("stateOn") : t("stateOff");
+      const stormStateText = state.filterDustStorm ? t("stateOn") : t("stateOff");
+      const radStateText = state.showRadiationZones ? t("stateOn") : t("stateOff");
+
       this.mountEl.innerHTML = `
         <div class="sat-popover ${this.isOpen ? "open" : ""}" id="satellites-popover" role="dialog" aria-label="${t("satTitle")}" ${dirAttr}>
           <div class="sat-pop-header">
             <span class="sat-pop-title">${t("satTitle")}</span>
-            <button class="sat-pop-close" id="btn-sat-close" title="${t("close")}">✕</button>
+            <button type="button" class="sat-pop-close" id="btn-sat-close" title="${t("close")}">✕</button>
           </div>
 
-          <!-- 1. 2D / 3D Gorunum Secenekleri (Arka Planda Mars Fotograflari) -->
+          <!-- 1. 2D / 3D Gorunum Secenekleri (Arka Planda Mars Fotograflari - Resme Basilir) -->
           <div class="sat-view-grid">
-            <button class="sat-photo-card sat-view-btn sat-bg-2d ${state.viewMode === "2d" ? "active" : ""}" data-view-mode="2d">
+            <button type="button"
+                    class="sat-photo-card sat-view-btn sat-bg-2d ${state.viewMode === "2d" ? "active" : "inactive"}"
+                    data-view-mode="2d"
+                    aria-pressed="${state.viewMode === "2d"}">
               ${state.viewMode === "2d" ? `<span class="sat-active-badge">${t("activeBadge")}</span>` : ""}
               <span class="sat-card-kicker">EPSG:104905</span>
               <span class="sat-card-label">${t("view2d")}</span>
             </button>
 
-            <button class="sat-photo-card sat-view-btn sat-bg-3d ${state.viewMode === "3d" ? "active" : ""}" data-view-mode="3d">
+            <button type="button"
+                    class="sat-photo-card sat-view-btn sat-bg-3d ${state.viewMode === "3d" ? "active" : "inactive"}"
+                    data-view-mode="3d"
+                    aria-pressed="${state.viewMode === "3d"}">
               ${state.viewMode === "3d" ? `<span class="sat-active-badge">${t("activeBadge")}</span>` : ""}
               <span class="sat-card-kicker">${t("sphereKicker")}</span>
               <span class="sat-card-label">${t("view3d")}</span>
@@ -111,50 +123,67 @@
           </div>
 
           <!-- 2. Asit Yagmurlari ve Siddetleri (Arka Planda Asit Bolge Fotografi - Resme Tiklayinca Ac/Kapa) -->
-          <div class="sat-photo-card sat-hazard-card sat-bg-acid ${state.filterAcidRain ? "active" : ""}" data-card-toggle="filterAcidRain" role="button" tabindex="0">
+          <div class="sat-photo-card sat-hazard-card sat-bg-acid ${state.filterAcidRain ? "active" : "inactive"}"
+               data-card-toggle="filterAcidRain"
+               role="button"
+               tabindex="0"
+               aria-pressed="${state.filterAcidRain}"
+               aria-label="${t("acidRain")} (${acidStateText})"
+               title="${t("acidRain")} — ${acidStateText}">
             <div class="sat-hazard-head">
               <span class="sat-hazard-title">${t("acidRain")}</span>
-              <span class="sat-switch ${state.filterAcidRain ? "on" : ""}" id="btn-toggle-acid">
-                ${state.filterAcidRain ? t("stateOn") : t("stateOff")}
+              <span class="sat-switch ${state.filterAcidRain ? "on" : ""}" id="btn-toggle-acid" aria-hidden="true">
+                ${acidStateText}
               </span>
             </div>
             <div class="sat-intensity-row">
-              ${intensityBtn("acidIntensity", "hafif", `${t("intensityLow")} · pH 3.8`, state.acidIntensity, true)}
-              ${intensityBtn("acidIntensity", "orta", `${t("intensityMedium")} · pH 2.4`, state.acidIntensity, true)}
-              ${intensityBtn("acidIntensity", "siddetli", `${t("intensitySevere")} · pH 1.3`, state.acidIntensity, true)}
+              ${intensityBtn("acidIntensity", "hafif", `${t("intensityLow")} · pH 3.8`, state.acidIntensity, state.filterAcidRain)}
+              ${intensityBtn("acidIntensity", "orta", `${t("intensityMedium")} · pH 2.4`, state.acidIntensity, state.filterAcidRain)}
+              ${intensityBtn("acidIntensity", "siddetli", `${t("intensitySevere")} · pH 1.3`, state.acidIntensity, state.filterAcidRain)}
             </div>
           </div>
 
           <!-- 3. Kum Firtinalari / Kasirga ve Siddetleri (Arka Planda Firtinali Bolge Fotografi - Resme Tiklayinca Ac/Kapa) -->
-          <div class="sat-photo-card sat-hazard-card sat-bg-storm ${state.filterDustStorm ? "active" : ""}" data-card-toggle="filterDustStorm" role="button" tabindex="0">
+          <div class="sat-photo-card sat-hazard-card sat-bg-storm ${state.filterDustStorm ? "active" : "inactive"}"
+               data-card-toggle="filterDustStorm"
+               role="button"
+               tabindex="0"
+               aria-pressed="${state.filterDustStorm}"
+               aria-label="${t("dustStorm")} (${stormStateText})"
+               title="${t("dustStorm")} — ${stormStateText}">
             <div class="sat-hazard-head">
               <span class="sat-hazard-title">${t("dustStorm")}</span>
-              <span class="sat-switch ${state.filterDustStorm ? "on" : ""}" id="btn-toggle-storm">
-                ${state.filterDustStorm ? t("stateOn") : t("stateOff")}
+              <span class="sat-switch ${state.filterDustStorm ? "on" : ""}" id="btn-toggle-storm" aria-hidden="true">
+                ${stormStateText}
               </span>
             </div>
             <div class="sat-intensity-row">
-              ${intensityBtn("stormIntensity", "hafif", `${t("intensityLow")} · τ 1.2`, state.stormIntensity, true)}
-              ${intensityBtn("stormIntensity", "orta", `${t("intensityMedium")} · τ 2.8`, state.stormIntensity, true)}
-              ${intensityBtn("stormIntensity", "siddetli", `${t("intensitySevere")} · τ 4.5`, state.stormIntensity, true)}
+              ${intensityBtn("stormIntensity", "hafif", `${t("intensityLow")} · τ 1.2`, state.stormIntensity, state.filterDustStorm)}
+              ${intensityBtn("stormIntensity", "orta", `${t("intensityMedium")} · τ 2.8`, state.stormIntensity, state.filterDustStorm)}
+              ${intensityBtn("stormIntensity", "siddetli", `${t("intensitySevere")} · τ 4.5`, state.stormIntensity, state.filterDustStorm)}
             </div>
           </div>
 
           <!-- 4. Radyasyon / Foton Kusagi (Arka Planda Aurora/Foton Fotografi - Resme Tiklayinca Ac/Kapa) -->
-          <div class="sat-photo-card sat-hazard-card sat-bg-rad ${state.showRadiationZones ? "active" : ""}" data-card-toggle="showRadiationZones" role="button" tabindex="0">
+          <button type="button"
+                  class="sat-photo-card sat-hazard-card sat-bg-rad ${state.showRadiationZones ? "active" : "inactive"}"
+                  data-card-toggle="showRadiationZones"
+                  aria-pressed="${state.showRadiationZones}"
+                  aria-label="${t("photonRadiation")} (${radStateText})"
+                  title="${t("photonRadiation")} — ${radStateText}">
             <div class="sat-hazard-head">
               <span class="sat-hazard-title">${t("photonRadiation")}</span>
-              <span class="sat-switch ${state.showRadiationZones ? "on" : ""}" id="btn-toggle-rad">
-                ${state.showRadiationZones ? t("stateOn") : t("stateOff")}
+              <span class="sat-switch ${state.showRadiationZones ? "on" : ""}" id="btn-toggle-rad" aria-hidden="true">
+                ${radStateText}
               </span>
             </div>
-          </div>
+          </button>
 
           <!-- 5. Yerel data/tiles Uydu Katmanlari -->
           <div class="sat-layer-row">${layerChips}</div>
         </div>
 
-        <button class="sat-trigger-btn ${this.isOpen ? "open" : ""}" id="btn-satellites-toggle" aria-expanded="${this.isOpen}">
+        <button type="button" class="sat-trigger-btn ${this.isOpen ? "open" : ""}" id="btn-satellites-toggle" aria-expanded="${this.isOpen}">
           <span class="sat-live-dot"></span>
           <span>${t("satTrigger")}</span>
           <span class="sat-mode-tag">${state.viewMode.toUpperCase()}</span>
@@ -166,6 +195,12 @@
 
     bindEvents(state) {
       const t = (k) => (ns.i18n ? ns.i18n.t(k) : k);
+      const labelMap = {
+        filterAcidRain: t("acidRain"),
+        filterDustStorm: t("dustStorm"),
+        showRadiationZones: t("photonRadiation")
+      };
+
       this.mountEl.querySelector("#btn-satellites-toggle")?.addEventListener("click", (e) => {
         e.stopPropagation();
         this.toggleOpen();
@@ -178,19 +213,27 @@
 
       this.mountEl.querySelectorAll("[data-view-mode]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const clickedMode = btn.getAttribute("data-view-mode");
-          const nextMode = state.viewMode === clickedMode ? (clickedMode === "3d" ? "2d" : "3d") : clickedMode;
-          this.handlers.onSettingChange?.("viewMode", nextMode, nextMode === "3d" ? t("view3d") : t("view2d"));
+          const mode = btn.getAttribute("data-view-mode");
+          this.handlers.onSettingChange?.("viewMode", mode, mode === "3d" ? t("view3d") : t("view2d"));
         });
       });
 
       this.mountEl.querySelectorAll("[data-card-toggle]").forEach((card) => {
+        const key = card.getAttribute("data-card-toggle");
+        const toggleCard = () => this.handlers.onSettingChange?.(key, !state[key], labelMap[key] || key);
         card.addEventListener("click", (e) => {
           if (e.target.closest("[data-intensity-kind]")) return;
-          const key = card.getAttribute("data-card-toggle");
-          const labelMap = { filterAcidRain: t("acidRain"), filterDustStorm: t("dustStorm"), showRadiationZones: t("photonRadiation") };
-          this.handlers.onSettingChange?.(key, !state[key], labelMap[key] || key);
+          toggleCard();
         });
+        if (card.tagName !== "BUTTON") {
+          card.addEventListener("keydown", (e) => {
+            if (e.target !== card) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              toggleCard();
+            }
+          });
+        }
       });
 
       this.mountEl.querySelectorAll("[data-intensity-kind]").forEach((btn) => {
@@ -198,10 +241,6 @@
           e.stopPropagation();
           const kind = btn.getAttribute("data-intensity-kind");
           const val = btn.getAttribute("data-intensity-val");
-          const toggleKey = kind === "acidIntensity" ? "filterAcidRain" : "filterDustStorm";
-          if (!state[toggleKey]) {
-            this.handlers.onSettingChange?.(toggleKey, true, kind === "acidIntensity" ? t("acidRain") : t("dustStorm"));
-          }
           this.handlers.onSettingChange?.(kind, val, kind === "acidIntensity" ? t("acidRain") : t("dustStorm"));
         });
       });
@@ -223,6 +262,6 @@
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc sol alt Uydular paneli ve fotograf arkaplanli secenek kurallari.
    - Satir 12-55: constructor, preloadCardImages (5 yerel resmi onbellekte dekode eder), toggleOpen ve close.
-   - Satir 57-166: render; Uydular penceresinin icine 2D/3D, Asit Yagmuru+Siddeti, Firtina+Siddeti, Radyasyon ve Katman seceneklerini 10 dil destegiyle yerlestirir.
-   - Satir 168-214: bindEvents; her degisikligi FPS koruma katmanina iletir.
+   - Satir 57-194: render; 2D/3D, Asit Yagmuru+Siddeti, Firtina+Siddeti, Radyasyon ve Katman seceneklerini kucuk toggle dugmesi yerine resmine basilarak ac/kapa yapilacak sekilde cizer.
+   - Satir 196-254: bindEvents; kart resmi tiklama/klavye (Enter/Space) gecislerini ve siddet secimlerini FPS koruma katmanina iletir.
    ========================================================================== */

@@ -297,3 +297,24 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   5) js/components/MarsNavigatorController.js (Satir 1-789):
      - camYaw sifirlanarak ters/capraz surukleme hatasi giderildi; C ve Bosluk (Space) tuslari ile sag alt ⌂ butonu Mars'i aninda merkeze alacak sekilde iyilestirildi.
 ================================================================================
+
+[2026-11-14] v3.9 Uydular Gorsel Kartlari Erisilebilirlik, RTL Duzeltmesi ve <800 Satir Moduler Bolunme:
+- Yedek Klasoru: backups/snapshot_20261114_image_click_cards/ (8bec84d temiz surumunden yedeklendi)
+- js/components/SatellitesPanel.js (Satir 1-267):
+  * Satir 93-180: Kucuk toggle dugmeleri (<button class="sat-switch">) kaldirilarak yerine salt durum rozeti (<span class="sat-switch" aria-hidden="true">) konuldu; tum tehlike ve 2D/3D kartlarina .inactive sinifi, aria-pressed, aria-label, title ve type="button" eklendi. Radyasyon karti dogrudan yerel <button type="button" data-card-toggle="showRadiationZones"> yapildi; kapali durumdayken alt siddet dugmeleri disabled birakilarak resmin her noktasina tiklamanin karti acmasi saglandi.
+  * Satir 214-246: [data-view-mode] kartlari deterministik secime cevrildi; div[role="button"] kartlarina klavye Enter/Space destegi eklendi.
+- css/satellites_panel.css (Satir 1-348):
+  * Satir 125-167: .sat-photo-card genisligi %100, text-align: start (LTR/RTL uyumlu), :active ve :focus-visible halkalari ile .inactive::before gri karartma eklendi.
+  * Satir 200-210: .sat-active-badge icin CSS mantiksal inset-block-start / inset-inline-end ozellikleriyle Arapca/Ibranice RTL gorunumdeki etiket cakismasi giderildi.
+  * Satir 213-308: .sat-switch uzerine pointer-events: none, .sat-int-btn:disabled uzerine opacity: 0.42 ve pointer-events: none eklendi.
+- js/renderers/Map3DFallbackRenderer.js (Olusturuldu, Satir 1-205):
+  * readme.md < 800 satir kurali geregi 8bec84d surumunde sinirda (800 satir) olan Map3DRenderer icindeki drawFallbackShadedSphere motoru ayri OOP sinifa (AstroChief.Map3DFallbackRenderer) cikarildi.
+- js/renderers/Map3DRenderer.js (Satir 1-637):
+  * Satir 22 ve Satir 550-559: Map3DFallbackRenderer baglantisi ve delege metodu eklendi; dosya 637 satira dusuruldu ve alt aciklama araliklari guncellendi.
+- js/wasm/backend.js (Satir 204-210):
+  * CodeRuleAuditor denetimi icin DOSYA SATIR VE ISLEV ACIKLAMALARI alt yorum blogu eklendi.
+- index.html (Satir 9, 40-76, 89-92):
+  * Onbellek kirici ?v=3.9'a yukseltildi ve Map3DFallbackRenderer.js?v=3.9 sirali betik listesine eklendi.
+- ForAgents/PROJECT_STATE.md (Satir 58-70):
+  * Bolum 6 olarak v3.9 resme basilir kart iyilestirmesi ve Map3DFallbackRenderer bolunmesi belgelendi.
+================================================================================
