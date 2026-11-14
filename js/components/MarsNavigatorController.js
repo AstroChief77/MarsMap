@@ -430,6 +430,7 @@
           this.state.camPitch = Math.max(0, Math.min(70, (this.state.camPitch ?? 28) - dy * 0.28));
           const tiltBtn = document.getElementById("btn-3d-tilt");
           if (tiltBtn) tiltBtn.textContent = `${Math.round(this.state.camPitch)}°`;
+          this.updateTelemetryBar();
           this.scheduleRender(false); this.schedulePersistState();
           return;
         }

@@ -46,3 +46,12 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - `js/services/I18nService.js` (`window.AstroChief.i18n` — `t(key, vars)`, RTL `document.documentElement.dir` yönetimi, krater ve mürettebat yerelleştirmesi)
 - **Arayüz Entegrasyonu**: Sol üst `Ayarlar` menüsünde 1. seçenek `Factory Reset` olarak korunmuş, hemen altına 9 dil bayrak/rozet ızgarası (`lang-chip-grid`) eklenmiştir. Sağ üst rota inceleme paneli, sol alt `Uydular` paneli, `Görev & Ekip Bilgisi` modalı, harita üstü tehlike/rota/Boxwork etiketleri ve telemetri çubuğu seçilen dile anında geçer.
 
+## 5. 3D Gezegen Gezinme & Gerçek Boyutlu NASA MOLA Topografya Motoru (v3.3.0)
+- **`MarsTopographyService.js` (`window.AstroChief.marsTopo`)**:
+  - Mars fiziksel yarıçapı (`R = 3,389,500 m`) ve NASA MGS MOLA rakım aralığı (`-8,200 m .. +21,229 m`) kullanılarak `1024x512` `Int16Array` küresel DEM ızgarası + `Int8Array` Doğu/Kuzey 3D eğim normalleri üretilir ve `./data/tiles/mars-mola-elevation/` karolarıyla gerçek zamanlı senkronize edilir.
+  - Olympus Mons (`+21,229 m`), Tharsis Montes (`+14..18.2 km`), Elysium Mons (`+14,127 m`), Valles Marineris (`-7,000 m`), Hellas Planitia (`-7,152 m`), Gale Krateri / Mount Sharp (`+5,500 m`) ve Jezero (`-2,570 m`) gerçek fiziksel ölçekleriyle 3D küre üzerinde yükseltilir.
+- **3D Serbest Gezinme (`Map3DRenderer.js`, `MarsNavigatorController.js`)**:
+  - Sol tık sürükleme veya `W, A, S, D` / Yön tuşları ile gezegen yüzeyinde 3D gezinme.
+  - Sağ tık sürükleme (veya `Shift + Sol tık`, `Q/E` ve `R/F` tuşları) ile 3D kamera yüzey eğimi (`camPitch: 0°..70°`) ve pusula yönü (`camYaw: 0°..360°`).
+  - Sağ alt HUD üzerinde `3D Eğim` (`28°/34°/58°/0°`) ve `⛰ Zirve Gez` (Olympus Mons, Valles Marineris, Mount Sharp, Ascraeus Mons, Hellas) kısayolları ile canlı MOLA Rakım (`m`) ve Eğim (`°`) telemetrisi.
+
