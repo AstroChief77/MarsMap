@@ -41,9 +41,9 @@
 }
 
 .inspector-card {
-  width: 326px;
+  width: 334px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 355px);
+  max-height: calc(100vh - 220px);
   overflow-y: auto;
   background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
@@ -51,10 +51,10 @@
   border: 1px solid var(--line-light);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 12px;
+  padding: 10px 11px;
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
 }
 
 .inspector-card.open {
@@ -79,20 +79,128 @@
 }
 
 .insp-title {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 900;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .insp-sub {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--ink-muted);
+}
+
+.insp-param-box {
+  background: var(--bg-offwhite);
+  border: 1px solid var(--line-light);
+  border-radius: var(--r-xs);
+  padding: 7px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.insp-param-title {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: var(--mars-red);
+}
+
+.insp-mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.insp-mode-btn {
+  padding: 5px 4px;
+  border-radius: 5px;
+  border: 1px solid var(--line-dark);
+  background: var(--bg-solid-white);
+  color: var(--ink-black);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.insp-mode-btn:hover {
+  background: var(--surface-control);
+  border-color: var(--mars-red);
+}
+
+.insp-mode-btn.active {
+  background: var(--mars-red);
+  color: #ffffff;
+  border-color: var(--mars-red);
+}
+
+.insp-param-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.insp-param-cell label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--ink-dark);
+  margin-bottom: 1px;
+}
+
+.insp-cap-pct {
+  font-size: 9.5px;
+  font-weight: 900;
+  color: var(--route-blue);
+}
+
+.insp-param-cell input {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--line-light);
+  border-radius: 5px;
+  background: var(--bg-solid-white);
+  color: var(--ink-black);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.insp-param-cell input:focus {
+  outline: none;
+  border-color: var(--route-blue);
+}
+
+.insp-param-cell input.inp-missing {
+  border-color: var(--mars-red);
+  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.22);
+  background: #fef2f2;
+}
+
+.insp-gate-alert {
+  background: var(--mars-red-soft);
+  border: 1px solid var(--mars-red);
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--mars-red-dark);
+  line-height: 1.3;
+}
+
+.insp-gate-alert.hidden {
+  display: none;
 }
 
 .insp-route-selectors {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 5px;
 }
 
 .insp-select-wrap label {
@@ -105,7 +213,7 @@
 
 .insp-select {
   width: 100%;
-  padding: 6px 7px;
+  padding: 5px 7px;
   border: 1px solid var(--line-light);
   border-radius: 6px;
   background: var(--bg-solid-white);
@@ -123,7 +231,7 @@
 .route-card {
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 9px 10px;
+  padding: 8px 9px;
   background: var(--bg-offwhite);
   display: flex;
   flex-direction: column;
@@ -157,6 +265,43 @@
   border: 1px solid #bfdbfe;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.route-summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 1px;
+}
+
+.route-sum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+.route-sum-row strong {
+  color: var(--ink-black);
+  font-weight: 800;
+  text-align: right;
+}
+
+.walkback-alert-box {
+  margin-top: 3px;
+  background: var(--mars-red-soft);
+  border: 1px solid var(--mars-red);
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--mars-red-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.28;
 }
 
 .route-metrics-line {
@@ -220,16 +365,16 @@
   background: var(--bg-offwhite);
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 9px;
+  padding: 7px 8px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 5px;
 }
 
 .insp-pick-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 5px;
 }
 
 .insp-pick-btn {
@@ -238,7 +383,7 @@
   border-radius: 6px;
   background: var(--bg-solid-white);
   color: var(--ink-black);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
   text-align: center;
   cursor: pointer;
@@ -247,6 +392,7 @@
 
 .insp-pick-btn:hover {
   background: var(--surface-control);
+  border-color: var(--mars-red);
 }
 
 .insp-pick-btn.active {
@@ -258,7 +404,7 @@
 .insp-coord-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 5px;
 }
 
 .insp-coord-cell label {
@@ -307,6 +453,23 @@
 .insp-calc-btn:hover {
   background: var(--route-blue-dark);
   border-color: var(--route-blue-dark);
+}
+
+.insp-start-btn {
+  width: 100%;
+  padding: 6px 9px;
+  border-radius: 6px;
+  border: 1.5px solid #16a34a;
+  background: #15803d;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.insp-start-btn:hover {
+  background: #166534;
 }
 
 .step-panel {
@@ -391,7 +554,7 @@
 .rad-panel {
   border: 1px solid var(--line-light);
   border-radius: var(--r-xs);
-  padding: 9px 10px;
+  padding: 8px 9px;
   background: var(--bg-solid-white);
 }
 
@@ -441,6 +604,7 @@
 
 .wp-chip:hover {
   background: var(--surface-control-hover);
+  border-color: var(--mars-red);
 }
 
 .wp-chip.active {
@@ -453,9 +617,11 @@
   border-top: 1px solid var(--line-light);
   padding-top: 8px;
   font-size: 11px;
+  color: var(--ink-dark);
   display: flex;
   flex-direction: column;
   gap: 4px;
+  line-height: 1.35;
 }
 
 .wp-photo {
@@ -570,7 +736,7 @@
     right: 16px;
   }
   .inspector-card {
-    max-height: 55vh;
+    max-height: 58vh;
   }
 }
 
@@ -578,9 +744,8 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc Acik Gri Studio sag ust rota inceleme karti ve gorev/ekip modali stilleri.
-   - Satir 7-80: .hud-top-right konumlandirmasi, buzlu cam acma/kapatma dugmesi ve kompakt 326px kart gorunumu.
-   - Satir 82-215: Seciciler, Mavi/Soluk Mavi rota kartlari, tek satirlik acik mavi sure rozeti ve okunakli yesil gecikme rozetleri.
-   - Satir 217-370: Koordinat alma dugmeleri, Mavi rota hesapla CTA butonu, adim sekmeleri ve net beyaz adim satirlari.
-   - Satir 372-466: Radyasyon paneli, acik gri EVA durak cipleri ve kamera fotograf onizlemesi.
-   - Satir 468-563: Acik gri arka plan bulanikli gorev/ekip/NASA kaynaklari modali ve acik gri takim rozetleri.
+   - Satir 7-82: .hud-top-right konumlandirmasi, buzlu cam acma/kapatma dugmesi ve 334px kart gorunumu.
+   - Satir 84-198: Zorunlu on-gorev parametre kapisi (.insp-param-box, Rover+Ekip/EVA mod secici, O2/Enerji/Su/Hiz ve yuksek kontrastli uyarilar).
+   - Satir 200-370: Seciciler, Mavi/Soluk Mavi varis ozeti (.route-summary-grid), %20 Walkback kutusu, ayrik kaynak/gecikme rozetleri.
+   - Satir 372-565: Koordinat alma dugmeleri, Mavi hesapla/baslat CTA, adim sekmeleri, Alfa/Beta/Gama izgarasi, EVA durak foto karti ve Acik Gri ekip modali.
    ========================================================================== */

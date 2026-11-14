@@ -423,7 +423,7 @@
 
 .zoom-stack {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--line-light);
@@ -438,7 +438,7 @@
   font-size: 18px;
   font-weight: 900;
   color: var(--ink-black);
-  border-bottom: 1px solid var(--line-light);
+  border-right: 1px solid var(--line-light);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -447,7 +447,7 @@
 }
 
 .zoom-btn:last-child {
-  border-bottom: none;
+  border-right: none;
 }
 
 .zoom-btn:hover {
@@ -580,9 +580,9 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc Acik Gri Studio tema kontrolleri ve arama seridi tanimi.
    - Satir 7-46: Sol ust ayar ikonu konteyneri, buzlu cam kare ayarlar dugmesi ve kirmizi hover durumu.
-   - Satir 48-246: Acilir ayarlar paneli (78x78 Uydular karesine cakismayan yukseklik siniri); 1. secenek Factory Reset dugmesi, fabrika birim kutusu, FPS koruma anahtarlari ve acik gri backend dugmeleri.
-   - Satir 248-311: 9 dilli secim izgarasi ve acik gri aktif dil secim rozetleri.
-   - Satir 313-417: Buzlu ust serit; acik gri ASTROCHIEF marka etiketi, beyaz arama/koordinat giris kutusu (.nav-search-form), kirmizi Ara butonu ve Bilgi butonu.
-   - Satir 419-519: Sag alt zoom/3D/zirve stacki, acik gri telemetri seridi ve yuksek kontrastli yesil FPS rozeti.
-   - Satir 521-575: Ust-orta toast bildirim seridi ve 1280px/820px duyarli tek satir ust bar sikistirma kurallari.
+   - Satir 48-242: Acilir ayarlar paneli (78x78 Uydular karesine cakismayan yukseklik siniri); 1. secenek Factory Reset dugmesi, fabrika birim kutusu, FPS koruma anahtarlari ve acik gri backend dugmeleri.
+   - Satir 244-308: 9 dilli secim izgarasi ve acik gri aktif dil secim rozetleri.
+   - Satir 310-412: Buzlu ust serit; acik gri ASTROCHIEF marka etiketi, beyaz arama/koordinat giris kutusu (.nav-search-form), kirmizi Ara butonu ve Bilgi butonu.
+   - Satir 414-514: Sag alt zoom/3D/zirve stacki, acik gri telemetri seridi ve yuksek kontrastli yesil FPS rozeti.
+   - Satir 516-588: Ust-orta toast bildirim seridi (parametre kapisi uyarilari dahil) ve 1380px/820px duyarli tek satir ust bar sikistirma kurallari.
    ========================================================================== */

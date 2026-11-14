@@ -112,11 +112,19 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 
 ## 13. Açık Gri Stüdyo GUI Dönüşümü & `4c02347` Birleştirme / Görünüm Cilası (`v4.4.0`)
 - **`4c02347` Birleştirmesi & Tam Açık Gri Stüdyo Teması (`css/variables.css`, tüm CSS ve Renderer katmanı)**:
-  - Üst arama + koordinat çubuğu (`#nav-search-form`), `0°` düz 3D küre başlangıcı, `78×78` kare uydu fotoğraflı `Uydular` tetikleyicisi, kompakt varsayılan kapalı `Rota Planlayıcı` ve aşamalı karo yükleme yedeği korunurken koyu/siyah/karışık kozmik yüzeyler **Açık Gri Stüdyo** paletine çevrildi (`%60` beyaz/buzlu cam `rgba(255,255,255,0.95)`, `%30` açık gri `#dfe4ec`/`#eef2f6`/`#dfe5ee` & yüksek kontrastlı slate metin `#1e293b`/`#334155`, `%10` Mars kırmızısı `#d92b2b` & rota mavisi `#2563eb`).
+  - Üst arama + koordinat çubuğu (`#nav-search-form`), `0°` düz 3D küre başlangıcı, `78×78` kare uydu fotoğraflı `Uydular` tetikleyicisi, kompakt varsayılan kapalı `Rota Planlayıcı` ve aşamalı karo yükleme yedeği korunurken koyu/siyah/karışık yüzeyler **Açık Gri Stüdyo** paletine çevrildi (`%60` beyaz/buzlu cam `rgba(255,255,255,0.95)`, `%30` açık gri `#dfe4ec`/`#eef2f6`/`#dfe5ee` & yüksek kontrastlı slate metin `#1e293b`/`#334155`, `%10` Mars kırmızısı `#d92b2b` & rota mavisi `#2563eb`).
   - `Map3DRenderer.js`: `!pixels` aşamalı yükleme dokusu açık kumtaşına (`235/214`), `drawLoadingSphere` `#dfe5ee` / `#94a3b8` / `#1e293b` tonlarına, `drawNomenclature3D` ise `claimLabelSlot` çakışma önlemeli slate halo etiketlere güncellendi.
-  - `/`, `/demo/` ve `/chat/` sayfalarının tamamı aynı `?v=4.4` açık gri tasarım diline hizalandı (`version.json`: `4.4.0`).
+  - `/`, `/demo/` ve `/chat/` sayfalarının tamamı aynı açık gri tasarım diline hizalandı (`version.json`: `4.4.0`, `?v=4.6`).
 - **HUD Rozetleri, Arama & 2-Satırlı Yol Yorumu Düzeltmeleri**:
-  - `MarsNavigatorController.js`: `handleSearchQuery` içindeki krater yerelleştirme, `0..360°` boylam sarmalama ve bulunamadı bildirimi düzeltildi; `onPanelToggle` ile panel açılış/kapanışında `uiAvoidRects` yeniden hesaplanır.
+  - `MarsMapInteractionHelper.js` & `MarsNavigatorController.js`: `handleSearchQuery` içindeki krater yerelleştirme, `0..360°` boylam sarmalama ve bulunamadı bildirimi düzeltildi; `onPanelToggle` ve `onToggleInspector` ile panel açılış/kapanışında `uiAvoidRects` yeniden hesaplanır (`MarsNavigatorController.js` ve `DemoStudioController.js` `< 800` satır).
   - `RouteInspectorPanel.js`: `.insp-source-pill` (`🦀 Rust Backend`) ve `#insp-latency-pill-card` (`⏱ ms`) ayrı esnek yığına alınarak birbirini ezmesi engellendi.
-  - `RouteCanvasRenderer.js`: `drawDeferredRouteComment` açık orta koridor genişliğini (`_avoidRects`) hesaplayıp uzun rota yorumlarını 1–2 satıra bölerek yan kartların altına taşmasını tamamen önler (`inspect_ui.mjs` E2E: `0` hata, `< 800` satır kuralı tam uyumlu).
+  - `RouteCanvasRenderer.js`: `drawDeferredRouteComment` açık orta koridor genişliğini (`_avoidRects`) hesaplayıp uzun rota yorumlarını 1–2 satıra bölerek yan kartların altına taşmasını tamamen önler.
+
+## 14. Birleşik Rover + İnsan Seferi, Bilim Sekmesinin Kaldırılması & Zorunlu Parametre Kapısı (`v4.4.0`)
+- **Birleşik Sefer Modları (`MissionBudgetHelper.js`, `MarsSimulationEngine.js`, `RouteCanvasRenderer.js`, `RoutePlannerService.js`)**:
+  - Ayrık Rover-yalnız / İnsan-yalnız / Otonom Robot seyahat modları tamamen kaldırıldı; insan ve rover her zaman birlikte ilerler (`rover-crew`: *Rover + Ekip* `14.5 km/sa`, `joint-eva-escort`: *Rover + Yaya EVA* `3.6 km/sa`).
+  - `🤖 Bilim` sekmesi ve `robotic-perseverance` senaryosu `demo/index.html` ve tüm UI modüllerinden kaldırıldı; 4. senaryo `🛰 Jezero 2D Delta Geçişi` (`jezero-delta-2d`) ile değiştirildi.
+- **Zorunlu Ön-Görev Parametre Kapısı (`AppConfig.js`, `RouteInspectorPanel.js`, `MarsNavigatorController.js`, `DemoScenarioService.js`, `DemoStudioController.js`)**:
+  - Başlangıç `O₂ (L)`, `Enerji (kWh)` ve `Su (L)` değerleri varsayılan `null`/boş başlar; pozitif değerler girilmeden rota hesaplama, senaryo/oynatma başlatma ve zaman kaydırma engellenir.
+  - Varış özetleri dakika/saat, hız (`km/sa` + `m/dk`), başlangıç `% + L` → varış `L + %` oksijen/enerji bütçesi, su rezervi ve `< %20` O₂ Walkback / `< %35` Batarya uyarılarını gösterir; `#insp-latency-pill-card` ile Sol 2031 durak kartı ve Açık Gri Stüdyo kontrast uyumu (`?v=4.6`) tamamlandı.
 

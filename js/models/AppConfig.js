@@ -11,7 +11,7 @@
      * Sistem performans koruma ve fabrika ayar sablonunu olusturur
      */
     constructor() {
-      this.storageKey = "astrochief_mars_navigator_v3_9";
+      this.storageKey = "astrochief_mars_navigator_v4_4";
       this.fpsMinLimit = 10;
       this.fpsGuardWindowMs = 10000;    // KURAL: Ayar degistirildikten sonra 10 saniye < 10 FPS kalirsa geri al
       this.challengeUrl = "https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/";
@@ -45,6 +45,14 @@
         useCustomCoordinates: false,
         backendApiUrl: "http://127.0.0.1:8080", // Varsayilan Rust backend adresi
         activeStepRouteTab: "primary",
+        expeditionMode: "rover-crew",   // Birlesik Rover + Insan sefer modu ('rover-crew' | 'joint-eva-escort')
+        targetSpeedKmH: 14.5,           // Birlesik sefer hedef hizi (km/sa)
+        oxygenReserveLiters: null,      // Zorunlu on-gorev girisi (bos baslar, kapidan gecmeden rota baslamaz)
+        oxygenTankCapacityL: 420,       // Referans %100 PLSS+SEV O2 tank kapasitesi (L)
+        energyReserveKwh: null,         // Zorunlu on-gorev girisi (bos baslar)
+        energyTankCapacityKwh: 75.0,    // Referans %100 SEV batarya kapasitesi (kWh)
+        waterReserveLiters: null,       // Zorunlu on-gorev girisi (bos baslar)
+        missionParamsConfirmed: false,  // Kullanici O2/Enerji/Su girip onaylamadan rota & yolculuk baslamaz
         filterAcidRain: true,
         acidIntensity: "orta",          // 'hafif' | 'orta' | 'siddetli'
         filterDustStorm: true,
@@ -65,8 +73,6 @@
         zoom: 1.05,
         panX: 0,
         panY: 0,
-        oxygenReserveLiters: 420,       // Litre birimi
-        waterReserveLiters: 24.0,       // Litre birimi
         inspectorOpen: false
       };
     }
@@ -98,7 +104,7 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc fabrika ayar sablonu ve kurallar aciklamasi.
-   - Satir 7-18: AppConfig constructor; yerel depo anahtari, FPS >= 10 (10 saniye pencere) esigi ve yarisma URL'sini tanimlar.
-   - Satir 20-66: getFactoryDefaults; default 3D mod, ozel baslangic/varis koordinatlari, Rust backend URL, olcekli LOD ve Litre/km/Saat standartlarini doner.
-   - Satir 68-86: getIntensityTable; asit yagmuru ve kum firtinasi siddetlerinin (Hafif/Orta/Siddetli) rota ve hiz carpanlarini doner.
+   - Satir 7-18: AppConfig constructor; v4.4 depo anahtari, FPS >= 10 (10s) esigi ve NASA Space Apps URL'sini tanimlar.
+   - Satir 20-78: getFactoryDefaults; default 3D mod, birlesik Rover+Insan sefer modu, bos/zorunlu O2-Enerji-Su parametre kapisi ve LOD standartlarini doner.
+   - Satir 80-97: getIntensityTable; asit yagmuru ve kum firtinasi siddetlerinin (Hafif/Orta/Siddetli) rota ve hiz carpanlarini doner.
    ========================================================================== */

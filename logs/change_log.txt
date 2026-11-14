@@ -412,14 +412,30 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * Sag ust .hud-top-right (max-width: 440px) ile 78x78 kare Uydular tetikleyicisi, kompakt varsayilan kapali Rota Planlayici ve ust arama cubugu (#nav-search-form) cakismasiz tepki yukseklikleriyle duzenlendi.
 - js/renderers/{StarfieldRenderer,OverlayDrawHelper,Map2DRenderer,Map3DFallbackRenderer,Map3DRenderer,SimulationChartRenderer}.js:
   * Yildiz/uzay arka plani acik gri degrade + ince yorunge cizgilerine donusturuldu; 3D kure altina yumusak slate golge ve terakota atmosfer halkasi eklendi.
-  * Map3DRenderer.js (Satir 639-715): Yukleme kuresi (#dfe5ee / #94a3b8 / #1e293b), acik kumtasi asamali karo yedegi (gridLine ? 235 : 214), acik enlem/boylam agi ve claimLabelSlot cakismasiz yer adlari uygulandi; alt yorum ozeti guncellendi.
-- js/components/{MarsNavigatorController,MarsMapInteractionHelper,SettingsPanel,SatellitesPanel,DemoStudioController}.js & js/services/DemoScenarioService.js & js/models/TeamMember.js:
-  * handleSearchQuery (Satir 63-126) icinde getLocalizedCraters, 0-360° boylam normalizasyonu ve i18n toastSearchNotFound tamamlandi; camPitch ?? 0 varsayilani sabitlendi, onPanelToggle ile harita etiket cakisma onleme yenilemesi baglandi, alt satir aciklamalari guncellendi.
-- js/components/RouteInspectorPanel.js (Satir 98-107, 210-217):
-  * .insp-source-pill (🦀 Rust Backend) ve #insp-latency-pill-card (⏱ ms) ayri fleks sutun yiginina alinarak render() ile updateLatencyBadges() cakismasi giderildi.
-- js/renderers/RouteCanvasRenderer.js (Satir 10-80, 116-187, 450-460):
-  * _trimToWidth ve _layoutCommentLines yardimcilari eklendi; drawDeferredRouteComment icinde _avoidRects arasi acik yatay koridor olculerek uzun rota yorumlari (ozellikle /demo studyosu Stage 2/3) 2 satira otomatik kirilip 620px altina sigdirildi.
-- data/i18n/locales{TrEnDe,FrEs,JaKoArHe}.js, index.html (v4.4), demo/index.html, chat/index.html, version.json (4.4.0) & ForAgents/FRONTEND_AGENT_NOTES.md:
-  * Tum 9 dilde navSearchPlaceholder/navSearchBtn/navSearchAria/toastSearchNotFound/stepsHeading/stepsEmptyHint/reserveDeficitAlert anahtarlari dogrulandi ve betikler ?v=4.4 ile onbellek kiriciya alindi.
+  * Map3DRenderer.js (Satir 639-715): Yukleme kuresi (#dfe5ee / #94a3b8 / #1e293b), acik kumtasi asamali karo yedegi (gridLine ? 235 : 214), acik enlem/boylam agi ve claimLabelSlot cakismasiz yer adlari uygulandi.
+- RouteInspectorPanel.js & RouteCanvasRenderer.js:
+  * .insp-source-pill (🦀 Rust Backend) ve #insp-latency-pill-card (⏱ ms) ayri fleks sutun yiginina alindi; drawDeferredRouteComment uzun rota yorumlarini 2 satira otomatik kirarak 620px altina sigdirdi.
+
+[2026-11-15T01:45:00+03:00] feat(mission-gate,v4.4.0): Birlesik Rover+Insan Seferi, Bilim Sekmesinin Kaldirilmasi & Zorunlu O2/Enerji/Su Parametre Kapisi (origin/main b563c16):
+- Yedek Klasoru: backups/snapshot_20261115_joint_rover_o2_gate/
+- js/services/MissionBudgetHelper.js (Satir 1-239):
+  * Ayrik rover/insan/robot modlari kaldirildi; birlesik rover-crew (14.5 km/h) ve joint-eva-escort (3.6 km/h) profilleri, parsePositive, validateMissionParams ve dakika/saat/km-h/m-dk/O2(%+L)/Enerji(%+kWh)/%20 Walkback butce hesabi eklendi.
+- js/models/AppConfig.js, StateStorageService.js, MarsSimulationEngine.js, RoutePlannerService.js, BackendApiService.js & DemoScenarioService.js:
+  * oxygenReserveLiters, energyReserveKwh ve waterReserveLiters varsayilan null (bos) baslatildi; zorunlu parametre kapisi dogrulanmadan rota, senaryo ve zaman kaydirici engellendi.
+- index.html, demo/index.html, chat/index.html (?v=4.6), data/i18n/localesDemo.js & localesMission.js:
+  * "Bilim" sekmesi ve robotic-perseverance senaryosu kaldirildi (4. senaryo jezero-delta-2d); varis ozeti karti (#sim-arrival-box) ve Sol 2031 durak fotografi karti eklendi.
+
+[2026-11-15T02:05:00+03:00] merge(gui+mission-gate): Acik Gri Studyo GUI & Birlesik Rover+Insan Kapisi Birlestirmesi (b563c16):
+- css/{style,controls,inspector,demo,demo_studio,satellites_panel}.css:
+  * origin/main b563c16 bilesenleri (.insp-mode-btn, .insp-cap-pct, .inp-missing, .walkback-alert-box, .rad-panel, .wp-detail-box, .sim-cap-pct, .sim-arrival-box, .demo-metric-chip.warn) Acik Gri Studyo buzlu beyaz/slate paletiyle birlestirilerek okunamayan koyu/soluk renkler tamamen giderildi.
+- demo/index.html, SimulationChartRenderer.js, RouteInspectorPanel.js & RouteCanvasRenderer.js:
+  * Grafik tuvali acik gri (#f8fafc), lejant (#2563eb / #15803d / #b91c1c), .route-card.secondary basligi var(--route-blue) ve harita uzerindeki Rover+Ekip / Rover+EVA isaretcisi Acik Gri tabanli koyu slate siluet + altin halat + cam mavi vurgulu + claimLabelSlot hapina donusturuldu.
+- js/components/{MarsNavigatorController,MarsMapInteractionHelper,DemoStudioController}.js & js/services/MarsSimulationEngine.js:
+  * handleSearchQuery ve computeUiAvoidRects -> MarsMapInteractionHelper sinifina; /demo getPresets() -> MarsSimulationEngine sinifina devredilerek tum dosyalar < 800 satir kuralinda tutuldu.
+- Son UX & Dogrulama Cilalari (RouteInspectorPanel.js, MarsNavigatorController.js, MarsMapInteractionHelper.js):
+  * RouteInspectorPanel.js (Satir 305-316): On-gorev sayisal girislerine 'input' yaninda 'change' dinleyicisi eklendi; otomatik doldurma ve erisilebilirlik araclariyla tam uyumlu hale getirildi.
+  * MarsNavigatorController.js (Satir 195-218): onChangeMissionParam icinde ayni deger icin cift tetikleme engeli eklendi; arama cubugu krater eslesmelerinde koordinatli onay bildirimi (MarsMapInteractionHelper.js Satir 301-306) gosterildi.
+  * E2E & Derleme Dogrulamasi: node --check, tools/build.py --skip-desktop ve Playwright/CDP headless Chrome (1440x900, 1280x720, AR RTL, /demo/, /chat/) testleri 0 hata ile tamamlandi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
 

@@ -122,10 +122,17 @@
         c.state.useCustomCoordinates = true;
         c.state.routeScope = "global";
         c.backendRoutes = null;
-        c.persistState();
-        c.refreshAll();
-        c.showToast(c.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
-        c.scheduleBackendRouteFetch(20);
+        if (c.hasValidMissionParams?.() && c.state.missionParamsConfirmed) {
+          c.persistState();
+          c.refreshAll();
+          c.showToast(c.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
+          c.scheduleBackendRouteFetch(20);
+        } else {
+          c.state.inspectorOpen = true;
+          c.persistState();
+          c.refreshAll();
+          c.showToast(`${c.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) })} — ${c.t("demoGateBlockedToast")}`, true);
+        }
       });
     }
 
@@ -266,6 +273,99 @@
       c.scheduleRender(true);
       c.schedulePersistState();
     }
+    /** Ust arama cubugundan koordinat (lat, lon) veya yer/krater/inis sahasi aramasini isler */
+    handleSearchQuery(rawQuery) {
+      const c = this.ctrl;
+      const q = String(rawQuery || "").trim();
+      if (!q) return;
+      const coordMatch = q.match(/^\s*([-+]?\d+(?:\.\d+)?)\s*°?\s*([NSns])?\s*[,;\s]\s*([-+]?\d+(?:\.\d+)?)\s*°?\s*([EWew])?\s*$/);
+      if (coordMatch) {
+        let lat = parseFloat(coordMatch[1]);
+        let lon = parseFloat(coordMatch[3]);
+        if (coordMatch[2] && coordMatch[2].toUpperCase() === "S") lat = -Math.abs(lat);
+        if (coordMatch[4] && coordMatch[4].toUpperCase() === "W") lon = -Math.abs(lon);
+        const lonValid = coordMatch[4] ? (lon >= -180 && lon <= 180) : (lon >= -180 && lon <= 360);
+        if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lonValid) {
+          const normLon = c.normalizeLon(lon);
+          this.animateTo(lat, normLon, Math.max(c.state.zoom || 1, 2.2));
+          c.showToast(`${lat.toFixed(2)}°, ${normLon.toFixed(2)}°`);
+          return;
+        }
+      }
+      const norm = q.toLowerCase();
+      const craterHit = c.getLocalizedCraters().find((cr) =>
+        cr.name.toLowerCase().includes(norm) ||
+        (cr.englishName && cr.englishName.toLowerCase().includes(norm)) ||
+        cr.id.toLowerCase().includes(norm)
+      );
+      if (craterHit) {
+        c.flyToCraterById(craterHit.id);
+        c.showToast(`${craterHit.name} (${craterHit.coordinates.lat.toFixed(2)}°, ${c.normalizeLon(craterHit.coordinates.lon).toFixed(2)}°)`);
+        return;
+      }
+      const siteHit = (c.landingSites || []).find((s) =>
+        (s.name && s.name.toLowerCase().includes(norm)) ||
+        (s.site_name && s.site_name.toLowerCase().includes(norm)) ||
+        (s.id && s.id.toLowerCase().includes(norm))
+      );
+      if (siteHit) {
+        const sLat = Number(siteHit.latitude ?? siteHit.lat);
+        const sLon = c.normalizeLon(Number(siteHit.longitude ?? siteHit.lon));
+        if (Number.isFinite(sLat) && Number.isFinite(sLon)) {
+          this.animateTo(sLat, sLon, Math.max(c.state.zoom || 1, 2.2));
+          c.showToast(siteHit.name || q);
+          return;
+        }
+      }
+      const landmarks = [
+        { name: "Olympus Mons", lat: 18.65, lon: -133.8, zoom: 2.35 },
+        { name: "Valles Marineris", lat: -13.9, lon: -59.2, zoom: 2.25 },
+        { name: "Ascraeus Mons", lat: 11.9, lon: -104.5, zoom: 2.3 },
+        { name: "Arsia Mons", lat: -8.3, lon: -120.1, zoom: 2.3 },
+        { name: "Elysium Mons", lat: 25.0, lon: 147.2, zoom: 2.3 },
+        { name: "Hellas Planitia", lat: -42.4, lon: 70.5, zoom: 1.85 },
+        { name: "Syrtis Major", lat: 8.4, lon: 69.5, zoom: 2.0 },
+        { name: "Gale Crater", lat: -5.08, lon: 137.85, zoom: 2.6 },
+        { name: "Jezero Crater", lat: 18.38, lon: 77.58, zoom: 2.6 },
+        { name: "Korolev Crater", lat: 72.77, lon: 164.42, zoom: 2.4 }
+      ];
+      const lmHit = landmarks.find((l) => l.name.toLowerCase().includes(norm));
+      if (lmHit) {
+        this.animateTo(lmHit.lat, c.normalizeLon(lmHit.lon), lmHit.zoom);
+        c.showToast(lmHit.name);
+        return;
+      }
+      c.showToast(c.t("toastSearchNotFound", { query: q }), true);
+    }
+
+    /** Acik HUD panellerinin tuval uzerindeki cakismadan kacinma dikdortgenlerini hesaplar */
+    computeUiAvoidRects() {
+      const c = this.ctrl;
+      if (!c.canvas || typeof document === "undefined") return [];
+      const cr = c.canvas.getBoundingClientRect();
+      const rects = [];
+      const selectors = [
+        "#top-left-dock .icon-square-btn",
+        "#top-left-dock .top-nav-pill",
+        "#settings-dropdown.open",
+        "#btn-toggle-inspector",
+        "#top-right-dock .inspector-card.open",
+        "#btn-satellites-toggle",
+        "#satellites-popover.open",
+        "#bottom-right-dock .zoom-stack",
+        "#bottom-right-dock .telemetry-strip",
+        "#demo-bar-root .demo-panel",
+        "#demo-bar-root .demo-collapsed-pill"
+      ];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const b = el.getBoundingClientRect();
+        if (b.width <= 0 || b.height <= 0) continue;
+        rects.push({ x: b.left - cr.left, y: b.top - cr.top, w: b.width, h: b.height });
+      }
+      return rects;
+    }
   }
 
   ns.MarsMapInteractionHelper = MarsMapInteractionHelper;
@@ -276,7 +376,8 @@
    --------------------------------------------------------------------------
    - Satir 1-17: JSDoc, IIFE modul tanimi ve MarsMapInteractionHelper yapici metodu.
    - Satir 19-36: bindAll ve cancelAll; tum olay dinleyicilerini kurar ve aktif hareket/zamanlayicilari iptal eder.
-   - Satir 38-130: bindCanvasEvents; 2D/3D surukleme (computePanStep), orbit, imlec odakli tekerlek zoom ve pick tiklamalari.
-   - Satir 132-172: bindGlobalEvents; mouseup atalet baslatma, WASD/ok/R/F/C klavye gezinme ve dis tiklama kapama.
-   - Satir 174-269: startInertia, animateTo ve applyZoom; yumusak kubik kamera gecisleri ve imlece odakli yakinlastirma.
+   - Satir 38-137: bindCanvasEvents; 2D/3D surukleme (computePanStep), orbit, imlec odakli tekerlek zoom ve kapi korumali pick tiklamalari.
+   - Satir 139-179: bindGlobalEvents; mouseup atalet baslatma, WASD/ok/R/F/C klavye gezinme ve dis tiklama kapama.
+   - Satir 181-275: startInertia, animateTo ve applyZoom; yumusak kubik kamera gecisleri ve imlece odakli yakinlastirma.
+   - Satir 277-370: handleSearchQuery ve computeUiAvoidRects; lokalize krater/0-360° arama ve HUD cakisma kutularini hesaplar.
    ========================================================================== */

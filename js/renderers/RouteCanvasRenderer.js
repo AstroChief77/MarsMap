@@ -337,7 +337,7 @@
     }
 
     /**
-     * Demo modunda Mavi rota uzerinde katedilen parlak izi, animasyonlu Rover/Astronot isaretcisini ve canli telemetri etiketini cizer
+     * Ortak seferde Mavi rota uzerinde katedilen parlak izi, birlikte ilerleyen Rover+Insan isaretcisini ve canli telemetri etiketini cizer
      */
     drawDemoSimulation(ctx, projFn, routes, demoSim, viewW, viewH, maxJumpPx = 240, labelHelper = null, drawBadge = true) {
       if (!demoSim || !demoSim.active || !demoSim.ready) return;
@@ -364,82 +364,119 @@
       if (!p || !p.visible || p.x < -60 || p.x > viewW + 60 || p.y < -60 || p.y > viewH + 60) return;
 
       const pulse = 0.5 + 0.5 * Math.sin(demoSim.pulsePhase || 0);
-      const ringR = 13 + pulse * 9;
-      const isAstro = demoSim.vehicle === "astronaut";
+      const ringR = 16 + pulse * 9;
+      const mode = demoSim.expeditionMode || (demoSim.vehicle === "astronaut" ? "joint-eva-escort" : "rover-crew");
+      const isEscort = mode === "joint-eva-escort";
 
       ctx.save();
       ctx.beginPath();
       ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(217, 43, 43, ${(0.82 - pulse * 0.52).toFixed(2)})`;
+      ctx.strokeStyle = isEscort
+        ? `rgba(37, 99, 235, ${(0.82 - pulse * 0.52).toFixed(2)})`
+        : `rgba(217, 43, 43, ${(0.82 - pulse * 0.52).toFixed(2)})`;
       ctx.lineWidth = 2.4;
       ctx.stroke();
 
+      const badgeR = isEscort ? 15.5 : 13.5;
+      const badgeAccent = isEscort ? "#2563eb" : "#d92b2b";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 11.5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, badgeR, 0, Math.PI * 2);
       ctx.fillStyle = "#f8fafc";
       ctx.fill();
       ctx.lineWidth = 2.5;
-      ctx.strokeStyle = isAstro ? "#2563eb" : "#d92b2b";
+      ctx.strokeStyle = badgeAccent;
       ctx.stroke();
-      labelHelper?.reserveRect?.(p.x - 13, p.y - 13, 26, 26);
+      labelHelper?.reserveRect?.(p.x - (badgeR + 2), p.y - (badgeR + 2), (badgeR + 2) * 2, (badgeR + 2) * 2);
 
-      ctx.fillStyle = "#1e293b";
-      ctx.strokeStyle = "#1e293b";
-      ctx.lineWidth = 1.5;
-      if (isAstro) {
+      if (isEscort) {
+        // Rover + Yaya EVA: sol tarafta eslikci basincli rover, altin guvenlik halati ve sag tarafta yuruyen astronot
+        ctx.strokeStyle = "#ca8a04";
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.arc(p.x, p.y - 2.2, 3.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#0284c7";
-        ctx.fillRect(p.x - 2.2, p.y - 3.3, 4.4, 2.0);
-        ctx.strokeStyle = "#1e293b";
-        ctx.beginPath();
-        ctx.moveTo(p.x - 3.4, p.y + 5.6);
-        ctx.lineTo(p.x - 2.2, p.y + 1.5);
-        ctx.lineTo(p.x + 2.2, p.y + 1.5);
-        ctx.lineTo(p.x + 3.4, p.y + 5.6);
+        ctx.moveTo(p.x - 4.0, p.y + 1.0);
+        ctx.lineTo(p.x + 4.5, p.y + 1.0);
         ctx.stroke();
-      } else {
-        ctx.fillRect(p.x - 5.5, p.y - 2.0, 11.0, 4.5);
-        ctx.fillStyle = "#d92b2b";
-        ctx.fillRect(p.x - 2.0, p.y - 5.5, 2.2, 3.5);
+
+        // Mini Eslikci Basincli Rover
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(p.x - 11.2, p.y - 2.6, 8.2, 4.4);
         ctx.fillStyle = "#0284c7";
-        ctx.fillRect(p.x - 1.5, p.y - 6.2, 4.5, 1.8);
+        ctx.fillRect(p.x - 6.0, p.y - 4.2, 3.0, 1.8);
         ctx.fillStyle = "#1e293b";
         ctx.beginPath();
-        ctx.arc(p.x - 4.0, p.y + 4.2, 2.0, 0, Math.PI * 2);
-        ctx.arc(p.x + 4.0, p.y + 4.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x - 9.4, p.y + 3.2, 1.5, 0, Math.PI * 2);
+        ctx.arc(p.x - 4.8, p.y + 3.2, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eslikteki Yaya EVA Astronotu
+        ctx.fillStyle = "#1e293b";
+        ctx.beginPath();
+        ctx.arc(p.x + 7.2, p.y - 3.6, 3.0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#0284c7";
+        ctx.fillRect(p.x + 5.5, p.y - 4.5, 3.4, 1.6);
+        ctx.strokeStyle = "#1e293b";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(p.x + 4.6, p.y + 4.8);
+        ctx.lineTo(p.x + 6.4, p.y - 0.5);
+        ctx.lineTo(p.x + 8.0, p.y - 0.5);
+        ctx.lineTo(p.x + 9.8, p.y + 4.8);
+        ctx.stroke();
+      } else {
+        // Rover + Ekip: Genis Basincli Rover kabini icinde yan yana gorunen 2 astronot kaski ve tekerlekler
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(p.x - 8.2, p.y - 1.5, 16.4, 5.2);
+        ctx.fillStyle = "#d92b2b";
+        ctx.fillRect(p.x - 6.2, p.y - 5.2, 1.8, 3.7);
+        ctx.fillStyle = "#0284c7";
+        ctx.fillRect(p.x - 4.2, p.y - 5.6, 10.2, 3.8);
+        // Kabin icindeki ekip kasklari
+        ctx.fillStyle = "#f8fafc";
+        ctx.beginPath();
+        ctx.arc(p.x - 1.2, p.y - 3.7, 1.5, 0, Math.PI * 2);
+        ctx.arc(p.x + 3.0, p.y - 3.7, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        // 3 cift rover tekerlegi
+        ctx.fillStyle = "#1e293b";
+        ctx.beginPath();
+        ctx.arc(p.x - 5.5, p.y + 5.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y + 5.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x + 5.5, p.y + 5.2, 2.0, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      const tag = `${isAstro ? "EVA" : "ROVER"} ${demoSim.progressPct}% · ${demoSim.traveledKm.toFixed(1)} km · ${demoSim.remainingO2L}L O₂`;
+      const tagPrefix = isEscort ? "ROVER+EVA" : "ROVER+EKİP";
+      const o2PctTxt = Number.isFinite(demoSim.o2Pct) ? ` (%${Math.round(demoSim.o2Pct)})` : "";
+      const energyTxt = Number.isFinite(demoSim.remainingEnergyKwh) ? ` · ${demoSim.remainingEnergyKwh.toFixed(1)}kWh` : "";
+      const tag = `${tagPrefix} ${demoSim.progressPct}% · ${demoSim.traveledKm.toFixed(1)} km · ${demoSim.remainingO2L}L${o2PctTxt}${energyTxt}`;
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
       const tw = ctx.measureText(tag).width;
       const boxW = Math.ceil(tw + 18);
       const boxH = 22;
       let bx = Math.max(8, Math.min(viewW - boxW - 8, p.x - boxW / 2));
-      let by = Math.max(8, Math.min(viewH - boxH - 8, p.y - 40));
+      let by = Math.max(8, Math.min(viewH - boxH - 8, p.y - 44));
 
       if (labelHelper && typeof labelHelper.claimLabelSlot === "function") {
         const offsets = [
           [0, 0],
-          [0, 56],
-          [boxW * 0.5 + 16, 18],
-          [-(boxW * 0.5 + 16), 18],
+          [0, 62],
+          [boxW * 0.5 + 18, 22],
+          [-(boxW * 0.5 + 18), 22],
           [0, -24],
-          [0, 80]
+          [0, 86]
         ];
-        const slot = labelHelper.claimLabelSlot(p.x - boxW / 2, p.y - 40, boxW, boxH, offsets, true);
+        const slot = labelHelper.claimLabelSlot(p.x - boxW / 2, p.y - 44, boxW, boxH, offsets, true);
         bx = slot.x;
         by = slot.y;
       }
 
       const edgeX = Math.max(bx, Math.min(bx + boxW, p.x));
       const edgeY = Math.max(by, Math.min(by + boxH, p.y));
-      if (Math.hypot(p.x - edgeX, p.y - edgeY) > 14) {
-        this.drawLeaderLine(ctx, p.x, p.y, edgeX, edgeY, "#d92b2b");
+      if (Math.hypot(p.x - edgeX, p.y - edgeY) > 16) {
+        this.drawLeaderLine(ctx, p.x, p.y, edgeX, edgeY, badgeAccent);
       }
-      this.drawRoundedBox(ctx, bx, by, boxW, boxH, tag, "#d92b2b", labelHelper);
+      this.drawRoundedBox(ctx, bx, by, boxW, boxH, tag, badgeAccent, labelHelper);
       ctx.restore();
     }
   }
@@ -456,5 +493,5 @@
    - Satir 113-204: drawDeferredRouteComment ve drawGlobalDualRoutes; _avoidRects arasi koridora sigan rota yorumunu ve Mavi rotayi cizer.
    - Satir 206-255: drawLeaderLine ve strokeGeoPath; kesikli isaret cizgisi ile antimeridyen sicramasiz guzergah cizer.
    - Satir 257-337: drawCraterEvaRoutes; krater icindeki Mavi EVA rotasini, Acik Gri hap durak etiketlerini ve ertelenmis yorumu cizer.
-   - Satir 339-448: drawDemoSimulation ve drawDemoVehicleBadge; Acik Gri/Slate Rover/EVA rozetini, parlak izi ve canli telemetri hapini cizer.
+   - Satir 339-488: drawDemoSimulation ve drawDemoVehicleBadge; Acik Gri zeminli, koyu slate siluetli Rover+Ekip / Rover+Yaya EVA rozetini ve çakismasiz %O2/kWh telemetri hapini cizer.
    ========================================================================== */

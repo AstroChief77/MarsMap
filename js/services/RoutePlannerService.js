@@ -19,10 +19,11 @@
       this.config = config;
       this.hazardService = hazardService || new HazardFieldService(config);
       this.geo = new RouteGeometryHelper();
+      this.budget = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
 
-      // Fabrika birim sabitleri (Saat, Kilometre/Metre, Litre)
-      this.evaSpeedKmH = 3.6;           // Astronot EVA yuruyus hizi (km/saat)
-      this.roverSpeedKmH = 14.5;        // Pressurized Rover gezici ortalama hizi (km/saat)
+      // Fabrika birim sabitleri (Saat, Dakika, Kilometre/Metre, Litre)
+      this.evaSpeedKmH = 3.6;           // Rover+Yaya EVA eslik yuruyus hizi (km/saat)
+      this.roverSpeedKmH = 14.5;        // Rover+Ekip birlesik seyir hizi (km/saat)
       this.pixelToKmFactor = 0.085;     // Krater ici piksel -> km donusum carpani
       this.o2LitersPerHour = 48.0;      // Saatlik O2 tuketimi (Litre)
       this.waterLitersPerHour = 2.15;   // Saatlik sogutma suyu tuketimi (Litre)
@@ -49,7 +50,7 @@
     }
 
     /**
-     * Secili krater icindeki EVA duraklari icin Mavi (Kisa Guvenli) ve Soluk Mavi (Uzun Guvenli) rotalari hesaplar
+     * Secili krater icindeki EVA duraklari icin birlesik Rover+Insan mavi rotayi hesaplar
      */
     computeCraterRoutes(crater, waypoints, options = {}) {
       if (!waypoints || waypoints.length < 2) {
@@ -61,7 +62,6 @@
       const acidSpec = intensityTable.acid[options.acidIntensity || "orta"];
       const stormSpec = intensityTable.storm[options.stormIntensity || "orta"];
 
-      // YOL YORUMU 1 (MAVI): En kisa guvenli koridor; asit ve firtina noktalari cevresinde minimum guvenli sapma uygular.
       const primaryPoints = waypoints.map((wp, idx) => {
         let rx = wp.relX;
         let ry = wp.relY;
@@ -76,79 +76,56 @@
         return { ...wp, relX: rx, relY: ry, stepIdx: idx };
       });
 
-      // YOL YORUMU 2 (SOLUK MAVI): Firtina, asit ve foton alanlarinin tamamen disindan dolasan uzun guvenli yay.
-      const secondaryPoints = waypoints.map((wp, idx) => {
-        if (idx === 0 || idx === waypoints.length - 1) return { ...wp };
-        const extraDetour = 36 + (options.filterDustStorm ? 14 * stormSpec.detourScale : 0) + (options.filterAcidRain ? 10 * acidSpec.detourScale : 0);
-        return {
-          ...wp,
-          relX: wp.relX - 24,
-          relY: wp.relY + extraDetour,
-          slope: Math.max(2.0, (wp.slope || 5) * 0.65),
-          acidRisk: false,
-          stormRisk: false
-        };
-      });
+      let totalKm = 0;
+      let totalHours = 0;
+      const modeSpeed = options.expeditionMode === "joint-eva-escort" ? this.evaSpeedKmH : this.roverSpeedKmH;
+      const useSpeed = Number(options.targetSpeedKmH) > 0 ? Number(options.targetSpeedKmH) : modeSpeed;
 
-      const calcPolyline = (pts, isSafeDetour) => {
-        let totalKm = 0;
-        let totalHours = 0;
-
-        for (let i = 0; i < pts.length - 1; i++) {
-          const a = pts[i];
-          const b = pts[i + 1];
-          const distKm = Math.hypot(b.relX - a.relX, b.relY - a.relY) * this.pixelToKmFactor;
-          const avgSlope = ((a.slope || 4) + (b.slope || 4)) / 2;
-          const slopeFactor = Math.max(0.50, 1.0 - avgSlope / 46);
-
-          // Her iki rota da tehlikeden kacindigi icin cevresel yavaslama kismi uygulanir; uzun yay her zaman daha uzun surer
-          let envFactor = 1.0;
-          if (options.filterAcidRain && (a.acidRisk || b.acidRisk || isSafeDetour)) {
-            envFactor *= isSafeDetour ? Math.min(0.95, acidSpec.speedMult + 0.08) : (0.72 + 0.28 * acidSpec.speedMult);
-          }
-          if (options.filterDustStorm && (a.stormRisk || b.stormRisk || isSafeDetour)) {
-            envFactor *= isSafeDetour ? Math.min(0.94, stormSpec.speedMult + 0.12) : (0.70 + 0.30 * stormSpec.speedMult);
-          }
-
-          const speed = this.evaSpeedKmH * slopeFactor * envFactor;
-          totalKm += distKm;
-          totalHours += distKm / speed;
-        }
-
-        return {
-          totalKm,
-          totalMeters: Math.round(totalKm * 1000),
-          totalHours,
-          formattedDuration: this.formatHours(totalHours),
-          o2Liters: Math.round(totalHours * this.o2LitersPerHour),
-          waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
-        };
-      };
-
-      const m1 = calcPolyline(primaryPoints, false);
-      let m2 = calcPolyline(secondaryPoints, true);
-      if (m2.totalHours <= m1.totalHours) {
-        const factor = (m1.totalHours * 1.24) / Math.max(0.1, m2.totalHours);
-        const scaledHours = m2.totalHours * factor;
-        m2 = {
-          ...m2,
-          totalHours: scaledHours,
-          formattedDuration: this.formatHours(scaledHours),
-          o2Liters: Math.round(scaledHours * this.o2LitersPerHour),
-          waterLiters: Number((scaledHours * this.waterLitersPerHour).toFixed(1))
-        };
+      for (let i = 0; i < primaryPoints.length - 1; i++) {
+        const a = primaryPoints[i];
+        const b = primaryPoints[i + 1];
+        const distKm = Math.hypot(b.relX - a.relX, b.relY - a.relY) * this.pixelToKmFactor;
+        const avgSlope = ((a.slope || 4) + (b.slope || 4)) / 2;
+        const slopeFactor = Math.max(0.45, 1.0 - avgSlope / 46);
+        let envFactor = 1.0;
+        if (options.filterAcidRain && (a.acidRisk || b.acidRisk)) envFactor *= acidSpec.speedMult;
+        if (options.filterDustStorm && (a.stormRisk || b.stormRisk)) envFactor *= stormSpec.speedMult;
+        totalKm += distKm;
+        totalHours += distKm / Math.max(0.5, useSpeed * slopeFactor * envFactor);
       }
+
+      const steps = this.buildCraterSteps(crater, primaryPoints, totalHours, totalKm);
+      const budgetMetrics = this.budget
+        ? this.budget.computeRouteBudget({
+            totalKm,
+            steps,
+            acidEnabled: Boolean(options.filterAcidRain),
+            stormEnabled: Boolean(options.filterDustStorm),
+            acidSpeedMult: acidSpec.speedMult,
+            stormSpeedMult: stormSpec.speedMult,
+            params: options,
+            formatHoursFn: (h) => this.formatHours(h)
+          })
+        : {
+            totalKm: Number(totalKm.toFixed(2)),
+            totalMeters: Math.round(totalKm * 1000),
+            totalHours: Number(totalHours.toFixed(2)),
+            totalMinutes: Math.max(1, Math.round(totalHours * 60)),
+            formattedDuration: this.formatHours(totalHours),
+            o2Liters: Math.round(totalHours * this.o2LitersPerHour),
+            waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
+          };
 
       return {
         scope: "crater",
         source: "local-fallback",
         primaryBlue: {
-          ...m1,
+          ...budgetMetrics,
           points: primaryPoints,
-          steps: this.buildCraterSteps(crater, primaryPoints, m1.totalHours, m1.totalKm),
+          steps,
           colorHex: "#2563eb",
           label: t("blueRouteTitle"),
-          comment: t("craterBlueComment", { name: crater.name, dur: m1.formattedDuration, km: m1.totalKm.toFixed(1) })
+          comment: t("craterBlueComment", { name: crater.name, dur: budgetMetrics.formattedDuration, km: budgetMetrics.totalKm.toFixed(1) })
         },
         secondaryPaleBlue: null
       };
@@ -193,7 +170,7 @@
     }
 
     /**
-     * Herhangi iki {lat, lon} noktasi arasinda cevrimdisi yedek Mavi ve Soluk Mavi step-by-step rota uretir
+     * Herhangi iki {lat, lon} noktasi arasinda birlesik Rover+Insan step-by-step yedek rota uretir
      */
     computeRoutesBetweenCoords(origin, destination, options = {}) {
       if (!origin || !destination) return { primaryBlue: null, secondaryPaleBlue: null };
@@ -220,36 +197,39 @@
       };
 
       const blueGeoPts = this.geo.buildSafeGlobalPath(startPt, endPt, allHazards, 1.0, 1);
-      const paleGeoPts = this.geo.buildSafeGlobalPath(startPt, endPt, allHazards, 1.75, -1);
+      let totalKm = 0;
+      for (let i = 0; i < blueGeoPts.length - 1; i++) {
+        totalKm += this.geo.haversineMarsKm(blueGeoPts[i].lat, blueGeoPts[i].lon, blueGeoPts[i + 1].lat, blueGeoPts[i + 1].lon);
+      }
 
-      const summarizeGeo = (pts, isOuterSafe) => {
-        let totalKm = 0;
-        for (let i = 0; i < pts.length - 1; i++) {
-          totalKm += this.geo.haversineMarsKm(pts[i].lat, pts[i].lon, pts[i + 1].lat, pts[i + 1].lon);
-        }
-        let speedMult = 1.0;
-        if (options.filterAcidRain) speedMult *= (0.70 + 0.30 * hzBundle.acidSpec.speedMult);
-        if (options.filterDustStorm) speedMult *= (0.68 + 0.32 * hzBundle.stormSpec.speedMult);
-        if (isOuterSafe) speedMult *= 0.92;
+      let speedMult = 1.0;
+      if (options.filterAcidRain) speedMult *= (0.70 + 0.30 * hzBundle.acidSpec.speedMult);
+      if (options.filterDustStorm) speedMult *= (0.68 + 0.32 * hzBundle.stormSpec.speedMult);
+      const modeSpeed = options.expeditionMode === "joint-eva-escort" ? this.evaSpeedKmH : this.roverSpeedKmH;
+      const baseSpeed = Number(options.targetSpeedKmH) > 0 ? Number(options.targetSpeedKmH) : modeSpeed;
+      const roughHours = totalKm / Math.max(0.5, baseSpeed * speedMult);
+      const steps = this.geo.buildStepsFromGeoPath(blueGeoPts, allHazards, roughHours, totalKm);
 
-        const effSpeed = this.roverSpeedKmH * speedMult;
-        const totalHours = totalKm / effSpeed;
-        const steps = this.geo.buildStepsFromGeoPath(pts, allHazards, totalHours, totalKm);
-
-        return {
-          points: pts,
-          steps,
-          totalKm: Number(totalKm.toFixed(2)),
-          totalMeters: Math.round(totalKm * 1000),
-          totalHours: Number(totalHours.toFixed(2)),
-          formattedDuration: this.formatHours(totalHours),
-          o2Liters: Math.round(totalHours * this.o2LitersPerHour),
-          waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
-        };
-      };
-
-      const g1 = summarizeGeo(blueGeoPts, false);
-      const g2 = summarizeGeo(paleGeoPts, true);
+      const budgetMetrics = this.budget
+        ? this.budget.computeRouteBudget({
+            totalKm,
+            steps,
+            acidEnabled: Boolean(options.filterAcidRain),
+            stormEnabled: Boolean(options.filterDustStorm),
+            acidSpeedMult: hzBundle.acidSpec.speedMult,
+            stormSpeedMult: hzBundle.stormSpec.speedMult,
+            params: options,
+            formatHoursFn: (h) => this.formatHours(h)
+          })
+        : {
+            totalKm: Number(totalKm.toFixed(2)),
+            totalMeters: Math.round(totalKm * 1000),
+            totalHours: Number(roughHours.toFixed(2)),
+            totalMinutes: Math.max(1, Math.round(roughHours * 60)),
+            formattedDuration: this.formatHours(roughHours),
+            o2Liters: Math.round(roughHours * this.o2LitersPerHour),
+            waterLiters: Number((roughHours * this.waterLitersPerHour).toFixed(1))
+          };
 
       return {
         scope: "global",
@@ -259,17 +239,19 @@
         originName: startPt.name,
         targetName: endPt.name,
         primaryBlue: {
-          ...g1,
+          ...budgetMetrics,
+          points: blueGeoPts,
+          steps,
           colorHex: "#2563eb",
           label: t("blueRouteTitle"),
-          comment: t("globalBlueComment", { dur: g1.formattedDuration, km: Math.round(g1.totalKm) })
+          comment: t("globalBlueComment", { dur: budgetMetrics.formattedDuration, km: Math.round(budgetMetrics.totalKm) })
         },
         secondaryPaleBlue: null
       };
     }
 
     /**
-     * Kuresel 2D/3D harita uzerinde iki inis sahasi/krater arasi Mavi ve Soluk Mavi rotayi hesaplar
+     * Kuresel 2D/3D harita uzerinde iki inis sahasi/krater arasi Mavi rotayi hesaplar
      */
     computeGlobalRoutes(sites, originId, targetId, options = {}) {
       const startSite = sites.find((s) => s.id === originId) || sites[0];
@@ -289,9 +271,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-8: JSDoc cift rota hesaplama servisi (Mavi kisa + Soluk Mavi uzun + step-by-step adimlar + yol yorumlari).
-   - Satir 10-29: constructor; fabrika birimleri (km/m, Saat, Litre) ve hiz sabitlerini tanimlar.
-   - Satir 31-42: formatHours; saat ve dakika/Sol cinsinden ulasim suresini bicimlendirir.
-   - Satir 44-187: computeCraterRoutes ve buildCraterSteps; krater ici EVA duraklari icin adimli Mavi ve Soluk Mavi rotalar uretir.
-   - Satir 189-299: computeRoutesBetweenCoords ve computeGlobalRoutes; herhangi iki {lat, lon} arasi Haversine mesafe, sure, Litre ve steps[] uretir.
+   - Satir 1-8: JSDoc rota hesaplama servisi (Mavi en guvenli kisa yol + step-by-step adimlar + yol yorumlari).
+   - Satir 10-31: constructor; MissionBudgetHelper baglantisi, fabrika birimleri (km/m, Saat/Dakika, Litre) ve hiz sabitleri.
+   - Satir 33-50: formatHours; saat ve dakika/Sol cinsinden ulasim suresini bicimlendirir.
+   - Satir 52-155: computeCraterRoutes ve buildCraterSteps; krater ici EVA duraklari icin adimli birlesik Mavi rota ve butce uretir.
+   - Satir 157-244: computeRoutesBetweenCoords ve computeGlobalRoutes; iki {lat, lon} arasi Haversine mesafe, O2/Enerji/Su varis butcesi ve steps[] uretir.
    ========================================================================== */
