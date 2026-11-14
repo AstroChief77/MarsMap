@@ -34,6 +34,10 @@ AstroChief
 
 -Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli ve eğer işletim sistemi ne ise ona göre ya Linuxa yada Windowsa derlenmeli(test edebilmek için), derleme aracı yaz her seferinde kendin derleme.
 
+-Res isimli klasöre(eğer yok ise oluştur) resimler fotoğraflar yani içerik olan her şey oraya kaydedilicek.
+
+-Eğer bootstrap gibi bir kütüphane kullanılacak ise kütüphaneyi internetten çekmek yasak res içinden kütüphaneler kullanılabilir eğer kütüphane yoksa res klasörüne indirilebilir.
+
 # Tasarım Kuralları
 
 -Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeneği olmalıdır.
