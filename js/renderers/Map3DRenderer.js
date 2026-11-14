@@ -45,6 +45,7 @@
     render(ctx, state) {
       const {
         width, height, rotLat, rotLon, zoom, activeLayerId, dpr,
+        camPitch, camYaw, topoReliefScale, enable3DTerrain,
         isDragging, isInteracting, craters, landingSites, activeCrater,
         hazardBundle, computedRoutes, progressiveLodRender,
         showGraticule, showNomenclature, showRouteComments, highQualityGlobeRay,
@@ -54,18 +55,29 @@
       ctx.clearRect(0, 0, width, height);
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 10.0);
-      const limbVisible = radius < Math.hypot(cx, cy) * 1.15;
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 22.0);
+      const pitch = Math.max(0, Math.min(72, camPitch ?? 28));
+      const yaw = camYaw ?? 0;
+      const reliefScale = enable3DTerrain === false ? 0 : (topoReliefScale ?? 1.0);
+      const topo = ns.marsTopo;
+      const radFactor = (topo && reliefScale > 0) ? topo.getRadialScaleFactor(zoom, pitch, reliefScale) : 0;
+      const centerElevM = (topo && reliefScale > 0) ? topo.getElevationMeters(rotLat, rotLon) : 0;
+      const rCenter = 1.0 + centerElevM * radFactor;
+      const rMaxLimb = 1.0 + 21500 * radFactor;
+      const pitchRad = (pitch * Math.PI) / 180;
+      const sphereCy = cy + radius * rCenter * Math.sin(pitchRad);
+      const limbRadius = radius * rMaxLimb;
+      const limbVisible = limbRadius < Math.hypot(cx, sphereCy) * 1.18;
 
       // 1. Dis Mars atmosferi kehribar limb isimasi (yalnizca kenar gorunurken)
       if (limbVisible) {
-        const atmo = ctx.createRadialGradient(cx, cy, radius * 0.94, cx, cy, radius * 1.12);
+        const atmo = ctx.createRadialGradient(cx, sphereCy, limbRadius * 0.94, cx, sphereCy, limbRadius * 1.12);
         atmo.addColorStop(0.0, "rgba(235, 128, 70, 0.5)");
         atmo.addColorStop(0.45, "rgba(205, 88, 38, 0.2)");
         atmo.addColorStop(1.0, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = atmo;
         ctx.beginPath();
-        ctx.arc(cx, cy, radius * 1.12, 0, Math.PI * 2);
+        ctx.arc(cx, sphereCy, limbRadius * 1.12, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -74,10 +86,10 @@
         return [];
       }
 
-      const sx0 = Math.max(0, Math.floor(cx - radius - 2));
-      const sy0 = Math.max(0, Math.floor(cy - radius - 2));
-      const sx1 = Math.min(width, Math.ceil(cx + radius + 2));
-      const sy1 = Math.min(height, Math.ceil(cy + radius + 2));
+      const sx0 = Math.max(0, Math.floor(cx - limbRadius - 2));
+      const sy0 = Math.max(0, Math.floor(sphereCy - limbRadius - 2));
+      const sx1 = Math.min(width, Math.ceil(cx + limbRadius + 2));
+      const sy1 = Math.min(height, Math.ceil(sphereCy + limbRadius + 2));
       const cropW = sx1 - sx0;
       const cropH = sy1 - sy0;
 
@@ -111,7 +123,7 @@
 
         const ok = this.raycastSphereCrop(
           activeLayerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius,
-          scale, rotLat, rotLon, zoom, false
+          scale, rotLat, rotLon, zoom, false, pitch, yaw, reliefScale
         );
         if (ok) {
           this.cropCtx.putImageData(this.cropImgData, 0, 0);
@@ -126,7 +138,7 @@
 
       if (!renderedRay) {
         this.drawFallbackShadedSphere(
-          ctx, cx, cy, radius, rotLat, rotLon, activeLayerId,
+          ctx, cx, sphereCy, radius, rotLat, rotLon, activeLayerId,
           width, height, targetZ, fastMode
         );
       }
@@ -136,17 +148,21 @@
         ctx.strokeStyle = "rgba(244, 145, 92, 0.72)";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.arc(cx, sphereCy, limbRadius, 0, Math.PI * 2);
         ctx.stroke();
       }
 
       const pxPerDeg = radius / 57.2958;
       const project3D = (lat, lon) => {
-        const p = this.overlays.projectToSphere(lat, lon, rotLat, rotLon, cx, cy, radius);
+        const elevM = (topo && reliefScale > 0) ? topo.getElevationMeters(lat, lon) : 0;
+        const p = this.overlays.projectToSphere(
+          lat, lon, rotLat, rotLon, cx, cy, radius,
+          pitch, yaw, elevM, radFactor, rCenter
+        );
         return { ...p, pxPerDeg };
       };
 
-      if (showGraticule) this.drawGraticule3D(ctx, rotLat, rotLon, cx, cy, radius);
+      if (showGraticule) this.drawGraticule3D(ctx, project3D);
       this.overlays.drawGlobalHazards(ctx, "3d", project3D, hazardBundle, zoom, width, height);
       if (showNomenclature) this.drawNomenclature3D(ctx, project3D);
 

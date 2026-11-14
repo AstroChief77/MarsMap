@@ -8,23 +8,36 @@
   "use strict";
   class OverlayDrawHelper {
     /**
-     * 3D kure uzerine cografik nokta projeksiyonu uygular
+     * 3D kure uzerine cografik nokta projeksiyonu uygular (3D kamera egimi Pitch/Yaw + MOLA yuksekligi destekli)
      */
-    projectToSphere(latDeg, lonDeg, rotLatDeg, rotLonDeg, cx, cy, radius) {
+    projectToSphere(latDeg, lonDeg, rotLatDeg, rotLonDeg, cx, cy, radius, camPitch = 0, camYaw = 0, elevM = 0, radFactor = 0, rCenter = 1.0) {
       const phi = (latDeg * Math.PI) / 180;
       const lambda = (lonDeg * Math.PI) / 180;
       const phi0 = (rotLatDeg * Math.PI) / 180;
       const lam0 = (rotLonDeg * Math.PI) / 180;
 
+      const rPt = 1.0 + (elevM || 0) * (radFactor || 0);
       const cosPhi = Math.cos(phi);
-      const x0 = cosPhi * Math.sin(lambda - lam0);
-      const y0 = Math.sin(phi);
-      const z0 = cosPhi * Math.cos(lambda - lam0);
+      const east = rPt * cosPhi * Math.sin(lambda - lam0);
+      const y0 = rPt * Math.sin(phi);
+      const z0 = rPt * cosPhi * Math.cos(lambda - lam0);
 
-      const y1 = y0 * Math.cos(phi0) - z0 * Math.sin(phi0);
-      const z1 = y0 * Math.sin(phi0) + z0 * Math.cos(phi0);
+      const cosP0 = Math.cos(phi0), sinP0 = Math.sin(phi0);
+      const north = y0 * cosP0 - z0 * sinP0;
+      const up = y0 * sinP0 + z0 * cosP0;
 
-      return { x: cx + x0 * radius, y: cy - y1 * radius, z: z1, visible: z1 > 0.05 };
+      const yawRad = ((camYaw || 0) * Math.PI) / 180;
+      const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const nx = east * cosY - north * sinY;
+      const ry = east * sinY + north * cosY;
+
+      const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const du = up - rCenter;
+      const ny = ry * cosP + du * sinP;
+      const camDepth = (-ry * sinP + du * cosP) / Math.max(0.5, rPt);
+
+      return { x: cx + nx * radius, y: cy - ny * radius, z: camDepth, visible: camDepth > -0.15 && up > -0.35 };
     }
 
     /**

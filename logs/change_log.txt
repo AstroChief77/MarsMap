@@ -238,3 +238,10 @@
 - `js/renderers/Map3DRenderer.js` (Satır 46-724): `raycastSphereCrop` ve `drawFallbackShadedSphere` içine gerçek boyutlu 3D MOLA yüzey yükseltmesi, ufukta dağ silüetleri, piksel bazlı 3D yüzey eğim ışıklandırması (hillshade) ve paralaks eklendi.
 - `js/components/MarsNavigatorController.js` (Satır 34-790): Sağ-tık / Shift+Sol-tık ile 3D kamera eğimi (`0°..70°`) ve pusula dönüşü (`0°..360°`), `WASD / Ok` tuşları ve `Q/E/R/F` ile 3D gezegen gezinme, sağ alt `3D Eğim` ve `⛰ Zirve Gez` butonları, canlı MOLA rakım (`m`) ve eğim (`°`) telemetrisi eklendi.
 - `index.html` (Satır 57-59) ve `css/controls.css` (Satır 439-456): `MarsTopographyService.js` betiği ve 3D HUD buton stilleri eklendi.
+
+[2026-11-14 17:28] 3D Kamera Eğimi (Pitch/Yaw) Sağ Tık Orbit Düzeltmesi (v3.4)
+- Yedek Klasörü: backups/snapshot_20261114_3d_orbit_fix/
+- js/renderers/Map3DRenderer.js: `render()` metoduna `camPitch`, `camYaw`, `topoReliefScale`, `enable3DTerrain` parametreleri bağlandı; `raycastSphereCrop` çağrısına geçirildi; eğimli küre merkezi (`sphereCy`) ve kırpma kutusu güncellendi.
+- js/renderers/OverlayDrawHelper.js: `projectToSphere()` fonksiyonu `camPitch`, `camYaw` ve MOLA yükseklik (`elevM`) dönüşümüyle güncellendi, böylece sağ tıkla küre eğildiğinde pinler, rotalar ve tehlike bölgeleri 3D yüzeyle birlikte döner.
+- js/components/MarsNavigatorController.js: Sağ tık sürükleme sırasında telemetri çubuğundaki `3D Eğim` değeri canlı güncelleniyor.
+- index.html: Önbellek kırıcı `?v=3.4` sürümüne yükseltildi.

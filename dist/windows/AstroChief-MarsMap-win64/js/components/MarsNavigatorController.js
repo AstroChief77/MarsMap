@@ -38,37 +38,17 @@
       this.viewWidth = window.innerWidth || 1280;
       this.viewHeight = window.innerHeight || 720;
 
-      this.landingSites = [];
-      this.hitTargets = [];
-      this.selectedWaypoint = null;
+      this.landingSites = []; this.hitTargets = []; this.selectedWaypoint = null;
       this.hoverCoords = { lat: this.state.rotLat, lon: this.state.rotLon };
-      this.backendRoutes = null;
-      this.backendHazards = null;
-      this.backendLatencyMs = null;
-      this.backendLoading = false;
-      this.backendStatusText = "";
-      this.lastRequestPayload = null;
-      this.pickMode = null;
-      this.cachedBundle = null;
-      this.requestSeq = 0;
+      this.backendRoutes = null; this.backendHazards = null; this.backendLatencyMs = null;
+      this.backendLoading = false; this.backendStatusText = ""; this.lastRequestPayload = null;
+      this.pickMode = null; this.cachedBundle = null; this.requestSeq = 0;
 
-      this.isDragging = false;
-      this.isZooming = false;
-      this.isAnimating = false;
-      this.hasMoved = false;
-      this.dragX = 0;
-      this.dragY = 0;
-      this.velLat = 0;
-      this.velLon = 0;
-      this.animFrame = null;
-      this.renderRafId = null;
-      this.tilesNeedRequest = false;
-      this.zoomSettleTimer = null;
-      this.persistTimer = null;
-      this.routeDebounceTimer = null;
-      this.latencyTimer = null;
-      this.toastTimer = null;
-      this.lastTelemetryText = "";
+      this.isDragging = false; this.isOrbitDragging = false; this.isZooming = false; this.isAnimating = false;
+      this.hasMoved = false; this.dragX = 0; this.dragY = 0; this.velLat = 0; this.velLon = 0;
+      this.animFrame = null; this.renderRafId = null; this.tilesNeedRequest = false;
+      this.zoomSettleTimer = null; this.persistTimer = null; this.routeDebounceTimer = null;
+      this.latencyTimer = null; this.toastTimer = null; this.lastTelemetryText = "";
 
       this.initUiPanels();
     }
@@ -201,7 +181,7 @@
       });
 
       this.state[key] = value;
-      if (key === "viewMode" && value === "3d" && this.state.zoom > 10.0) this.state.zoom = 10.0;
+      if (key === "viewMode" && value === "3d" && this.state.zoom > 22.0) this.state.zoom = 22.0;
       if (key === "showStarfield") this.starfield?.setEnabled(value);
       this.backendRoutes = null;
       this.persistState();
@@ -214,17 +194,12 @@
       if (this.animFrame) cancelAnimationFrame(this.animFrame);
       if (this.renderRafId) cancelAnimationFrame(this.renderRafId);
       clearTimeout(this.zoomSettleTimer);
-      this.animFrame = null;
-      this.renderRafId = null;
-      this.isDragging = false;
-      this.isZooming = false;
-      this.isAnimating = false;
+      this.animFrame = null; this.renderRafId = null;
+      this.isDragging = false; this.isOrbitDragging = false; this.isZooming = false; this.isAnimating = false;
       this.pickMode = null;
       if (this.canvas) this.canvas.style.cursor = "";
-      this.backendRoutes = null;
-      this.backendHazards = null;
-      this.backendStatusText = "";
-      this.lastRequestPayload = null;
+      this.backendRoutes = null; this.backendHazards = null;
+      this.backendStatusText = ""; this.lastRequestPayload = null;
       this.state = this.storage.factoryReset();
       if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
       const wps = this.getActiveWaypoints();
@@ -237,8 +212,7 @@
 
     switchToGlobalRouteScope() {
       this.state.routeScope = "global";
-      this.backendRoutes = null;
-      this.cachedBundle = null;
+      this.backendRoutes = null; this.cachedBundle = null;
       this.persistState();
       this.animateTo(-2.0, 96.0, 1.02);
       this.renderUi();
@@ -300,10 +274,7 @@
 
     refreshAll() {
       this.cachedBundle = null;
-      this.renderUi();
-      this.requestTilesForView();
-      this.drawMap();
-      this.updateTelemetryBar();
+      this.renderUi(); this.requestTilesForView(); this.drawMap(); this.updateTelemetryBar();
     }
 
     renderUi() {
@@ -318,26 +289,24 @@
       this.settingsPanel.render(this.state, craters, this.backendStatusText);
       this.satellitesPanel.render(this.state, this.tileLoader.getLayers());
       this.inspectorPanel.render(
-        this.state, activeCrater, this.landingSites,
-        wps, this.selectedWaypoint, computedRoutes, radZones,
+        this.state, activeCrater, this.landingSites, wps, this.selectedWaypoint, computedRoutes, radZones,
         {
-          activeOrigin: origin,
-          activeDestination: destination,
-          pickMode: this.pickMode,
-          backendLoading: this.backendLoading,
-          backendLatencyMs: this.backendLatencyMs,
-          backendStatusText: this.backendStatusText,
-          lastRequestPayload: reqPayload
+          activeOrigin: origin, activeDestination: destination, pickMode: this.pickMode,
+          backendLoading: this.backendLoading, backendLatencyMs: this.backendLatencyMs,
+          backendStatusText: this.backendStatusText, lastRequestPayload: reqPayload
         }
       );
     }
 
     renderBottomRight() {
       if (!this.bottomRightEl) return;
+      const pitch = Math.round(this.state.camPitch ?? 28);
       this.bottomRightEl.innerHTML = `
         <div class="zoom-stack">
           <button class="zoom-btn" id="btn-zoom-in" title="${this.t("zoomInTitle")}">＋</button>
           <button class="zoom-btn" id="btn-zoom-out" title="${this.t("zoomOutTitle")}">－</button>
+          <button class="zoom-btn zoom-btn-3d" id="btn-3d-tilt" title="3D Kamera Eğimi (Sağ Tık Sürükle veya R/F)">${pitch}°</button>
+          <button class="zoom-btn zoom-btn-peak" id="btn-3d-peak" title="3D Topografya Zirvelerini Gez (Olympus Mons / Valles Marineris / Mount Sharp)">⛰</button>
           <button class="zoom-btn" id="btn-cam-reset" title="${this.t("zoomResetTitle")}">⌂</button>
         </div>
         <div class="telemetry-strip">
@@ -348,9 +317,29 @@
 
       this.bottomRightEl.querySelector("#btn-zoom-in")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 1.3));
       this.bottomRightEl.querySelector("#btn-zoom-out")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 0.77));
+      this.bottomRightEl.querySelector("#btn-3d-tilt")?.addEventListener("click", () => {
+        this.state.viewMode = "3d";
+        this.state.camPitch = (this.state.camPitch ?? 28) < 20 ? 34 : (this.state.camPitch < 50 ? 58 : 0);
+        this.renderBottomRight(); this.scheduleRender(true); this.schedulePersistState();
+      });
+      this.bottomRightEl.querySelector("#btn-3d-peak")?.addEventListener("click", () => {
+        const peaks = [
+          { name: "Olympus Mons (+21,229 m)", lat: 18.65, lon: -133.8, zoom: 2.35, pitch: 54 },
+          { name: "Valles Marineris (-7,000 m)", lat: -13.9, lon: -59.2, zoom: 2.25, pitch: 52 },
+          { name: "Gale / Aeolis Mons (+5,500 m)", lat: -5.08, lon: 137.85, zoom: 3.1, pitch: 56 },
+          { name: "Ascraeus Mons (+18,209 m)", lat: 11.9, lon: -104.5, zoom: 2.4, pitch: 54 },
+          { name: "Hellas Planitia (-7,152 m)", lat: -42.4, lon: 70.5, zoom: 1.85, pitch: 46 }
+        ];
+        this.peakIdx = ((this.peakIdx ?? -1) + 1) % peaks.length;
+        const p = peaks[this.peakIdx];
+        this.state.viewMode = "3d"; this.state.camPitch = p.pitch;
+        this.renderBottomRight(); this.animateTo(p.lat, p.lon, p.zoom);
+        this.showToast(`⛰ 3D Topografya: ${p.name}`);
+      });
       this.bottomRightEl.querySelector("#btn-cam-reset")?.addEventListener("click", () => {
         const c = this.getActiveCrater();
-        this.animateTo(c.coordinates.lat, c.coordinates.lon, 1.05);
+        this.state.camPitch = 28; this.state.camYaw = 0;
+        this.renderBottomRight(); this.animateTo(c.coordinates.lat, c.coordinates.lon, 1.05);
       });
     }
 
@@ -365,7 +354,10 @@
       const el = document.getElementById("telemetry-text");
       if (!el) return;
       const stats = this.tileLoader.getLayerStats(this.state.activeLayerId);
-      const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • ${stats.name} • z=${stats.zoom} (${stats.loaded} ${this.t("tileWord")})`;
+      const topo = ns.marsTopo ? ns.marsTopo.getSurfaceTelemetry(this.hoverCoords.lat, this.hoverCoords.lon) : null;
+      const elevStr = topo ? `${topo.elevM >= 0 ? "+" : ""}${topo.elevM} m (Eğim ${topo.slopeDeg}°)` : "";
+      const pitchStr = this.state.viewMode === "3d" ? ` • 3D Eğim: ${Math.round(this.state.camPitch ?? 28)}°` : "";
+      const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • Rakım: ${elevStr}${pitchStr} • ${stats.name} • z=${stats.zoom}`;
       if (nextText !== this.lastTelemetryText) {
         this.lastTelemetryText = nextText;
         el.innerText = nextText;
@@ -379,7 +371,7 @@
       this.tileLoader.requestVisibleTiles(activeLayerId, {
         rotLat, rotLon, zoom, dpr: this.dpr || 1, viewportW: vw, viewportH: vh,
         mapWidthPx: Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 12.0),
-        sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 10.0),
+        sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 22.0),
         viewMode, progressiveLodRender
       });
     }
@@ -396,6 +388,8 @@
       const payload = {
         width: this.viewWidth, height: this.viewHeight, dpr: this.dpr,
         rotLat: s.rotLat, rotLon: s.rotLon, zoom: s.zoom, activeLayerId: s.activeLayerId,
+        camPitch: s.camPitch ?? 28, camYaw: s.camYaw ?? 0,
+        topoReliefScale: s.topoReliefScale ?? 1.0, enable3DTerrain: s.enable3DTerrain !== false,
         isDragging: this.isDragging, isInteracting: Boolean(this.isDragging || this.isZooming || this.isAnimating),
         craters: this.getLocalizedCraters(), landingSites: this.landingSites, activeCrater,
         hazardBundle, craterRadZones: this.hazardService.getCraterRadiationZones(activeCrater.id),
@@ -414,44 +408,48 @@
 
     bindCanvasEvents() {
       if (!this.canvas) return;
+      this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
       this.canvas.addEventListener("mousedown", (e) => {
         if (this.animFrame) cancelAnimationFrame(this.animFrame);
-        this.animFrame = null;
-        this.isAnimating = false;
-        this.isDragging = true;
-        this.hasMoved = false;
-        this.dragX = e.clientX;
-        this.dragY = e.clientY;
-        this.velLat = 0;
-        this.velLon = 0;
+        this.animFrame = null; this.isAnimating = false; this.isDragging = true;
+        this.isOrbitDragging = (e.button === 2 || e.shiftKey) && this.state.viewMode === "3d";
+        this.hasMoved = false; this.dragX = e.clientX; this.dragY = e.clientY;
+        this.velLat = 0; this.velLon = 0;
       });
 
       this.canvas.addEventListener("mousemove", (e) => {
         this.updateHoverCoords(e);
         if (!this.isDragging) return;
-        const dx = e.clientX - this.dragX;
-        const dy = e.clientY - this.dragY;
+        const dx = e.clientX - this.dragX, dy = e.clientY - this.dragY;
         if (Math.hypot(dx, dy) > 2) this.hasMoved = true;
-        this.dragX = e.clientX;
-        this.dragY = e.clientY;
+        this.dragX = e.clientX; this.dragY = e.clientY;
 
-        const vw = this.viewWidth || 1280;
-        const vh = this.viewHeight || 720;
-        let stepLon;
-        let stepLat;
+        if (this.isOrbitDragging) {
+          this.state.camYaw = ((this.state.camYaw || 0) + dx * 0.35 + 360) % 360;
+          this.state.camPitch = Math.max(0, Math.min(70, (this.state.camPitch ?? 28) - dy * 0.28));
+          const tiltBtn = document.getElementById("btn-3d-tilt");
+          if (tiltBtn) tiltBtn.textContent = `${Math.round(this.state.camPitch)}°`;
+          this.updateTelemetryBar();
+          this.scheduleRender(false); this.schedulePersistState();
+          return;
+        }
+
+        const vw = this.viewWidth || 1280, vh = this.viewHeight || 720;
+        let stepLon, stepLat;
         if (this.state.viewMode === "3d") {
-          const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(this.state.zoom, 0.55), 10.0);
+          const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(this.state.zoom, 0.55), 22.0);
           const degPerPx = 57.29578 / Math.max(80, radius);
-          stepLon = -dx * degPerPx;
-          stepLat = dy * degPerPx;
+          const yawRad = ((this.state.camYaw || 0) * Math.PI) / 180;
+          const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+          stepLon = (-dx * cosY - dy * sinY) * degPerPx;
+          stepLat = (dy * cosY - dx * sinY) * degPerPx;
         } else {
           const mapW = Math.max(vw * 0.86, 620) * Math.min(Math.max(this.state.zoom, 0.65), 12.0);
           stepLon = (-dx / mapW) * 360;
           stepLat = (dy / (mapW * 0.5)) * 180;
         }
-        this.velLon = stepLon * 0.65;
-        this.velLat = stepLat * 0.65;
+        this.velLon = stepLon * 0.65; this.velLat = stepLat * 0.65;
         this.state.rotLon = this.normalizeLon(this.state.rotLon + stepLon);
         this.state.rotLat = Math.max(-84, Math.min(84, this.state.rotLat + stepLat));
         this.scheduleRender(true);
@@ -466,28 +464,21 @@
       this.canvas.addEventListener("click", (e) => {
         if (this.hasMoved) return;
         const rect = this.canvas.getBoundingClientRect();
-        const cx = e.clientX - rect.left;
-        const cy = e.clientY - rect.top;
+        const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
 
         const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
-        if (hit && !this.pickMode) {
-          this.flyToCraterById(hit.crater.id);
-          return;
-        }
+        if (hit && !this.pickMode) { this.flyToCraterById(hit.crater.id); return; }
 
         const geo = this.pixelToGeo(cx, cy);
         if (!geo.insideMap) {
           if (this.pickMode) this.showToast(this.t("toastClickMarsSurface"), true);
           return;
         }
-        this.pickMode = null;
-        this.canvas.style.cursor = "";
+        this.pickMode = null; this.canvas.style.cursor = "";
         this.state.customDestination = this.routePlanner.geo.makeEndpointPoint("picked-dest", this.t("pickedDestName"), geo.lat, geo.lon);
-        this.state.useCustomCoordinates = true;
-        this.state.routeScope = "global";
+        this.state.useCustomCoordinates = true; this.state.routeScope = "global";
         this.backendRoutes = null;
-        this.persistState();
-        this.refreshAll();
+        this.persistState(); this.refreshAll();
         this.showToast(this.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
         this.scheduleBackendRouteFetch(20);
       });
@@ -496,8 +487,36 @@
     bindGlobalEvents() {
       window.addEventListener("mouseup", () => {
         if (!this.isDragging) return;
-        this.isDragging = false;
-        this.startInertia();
+        const wasOrbit = this.isOrbitDragging;
+        this.isDragging = false; this.isOrbitDragging = false;
+        if (!wasOrbit) this.startInertia();
+      });
+
+      window.addEventListener("keydown", (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+        if (tag === "input" || tag === "select" || tag === "textarea") return;
+        const k = e.key.toLowerCase();
+        const step = Math.max(0.15, 4.5 / Math.max(1, this.state.zoom));
+        const yawRad = ((this.state.camYaw || 0) * Math.PI) / 180;
+        const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+        if (k === "w" || e.key === "ArrowUp") {
+          this.state.rotLat = Math.max(-84, Math.min(84, this.state.rotLat + step * cosY));
+          this.state.rotLon = this.normalizeLon(this.state.rotLon + step * sinY);
+        } else if (k === "s" || e.key === "ArrowDown") {
+          this.state.rotLat = Math.max(-84, Math.min(84, this.state.rotLat - step * cosY));
+          this.state.rotLon = this.normalizeLon(this.state.rotLon - step * sinY);
+        } else if (k === "a" || e.key === "ArrowLeft") {
+          this.state.rotLon = this.normalizeLon(this.state.rotLon - step * cosY);
+          this.state.rotLat = Math.max(-84, Math.min(84, this.state.rotLat + step * sinY));
+        } else if (k === "d" || e.key === "ArrowRight") {
+          this.state.rotLon = this.normalizeLon(this.state.rotLon + step * cosY);
+          this.state.rotLat = Math.max(-84, Math.min(84, this.state.rotLat - step * sinY));
+        } else if (k === "q") { this.state.camYaw = ((this.state.camYaw || 0) - 8 + 360) % 360; }
+        else if (k === "e") { this.state.camYaw = ((this.state.camYaw || 0) + 8) % 360; }
+        else if (k === "r") { this.state.camPitch = Math.min(70, (this.state.camPitch ?? 28) + 5); this.renderBottomRight(); }
+        else if (k === "f") { this.state.camPitch = Math.max(0, (this.state.camPitch ?? 28) - 5); this.renderBottomRight(); }
+        else return;
+        this.scheduleRender(true); this.schedulePersistState();
       });
 
       document.addEventListener("click", (e) => {
@@ -505,27 +524,21 @@
         if (!e.target.closest("#bottom-left-dock")) this.satellitesPanel.close();
       });
 
-      window.addEventListener("resize", () => {
-        this.resizeCanvas();
-        this.scheduleRender(true);
-      });
+      window.addEventListener("resize", () => { this.resizeCanvas(); this.scheduleRender(true); });
     }
 
     startInertia() {
       if (this.animFrame) cancelAnimationFrame(this.animFrame);
       const step = () => {
         if (Math.abs(this.velLon) < 0.03 && Math.abs(this.velLat) < 0.03) {
-          this.isAnimating = false;
-          this.animFrame = null;
-          this.scheduleRender(true);
-          this.schedulePersistState();
+          this.isAnimating = false; this.animFrame = null;
+          this.scheduleRender(true); this.schedulePersistState();
           return;
         }
         this.isAnimating = true;
         this.state.rotLon = this.normalizeLon(this.state.rotLon + this.velLon);
         this.state.rotLat = Math.max(-84, Math.min(84, this.state.rotLat + this.velLat));
-        this.velLon *= 0.88;
-        this.velLat *= 0.88;
+        this.velLon *= 0.88; this.velLat *= 0.88;
         this.scheduleRender(true);
         this.animFrame = requestAnimationFrame(step);
       };
@@ -536,7 +549,7 @@
       if (this.animFrame) cancelAnimationFrame(this.animFrame);
       clearTimeout(this.zoomSettleTimer);
       this.isZooming = false;
-      const maxZ = this.state.viewMode === "3d" ? 10.0 : 12.0;
+      const maxZ = this.state.viewMode === "3d" ? 22.0 : 12.0;
       const clampedZoom = Math.min(Math.max(targetZoom, 0.65), maxZ);
       let dLon = targetLon - this.state.rotLon;
       if (dLon > 180) dLon -= 360;
@@ -569,7 +582,7 @@
     }
 
     applyZoom(nextZoom) {
-      const maxZ = this.state.viewMode === "3d" ? 10.0 : 12.0;
+      const maxZ = this.state.viewMode === "3d" ? 22.0 : 12.0;
       this.state.zoom = Math.min(Math.max(nextZoom, 0.65), maxZ);
       this.isZooming = true;
       clearTimeout(this.zoomSettleTimer);
@@ -599,7 +612,12 @@
     pixelToGeo(px, py) {
       const geo = this.routePlanner.geo;
       if (this.state.viewMode === "3d") {
-        return geo.screenToMarsCoords3D(px, py, this.viewWidth, this.viewHeight, this.state.rotLat, this.state.rotLon, this.state.zoom);
+        const relief = this.state.enable3DTerrain === false ? 0 : (this.state.topoReliefScale ?? 1.0);
+        return geo.screenToMarsCoords3D(
+          px, py, this.viewWidth, this.viewHeight,
+          this.state.rotLat, this.state.rotLon, this.state.zoom,
+          this.state.camPitch ?? 28, this.state.camYaw ?? 0, relief
+        );
       }
       return geo.screenToMarsCoords2D(px, py, this.viewWidth, this.viewHeight, this.state.rotLat, this.state.rotLon, this.state.zoom);
     }
