@@ -272,6 +272,147 @@
           : (state.customDestination || this.makeEndpointPoint("dest", destPrefix, 18.44, 77.45))
       };
     }
+
+    /** Fare tekerlegi deltaY degerini tarayici moduna (px/line/page) gore normalize edip yeni zoom hesaplar */
+    computeWheelTargetZoom(currentZoom, deltaY, deltaMode = 0, viewMode = "3d") {
+      const unitScale = deltaMode === 1 ? 32 : (deltaMode === 2 ? 240 : 1);
+      const clampedDelta = Math.max(-160, Math.min(160, (Number(deltaY) || 0) * unitScale));
+      const maxZ = viewMode === "3d" ? 80.0 : 32.0;
+      return Math.min(maxZ, Math.max(0.65, currentZoom * Math.pow(1.002, -clampedDelta)));
+    }
+
+    /** Ekran surukleme (dx, dy) deltasini 2D/3D (pitch/yaw uyumlu) Mars (stepLat, stepLon) acisina donusturur */
+    computePanStep(dx, dy, vw, vh, state) {
+      const zoom = state?.zoom || 1;
+      if (state?.viewMode === "3d") {
+        const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0);
+        const degPerPx = 57.29578 / Math.max(80, radius);
+        const pitchRad = (Math.max(0, Math.min(72, state.camPitch ?? 28)) * Math.PI) / 180;
+        const cosP = Math.max(0.38, Math.cos(pitchRad));
+        const yawRad = ((state.camYaw || 0) * Math.PI) / 180;
+        const cosY = Math.cos(yawRad);
+        const sinY = Math.sin(yawRad);
+        const dx1 = -dx;
+        const dy1 = dy / cosP;
+        const dEast = dx1 * cosY + dy1 * sinY;
+        const dNorth = -dx1 * sinY + dy1 * cosY;
+        const cosLat = Math.max(0.35, Math.cos(((state.rotLat || 0) * Math.PI) / 180));
+        return { stepLon: (dEast / cosLat) * degPerPx, stepLat: dNorth * degPerPx };
+      }
+      const mapW = Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 32.0);
+      return { stepLon: (-dx / mapW) * 360, stepLat: (dy / (mapW * 0.5)) * 180 };
+    }
+
+    /** Verilen ekran pikselini (px, py) zoom degisiminde Mars yuzeyinde sabit tutan (rotLat, rotLon, zoom) hesaplar */
+    computeZoomToPoint(opts) {
+      const {
+        px, py, width, height, viewMode = "3d",
+        rotLat = 0, rotLon = 0, zoom = 1, nextZoom = 1,
+        camPitch = 0, camYaw = 0, reliefScale = 1
+      } = opts || {};
+      const maxZ = viewMode === "3d" ? 80.0 : 32.0;
+      const targetZoom = Math.min(maxZ, Math.max(0.65, nextZoom));
+      if (!Number.isFinite(px) || !Number.isFinite(py) || !(width > 0) || !(height > 0)) {
+        return { rotLat, rotLon, zoom: targetZoom };
+      }
+      if (viewMode !== "3d") {
+        return this._computeZoomToPoint2D(px, py, width, height, rotLat, rotLon, zoom, targetZoom);
+      }
+      return this._computeZoomToPoint3D(px, py, width, height, rotLat, rotLon, zoom, targetZoom, camPitch, camYaw, reliefScale);
+    }
+
+    /** 2D Equirectangular haritada imlec altindaki cografi noktayi sabit tutarak zoom kamera merkezini cozer */
+    _computeZoomToPoint2D(px, py, width, height, rotLat, rotLon, zoom, targetZoom) {
+      const baseWidth = Math.max(width * 0.86, 620);
+      const mapW1 = baseWidth * Math.min(Math.max(zoom, 0.65), 32.0);
+      const mapH1 = mapW1 * 0.5;
+      const rawOy1 = height / 2 - ((90 - rotLat) / 180) * mapH1;
+      const oy1 = mapH1 <= height ? (height - mapH1) * 0.5 : Math.max(height - mapH1, Math.min(0, rawOy1));
+      const targetLon = this.wrapLon(rotLon + ((px - width / 2) / mapW1) * 360);
+      const targetLat = Math.max(-84, Math.min(84, 90 - ((py - oy1) / mapH1) * 180));
+
+      const mapW2 = baseWidth * targetZoom;
+      const mapH2 = mapW2 * 0.5;
+      const nextLon = this.wrapLon(targetLon - ((px - width / 2) / mapW2) * 360);
+      const nextLat = Math.max(-82, Math.min(82, targetLat + ((py - height / 2) / mapH2) * 180));
+      return { rotLat: nextLat, rotLon: nextLon, zoom: targetZoom };
+    }
+
+    /** 3D kabartmali kurede (pitch/yaw/pivotZ/MOLA dahil) imlec altindaki noktayi sabit tutan kamera merkezini cozer */
+    _computeZoomToPoint3D(px, py, width, height, rotLat, rotLon, zoom, targetZoom, camPitch, camYaw, reliefScale) {
+      const z1 = Math.min(Math.max(zoom, 0.55), 80.0);
+      const hit = this.screenToMarsCoords3D(px, py, width, height, rotLat, rotLon, z1, camPitch, camYaw, reliefScale);
+      if (!hit || !hit.insideMap) {
+        return { rotLat, rotLon, zoom: targetZoom };
+      }
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius2 = Math.min(width, height) * 0.41 * targetZoom;
+      const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
+      const yawRad = ((camYaw || 0) * Math.PI) / 180;
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const pivotZ2 = Math.max(0, Math.min(1, (targetZoom - 1.1) / 1.1));
+      const topo = ns.marsTopo;
+      const elevM = (topo && reliefScale > 0) ? topo.getElevationMeters(hit.lat, hit.lon) : 0;
+      const radFactor2 = (topo && reliefScale > 0) ? topo.getRadialScaleFactor(targetZoom, camPitch, reliefScale) : 0;
+      const rScale2 = 1.0 + elevM * radFactor2;
+
+      let sx = (px - cx) / radius2;
+      let sy = (cy - py) / radius2;
+      const sySphere = sy + pivotZ2 * sinP;
+      const distSphere = Math.hypot(sx, sySphere);
+      const maxSphereR = rScale2 * 0.996;
+      if (distSphere > maxSphereR) {
+        const k = maxSphereR / distSphere;
+        sx *= k;
+        sy = sySphere * k - pivotZ2 * sinP;
+      }
+
+      const B = pivotZ2 * cosP;
+      const C = sx * sx + sy * sy + pivotZ2 * pivotZ2 + 2 * pivotZ2 * sy * sinP - rScale2 * rScale2;
+      const disc = B * B - C;
+      if (disc < 0) return { rotLat, rotLon, zoom: targetZoom };
+
+      const zRot = -B + Math.sqrt(disc);
+      const py3 = sy * cosP - zRot * sinP;
+      const pz3 = pivotZ2 + sy * sinP + zRot * cosP;
+      const x1 = sx / rScale2;
+      const y1 = py3 / rScale2;
+      const z1U = pz3 / rScale2;
+
+      const eastStar = x1 * cosY + y1 * sinY;
+      const northStar = -x1 * sinY + y1 * cosY;
+      const upStar = z1U;
+
+      const phi = (hit.lat * Math.PI) / 180;
+      const y0 = Math.sin(phi);
+      const rNuSq = northStar * northStar + upStar * upStar;
+      const z0Sq = rNuSq - y0 * y0;
+      if (z0Sq <= 1e-8) {
+        const signY = y0 >= 0 ? 1 : -1;
+        const nextLat = Math.max(-84, Math.min(84, (Math.atan2(upStar * signY, northStar * signY) * 180) / Math.PI));
+        const dLam = Math.atan2(eastStar, 0);
+        return { rotLat: nextLat, rotLon: this.wrapLon(hit.lon - (dLam * 180) / Math.PI), zoom: targetZoom };
+      }
+
+      const denom = y0 * y0 + z0Sq;
+      const z0Abs = Math.sqrt(z0Sq);
+      let best = null;
+      for (const z0Cand of [z0Abs, -z0Abs]) {
+        const phi0Rad = Math.atan2((upStar * y0 - northStar * z0Cand) / denom, (northStar * y0 + upStar * z0Cand) / denom);
+        const latCand = (phi0Rad * 180) / Math.PI;
+        if (Math.abs(latCand) > 90) continue;
+        const dLam = Math.atan2(eastStar, z0Cand);
+        const lonCand = this.wrapLon(hit.lon - (dLam * 180) / Math.PI);
+        const err = Math.abs(latCand - rotLat) + Math.abs(this.shortestDeltaLon(rotLon, lonCand));
+        if (!best || err < best.err) {
+          best = { lat: Math.max(-84, Math.min(84, latCand)), lon: lonCand, err };
+        }
+      }
+      return best ? { rotLat: best.lat, rotLon: best.lon, zoom: targetZoom } : { rotLat, rotLon, zoom: targetZoom };
+    }
   }
 
   ns.RouteGeometryHelper = RouteGeometryHelper;
@@ -283,7 +424,7 @@
    - Satir 1-5: JSDoc kuresel rota geometrisi, ters projeksiyon ve adim uretici matematik yardimcisi.
    - Satir 7-45: haversineMarsKm, shortestDeltaLon, wrapLon kuresel trigonometri ve boylam normalize metodlari.
    - Satir 47-105: buildSafeGlobalPath; Asit/Firtina/Foton dairelerinden itici vektorlerle kacinan Mavi/Soluk Mavi rota noktalari uretir.
-   - Satir 107-146: screenToMarsCoords2D & screenToMarsCoords3D; ekran tiklamasini Mars (lat, lon) koordinatina cevirir.
-   - Satir 148-221: estimateElevationM ve buildStepsFromGeoPath; yukseklik, egim ve tehlike uyarili step-by-step adim listesi uretir.
-   - Satir 223-267: makeEndpointPoint ve resolveActiveEndpoints; krater/kuresel Konum (A) -> Varis (B) uc noktalarini uretir.
+   - Satir 107-174: screenToMarsCoords2D & screenToMarsCoords3D; ekran tiklamasini Mars (lat, lon) koordinatina cevirir.
+   - Satir 176-256: estimateElevationM, getCardinalDirectionTr, buildStepsFromGeoPath ve makeEndpointPoint; adim listesi ve uc nokta uretir.
+   - Satir 258-395: resolveActiveEndpoints, computeWheelTargetZoom, computePanStep ve computeZoomToPoint (_2D/_3D); 2D/3D surukleme ve imlec odakli zoom matematigi.
    ========================================================================== */

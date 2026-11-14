@@ -584,16 +584,29 @@
           this.state.camPitch = Math.max(0, Math.min(68, this.state.camPitch - dy * 0.25));
           this.state.camYaw = (this.state.camYaw + dx * 0.3 + 360) % 360;
         } else {
-          const factor = 140 / Math.max(120, Math.min(this.viewW, this.viewH) * 0.41 * this.state.zoom);
-          this.state.rotLon = this.simEngine.geo.wrapLon(this.state.rotLon - dx * factor);
-          this.state.rotLat = Math.max(-75, Math.min(75, this.state.rotLat + dy * factor));
+          const { stepLon, stepLat } = this.routePlanner.geo.computePanStep(dx, dy, this.viewW, this.viewH, this.state);
+          this.state.rotLon = this.simEngine.geo.wrapLon(this.state.rotLon + stepLon);
+          this.state.rotLat = Math.max(-78, Math.min(78, this.state.rotLat + stepLat));
         }
         this.scheduleMapRender(false);
       });
       this.canvas.addEventListener("wheel", (e) => {
         e.preventDefault();
-        const maxZ = this.state.viewMode === "3d" ? 80 : 32;
-        this.state.zoom = Math.min(maxZ, Math.max(0.65, this.state.zoom * Math.pow(1.002, -Math.max(-140, Math.min(140, e.deltaY)))));
+        const geo = this.routePlanner.geo;
+        const rect = this.canvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        const nextZoom = geo.computeWheelTargetZoom(this.state.zoom, e.deltaY, e.deltaMode, this.state.viewMode);
+        const relief = this.state.enable3DTerrain === false ? 0 : (this.state.topoReliefScale ?? 1.0);
+        const nextCam = geo.computeZoomToPoint({
+          px, py, width: this.viewW, height: this.viewH,
+          viewMode: this.state.viewMode, rotLat: this.state.rotLat, rotLon: this.state.rotLon,
+          zoom: this.state.zoom, nextZoom, camPitch: this.state.camPitch, camYaw: this.state.camYaw,
+          reliefScale: relief
+        });
+        this.state.rotLat = nextCam.rotLat;
+        this.state.rotLon = nextCam.rotLon;
+        this.state.zoom = nextCam.zoom;
         this.scheduleMapRender(true);
       }, { passive: false });
       this.canvas.addEventListener("click", (e) => {
@@ -644,5 +657,5 @@
    - Satir 162-215: getHazardBundle ve recomputeRouteAndTimeline; Rust WASM A* rota ile zaman serisi simulasyonunu hesaplar.
    - Satir 217-295: startLoop, stopLoop, drawMap ve requestTiles; canli Rover/EVA ilerlemesi ile 2D/3D haritayi cizer.
    - Satir 297-380: renderTelemetryAndChart, renderEventLog ve syncInputsFromState; O2/Su/Batarya/Radyasyon gostergelerini ve grafigi gunceller.
-   - Satir 382-511: bindControls, startLatencyMonitor ve bindCanvasEvents; kullanici girdi kontrollerini, 5 sn backend pingini ve harita etkilesimini baglar.
+   - Satir 382-645: bindControls, startLatencyMonitor ve bindCanvasEvents; kontroller, 5 sn ping, surukleme (computePanStep) ve imlece odakli tekerlek zoom.
    ========================================================================== */

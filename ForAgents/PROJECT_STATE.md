@@ -98,3 +98,6 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - `index.html` içindeki mojibake karakterler temizlendi, başlık `v4.3` olarak güncellendi, yeni yardımcı betikler `index.html` ve `demo/index.html` içine bağlandı ve `js/wasm/*.d.ts` dosya sonu açıklamaları tamamlandı.
 - **Git Deposu & Derleme Hijyeni (`.gitignore`, `dist/`, `backups/`)**:
   - Takılı kalmış `.git/rebase-merge` durumu `git rebase --quit` ile temizlendi; `.gitignore` eklendi ve `dist/` ile `backups/` yerel diskteki kopyalar korunarak Git indeksinden (`git rm -r --cached`) çıkarıldı.
+- **İmleç Odaklı (Cursor-Anchored) 2D/3D Zoom & `marsmap.wiki` Canlı Düzeltmesi**:
+  - `RouteGeometryHelper.js` içine `computeWheelTargetZoom`, `computePanStep` ve `computeZoomToPoint` (`_computeZoomToPoint2D` / `_computeZoomToPoint3D` — pitch, yaw, pivotZ, MOLA kabartma ters çözümü) eklendi; hem ana harita (`MarsMapInteractionHelper.js`) hem `/demo` (`DemoStudioController.js`) fare tekerleğinde imlecin gösterdiği Mars koordinatına yakınlaştırır (`?v=4.3.1` cache-bust).
+  - `marsmap.wiki` VPS (`/var/www/marsmap.wiki` + Nginx `/etc/nginx/sites-available/marsmap.wiki`) v4.3.x dosyalarıyla senkronlandı ve `//demo` çift taksim yolları `301 -> /demo/` olacak şekilde düzeltildi.
