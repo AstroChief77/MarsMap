@@ -75,28 +75,9 @@
 
         const vw = c.viewWidth || 1280;
         const vh = c.viewHeight || 720;
-        let stepLon;
-        let stepLat;
-        if (c.state.viewMode === "3d") {
-          const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(c.state.zoom, 0.55), 80.0);
-          const degPerPx = 57.29578 / Math.max(80, radius);
-          const pitchRad = (Math.max(0, Math.min(72, c.state.camPitch ?? 28)) * Math.PI) / 180;
-          const cosP = Math.max(0.38, Math.cos(pitchRad));
-          const yawRad = ((c.state.camYaw || 0) * Math.PI) / 180;
-          const cosY = Math.cos(yawRad);
-          const sinY = Math.sin(yawRad);
-          const dx1 = -dx;
-          const dy1 = dy / cosP;
-          const dEast = dx1 * cosY + dy1 * sinY;
-          const dNorth = -dx1 * sinY + dy1 * cosY;
-          const cosLat = Math.max(0.35, Math.cos((c.state.rotLat * Math.PI) / 180));
-          stepLon = (dEast / cosLat) * degPerPx;
-          stepLat = dNorth * degPerPx;
-        } else {
-          const mapW = Math.max(vw * 0.86, 620) * Math.min(Math.max(c.state.zoom, 0.65), 32.0);
-          stepLon = (-dx / mapW) * 360;
-          stepLat = (dy / (mapW * 0.5)) * 180;
-        }
+        const { stepLon, stepLat } = c.routePlanner?.geo
+          ? c.routePlanner.geo.computePanStep(dx, dy, vw, vh, c.state)
+          : { stepLon: 0, stepLat: 0 };
         c.velLon = stepLon * 0.42;
         c.velLat = stepLat * 0.42;
         c.state.rotLon = c.normalizeLon(c.state.rotLon + stepLon);
@@ -108,8 +89,16 @@
 
       c.canvas.addEventListener("wheel", (e) => {
         e.preventDefault();
-        const clampedDelta = Math.max(-160, Math.min(160, e.deltaY));
-        this.applyZoom(c.state.zoom * Math.pow(1.002, -clampedDelta));
+        if (c.animFrame) { cancelAnimationFrame(c.animFrame); c.animFrame = null; c.isAnimating = false; }
+        const geo = c.routePlanner?.geo;
+        const rect = c.canvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        const nextZoom = geo
+          ? geo.computeWheelTargetZoom(c.state.zoom, e.deltaY, e.deltaMode, c.state.viewMode)
+          : c.state.zoom * Math.pow(1.002, -Math.max(-160, Math.min(160, e.deltaY)));
+        this.applyZoom(nextZoom, px, py);
+        c.updateHoverCoords(e);
       }, { passive: false });
 
       c.canvas.addEventListener("click", (e) => {
@@ -241,10 +230,32 @@
       c.animFrame = requestAnimationFrame(tick);
     }
 
-    applyZoom(nextZoom) {
+    applyZoom(nextZoom, anchorPx = null, anchorPy = null) {
       const c = this.ctrl;
-      const maxZ = c.state.viewMode === "3d" ? 80.0 : 32.0;
-      c.state.zoom = Math.min(Math.max(nextZoom, 0.65), maxZ);
+      const geo = c.routePlanner?.geo;
+      const relief = c.state.enable3DTerrain === false ? 0 : (c.state.topoReliefScale ?? 1.0);
+      if (geo && Number.isFinite(anchorPx) && Number.isFinite(anchorPy)) {
+        const nextCam = geo.computeZoomToPoint({
+          px: anchorPx,
+          py: anchorPy,
+          width: c.viewWidth || c.canvas?.clientWidth || window.innerWidth,
+          height: c.viewHeight || c.canvas?.clientHeight || window.innerHeight,
+          viewMode: c.state.viewMode,
+          rotLat: c.state.rotLat,
+          rotLon: c.state.rotLon,
+          zoom: c.state.zoom,
+          nextZoom,
+          camPitch: c.state.camPitch ?? 28,
+          camYaw: c.state.camYaw ?? 0,
+          reliefScale: relief
+        });
+        c.state.rotLat = nextCam.rotLat;
+        c.state.rotLon = nextCam.rotLon;
+        c.state.zoom = nextCam.zoom;
+      } else {
+        const maxZ = c.state.viewMode === "3d" ? 80.0 : 32.0;
+        c.state.zoom = Math.min(Math.max(nextZoom, 0.65), maxZ);
+      }
       c.isZooming = true;
       clearTimeout(c.zoomSettleTimer);
       c.zoomSettleTimer = setTimeout(() => {
@@ -265,7 +276,7 @@
    --------------------------------------------------------------------------
    - Satir 1-17: JSDoc, IIFE modul tanimi ve MarsMapInteractionHelper yapici metodu.
    - Satir 19-36: bindAll ve cancelAll; tum olay dinleyicilerini kurar ve aktif hareket/zamanlayicilari iptal eder.
-   - Satir 38-141: bindCanvasEvents; 2D/3D surukleme, sag-tik/Shift 3D Pitch-Yaw orbit, tekerlek zoom ve hedef pick tiklamalari.
-   - Satir 143-183: bindGlobalEvents; mouseup atalet baslatma, WASD/ok/R/F/C klavye gezinme ve dis tiklama kapama.
-   - Satir 185-258: startInertia, animateTo ve applyZoom; yumusak kubik kamera gecisleri ve 3D/2D yakinlastirma kontrolu.
+   - Satir 38-130: bindCanvasEvents; 2D/3D surukleme (computePanStep), orbit, imlec odakli tekerlek zoom ve pick tiklamalari.
+   - Satir 132-172: bindGlobalEvents; mouseup atalet baslatma, WASD/ok/R/F/C klavye gezinme ve dis tiklama kapama.
+   - Satir 174-269: startInertia, animateTo ve applyZoom; yumusak kubik kamera gecisleri ve imlece odakli yakinlastirma.
    ========================================================================== */

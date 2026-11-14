@@ -379,3 +379,14 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 - data/tiles/manifest.json (Satir 1-478): Depoda gercekte izlenen 465 karo dosyasiyla (120 + 120 + 105 + 120) 1:1 senkronize edilerek GitHub Actions validate-web karo eksikligi engeli kaldirildi.
 - js/wasm/backend.js (Satir 207), js/wasm/backend.d.ts (Satir 1-48), js/wasm/backend_bg.wasm.d.ts (Satir 1-14) & logs/change_log.txt: TypeScript .d.ts dosyalarina DOSYA SATIR VE ISLEV ACIKLAMALARI sonu eklendi; backend.js ve change_log.txt icindeki kontrol karakteri bozulmalari (find_rover_path, begin_oxy, avaible_oxy, beginOxy) duzeltildi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T00:28:30+03:00] fix(zoom,deploy): Imlece Odakli (Cursor-Anchored) 2D/3D Zoom & marsmap.wiki //demo Yayini:
+- Yedek Klasoru: backups/snapshot_20261115_cursor_zoom/
+- js/services/RouteGeometryHelper.js (Satir 276-420):
+  * Tarayici deltaMode normalize eden computeWheelTargetZoom, 2D/3D surukleme adimi paylasan computePanStep ve 2D/3D (pitch, yaw, pivotZ, MOLA kabartma) imlec odakli computeZoomToPoint (_computeZoomToPoint2D / _computeZoomToPoint3D) eklendi.
+- js/components/MarsMapInteractionHelper.js (Satir 76-112, 233-269) & js/components/DemoStudioController.js (Satir 583-615):
+  * Fare tekerlegi (wheel) olaylarinda canvas ici imlec (px, py) konumuna odaklanan zoom baglandi; ana harita ve /demo ayni paylasilan geometri mantigini kullanir hale getirildi.
+- index.html (Satir 65, 81) & demo/index.html (Satir 182, 194):
+  * Guncellenen RouteGeometryHelper.js, MarsMapInteractionHelper.js ve DemoStudioController.js betikleri ?v=4.3.1 ile onbellek kiriciya alindi.
+- VPS (marsmap.wiki / 20.102.97.92): /var/www/marsmap.wiki tam web senkronu ve Nginx //demo -> /demo/ 301 normalizasyonu uygulandi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
