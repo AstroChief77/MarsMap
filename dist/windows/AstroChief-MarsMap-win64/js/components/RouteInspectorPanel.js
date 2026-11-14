@@ -19,7 +19,6 @@
       const dirAttr = (i18n && i18n.isRtl()) ? 'dir="rtl"' : 'dir="ltr"';
 
       const pri = computedRoutes?.primaryBlue || null;
-      const sec = computedRoutes?.secondaryPaleBlue || null;
       const activeOrigin = uiMeta.activeOrigin || state.customOrigin || { name: t("originWord"), lat: -4.59, lon: 137.44 };
       const activeDest = uiMeta.activeDestination || state.customDestination || { name: "Jezero", lat: 18.44, lon: 77.45 };
       const pickingDest = uiMeta.pickMode === "destination";
@@ -42,9 +41,7 @@
         `).join("");
 
       const routeBadge = pri ? `${pri.formattedDuration} · ${pri.totalKm.toFixed(0)} km` : t("routeReady");
-      const stepTab = state.activeStepRouteTab === "secondary" ? "secondary" : "primary";
-      const activeStepRoute = stepTab === "secondary" ? (sec || pri) : pri;
-      const stepRowsHtml = ((activeStepRoute && activeStepRoute.steps) || []).map((s) => `
+      const stepRowsHtml = ((pri && pri.steps) || []).map((s) => `
         <div class="step-row" data-step-lat="${s.lat}" data-step-lon="${s.lon}" title="${t("stepFocusTitle")}">
           <div class="step-row-top">
             <span>#${s.step} · ${s.instruction}</span>
@@ -123,30 +120,9 @@
               <div class="route-comment-line">${pri.comment}</div>
             </div>
 
-            ${sec ? `
-              <div class="route-card secondary">
-                <div class="route-card-top">
-                  <span style="color:#1d4ed8;">${t("paleRouteTitle")}</span>
-                  <span class="route-duration-pill">${sec.formattedDuration}</span>
-                </div>
-                <div class="route-metrics-line">${sec.totalKm.toFixed(1)} km · ${sec.o2Liters} L O₂ · ${sec.waterLiters} L ${t("waterUnit")}</div>
-                <div class="route-comment-line">${sec.comment}</div>
-              </div>
-            ` : ""}
-
             ${stepRowsHtml ? `
               <div class="step-panel">
-                <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">STEP-BY-STEP</div>
-                ${sec ? `
-                  <div class="step-tabs">
-                    <button type="button" class="step-tab-btn ${stepTab === "primary" ? "active" : ""}" data-step-tab="primary">
-                      ${t("stepTabPrimary", { count: (pri && pri.steps) ? pri.steps.length : 0 })}
-                    </button>
-                    <button type="button" class="step-tab-btn ${stepTab === "secondary" ? "active" : ""}" data-step-tab="secondary">
-                      ${t("stepTabSecondary", { count: (sec && sec.steps) ? sec.steps.length : 0 })}
-                    </button>
-                  </div>
-                ` : ""}
+                <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">STEP-BY-STEP (${(pri && pri.steps) ? pri.steps.length : 0})</div>
                 <div class="step-list">${stepRowsHtml}</div>
               </div>
             ` : ""}

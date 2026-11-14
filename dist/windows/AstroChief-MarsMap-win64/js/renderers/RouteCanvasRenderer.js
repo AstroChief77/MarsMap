@@ -35,33 +35,20 @@
     }
 
     /**
-     * Kuresel 2D veya 3D projeksiyonda cift mavi rota cizer
+     * Kuresel 2D veya 3D projeksiyonda tekil Mavi rotayi cizer (Alternatif yol kaldirildi)
      */
     drawGlobalDualRoutes(ctx, projFn, routes, showComments, viewW, viewH, maxJumpPx = 240) {
-      if (!routes || !routes.primaryBlue || !routes.secondaryPaleBlue) return;
-      const sec = routes.secondaryPaleBlue;
+      if (!routes || !routes.primaryBlue) return;
       const pri = routes.primaryBlue;
 
-      // 1. SOLUK MAVI YOL: Yine guvenli ama daha uzun alternatif yol
-      const secPts = this.strokeGeoPath(ctx, projFn, sec.points, "#93c5fd", 3.0, [7, 5], maxJumpPx);
-      // 2. MAVI YOL: En guvenli ve en kisa rota
       const priPts = this.strokeGeoPath(ctx, projFn, pri.points, "#2563eb", 4.5, [], maxJumpPx);
 
-      if (showComments) {
-        if (secPts.length > 0) {
-          const sAnchor = secPts[Math.floor(secPts.length * 0.54)];
-          const sBoxX = sAnchor.x;
-          const sBoxY = sAnchor.y + 30;
-          this.drawLeaderLine(ctx, sAnchor.x, sAnchor.y, sBoxX, sBoxY, "#93c5fd");
-          this.drawRouteCommentBox(ctx, sBoxX, sBoxY, sec.comment, "#93c5fd", viewW, viewH);
-        }
-        if (priPts.length > 0) {
-          const pAnchor = priPts[Math.floor(priPts.length * 0.25)];
-          const pBoxX = Math.min(viewW - 430, pAnchor.x + 35);
-          const pBoxY = pAnchor.y - 84;
-          this.drawLeaderLine(ctx, pAnchor.x, pAnchor.y, pBoxX, pBoxY, "#2563eb");
-          this.drawRouteCommentBox(ctx, pBoxX, pBoxY, pri.comment, "#2563eb", viewW, viewH);
-        }
+      if (showComments && priPts.length > 0) {
+        const pAnchor = priPts[Math.floor(priPts.length * 0.25)];
+        const pBoxX = Math.min(viewW - 430, pAnchor.x + 35);
+        const pBoxY = pAnchor.y - 84;
+        this.drawLeaderLine(ctx, pAnchor.x, pAnchor.y, pBoxX, pBoxY, "#2563eb");
+        this.drawRouteCommentBox(ctx, pBoxX, pBoxY, pri.comment, "#2563eb", viewW, viewH);
       }
     }
 
@@ -117,28 +104,13 @@
     }
 
     /**
-     * Yakinlastirilmis krater ici EVA yuruyus rotasini (Mavi + Soluk Mavi + Yol Yorumu) cizer
+     * Yakinlastirilmis krater ici EVA yuruyus rotasini (Tekil Mavi Yol + Yol Yorumu) cizer
      */
     drawCraterEvaRoutes(ctx, cx, cy, localZoom, routes, waypoints, selectedWp, showComments, viewW, viewH, showWpLabels = true) {
-      if (!routes || !routes.primaryBlue || !routes.secondaryPaleBlue) return;
-      const sec = routes.secondaryPaleBlue;
+      if (!routes || !routes.primaryBlue) return;
       const pri = routes.primaryBlue;
 
       ctx.save();
-
-      // Soluk Mavi uzun guvenli EVA yolu
-      ctx.strokeStyle = "#93c5fd";
-      ctx.lineWidth = 3.2;
-      ctx.setLineDash([7, 5]);
-      ctx.beginPath();
-      sec.points.forEach((pt, idx) => {
-        const sx = cx + pt.relX * localZoom;
-        const sy = cy + pt.relY * localZoom;
-        if (idx === 0) ctx.moveTo(sx, sy);
-        else ctx.lineTo(sx, sy);
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
 
       // Mavi en kisa guvenli EVA yolu
       ctx.strokeStyle = "#2563eb";
@@ -154,20 +126,12 @@
 
       if (showComments) {
         const pMid = pri.points[Math.min(pri.points.length - 1, Math.floor(pri.points.length * 0.5))];
-        const sMid = sec.points[Math.min(sec.points.length - 1, Math.floor(sec.points.length * 0.48))];
         const pAx = cx + pMid.relX * localZoom;
         const pAy = cy + pMid.relY * localZoom;
-        const sAx = cx + sMid.relX * localZoom;
-        const sAy = cy + sMid.relY * localZoom;
-
         const pBoxX = pAx + (showWpLabels ? 20 : 10);
         const pBoxY = pAy - (showWpLabels ? 118 : 44);
-        const sBoxX = sAx - (showWpLabels ? 30 : 0);
-        const sBoxY = sAy + (showWpLabels ? 58 : 42);
 
-        this.drawLeaderLine(ctx, sAx, sAy, sBoxX, sBoxY, "#93c5fd");
         this.drawLeaderLine(ctx, pAx, pAy, pBoxX, pBoxY, "#2563eb");
-        this.drawRouteCommentBox(ctx, sBoxX, sBoxY, sec.comment, "#93c5fd", viewW, viewH);
         this.drawRouteCommentBox(ctx, pBoxX, pBoxY, pri.comment, "#2563eb", viewW, viewH);
       }
 

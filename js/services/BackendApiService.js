@@ -270,7 +270,7 @@
         return flat;
       };
 
-      // 1. Birincil Mavi Yol: Rust WASM find_rover_path cagrisi
+      // Tekil Mavi Yol: Rust WASM find_rover_path cagrisi (Alternatif yol kaldirildi)
       let flatGrid = buildGrid(1.0);
       let rawJsonStr = this.wasmFindPath(flatGrid, width, height, 0, 0, width - 1, height - 1);
       let parsedPrimary = JSON.parse(rawJsonStr);
@@ -280,19 +280,8 @@
         parsedPrimary = JSON.parse(rawJsonStr);
       }
 
-      // 2. Alternatif Soluk Mavi Yol: Orta bolgeyi (-999) kapatarak Rust A*'in ikinci guvenli koridoru bulmasini sagla
-      const altGrid = new Int32Array(flatGrid);
-      for (let m = 7; m <= 12; m++) {
-        altGrid[m * width + m] = -999;
-      }
-      let altJsonStr = this.wasmFindPath(altGrid, width, height, 0, 0, width - 1, height - 1);
-      let parsedSecondary = JSON.parse(altJsonStr);
-      if (!parsedSecondary.success) parsedSecondary = parsedPrimary;
-
       const latencyMs = Math.max(1, Math.round(performance.now() - t0));
-
       const primaryBlue = this.convertWasmPathToRoute(parsedPrimary, orig, dest, "#2563eb", "Mavi Yol (Rust WASM A*)", planner, payload, 0.38);
-      const secondaryPaleBlue = this.convertWasmPathToRoute(parsedSecondary, orig, dest, "#93c5fd", "Soluk Mavi (Rust WASM Alternatif)", planner, payload, -0.46);
 
       // Aktif tehlike bolgelerini haritada cizilmek uzere hazirla
       const hazards = {
@@ -310,7 +299,7 @@
         origin: orig,
         destination: dest,
         primaryBlue,
-        secondaryPaleBlue,
+        secondaryPaleBlue: null,
         hazards
       };
     }
@@ -428,14 +417,9 @@
     /** camelCase veya snake_case Rust yanitini tek frontend modeline cevirir */
     normalizeRouteResponse(raw, payload, planner, latencyMs = null) {
       const blueRaw = raw.primaryBlue || raw.primary_route;
-      const paleRaw = raw.secondaryPaleBlue || raw.alternative_route || raw.secondary_route;
       if (!blueRaw) throw new Error("Backend yanitinda primaryBlue / primary_route eksik");
 
       const primaryBlue = this.normalizeSingleRoute(blueRaw, "#2563eb", "Mavi Yol (Backend En Kisa Guvenli)", planner, payload);
-      const secondaryPaleBlue = paleRaw
-        ? this.normalizeSingleRoute(paleRaw, "#93c5fd", "Soluk Mavi (Backend Guvenli Uzun)", planner, payload)
-        : primaryBlue;
-
       const hazards = raw.hazards ? this.normalizeHazards(raw.hazards) : null;
       return {
         scope: raw.scope || payload.scope || "global",
@@ -445,7 +429,7 @@
         origin: raw.origin || payload.origin,
         destination: raw.destination || payload.destination,
         primaryBlue,
-        secondaryPaleBlue,
+        secondaryPaleBlue: null,
         hazards
       };
     }

@@ -150,14 +150,7 @@
           label: t("blueRouteTitle"),
           comment: t("craterBlueComment", { name: crater.name, dur: m1.formattedDuration, km: m1.totalKm.toFixed(1) })
         },
-        secondaryPaleBlue: {
-          ...m2,
-          points: secondaryPoints,
-          steps: this.buildCraterSteps(crater, secondaryPoints, m2.totalHours, m2.totalKm),
-          colorHex: "#93c5fd",
-          label: t("paleRouteTitle"),
-          comment: t("craterPaleComment", { dur: m2.formattedDuration, km: m2.totalKm.toFixed(1) })
-        }
+        secondaryPaleBlue: null
       };
     }
 
@@ -271,12 +264,7 @@
           label: t("blueRouteTitle"),
           comment: t("globalBlueComment", { dur: g1.formattedDuration, km: Math.round(g1.totalKm) })
         },
-        secondaryPaleBlue: {
-          ...g2,
-          colorHex: "#93c5fd",
-          label: t("paleRouteTitle"),
-          comment: t("globalPaleComment", { dur: g2.formattedDuration, km: Math.round(g2.totalKm) })
-        }
+        secondaryPaleBlue: null
       };
     }
 
