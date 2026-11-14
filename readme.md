@@ -24,6 +24,8 @@ AstroChief
 
 -Kullanılan kaynaklar ve apiler not edilmeli
 
+-Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli(test edebilmek için).
+
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
