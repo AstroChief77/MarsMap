@@ -110,6 +110,8 @@
       }, layer);
 
       const isTainted = this.tileLoader.isAtlasTainted?.(activeLayerId);
+      const heatmap = this.overlays.getGlobalHeatmapAtlas(hazardBundle);
+      const heatKey = heatmap && heatmap.hasData ? heatmap.key : "noheat";
       let renderedRay = false;
 
       if (!isTainted && cropW > 0 && cropH > 0) {
@@ -128,7 +130,7 @@
 
         const decodedVer = this.tileLoader.getDecodedVersion ? this.tileLoader.getDecodedVersion() : 0;
         const exactAll = Boolean(highQualityGlobeRay) && !fastMode;
-        const rayKey = `${activeLayerId}|${targetZ}|${bw}x${bh}|${sx0},${sy0}|${rotLat.toFixed(4)}|${rotLon.toFixed(4)}|${clampedZoom.toFixed(4)}|${pitch.toFixed(2)}|${yaw.toFixed(2)}|${reliefScale}|${fastMode ? 1 : 0}|${exactAll ? 1 : 0}|${decodedVer}`;
+        const rayKey = `${activeLayerId}|${targetZ}|${bw}x${bh}|${sx0},${sy0}|${rotLat.toFixed(4)}|${rotLon.toFixed(4)}|${clampedZoom.toFixed(4)}|${pitch.toFixed(2)}|${yaw.toFixed(2)}|${reliefScale}|${fastMode ? 1 : 0}|${exactAll ? 1 : 0}|${decodedVer}|${heatKey}`;
 
         if (rayKey === this.lastRayKey && this.lastRayOk) {
           ctx.save();
@@ -139,7 +141,7 @@
         } else {
           const ok = this.raycastSphereCrop(
             activeLayerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius,
-            scale, rotLat, rotLon, clampedZoom, exactAll, pitch, yaw, reliefScale, fastMode
+            scale, rotLat, rotLon, clampedZoom, exactAll, pitch, yaw, reliefScale, fastMode, heatmap
           );
           if (ok) {
             this.cropCtx.putImageData(this.cropImgData, 0, 0);
@@ -156,18 +158,11 @@
       if (!renderedRay) {
         this.drawFallbackShadedSphere(
           ctx, cx, sphereCy, radius, rotLat, rotLon, activeLayerId,
-          width, height, targetZ, fastMode, clampedZoom, pitch, yaw, reliefScale
+          width, height, targetZ, fastMode, clampedZoom, pitch, yaw, reliefScale, heatmap
         );
       }
 
       ctx.save();
-      if (limbVisible) {
-        ctx.strokeStyle = "rgba(244, 145, 92, 0.55)";
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.arc(cx, sphereCy, radius, 0, Math.PI * 2);
-        ctx.stroke();
-      }
 
       // 2. Vektor katmanlari icin Google Earth tipi tam kuresel 3D projeksiyon fonksiyonu
       const pxPerDeg = radius / 57.2958;
@@ -222,11 +217,13 @@
     }
 
     /**
-     * Gorunur ekran kesiti uzerinde 3D bilineer MOLA topografik kabartma + 4-tap bilineer/Hermite doku suzmeli isin izleme motoru
+     * Gorunur ekran kesiti uzerinde 3D bilineer MOLA topografik kabartma + 4-tap bilineer/Hermite doku + yuzeye yapiskan isi haritasi motoru
      */
-    raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0, fastMode = false) {
+    raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0, fastMode = false, heatmap = null) {
       const levels = this.tileLoader.getLayerFastTables(layerId);
       const out = this.cropImgData.data, out32 = this.cropBuf32;
+      const hmData = (heatmap && heatmap.hasData) ? heatmap.data : null;
+      const hmMask = (heatmap && heatmap.hasData) ? heatmap.mask : null;
       const topo = ns.marsTopo;
       const elevGrid = (topo && reliefScale > 0) ? topo.elevGrid : null;
       const normXGrid = (topo && reliefScale > 0) ? topo.normXGrid : null;
@@ -317,9 +314,34 @@
         const i00 = ((py0 << 8) + px0) << 2, i10 = ((py0 << 8) + px1) << 2;
         const i01 = ((py1 << 8) + px0) << 2, i11 = ((py1 << 8) + px1) << 2;
 
-        const rTex = (pixels[i00] * w00 + pixels[i10] * w10 + pixels[i01] * w01 + pixels[i11] * w11) * diff + limb * 140;
-        const gTex = (pixels[i00 + 1] * w00 + pixels[i10 + 1] * w10 + pixels[i01 + 1] * w01 + pixels[i11 + 1] * w11) * diff + limb * 66;
-        const bTex = (pixels[i00 + 2] * w00 + pixels[i10 + 2] * w10 + pixels[i01 + 2] * w01 + pixels[i11 + 2] * w11) * diff + limb * 32;
+        let rBase = (pixels[i00] * w00 + pixels[i10] * w10 + pixels[i01] * w01 + pixels[i11] * w11) * diff;
+        let gBase = (pixels[i00 + 1] * w00 + pixels[i10 + 1] * w10 + pixels[i01 + 1] * w01 + pixels[i11 + 1] * w11) * diff;
+        let bBase = (pixels[i00 + 2] * w00 + pixels[i10 + 2] * w10 + pixels[i01 + 2] * w01 + pixels[i11 + 2] * w11) * diff;
+        if (hmData) {
+          const hmIdx = ((((cv * 64) | 0) & 63) << 7) | (((cu * 128) | 0) & 127);
+          if (hmMask[hmIdx] > 0) {
+            const hgx = cu * 1024.0, hgy = cv * 511.0;
+            const hx0 = hgx | 0, hy0 = hgy | 0, hfx = hgx - hx0, hfy = hgy - hy0;
+            const hix0 = hx0 & 1023, hix1 = (hx0 + 1) & 1023;
+            const hiy0 = hy0 <= 511 ? hy0 : 511, hiy1 = hiy0 < 511 ? hiy0 + 1 : 511;
+            const hr0 = hiy0 << 10, hr1 = hiy1 << 10;
+            const hi00 = (hr0 | hix0) << 2, hi10 = (hr0 | hix1) << 2;
+            const hi01 = (hr1 | hix0) << 2, hi11 = (hr1 | hix1) << 2;
+            const hofx = 1 - hfx, hofy = 1 - hfy;
+            const hw00 = hofx * hofy, hw10 = hfx * hofy, hw01 = hofx * hfy, hw11 = hfx * hfy;
+            const ha = (hmData[hi00 + 3] * hw00 + hmData[hi10 + 3] * hw10 + hmData[hi01 + 3] * hw01 + hmData[hi11 + 3] * hw11) * 0.0039215686;
+            if (ha > 0.004) {
+              const hShade = 0.72 + 0.28 * (diff > 1.15 ? 1.15 : diff);
+              const invHa = 1.0 - ha;
+              rBase = rBase * invHa + (hmData[hi00] * hw00 + hmData[hi10] * hw10 + hmData[hi01] * hw01 + hmData[hi11] * hw11) * hShade * ha;
+              gBase = gBase * invHa + (hmData[hi00 + 1] * hw00 + hmData[hi10 + 1] * hw10 + hmData[hi01 + 1] * hw01 + hmData[hi11 + 1] * hw11) * hShade * ha;
+              bBase = bBase * invHa + (hmData[hi00 + 2] * hw00 + hmData[hi10 + 2] * hw10 + hmData[hi01 + 2] * hw01 + hmData[hi11 + 2] * hw11) * hShade * ha;
+            }
+          }
+        }
+        const rTex = rBase + limb * 140;
+        const gTex = gBase + limb * 66;
+        const bTex = bBase + limb * 32;
         const ri = rTex >= 255 ? 255 : (rTex | 0), gi = gTex >= 255 ? 255 : (gTex | 0), bi = bTex >= 255 ? 255 : (bTex | 0);
         if (out32) out32[pIdx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
         else { const o = pIdx << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
@@ -376,7 +398,6 @@
           diff = Math.max(0.22, Math.min(1.42, diff + slopeLight));
         }
 
-        // r2 = merkeze normalize uzaklik karesi (eski finalRhoSq anlami: 1 - nz^2); tanimsiz degisken ReferenceError'i giderildi
         return { hit: true, r2: 1 - nzNorm * nzNorm, nx, ny, vy, u, v, diff, limb };
       };
 
@@ -466,6 +487,14 @@
                 if (uniform.tainted) return false;
                 const { pixels, cols, rows, tx: txOff, ty: tyOff } = uniform;
                 const doLimb = c00.limb > 0 || c10.limb > 0 || c01.limb > 0 || c11.limb > 0;
+                let blockHasHeat = false;
+                if (hmMask) {
+                  let mu0 = uMin - Math.floor(uMin); if (mu0 < 0) mu0 += 1;
+                  let mu1 = uMax - Math.floor(uMax); if (mu1 < 0) mu1 += 1;
+                  const bx0m = ((mu0 * 128) | 0) & 127, bx1m = ((mu1 * 128) | 0) & 127;
+                  const by0m = ((vMin * 64) | 0) & 63, by1m = ((vMax * 64) | 0) & 63;
+                  blockHasHeat = (hmMask[(by0m << 7) | bx0m] | hmMask[(by0m << 7) | bx1m] | hmMask[(by1m << 7) | bx0m] | hmMask[(by1m << 7) | bx1m]) > 0;
+                }
 
                 for (let dy = 0; dy < 4; dy++) {
                   const ty = dy * 0.25, oty = 1 - ty;
@@ -500,6 +529,26 @@
                     let r = (pixels[i00] * w00 + pixels[i10] * w10 + pixels[i01] * w01 + pixels[i11] * w11) * diff;
                     let g = (pixels[i00 + 1] * w00 + pixels[i10 + 1] * w10 + pixels[i01 + 1] * w01 + pixels[i11 + 1] * w11) * diff;
                     let b = (pixels[i00 + 2] * w00 + pixels[i10 + 2] * w10 + pixels[i01 + 2] * w01 + pixels[i11 + 2] * w11) * diff;
+                    if (blockHasHeat) {
+                      let hu = u - Math.floor(u); if (hu < 0) hu += 1;
+                      const hgx = hu * 1024.0, hgy = (v <= 0 ? 0 : v >= 0.999999 ? 0.999999 : v) * 511.0;
+                      const hx0 = hgx | 0, hy0 = hgy | 0, hfx = hgx - hx0, hfy = hgy - hy0;
+                      const hix0 = hx0 & 1023, hix1 = (hx0 + 1) & 1023;
+                      const hiy0 = hy0 <= 511 ? hy0 : 511, hiy1 = hiy0 < 511 ? hiy0 + 1 : 511;
+                      const hr0 = hiy0 << 10, hr1 = hiy1 << 10;
+                      const hi00 = (hr0 | hix0) << 2, hi10 = (hr0 | hix1) << 2;
+                      const hi01 = (hr1 | hix0) << 2, hi11 = (hr1 | hix1) << 2;
+                      const hofx = 1 - hfx, hofy = 1 - hfy;
+                      const hw00 = hofx * hofy, hw10 = hfx * hofy, hw01 = hofx * hfy, hw11 = hfx * hfy;
+                      const ha = (hmData[hi00 + 3] * hw00 + hmData[hi10 + 3] * hw10 + hmData[hi01 + 3] * hw01 + hmData[hi11 + 3] * hw11) * 0.0039215686;
+                      if (ha > 0.004) {
+                        const hShade = 0.72 + 0.28 * (diff > 1.15 ? 1.15 : diff);
+                        const invHa = 1.0 - ha;
+                        r = r * invHa + (hmData[hi00] * hw00 + hmData[hi10] * hw10 + hmData[hi01] * hw01 + hmData[hi11] * hw11) * hShade * ha;
+                        g = g * invHa + (hmData[hi00 + 1] * hw00 + hmData[hi10 + 1] * hw10 + hmData[hi01 + 1] * hw01 + hmData[hi11 + 1] * hw11) * hShade * ha;
+                        b = b * invHa + (hmData[hi00 + 2] * hw00 + hmData[hi10 + 2] * hw10 + hmData[hi01 + 2] * hw01 + hmData[hi11 + 2] * hw11) * hShade * ha;
+                      }
+                    }
                     if (doLimb) {
                       const limb = lL * ot + lR * t;
                       r += limb * 140; g += limb * 66; b += limb * 32;
@@ -544,11 +593,11 @@
     /**
      * file:// veya tainted tuval ortamlarinda 3D yedek kure cizimini ayri moduldaki Map3DFallbackRenderer'a devreder
      */
-    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1) {
+    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1, heatmap = null) {
       if (!this.fallbackRenderer) { this.drawLoadingSphere(ctx, cx, cy, radius); return; }
       this.fallbackRenderer.drawFallbackShadedSphere(
         ctx, cx, cy, radius, rotLat, rotLon, activeLayerId,
-        viewW, viewH, targetZ, isInteracting, zoom, camPitch, camYaw, reliefScale
+        viewW, viewH, targetZ, isInteracting, zoom, camPitch, camYaw, reliefScale, heatmap
       );
     }
 

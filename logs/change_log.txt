@@ -306,8 +306,22 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * Sag ust Rota Planlayici panelinden "Soluk Mavi (Güvenli Uzun)" karti ve sekme degistirici (step-tabs) kaldirildi.
   * 2D ve 3D harita uzerinden kesikli soluk mavi alternatif cizgi ve yorum kutusu kaldirilarak yalnizca tekil Mavi Yol (#2563eb) birakildi.
 
+[2026-11-14 21:42] v4.0 - Daire/GUI sekilleri kaldirildi; Asit Yagmuru (Mavi), Kum Firtinasi (Kizil-Altin) ve Radyasyon (Mor) 3D kure yuzeyine piksel bazli yapiskan, dusuk saydamlikli organik Isi Haritasi (Heatmap) olarak OverlayDrawHelper, Map3DRenderer, Map3DFallbackRenderer ve Map2DRenderer uzerine islendi.
+
+[2026-11-14T18:52:00Z] docs(parameters): Prameters.md Olusturulması ve Ajan/Kaynak Senkronizasyonu
+- Yedek Klasoru: backups/snapshot_20261114_prameters/ (SOURCES.md, ForAgents/PROJECT_STATE.md, ForAgents/SHARED_PLANS_AND_API.md, logs/change_log.txt)
+- Prameters.md (Yeni Dosya, Satir 1-168):
+  * Satir 1-23: Belge amaci ve dakika/saat bazli Hizli Ozet Tablosu (Oksijen, Rover Hizi, Insan Hizi, Su, CO2, Guc, Radyasyon).
+  * Satir 26-57: Dakikada insan oksijen tuketimi (nominal 0.80-1.01 L/dk, 10-dk xEMU zirvesi 2.52 L/dk, fizyolojik VO2max tavan 3.60-4.00 L/dk), 420 L rezerv dayanimi ve su/kalori butcesi.
+  * Satir 61-94: Dakikada Rover hizlari (Basincli SEV 166.7-241.7 m/dk, tavan 300-316.7 m/dk; robotik Perseverance 2.53 m/dk, Curiosity 1.50-2.33 m/dk) ve EVA insan hizlari (45-60 m/dk, guvenli ust 83.3-90.0 m/dk, acil sprint 116.7-150 m/dk).
+  * Satir 97-144: Basincli rover/giysi enerji parametreleri (Wh/dk), Mars fiziksel sabitleri, egim formulu ve alfa/beta/gama/asit/firtina tehlike esikleri.
+  * Satir 147-167: Kod tabani (RoutePlannerService.js, BackendApiService.js, backend/src/lib.rs) ile eslestirme notlari ve NASA kaynaklari.
+- SOURCES.md (Satir 67-72): NASA-STD-3001, NTRS 20260003038 / 19760003073, NASA-TP-2009-214796, SEV TM-20220006678, Perseverance ve Mars Fact Sheet kaynaklari eklendi.
+- ForAgents/PROJECT_STATE.md (Satir 66-74) & ForAgents/SHARED_PLANS_AND_API.md (Satir 65-66): Prameters.md ozeti ve backend/frontend parametre senkronizasyon plani eklendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
 ================================================================================
-TARIH / SAAT : 2026-11-14 (rapor.md Kapsamli Guvenlik, Mimari, Karo Butunlugu ve Performans Duzeltmeleri - v3.9.0)
+TARIH / SAAT : 2026-11-14 (rapor.md Kapsamli Guvenlik, Mimari, Karo Butunlugu ve Performans Duzeltmeleri - v3.9.0 / v4.1)
 YEDEK KLASORU: backups/snapshot_20261114_rapor_fixes/
 DEGISIKLIK NEDENI:
   rapor.md icinde tespit edilen tum P0 (Kritik CI/Derleme Engelleyicileri, Karo Manifestosu, DOM XSS, PHP Sohbet/Webhook Zafiyetleri, Dil Degistirme Cokmesi), P1 (Rust Backend/WASM Overflow & HTTP Sunucu, Antimeridyen/MOLA Topografya, 22 Eksik i18n Anahtari, 2D/3D Ters-Projeksiyon) ve P2 (rAF Bosta Uyku, FPS Guard Coklu Yuva, 800 Satir Modulerlik ve Alt Bilgi Bloklari) bulgularinin eksiksiz giderilmesi.
@@ -318,8 +332,8 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   2) js/services/MarsTileLoader.js (Satir 1-614):
      - Yetim "queued" onbellek zehirlenmesini onleyen dropStaleQueuedTiles() ve forgetTile() eklendi; "error" karolarina 15 sn yeniden deneme ve eksik yerel karolarda (404) aninda NASA WMTS yedegine gecis saglandi.
      - Dogu yariyi kesen ixStart+7 / ixStart+6 siniri simetrik clampColumnSpan() ile degistirildi, cift decodedVersion++ artisi kaldirildi ve MOLA karo yuklemesinde syncWithMolaTiles() tetiklendi.
-  3) js/renderers/Map3DRenderer.js (Satir 1-638) & js/renderers/Map3DFallbackRenderer.js (Satir 1-258):
-     - Satir 378'deki canli ReferenceError: finalRhoSq is not defined hatasi (1 - nzNorm * nzNorm) ile duzeltildi.
+  3) js/renderers/Map3DRenderer.js & js/renderers/Map3DFallbackRenderer.js:
+     - Canli ReferenceError: finalRhoSq is not defined hatasi (1 - nzNorm * nzNorm) ile duzeltildi.
      - highQualityGlobeRay parametresi raycastSphereCrop icine baglandi, resolveTilePixels icindeki senkron getImageData blokaji kaldirildi, drawFallbackShadedSphere ve drawLoadingSphere sphereCy + i18n ile hizalandi.
   4) js/services/MarsTopographyService.js (Satir 1-565) & js/services/RouteGeometryHelper.js (Satir 1-292):
      - decodeMolaPixelMeters icindeki (285, 315] hue boslugu kapatildi; projectToElevatedSphere ve screenToElevatedMars3D metodlari buildCameraBasis ve zoom 0.55..80.0 araligiyla birlestirildi.
@@ -328,7 +342,7 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
      - AppConfig.getFactoryDefaults icine enable3DTerrain, topoReliefScale, camPitch ve camYaw eklendi; storageKey v3_9 yapildi.
      - StarfieldRenderer.drawFrame basina if (!this.enabled) return; eklendi ve bosta/kapaliyken 60Hz rAF dongusu durduruldu.
      - FpsGuardService coklu ayar koruma kuyrugu (pendingGuards), derin kopya (cloneSnapshot) ve bosta uyku moduyla guncellendi.
-  6) backend/src/lib.rs (Satir 1-208), backend/src/main.rs (Satir 1-235) & js/wasm/backend.js (Satir 1-220):
+  6) backend/src/lib.rs, backend/src/main.rs & js/wasm/backend.js:
      - Negatif harita boyutu ve egim/maliyet tamsayi tasmalari usize::try_from, checked_mul, checked_add ve saturating_* ile korumaya alindi.
      - backend/src/main.rs icine --serve stdlib HTTP sunucusu (/api/v1/health, /api/v1/hazards, /api/v1/route) ve alt bilgi aciklamalari eklendi.
   7) js/services/BackendApiService.js (Satir 1-460) & js/services/HazardFieldService.js (Satir 1-190):

@@ -90,8 +90,8 @@
         this.drawGraticule(ctx, ox, oy, mapW, mapH, width, height);
       }
 
-      // 4. Aktif Asit Yagmuru, Kum Firtinasi ve Alfa/Beta/Gama Foton alanlari
-      this.overlays.drawGlobalHazards(ctx, "2d", project2D, hazardBundle, zoom, width, height);
+      // 4. Aktif Asit Yagmuru (Mavi), Kum Firtinasi ve Radyasyon yuzey kilitli isi haritalari
+      this.overlays.drawGlobalHazards(ctx, "2d", project2D, hazardBundle, zoom, width, height, { ox, oy, mapW, mapH });
 
       // 5. Bolge isimleri (Nomenclature)
       if (showNomenclature) {
@@ -271,16 +271,14 @@
         }
       }
 
-      // 3. Krater ici Alfa / Beta / Gama & Foton Bombardimani
+      // 3. Krater ici Alfa / Beta / Gama & Foton Bombardimani (organik isi haritasi)
       if (showRadiation && Array.isArray(radZones)) {
         for (const rz of radZones) {
           const rx = cx + rz.relX * scale;
           const ry = cy + rz.relY * scale;
           const rr = rz.radius * scale;
-          this.overlays.draw2DHazardCircle(
+          this.overlays.drawLocalHeatmapPlume(
             ctx, rx, ry, rr,
-            "rgba(168, 85, 247, 0.34)",
-            "#c084fc",
             zoom >= 2.1 ? `☢ ${rz.gammaLevel} | ${rz.photonFlux}` : "",
             viewW, viewH
           );

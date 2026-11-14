@@ -40,7 +40,7 @@ fn main() {
     println!("Hedef:     ({}, {})", goal_x, goal_y);
     println!("==================================================");
 
-    let json_result = find_rover_path(&flat_grid, width, height, start_x, start_y, goal_x, goal_y);
+    let json_result = find_rover_path(&flat_grid, width, height, start_x, start_y, goal_x, goal_y, 420);
     println!("Rust Ciktisi (JSON):");
     println!("{}", json_result);
 

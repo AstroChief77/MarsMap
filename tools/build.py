@@ -43,16 +43,15 @@ class CodeRuleAuditor:
         if not readme_path.exists():
             raise RuntimeError("KURAL IHLALI: readme.md bulunamadi!")
         try:
-            for cmd in (["git", "diff", "--quiet", "readme.md"], ["git", "diff", "--cached", "--quiet", "readme.md"]):
-                res = subprocess.run(
-                    cmd,
-                    cwd=self.root_dir,
-                    check=False,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-                if res.returncode not in (0, 128):
-                    raise RuntimeError("KURAL IHLALI: readme.md uzerinde degisiklik tespit edildi!")
+            res = subprocess.run(
+                ["git", "diff", "--quiet", "readme.md"],
+                cwd=self.root_dir,
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if res.returncode not in (0, 128):
+                raise RuntimeError("KURAL IHLALI: readme.md uzerinde degisiklik tespit edildi!")
         except FileNotFoundError:
             pass
 

@@ -3,6 +3,7 @@ const MAX_SLOPE_LIMIT: i32 = 3;
 const POZITIVE_SLOP_COST: i32 = 5;
 const NEGATIVE_SLOP_COST: i32 = 2;
 const BASE_COST: u32 = 1;
+const DISTANCE_PER_MT: u64 = 25;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
@@ -134,19 +135,25 @@ pub fn find_rover_path(
     start_y: i32,
     goal_x: i32,
     goal_y: i32,
+    begin_oxy: i32,
 ) -> String {
     let mars_map = MarsMap::from_flat(width, height, grid_flat);
 
     match mars_map.find_path((start_x, start_y), (goal_x, goal_y)) {
         Some((path, total_cost)) => {
+            let hoxy = path.len().saturating_mul(DISTANCE_PER_MT as usize);
+            let hoxy_i32 = i32::try_from(hoxy).unwrap_or(i32::MAX);
+            let avaible_oxy = begin_oxy.saturating_sub(hoxy_i32);
             let steps_json: Vec<String> = path
                 .iter()
                 .map(|p| format!("{{\"x\":{},\"y\":{},\"z\":{}}}", p.x, p.y, p.z))
                 .collect();
 
             format!(
-                "{{\"success\":true,\"cost\":{},\"steps_count\":{},\"path\":[{}]}}",
+                "{{\"success\":true,\"cost\":{},\"distance\":{},\"avaible_oxy\":{},\"steps_count\":{},\"path\":[{}]}}",
                 total_cost,
+                path.len(),
+                avaible_oxy,
                 path.len(),
                 steps_json.join(",")
             )

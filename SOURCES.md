@@ -63,3 +63,10 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
    - **Linux Paketleyici & Sunucu:** `tools/launch-linux.sh` (`.woff2` MIME destekli Python3 HTTP sunucusu + `SHA256SUMS.txt` + `.tar.gz`)
    - **Windows Derleyici & Sunucu:** `tools/build_tool.ps1`, `build.bat`, `serve.ps1`, `tools/WinLauncher.cs` (.NET Framework `csc.exe` -> `MarsMap-win64.exe`)
    - **Ortak AI Ajan Belgeleri:** `ForAgents/PROJECT_STATE.md` ve `ForAgents/SHARED_PLANS_AND_API.md`
+
+9. **NASA İnsan Fizyolojisi, Uzay Giysisi & Rover Görev Parametreleri (`Prameters.md`)**
+   - **NASA-STD-3001 & Human Performance:** https://www.nasa.gov/reference/4-0-human-performance/ (minimum görev içi VO₂max `32.9 mL/dk/kg`, su ve metabolik enerji standartları)
+   - **NASA NTRS (`20260003038`, `19760003073`) & EVA Walkback (`NASA-TP-2009-214796`):** Mars/xEMU/Apollo EVA oksijen tüketimi (`0.80–1.01 L/dk` nominal, `2.52 L/dk` 10-dk xEMU zirve, `3.60–4.00 L/dk` fizyolojik tavan) ve EVA yürüyüş hızları (`45–60 m/dk`, güvenli tavan `83.3–90.0 m/dk`)
+   - **NASA Pressurized Rover (SEV / `TM-20220006678`) & Mars Bilim Roverları:** Basınçlı rover (`166.7–241.7 m/dk`, `10–12 kW` sürüş gücü, `52.7–100 kWh` batarya) ve Perseverance (`2.53 m/dk`) / Curiosity (`1.50–2.33 m/dk`) hızları (`https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/`)
+   - **NASA NSSDC Mars Fact Sheet, Curiosity RAD & `OCHMO-TB-020`:** `R = 3,389.5 km`, `g = 3.721 m/s²`, `6.36 mbar`, `0.64 ± 0.12 mSv/gün` yüzey radyasyonu ve `< 600 mSv` görev limiti (`https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html`)
+

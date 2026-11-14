@@ -21,7 +21,7 @@
      * file:// protokolunde tarayici getImageData kilidi varsa hazir z=0..targetZ karolariyla
      * kuresel afin projeksiyonlu ve dikissiz 3D dokuyu dogrudan drawImage uzerinden cizer
      */
-    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1) {
+    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1, heatmap = null) {
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius * 1.05, 0, Math.PI * 2);
@@ -112,9 +112,11 @@
 
               if (Math.abs(det) < 1e-10 || (uMax - uMin) > 0.25) {
                 const subW = cellW * 0.25, subH = cellH * 0.25;
+                const hasHm = Boolean(heatmap && heatmap.hasData && heatmap.canvas);
                 for (let syi = 0; syi < 4; syi++) {
                   for (let sxi = 0; sxi < 4; sxi++) {
                     const pm = uvAt(px + (sxi + 0.5) * subW, py + (syi + 0.5) * subH);
+                    const dx = px + sxi * subW - 0.3, dy = py + syi * subH - 0.3, dw = subW + 0.6, dh = subH + 0.6;
                     for (let z = maxZ; z >= 0; z--) {
                       const cols = 1 << (z + 1), rows = 1 << z;
                       const tx = Math.min(cols - 1, Math.max(0, (pm.u * cols) | 0)), ty = Math.min(rows - 1, Math.max(0, (pm.v * rows) | 0));
@@ -123,8 +125,13 @@
                       const iw = img.width || 256, ih = img.height || 256;
                       const sx = Math.max(0, Math.min(iw - 6, (pm.u * cols - tx) * iw - 3));
                       const sy = Math.max(0, Math.min(ih - 6, (pm.v * rows - ty) * ih - 3));
-                      ctx.drawImage(img, sx, sy, 6, 6, px + sxi * subW - 0.3, py + syi * subH - 0.3, subW + 0.6, subH + 0.6);
+                      ctx.drawImage(img, sx, sy, 6, 6, dx, dy, dw, dh);
                       break;
+                    }
+                    if (hasHm) {
+                      const hsx = Math.max(0, Math.min(heatmap.width - 4, pm.u * heatmap.width - 2));
+                      const hsy = Math.max(0, Math.min(heatmap.height - 4, pm.v * heatmap.height - 2));
+                      ctx.drawImage(heatmap.canvas, hsx, hsy, 4, 4, dx, dy, dw, dh);
                     }
                   }
                 }
@@ -166,7 +173,7 @@
                     const th = img.height || 256;
                     const dU0 = azIx / cols - u00;
                     const dV0 = azTy / rows - p00.v;
-                    if (!single) ctx.save();
+                    ctx.save();
                     ctx.transform(
                       mXu / (cols * tw), mYu / (cols * tw),
                       mXv / (rows * th), mYv / (rows * th),
@@ -174,9 +181,25 @@
                       py + mYu * dU0 + mYv * dV0
                     );
                     ctx.drawImage(img, 0, 0);
-                    if (!single) ctx.restore();
+                    ctx.restore();
                     break;
                   }
+                }
+              }
+              if (heatmap && heatmap.hasData && heatmap.canvas) {
+                const hw = heatmap.width, hh = heatmap.height;
+                const uShiftList = uMin < 0 ? [0, -1] : (uMax > 1 ? [0, 1] : [0]);
+                for (let si = 0; si < uShiftList.length; si++) {
+                  const uOff = u00 - uShiftList[si];
+                  ctx.save();
+                  ctx.transform(
+                    mXu / hw, mYu / hw,
+                    mXv / hh, mYv / hh,
+                    px - mXu * uOff - mXv * p00.v,
+                    py - mYu * uOff - mYv * p00.v
+                  );
+                  ctx.drawImage(heatmap.canvas, 0, 0);
+                  ctx.restore();
                 }
               }
               ctx.restore();
