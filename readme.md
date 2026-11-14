@@ -54,5 +54,6 @@ Buse:Başkan yardımcısı
 
 -Kullanılan kaynaklar ve API'ler SOURCES.md dosyasına işlenecek: Tamamlandı.
 
--Tüm değişiklikler satır satır loglanacak: Tamamlandı.
+-NASA ve USGS veri setleri indirilip yapılandırılacak ve kataloglanacak: Tamamlandı.
 
+-Tüm değişiklikler satır satır loglanacak: Tamamlandı.

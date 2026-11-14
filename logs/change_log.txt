@@ -36,6 +36,21 @@
 [2026-11-14 11:14:23] [CREATE] serve.ps1 oluşturuldu (PowerShell dahili HttpListener yerel web sunucusu).
 [2026-11-14 11:14:29] [CREATE] preview.bat oluşturuldu (Kullanıcının tek tıkla tarayıcıda localhost:3000 açabilmesi için başlatıcı).
 [2026-11-14 11:21:30] [GIT] origin/main üzerindeki readme.md güncellemesi (50ec554: masaüstüne güncel sürüm yükleme kuralı) yerel dala birleştirildi.
+[2026-11-14 11:21:40] [CREATE] data/datasets dizini oluşturuldu.
 [2026-11-14 11:21:46] [BACKUP] backups/change_log_backup_20261114_1122.txt oluşturuldu (Değişiklik öncesi yedek).
 [2026-11-14 11:22:00] [CREATE] deploy_desktop.ps1 oluşturuldu (Güncel sürümü masaüstündeki AstroChief-MarsMap klasörüne kopyalayan PowerShell betiği).
+[2026-11-14 11:22:01] [DOWNLOAD] data/datasets/perseverance_raw_images.json indirildi (NASA Mars 2020 Raw Images API'sinden canlı görsel metadataları).
 [2026-11-14 11:22:05] [CREATE] deploy_desktop.bat oluşturuldu (Tek tıkla masaüstüne güncel sürüm dağıtım başlatıcısı).
+[2026-11-14 11:22:13] [CREATE] data/datasets/images dizini oluşturuldu.
+[2026-11-14 11:22:32] [DOWNLOAD] data/datasets/images/perseverance_supercam_sol2031.jpg indirildi (Perseverance Sol 2031 SuperCam gerçek ham Mars yüzey görseli).
+[2026-11-14 11:23:01] [CREATE] data/datasets/mars_landing_sites.json oluşturuldu (JPL Mars Trek iniş sahaları, koordinatlar, irtifalar ve enstrümanlar).
+[2026-11-14 11:23:12] [CREATE] data/datasets/jpl_mars_trek_layers.json oluşturuldu (JPL Mars Trek WMTS/XYZ harita katmanları ve sabitler).
+[2026-11-14 11:23:24] [CREATE] data/datasets/usgs_mars_geology.json oluşturuldu (USGS Geologic Map of Mars birimleri, sürülebilirlik ve asit zonları).
+[2026-11-14 11:23:41] [CREATE] data/datasets/curiosity_mount_sharp_route.json oluşturuldu (Curiosity Mount Sharp tırmanış istasyonları, eğimler ve tehlikeler).
+[2026-11-14 11:23:54] [CREATE] data/datasets/nasa_worldview_and_hazards.json oluşturuldu (Worldview gözlem katmanları, fırtına koridorları ve asidik tehlikeler).
+[2026-11-14 11:24:13] [CREATE] data/datasets/README.md oluşturuldu (Tüm indirilen veri setlerinin ayrıntılı Türkçe açıklamaları ve katalog indeksi).
+[2026-11-14 11:24:17] [BACKUP] backups/SOURCES_backup_20261114_1124.md yedeği alındı.
+[2026-11-14 11:24:27] [UPDATE] SOURCES.md güncellendi (İndirilen tüm veri setleri ve dosya yolları belgelendi).
+[2026-11-14 11:24:32] [BACKUP] backups/readme_backup_20261114_1124.md yedeği alındı.
+[2026-11-14 11:24:38] [UPDATE] readme.md güncellendi (Veri seti adımı tamamlandı olarak işaretlendi).
+[2026-11-14 11:24:45] [GIT] Yeni veri setleri, katalog, yedekler ve güncellenmiş kaynak belgeleri git stage alanına eklendi.
