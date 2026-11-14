@@ -1,0 +1,261 @@
+/**
+ * @file cards.css
+ * @description NASA kaynak kartları (Resources) ve ekip üye kartları (Teams) için özel stil tanımları.
+ */
+
+/* ==========================================================================
+   KAYNAK KARTLARI (RESOURCES CARDS)
+   ========================================================================== */
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.resource-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-md);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  backdrop-filter: var(--blur-glass);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.resource-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--mars-primary), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.resource-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--border-accent);
+  background: var(--bg-card-hover);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.resource-card:hover::before {
+  opacity: 1;
+}
+
+.resource-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+
+.resource-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.resource-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--border-radius-full);
+}
+
+.badge-mars-orange { background: rgba(255, 87, 34, 0.15); color: #ff8a65; border: 1px solid rgba(255, 87, 34, 0.3); }
+.badge-mars-red    { background: rgba(230, 57, 70, 0.15);  color: #ff6b6b; border: 1px solid rgba(230, 57, 70, 0.3); }
+.badge-mars-amber  { background: rgba(244, 162, 97, 0.15); color: #f4a261; border: 1px solid rgba(244, 162, 97, 0.3); }
+.badge-mars-blue   { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+.badge-mars-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+.resource-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin-bottom: 0.75rem;
+}
+
+.resource-description {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.6rem;
+}
+
+.btn-resource-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1.2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.btn-resource-link:hover {
+  background: var(--mars-primary);
+  border-color: var(--mars-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.4);
+}
+
+.external-icon {
+  transition: transform var(--transition-fast);
+}
+
+.btn-resource-link:hover .external-icon {
+  transform: translate(2px, -2px);
+}
+
+/* ==========================================================================
+   EKİP KARTLARI (TEAMS CARDS)
+   ========================================================================== */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.team-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-md);
+  padding: 2.2rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: var(--blur-glass);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--border-accent);
+  box-shadow: var(--card-shadow-hover);
+  background: var(--bg-card-hover);
+}
+
+.team-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+
+.team-avatar-wrapper {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.team-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--mars-primary);
+  box-shadow: 0 0 12px rgba(255, 87, 34, 0.3);
+}
+
+.team-status-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  background-color: #22c55e;
+  border: 2px solid var(--bg-secondary);
+  border-radius: 50%;
+}
+
+.team-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--border-radius-full);
+  background: rgba(255, 87, 34, 0.12);
+  border: 1px solid var(--border-accent);
+  color: var(--text-highlight);
+}
+
+.team-icon-badge {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.team-member-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.team-member-role {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--mars-primary);
+  margin-bottom: 0.9rem;
+}
+
+.team-member-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+}
+
+.team-card-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mission-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc kart stilleri dosya başlığı.
+   - Satır 6-12: Kaynak ızgara düzeni (.resources-grid).
+   - Satır 14-43: .resource-card kart kutusu, hover'da üst kenar çizgisi animasyonu ve derinleşme.
+   - Satır 45-72: Kaynak kartı üst alanı, etiket renk çeşitleri (.badge-mars-*).
+   - Satır 74-88: Kaynak başlığı ve açıklama tipografisi.
+   - Satır 90-112: Kaynak harici link butonu (.btn-resource-link) ve ikon geçişi.
+   - Satır 114-124: Ekip ızgara düzeni (.team-grid) ve kart yapısı.
+   - Satır 126-170: Ekip kartı bileşenleri: yuvarlak avatar, çevrimiçi göstergesi (.team-status-indicator), rol rozeti.
+   - Satır 172-192: Ekip üyesi adı, görevi, açıklaması ve alt kart çerçevesi.
+   ========================================================================== */
