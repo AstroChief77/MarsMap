@@ -40,6 +40,8 @@ AstroChief
 
 -Yol hesaplamaları backend ile gerçekleştirilicek backend den gelen veri ile iki nokta arasında olan en kısa ve güvenli kapalı baskın yol mavi, yine güvenli ama daha uzun yollar ise daha açık bir mavi olacak.
 
+-Asit yağmuru bölgesi, fırtına bölgesi, radyasyon falan backend kısmından gelicek ona göre haritada bölgeleri çizicek.
+
 # Tasarım Kuralları
 
 -Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeneği olmalıdır.
