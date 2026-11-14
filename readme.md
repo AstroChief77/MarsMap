@@ -18,15 +18,11 @@ AstroChief
 
 -Dosyada değişiklik yapılacağı zaman her zaman yedek alınmak zorunludur ve yedekleri silmek değiştirmek yasaktır.
 
--Eğer web sunucusu çalışan bilgisayar 
-
 -Yarışma detayları her seferinde belleği alınmalı.
 
 -Yapılan her değişiklik satır satır loglanmalıdır.
 
 -Yorum satırı eklenmeli, kodun satır satır ne işe yaradğını kod dosyasının en altına eklenmelidir.
-
--En güvenli ve kısa yol haritada mavi, yine güvenli olan ama daha uzun olan yol soluk mavi şeklinde gözükmelidir, yollarda yourm satırı olucak ve ne kadar sürede oraya gidebileceğini hesaplayacak.
 
 -Her şey kendine ait bir dosyaya sahip olmalı, claslardan ve nesnelerden oluşmalıdır main kod dosyası dışında hiç bir dosya 800 satırı geçmemelidir, her fonksiyon eğer kompleksliği arttırıyor ise fonksiyonlar farklı dosyalarda açılmalıdır.
 
@@ -40,7 +36,9 @@ AstroChief
 
 -Default oalarak harita 2D başlayacak.
 
--Herhangi bir ayar değiştiriğinde fps 10 dan aşşağı iniyor ise değiştirilen ayarın değişmesi engellenicek değiştirilmeden önceki haline gelicek.
+-Herhangi bir ayar değiştirildiğinde fps 10 dan aşşağı iniyor ise değiştirilen ayarın değişmesi engellenicek değiştirilmeden önceki haline gelicek fakat yeni bir seçenek açıldığında fps düşüceği için 10 saniye boyunca 10fps altında kaldığında ayarı eski haline getirsin.
+
+-Yol hesaplamaları backend ile gerçekleştirilicek backend den gelen veri ile iki nokta arasında olan en kısa ve güvenli kapalı baskın yol mavi, yine güvenli ama daha uzun yollar ise daha açık bir mavi olacak.
 
 # Tasarım Kuralları
 
@@ -70,4 +68,4 @@ Buse:Başkan yardımcısı
 
 # Ortak AI Ajanları
 
--ForAgents klasörüne(eğer öyle bir klasör yok ise oluştur) ne yaptığını ve diğer ajanalrla ortak planlananlar yazılıcak bu şekilde diğer ajanlar ile iletişim kurulucak
+-ForAgents klasörüne ne yaptığını ve diğer ajanalrla ortak planlananlar yazılıcak bu şekilde diğer ajanlar ile iletişim kurulucak
