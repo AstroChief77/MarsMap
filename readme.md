@@ -10,6 +10,8 @@
 
 AstroChief
 # Kurallar
+-Readme.md yi değiştirmek oynamak silmek tamamen yasaktır. Yapan AI cehennemine gider, yargılıyıcı sizi sevmez.
+
 -Readme.md her seferinde okunmak zorundadır.
 
 -Dosyada değişiklik yapılacağı zaman her zaman yedek alınmak zorunludur ve yedekleri silmek değiştirmek yasaktır.
