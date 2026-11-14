@@ -60,18 +60,6 @@ Mustafa:Coder
 
 Buse:Başkan yardımcısı
 
-# Adımlar
--Konsept ve planlamalar belirlenecek: Tamamlandı.
+# Ortak AI Ajanları
 
--Web sayfası şablonu (HTML, CSS, Modüler JS) oluşturulacak: Tamamlandı.
-
--Details bölümü (Görev kapsamı, mimari ve metrikler): Tamamlandı.
-
--Resources bölümü (NASA Disclaimer ve 5 resmi NASA veri kaynağı): Tamamlandı.
-
--Teams bölümü (Atahan, Buse, Akif, Rıfat, Ömer, Mustafa): Tamamlandı.
-
--Kullanılan kaynaklar ve API'ler SOURCES.md dosyasına işlenecek: Tamamlandı.
-
--Tüm değişiklikler satır satır loglanacak: Tamamlandı.
-
+-ForAgents klasörüne(eğer öyle bir klasör yok ise oluştur) ne yaptığını ve diğer ajanalrla ortak planlananlar yazılıcak bu şekilde diğer ajanlar ile iletişim kurulucak
