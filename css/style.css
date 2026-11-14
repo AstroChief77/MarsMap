@@ -1,0 +1,25 @@
+/**
+ * @file style.css
+ * @description AstroChief ana stil dosyası. Tüm modüler CSS dosyalarını birleştirir.
+ */
+
+@import url('./variables.css');
+@import url('./base.css');
+@import url('./navbar.css');
+@import url('./hero.css');
+@import url('./sections.css');
+@import url('./cards.css');
+@import url('./footer.css');
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc ana stil dosyası açıklaması.
+   - Satır 6: variables.css içe aktarımı (renk ve tasarım değişkenleri).
+   - Satır 7: base.css içe aktarımı (sıfırlama ve genel düzen).
+   - Satır 8: navbar.css içe aktarımı (menü ve navigasyon).
+   - Satır 9: hero.css içe aktarımı (karşılama alanı ve görsel efektler).
+   - Satır 10: sections.css içe aktarımı (bölüm başlıkları, metrikler ve yasal uyarılar).
+   - Satır 11: cards.css içe aktarımı (kaynak ve ekip kartları).
+   - Satır 12: footer.css içe aktarımı (sayfa alt alanı).
+   ========================================================================== */

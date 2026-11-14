@@ -1,0 +1,212 @@
+/**
+ * @file navbar.css
+ * @description Üst gezinti çubuğu (navbar), marka logosu ve mobil menü stilleri.
+ */
+
+#navbar-container {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+.main-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 2rem;
+  background: rgba(10, 12, 16, 0.75);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border-bottom: 1px solid var(--border-light);
+  transition: all var(--transition-normal);
+}
+
+.main-navbar.scrolled {
+  padding: 0.8rem 2rem;
+  background: rgba(10, 12, 16, 0.92);
+  border-bottom-color: var(--border-accent);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+/* Marka / Logo */
+.nav-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.brand-logo-icon {
+  font-size: 1.45rem;
+  filter: drop-shadow(0 0 8px var(--mars-primary-glow));
+}
+
+.brand-text .highlight {
+  color: var(--mars-primary);
+  text-shadow: 0 0 12px var(--mars-primary-glow);
+}
+
+.brand-subtext {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 1px;
+}
+
+/* Navigasyon Menüsü */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 2rem;
+}
+
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  position: relative;
+  padding: 0.4rem 0;
+  transition: color var(--transition-fast);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--mars-primary);
+  box-shadow: 0 0 8px var(--mars-primary);
+  transition: width var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Aksiyon Butonu */
+.btn-nav-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--mars-primary) 0%, var(--mars-deep) 100%);
+  border-radius: var(--border-radius-full);
+  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.btn-nav-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Mobil Hamburger Menü Butonu */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 32px;
+  height: 26px;
+  background: transparent;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.hamburger-bar {
+  width: 100%;
+  height: 2.5px;
+  background-color: var(--text-main);
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+/* Mobil Responsive Kuralları */
+@media (max-width: 820px) {
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: rgba(14, 18, 26, 0.97);
+    backdrop-filter: blur(16px);
+    border-left: 1px solid var(--border-accent);
+    flex-direction: column;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 3rem 2rem;
+    transition: right var(--transition-normal);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+  }
+
+  .nav-menu.is-open {
+    right: 0;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 1.8rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-link {
+    font-size: 1.15rem;
+  }
+
+  /* Hamburger Animasyonu */
+  .nav-toggle.is-active .hamburger-bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .nav-toggle.is-active .hamburger-bar:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-toggle.is-active .hamburger-bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc navbar CSS dosya başlığı.
+   - Satır 6-11: #navbar-container sticky konumlandırma kuralları.
+   - Satır 13-23: .main-navbar flexbox düzeni, cam efekti (backdrop-filter) ve kenarlıklar.
+   - Satır 25-30: .main-navbar.scrolled kaydırma anındaki kompakt görünüm stili.
+   - Satır 32-60: Logo ve marka metni, parlama efekti (drop-shadow) ve alt başlık kuralları.
+   - Satır 62-97: Navigasyon linkleri ve hover animasyonu (alt çizgi genişlemesi).
+   - Satır 99-116: Navigasyon CTA butonu gradyanı ve hover derinliği.
+   - Satır 118-135: Mobil hamburger menü ikonu tasarımı.
+   - Satır 137-180: Medya sorgusu (@media max-width: 820px); sağdan kayan çekmece mobil menü ve hamburger X animasyonu.
+   ========================================================================== */
