@@ -73,35 +73,31 @@
       const pitchRad = (pitch * Math.PI) / 180;
       const limbRadius = radius * rMaxLimb;
       const limbVisible = limbRadius < Math.hypot(cx, cy) * 1.18;
-      const sinP = Math.sin(pitchRad);
-      const tiltRad = pitchRad * 0.45, cosT = Math.cos(tiltRad), sinT = Math.sin(tiltRad);
-      const yForeshorten = 1.0 - 0.36 * sinP;
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const pivotZ = Math.max(0, Math.min(1, (clampedZoom - 1.1) / 1.1));
+      const sphereCy = cy + pivotZ * sinP * radius;
 
-      // 1. Dis Mars atmosferi kehribar limb isimasi (kure her zaman ekranin tam ortasinda: cx, cy)
+      // 1. Dis Mars atmosferi kehribar limb isimasi (Google Earth tipi tam yuvarlak 3D kure)
       if (limbVisible) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.scale(1, yForeshorten);
-        const atmo = ctx.createRadialGradient(0, 0, radius * 0.94, 0, 0, limbRadius * 1.10);
+        const atmo = ctx.createRadialGradient(cx, sphereCy, radius * 0.94, cx, sphereCy, limbRadius * 1.10);
         atmo.addColorStop(0.0, "rgba(235, 128, 70, 0.5)");
         atmo.addColorStop(0.45, "rgba(205, 88, 38, 0.2)");
         atmo.addColorStop(1.0, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = atmo;
         ctx.beginPath();
-        ctx.arc(0, 0, limbRadius * 1.10, 0, Math.PI * 2);
+        ctx.arc(cx, sphereCy, limbRadius * 1.10, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
       }
 
       if (!this.tileLoader.hasAnyReadyTile(activeLayerId)) {
-        this.drawLoadingSphere(ctx, cx, cy, Math.min(radius, width * 0.45));
+        this.drawLoadingSphere(ctx, cx, sphereCy, Math.min(radius, width * 0.45));
         return [];
       }
 
       const sx0 = Math.max(0, Math.floor(cx - limbRadius - 4));
-      const sy0 = Math.max(0, Math.floor(cy - limbRadius * yForeshorten - 6));
+      const sy0 = Math.max(0, Math.floor(sphereCy - limbRadius - 6));
       const sx1 = Math.min(width, Math.ceil(cx + limbRadius + 4));
-      const sy1 = Math.min(height, Math.ceil(cy + limbRadius * yForeshorten + 6));
+      const sy1 = Math.min(height, Math.ceil(sphereCy + limbRadius + 6));
       const cropW = sx1 - sx0;
       const cropH = sy1 - sy0;
 
@@ -168,11 +164,11 @@
         ctx.strokeStyle = "rgba(244, 145, 92, 0.55)";
         ctx.lineWidth = 1.4;
         ctx.beginPath();
-        ctx.ellipse(cx, cy, radius, radius * yForeshorten, 0, 0, Math.PI * 2);
+        ctx.arc(cx, sphereCy, radius, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // 2. Vektor katmanlari icin merkezi sabit (cx, cy) + 3D Egim/Yorunge projeksiyon fonksiyonu
+      // 2. Vektor katmanlari icin Google Earth tipi tam kuresel 3D projeksiyon fonksiyonu
       const pxPerDeg = radius / 57.2958;
       const degToRad = Math.PI / 180;
       const phi0 = rotLat * degToRad, lam0 = rotLon * degToRad;
@@ -194,16 +190,16 @@
         const up = y0 * sinP0 + z0 * cosP0;
         const x1 = east * cosY - north * sinY;
         const y1 = east * sinY + north * cosY;
-        const y2 = y1 * cosT - up * sinT;
-        const z2 = y1 * sinT + up * cosT;
+        const dz0 = up * rScale - pivotZ;
         const screenX = x1 * rScale;
-        const screenY = (y2 * rScale + dr * sinP * 1.35 * Math.max(0, z2)) * yForeshorten;
+        const screenY = y1 * rScale * cosP + dz0 * sinP;
+        const depthZ = -y1 * rScale * sinP + dz0 * cosP + pivotZ;
 
         return {
           x: cx + screenX * radius,
           y: cy - screenY * radius,
-          z: z2 * rScale,
-          visible: z2 > 0.04,
+          z: depthZ,
+          visible: up > 0.04 && depthZ > -0.15,
           pxPerDeg
         };
       };
@@ -242,9 +238,8 @@
       const sinP0 = Math.sin(phi0), cosP0 = Math.cos(phi0);
       const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
       const yawRad = ((camYaw || 0) * Math.PI) / 180;
-      const sinP = Math.sin(pitchRad), cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-      const tiltRad = pitchRad * 0.45, cosT = Math.cos(tiltRad), sinT = Math.sin(tiltRad);
-      const invYForeshorten = 1.0 / (1.0 - 0.36 * sinP);
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad), cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const pivotZ = Math.max(0, Math.min(1, (zoom - 1.1) / 1.1));
       const invTwoPi = 1 / (Math.PI * 2), invPi = 1 / Math.PI, halfPi = Math.PI * 0.5;
 
       const invScale = 1 / scale, invRadius = 1 / radius, step = invScale * invRadius;
@@ -331,27 +326,26 @@
       };
 
       const evalRay = (nx, ny) => {
-        const nyUn = ny * invYForeshorten;
-        const baseR2 = nx * nx + nyUn * nyUn;
+        const nySphere = ny + pivotZ * sinP;
+        const baseR2 = nx * nx + nySphere * nySphere;
         if (baseR2 >= rMaxLimbSq) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
 
-        let dr = 0;
-        let rSurf = baseR2 < 1.0 ? 1.0 : rMaxLimb;
-        let z2 = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, baseR2)));
-        let u = 0, v = 0, vy = 0, rhoSq = baseR2, topoSample = null;
+        let rSurf = 1.0, u = 0, v = 0, vy = 0, topoSample = null;
+        let x1 = 0, y1 = 0, z1 = 1;
+        const B = pivotZ * cosP;
         const passes = (!fastMode && elevGrid && (baseR2 > 0.78 || camPitch > 8)) ? 2 : 1;
 
         for (let it = 0; it < passes; it++) {
-          const rx = nx / rSurf;
-          const ry = (nyUn - dr * sinP * 1.35 * z2) / rSurf;
-          rhoSq = rx * rx + ry * ry;
-          if (rhoSq > 1.0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
-          z2 = Math.sqrt(1.0 - rhoSq);
+          const C = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * sinP - rSurf * rSurf;
+          const disc = B * B - C;
+          if (disc < 0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
+          const zRot = -B + Math.sqrt(disc);
+          const py3 = ny * cosP - zRot * sinP;
+          const pz3 = pivotZ + ny * sinP + zRot * cosP;
+          x1 = nx / rSurf; y1 = py3 / rSurf; z1 = pz3 / rSurf;
 
-          const y1 = ry * cosT + z2 * sinT;
-          const z1 = -ry * sinT + z2 * cosT;
-          const east = rx * cosY + y1 * sinY;
-          const north = -rx * sinY + y1 * cosY;
+          const east = x1 * cosY + y1 * sinY;
+          const north = -x1 * sinY + y1 * cosY;
           const y0 = north * cosP0 + z1 * sinP0;
           const z0 = -north * sinP0 + z1 * cosP0;
           vy = y0 > 1 ? 1 : y0 < -1 ? -1 : y0;
@@ -365,13 +359,12 @@
             rSurf = 1.0 + dr;
           }
         }
-        const finalRx = nx / rSurf;
-        const finalRy = (nyUn - dr * sinP * 1.35 * z2) / rSurf;
-        const finalRhoSq = finalRx * finalRx + finalRy * finalRy;
-        if (finalRhoSq > 1.0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
+        const Cfin = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * sinP - rSurf * rSurf;
+        const discFin = B * B - Cfin;
+        if (discFin < 0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
 
-        const nzNorm = Math.sqrt(1.0 - finalRhoSq);
-        let diff = Math.max(minLight, -0.34 * nx + 0.26 * nyUn + 0.90 * nzNorm);
+        const nzNorm = Math.min(1, Math.max(0.02, Math.sqrt(discFin) / rSurf));
+        let diff = Math.max(minLight, -0.34 * nx + 0.26 * nySphere + 0.90 * nzNorm);
         const om = 1.0 - nzNorm;
         const limb = nzNorm < 0.62 ? om * om * om : 0;
 
