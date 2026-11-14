@@ -440,6 +440,20 @@
   background: var(--mars-red);
 }
 
+.zoom-btn-3d {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  background: var(--ink-black) !important;
+  color: var(--bg-white) !important;
+  border-color: var(--mars-red) !important;
+}
+
+.zoom-btn-peak {
+  font-size: 15px !important;
+  background: var(--mars-red) !important;
+  color: var(--bg-white) !important;
+}
+
 /* Toast ve FPS Koruma Uyari Bandi */
 .app-toast {
   position: absolute;

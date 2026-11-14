@@ -224,3 +224,17 @@
 - backend/ (Cargo.toml, src/lib.rs, src/main.rs): Mustafa dalından çekilip hem native Windows ikilisi (backend/target/release/backend.exe) hem de WebAssembly modülü (js/wasm/backend_bg.wasm + js/wasm/backend.js) olarak derlendi.
 - js/services/BackendApiService.js: Derlenen Rust WebAssembly modülündeki `find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y)` fonksiyonuna bağlandı.
 - tools/WinLauncher.cs & serve.ps1: `.wasm` (`application/wasm`) MIME türü eklendi.
+
+[2026-11-14] — 3D Gezegen Gezinme ve Gerçek Boyutlu NASA MGS MOLA Topografya Yükseltme (v3.3.0):
+- Yedek Klasörü: `backups/snapshot_20261114_3d_topography/` içine değişiklik öncesi tüm dosyaların tam kopyası alındı.
+- `js/services/MarsTopographyService.js` (Satır 1-562):
+  * Mars fiziksel yarıçapı (`3,389,500 m`) ve NASA MGS MOLA yükseklik sınırları (`-8,200 m .. +21,229 m`) üzerine `1024x512` `Int16Array` küresel DEM (`elevGrid`) ve `Int8Array` Doğu/Kuzey yüzey eğim normalleri (`normXGrid`, `normYGrid`) oluşturuldu.
+  * Olympus Mons (`+21,229 m`), Ascraeus Mons (`+18,209 m`), Arsia Mons (`+17,779 m`), Pavonis Mons (`+14,058 m`), Elysium Mons (`+14,127 m`), Alba Mons (`+6,815 m`), Valles Marineris (`-7,000 m`), Hellas Planitia (`-7,152 m`), Gale Krateri (`-4,400 m`) & Aeolis Mons / Mount Sharp (`+5,500 m`), Jezero (`-2,570 m`) ve Korolev (`-2,000 m`) gerçek fiziksel boyutlarıyla kalibre edildi.
+  * `./data/tiles/mars-mola-elevation/` karoları gerçek zamanlı okunarak DEM ızgarasına kaynaştırıldı (`syncWithMolaTiles`).
+  * 3D eğimli kamera (`camPitch`, `camYaw`) ve gerçek rakımlı yüzey projeksiyonu (`projectToElevatedSphere`) ile iteratif ters ışın-yüzey kesişimi (`screenToElevatedMars3D`) eklendi.
+- `js/models/AppConfig.js` (Satır 59-67): `camPitch: 28`, `camYaw: 0`, `topoReliefScale: 1.0`, `enable3DTerrain: true` varsayılan 3D topografya ayarları eklendi.
+- `js/services/RouteGeometryHelper.js` (Satır 134-182): `screenToMarsCoords3D` ve `estimateElevationM` metodları `MarsTopographyService` gerçek MOLA DEM verilerine bağlandı.
+- `js/renderers/OverlayDrawHelper.js` (Satır 10-36): `projectToSphere` metodu 3D topografik yükseltme ve 3D kamera eğimi (`camPitch`, `camYaw`) ile hizalandı.
+- `js/renderers/Map3DRenderer.js` (Satır 46-724): `raycastSphereCrop` ve `drawFallbackShadedSphere` içine gerçek boyutlu 3D MOLA yüzey yükseltmesi, ufukta dağ silüetleri, piksel bazlı 3D yüzey eğim ışıklandırması (hillshade) ve paralaks eklendi.
+- `js/components/MarsNavigatorController.js` (Satır 34-790): Sağ-tık / Shift+Sol-tık ile 3D kamera eğimi (`0°..70°`) ve pusula dönüşü (`0°..360°`), `WASD / Ok` tuşları ve `Q/E/R/F` ile 3D gezegen gezinme, sağ alt `3D Eğim` ve `⛰ Zirve Gez` butonları, canlı MOLA rakım (`m`) ve eğim (`°`) telemetrisi eklendi.
+- `index.html` (Satır 57-59) ve `css/controls.css` (Satır 439-456): `MarsTopographyService.js` betiği ve 3D HUD buton stilleri eklendi.

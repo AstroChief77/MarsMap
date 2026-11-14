@@ -163,67 +163,78 @@
     }
 
     /**
-     * Gorunur ekran kesiti uzerinde 4x4 blok trig enterpolasyonu + tek-karo hizli bilineer ornekleme
+     * Gorunur ekran kesiti uzerinde 3D MOLA topografik yukseltme + 3D kamera egimi (Pitch/Yaw) isin izleme motoru
      */
-    raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll) {
+    raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0) {
       const levels = this.tileLoader.getLayerFastTables(layerId);
       const out = this.cropImgData.data;
       const out32 = this.cropBuf32;
+      const topo = ns.marsTopo;
+      const elevGrid = (topo && reliefScale > 0) ? topo.elevGrid : null;
+      const normXGrid = (topo && reliefScale > 0) ? topo.normXGrid : null;
+      const normYGrid = (topo && reliefScale > 0) ? topo.normYGrid : null;
+      const radFactor = (topo && reliefScale > 0) ? topo.getRadialScaleFactor(zoom, camPitch, reliefScale) : 0;
+      const centerElevM = (topo && reliefScale > 0) ? topo.getElevationMeters(rotLat, rotLon) : 0;
+      const rCenter = 1.0 + centerElevM * radFactor;
+      const rMaxLimb = 1.0 + 21500 * radFactor;
+      const rMaxLimbSq = rMaxLimb * rMaxLimb;
 
       const phi0 = (rotLat * Math.PI) / 180;
       const lam0 = (rotLon * Math.PI) / 180;
-      const sinP0 = Math.sin(phi0);
-      const cosP0 = Math.cos(phi0);
-      const invTwoPi = 1 / (Math.PI * 2);
-      const invPi = 1 / Math.PI;
-      const halfPi = Math.PI / 2;
+      const sinP0 = Math.sin(phi0), cosP0 = Math.cos(phi0);
+      const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
+      const yawRad = ((camYaw || 0) * Math.PI) / 180;
+      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+      const B = rCenter * cosP;
+      const invTwoPi = 1 / (Math.PI * 2), invPi = 1 / Math.PI, halfPi = Math.PI / 2;
 
-      const invScale = 1 / scale;
-      const invRadius = 1 / radius;
+      const invScale = 1 / scale, invRadius = 1 / radius;
       const step = invScale * invRadius;
       const nxBase = (sx0 + 0.5 * invScale - cx) * invRadius;
       const nyBase = (cy - (sy0 + 0.5 * invScale)) * invRadius;
-      const minLight = Math.min(0.68, Math.max(0.42, 0.42 + (zoom - 1.0) * 0.12));
+      const minLight = Math.min(0.68, Math.max(0.38, 0.38 + (zoom - 1.0) * 0.10));
+      const shadeBoost = Math.min(0.68, 0.32 + Math.abs(camPitch) * 0.0045) * Math.min(2.0, reliefScale || 1);
+      const parallaxU = sinY * sinP * radFactor * 0.22;
+      const parallaxV = cosY * sinP * radFactor * 0.22;
 
-      let lastZ = -1;
-      let lastTx = -1;
-      let lastTy = -1;
-      let lastPixels = null;
+      let lastZ = -1, lastTx = -1, lastTy = -1, lastPixels = null;
 
-      const sampleAtUV = (u, v, diff, limb, pIdx) => {
-        let cu = u - Math.floor(u);
-        if (cu < 0) cu += 1;
-        const cv = v < 0 ? 0 : v >= 0.999999 ? 0.999999 : v;
+      const applyTopoMod = (uIn, vIn, baseDiff) => {
+        if (!elevGrid) return { u: uIn, v: vIn, diff: baseDiff };
+        let cu0 = uIn - Math.floor(uIn); if (cu0 < 0) cu0 += 1;
+        const cv0 = vIn <= 0 ? 0 : vIn >= 0.99999 ? 0.99999 : vIn;
+        const idx0 = (((cv0 * 511) | 0) << 10) | ((cu0 * 1024) & 1023);
+        const h = elevGrid[idx0];
+        const u = uIn - h * parallaxU;
+        const v = vIn + h * parallaxV;
+        let cu = u - Math.floor(u); if (cu < 0) cu += 1;
+        const cv = v <= 0 ? 0 : v >= 0.99999 ? 0.99999 : v;
+        const idx = (((cv * 511) | 0) << 10) | ((cu * 1024) & 1023);
+        const sx = normXGrid[idx] * 0.007874;
+        const sy = normYGrid[idx] * 0.007874;
+        const slopeLight = (-0.46 * sx + 0.38 * sy) * shadeBoost + elevGrid[idx] * 0.0000045;
+        return { u: cu, v: cv, diff: Math.max(0.22, Math.min(1.42, baseDiff + slopeLight)) };
+      };
 
-        let pixels = null;
-        let gx = 0;
-        let gy = 0;
-        let tx = 0;
-        let ty = 0;
+      const sampleAtUV = (uRaw, vRaw, rawDiff, limb, pIdx) => {
+        const mod = applyTopoMod(uRaw, vRaw, rawDiff);
+        let cu = mod.u - Math.floor(mod.u); if (cu < 0) cu += 1;
+        const cv = mod.v < 0 ? 0 : mod.v >= 0.999999 ? 0.999999 : mod.v;
+        const diff = mod.diff;
 
+        let pixels = null, gx = 0, gy = 0, tx = 0, ty = 0;
         for (let z = targetZ; z >= 0; z--) {
-          const cols = 1 << (z + 1);
-          const rows = 1 << z;
-          gx = cu * cols;
-          gy = cv * rows;
-          tx = gx | 0;
-          if (tx >= cols) tx = cols - 1;
-          ty = gy | 0;
-          if (ty >= rows) ty = rows - 1;
-
-          if (z === lastZ && tx === lastTx && ty === lastTy && lastPixels) {
-            pixels = lastPixels;
-            break;
-          }
+          const cols = 1 << (z + 1), rows = 1 << z;
+          gx = cu * cols; gy = cv * rows;
+          tx = gx | 0; if (tx >= cols) tx = cols - 1;
+          ty = gy | 0; if (ty >= rows) ty = rows - 1;
+          if (z === lastZ && tx === lastTx && ty === lastTy && lastPixels) { pixels = lastPixels; break; }
           const rec = levels[z].get((ty << 12) | tx);
           if (!rec || rec.status !== "ready") continue;
           const p = rec.pixels || this.tileLoader.extractTilePixels(rec);
-          if (!p) {
-            if (rec.tainted) return false;
-            continue;
-          }
-          lastZ = z; lastTx = tx; lastTy = ty; lastPixels = p;
-          pixels = p;
+          if (!p) { if (rec.tainted) return false; continue; }
+          lastZ = z; lastTx = tx; lastTy = ty; lastPixels = p; pixels = p;
           break;
         }
 
@@ -233,103 +244,94 @@
           return true;
         }
 
-        const fx = (gx - tx) * 255.0;
-        const fy = (gy - ty) * 255.0;
-        const px0 = fx | 0;
-        const py0 = fy | 0;
-        const px1 = px0 < 255 ? px0 + 1 : 255;
-        const py1 = py0 < 255 ? py0 + 1 : 255;
-        const dx = fx - px0;
-        const dy = fy - py0;
-        const odx = 1 - dx;
-        const ody = 1 - dy;
-        const w00 = odx * ody;
-        const w10 = dx * ody;
-        const w01 = odx * dy;
-        const w11 = dx * dy;
-
-        const i00 = ((py0 << 8) + px0) << 2;
-        const i10 = ((py0 << 8) + px1) << 2;
-        const i01 = ((py1 << 8) + px0) << 2;
-        const i11 = ((py1 << 8) + px1) << 2;
+        const fx = (gx - tx) * 255.0, fy = (gy - ty) * 255.0;
+        const px0 = fx | 0, py0 = fy | 0;
+        const px1 = px0 < 255 ? px0 + 1 : 255, py1 = py0 < 255 ? py0 + 1 : 255;
+        const dx = fx - px0, dy = fy - py0, odx = 1 - dx, ody = 1 - dy;
+        const w00 = odx * ody, w10 = dx * ody, w01 = odx * dy, w11 = dx * dy;
+        const i00 = ((py0 << 8) + px0) << 2, i10 = ((py0 << 8) + px1) << 2;
+        const i01 = ((py1 << 8) + px0) << 2, i11 = ((py1 << 8) + px1) << 2;
 
         const rTex = (pixels[i00] * w00 + pixels[i10] * w10 + pixels[i01] * w01 + pixels[i11] * w11) * diff + limb * 140;
         const gTex = (pixels[i00 + 1] * w00 + pixels[i10 + 1] * w10 + pixels[i01 + 1] * w01 + pixels[i11 + 1] * w11) * diff + limb * 66;
         const bTex = (pixels[i00 + 2] * w00 + pixels[i10 + 2] * w10 + pixels[i01 + 2] * w01 + pixels[i11 + 2] * w11) * diff + limb * 32;
-
-        const ri = rTex >= 255 ? 255 : (rTex | 0);
-        const gi = gTex >= 255 ? 255 : (gTex | 0);
-        const bi = bTex >= 255 ? 255 : (bTex | 0);
-        if (out32) {
-          out32[pIdx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
-        } else {
-          const o = pIdx << 2;
-          out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255;
-        }
+        const ri = rTex >= 255 ? 255 : (rTex | 0), gi = gTex >= 255 ? 255 : (gTex | 0), bi = bTex >= 255 ? 255 : (bTex | 0);
+        if (out32) out32[pIdx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
+        else { const o = pIdx << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
         return true;
       };
 
+      const evalRay = (nx, ny) => {
+        const A = rCenter * sinP + ny;
+        const rhoSq = nx * nx + A * A;
+        if (rhoSq >= rMaxLimbSq) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
+
+        let rSurf = rhoSq < rCenter * rCenter ? rCenter : rMaxLimb;
+        let u = 0, v = 0, vy = 0, up = 0;
+        const passes = (elevGrid && (rhoSq > 0.78 || camPitch > 6)) ? 2 : 1;
+
+        for (let it = 0; it < passes; it++) {
+          const disc = rSurf * rSurf - rhoSq;
+          if (disc < 0) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
+          const t = Math.sqrt(disc) - B;
+          const ry = ny * cosP - t * sinP;
+          up = rCenter + ny * sinP + t * cosP;
+          if (up <= 0.005) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
+
+          const east = nx * cosY + ry * sinY;
+          const north = -nx * sinY + ry * cosY;
+          const y0 = north * cosP0 + up * sinP0;
+          const z0 = -north * sinP0 + up * cosP0;
+          const invNorm = 1 / (Math.hypot(east, y0, z0) || 1);
+          vy = Math.max(-1, Math.min(1, y0 * invNorm));
+          const lat = Math.asin(vy);
+          const lon = lam0 + Math.atan2(east, z0);
+          u = (lon + Math.PI) * invTwoPi;
+          v = (halfPi - lat) * invPi;
+          if (elevGrid) {
+            const h = topo.getElevationMetersUV(u, v);
+            rSurf = 1.0 + h * radFactor;
+          }
+        }
+        if (rhoSq > rSurf * rSurf) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
+        const nzNorm = Math.min(1, up / rSurf);
+        const diff = Math.max(minLight, -0.34 * nx + 0.26 * ny + 0.90 * nzNorm);
+        const limb = nzNorm < 0.62 ? Math.pow(1.0 - nzNorm, 2.8) : 0;
+        return { hit: true, r2: rhoSq / (rSurf * rSurf), nx, ny, vy, u, v, diff, limb };
+      };
+
       const renderPixelExact = (bx, by, pIdx) => {
-        const nx = nxBase + bx * step;
-        const ny = nyBase - by * step;
-        const r2 = nx * nx + ny * ny;
-        if (r2 >= 1.0) {
+        const res = evalRay(nxBase + bx * step, nyBase - by * step);
+        if (!res.hit) {
           if (out32) out32[pIdx] = 0; else out[(pIdx << 2) + 3] = 0;
           return true;
         }
-        const nz = Math.sqrt(1.0 - r2);
-        const vy = ny * cosP0 + nz * sinP0;
-        const vz = -ny * sinP0 + nz * cosP0;
-        const lat = Math.asin(vy > 1 ? 1 : vy < -1 ? -1 : vy);
-        const lon = lam0 + Math.atan2(nx, vz);
-        const u = (lon + Math.PI) * invTwoPi;
-        const v = (halfPi - lat) * invPi;
-        const diff = Math.max(minLight, -0.34 * nx + 0.26 * ny + 0.90 * nz);
-        const limb = nz < 0.65 ? Math.pow(1.0 - nz, 2.8) : 0;
-        return sampleAtUV(u, v, diff, limb, pIdx);
+        return sampleAtUV(res.u, res.v, res.diff, res.limb, pIdx);
       };
 
       const evalCorner = (bx, by) => {
-        const nx = nxBase + bx * step;
-        const ny = nyBase - by * step;
-        const r2 = nx * nx + ny * ny;
-        if (r2 >= 0.94) return { r2, nx, ny, vy: 1 };
-        const nz = Math.sqrt(1.0 - r2);
-        const vy = ny * cosP0 + nz * sinP0;
-        if (vy > 0.96 || vy < -0.96) return { r2, nx, ny, vy };
-        const vz = -ny * sinP0 + nz * cosP0;
-        const lat = Math.asin(vy);
-        const lon = lam0 + Math.atan2(nx, vz);
-        let u = (lon + Math.PI) * invTwoPi;
-        u = u - Math.floor(u);
-        const v = (halfPi - lat) * invPi;
-        const diff = Math.max(minLight, -0.34 * nx + 0.26 * ny + 0.90 * nz);
-        const limb = nz < 0.65 ? Math.pow(1.0 - nz, 2.8) : 0;
-        return { r2, nx, ny, vy, u, v, diff, limb };
+        const res = evalRay(nxBase + bx * step, nyBase - by * step);
+        if (!res.hit || res.r2 >= 0.90 || Math.abs(res.vy) >= 0.96) return res;
+        res.u = res.u - Math.floor(res.u);
+        return res;
       };
 
       const findUniformTile = (uMin, uMax, vMin, vMax) => {
         if (uMin < 0 || uMax >= 0.999999 || vMin < 0 || vMax >= 0.999999) return null;
-        const topCols = 1 << (targetZ + 1);
-        const topRows = 1 << targetZ;
+        const topCols = 1 << (targetZ + 1), topRows = 1 << targetZ;
         if (((uMin * topCols) | 0) !== ((uMax * topCols) | 0)) return null;
         if (((vMin * topRows) | 0) !== ((vMax * topRows) | 0)) return null;
 
         for (let z = targetZ; z >= 0; z--) {
-          const cols = 1 << (z + 1);
-          const rows = 1 << z;
-          const tx = (uMin * cols) | 0;
-          const ty = (vMin * rows) | 0;
+          const cols = 1 << (z + 1), rows = 1 << z;
+          const tx = (uMin * cols) | 0, ty = (vMin * rows) | 0;
           if (z === lastZ && tx === lastTx && ty === lastTy && lastPixels) {
             return { pixels: lastPixels, cols, rows, tx, ty };
           }
           const rec = levels[z].get((ty << 12) | tx);
           if (!rec || rec.status !== "ready") continue;
           const p = rec.pixels || this.tileLoader.extractTilePixels(rec);
-          if (!p) {
-            if (rec.tainted) return { tainted: true };
-            continue;
-          }
+          if (!p) { if (rec.tainted) return { tainted: true }; continue; }
           lastZ = z; lastTx = tx; lastTy = ty; lastPixels = p;
           return { pixels: p, cols, rows, tx, ty };
         }
@@ -347,7 +349,8 @@
             const c01 = evalCorner(bx0, by0 + 4);
             const c11 = evalCorner(bx0 + 4, by0 + 4);
 
-            if (c00.r2 >= 1.0 && c10.r2 >= 1.0 && c01.r2 >= 1.0 && c11.r2 >= 1.0 &&
+            if (!c00.hit && !c10.hit && !c01.hit && !c11.hit &&
+                c00.r2 >= rMaxLimbSq && c10.r2 >= rMaxLimbSq && c01.r2 >= rMaxLimbSq && c11.r2 >= rMaxLimbSq &&
                 c00.nx * c10.nx > 0 && c00.ny * c01.ny > 0) {
               if (out32) {
                 for (let dy = 0; dy < 4; dy++) {
@@ -363,7 +366,8 @@
               continue;
             }
 
-            if (c00.r2 < 0.94 && c10.r2 < 0.94 && c01.r2 < 0.94 && c11.r2 < 0.94 &&
+            if (c00.hit && c10.hit && c01.hit && c11.hit &&
+                c00.r2 < 0.90 && c10.r2 < 0.90 && c01.r2 < 0.90 && c11.r2 < 0.90 &&
                 Math.abs(c00.vy) < 0.96 && Math.abs(c10.vy) < 0.96 &&
                 Math.abs(c01.vy) < 0.96 && Math.abs(c11.vy) < 0.96) {
               const u00 = c00.u;
@@ -372,10 +376,10 @@
               if (u01 - u00 > 0.5) u01 -= 1; else if (u00 - u01 > 0.5) u01 += 1;
               if (u11 - u00 > 0.5) u11 -= 1; else if (u00 - u11 > 0.5) u11 += 1;
 
-              const uMin = Math.min(u00, u10, u01, u11);
-              const uMax = Math.max(u00, u10, u01, u11);
-              const vMin = Math.min(c00.v, c10.v, c01.v, c11.v);
-              const vMax = Math.max(c00.v, c10.v, c01.v, c11.v);
+              const uMin = Math.min(u00, u10, u01, u11) - 0.004;
+              const uMax = Math.max(u00, u10, u01, u11) + 0.004;
+              const vMin = Math.min(c00.v, c10.v, c01.v, c11.v) - 0.004;
+              const vMax = Math.max(c00.v, c10.v, c01.v, c11.v) + 0.004;
               const uniform = findUniformTile(uMin, uMax, vMin, vMax);
               if (uniform) {
                 if (uniform.tainted) return false;
@@ -383,42 +387,29 @@
                 const doLimb = c00.limb > 0 || c10.limb > 0 || c01.limb > 0 || c11.limb > 0;
 
                 for (let dy = 0; dy < 4; dy++) {
-                  const ty = dy * 0.25;
-                  const oty = 1 - ty;
-                  const uL = u00 * oty + u01 * ty;
-                  const uR = u10 * oty + u11 * ty;
-                  const vL = c00.v * oty + c01.v * ty;
-                  const vR = c10.v * oty + c11.v * ty;
-                  const dL = c00.diff * oty + c01.diff * ty;
-                  const dR = c10.diff * oty + c11.diff * ty;
+                  const ty = dy * 0.25, oty = 1 - ty;
+                  const uL = u00 * oty + u01 * ty, uR = u10 * oty + u11 * ty;
+                  const vL = c00.v * oty + c01.v * ty, vR = c10.v * oty + c11.v * ty;
+                  const dL = c00.diff * oty + c01.diff * ty, dR = c10.diff * oty + c11.diff * ty;
                   const lL = doLimb ? (c00.limb * oty + c01.limb * ty) : 0;
                   const lR = doLimb ? (c10.limb * oty + c11.limb * ty) : 0;
                   const rowPix = (by0 + dy) * bw + bx0;
 
                   for (let dx = 0; dx < 4; dx++) {
-                    const t = dx * 0.25;
-                    const ot = 1 - t;
-                    const fx = ((uL * ot + uR * t) * cols - txOff) * 255.0;
-                    const fy = ((vL * ot + vR * t) * rows - tyOff) * 255.0;
+                    const t = dx * 0.25, ot = 1 - t;
+                    const mod = applyTopoMod(uL * ot + uR * t, vL * ot + vR * t, dL * ot + dR * t);
+                    const fx = (mod.u * cols - txOff) * 255.0;
+                    const fy = (mod.v * rows - tyOff) * 255.0;
                     const px0 = fx <= 0 ? 0 : fx >= 255 ? 255 : (fx | 0);
                     const py0 = fy <= 0 ? 0 : fy >= 255 ? 255 : (fy | 0);
-                    const px1 = px0 < 255 ? px0 + 1 : 255;
-                    const py1 = py0 < 255 ? py0 + 1 : 255;
-                    const fdx = fx - px0;
-                    const fdy = fy - py0;
-                    const odx = 1 - fdx;
-                    const ody = 1 - fdy;
-                    const w00 = odx * ody;
-                    const w10 = fdx * ody;
-                    const w01 = odx * fdy;
-                    const w11 = fdx * fdy;
+                    const px1 = px0 < 255 ? px0 + 1 : 255, py1 = py0 < 255 ? py0 + 1 : 255;
+                    const fdx = Math.max(0, Math.min(1, fx - px0)), fdy = Math.max(0, Math.min(1, fy - py0));
+                    const odx = 1 - fdx, ody = 1 - fdy;
+                    const w00 = odx * ody, w10 = fdx * ody, w01 = odx * fdy, w11 = fdx * fdy;
 
-                    const i00 = ((py0 << 8) + px0) << 2;
-                    const i10 = ((py0 << 8) + px1) << 2;
-                    const i01 = ((py1 << 8) + px0) << 2;
-                    const i11 = ((py1 << 8) + px1) << 2;
-
-                    const diff = dL * ot + dR * t;
+                    const i00 = ((py0 << 8) + px0) << 2, i10 = ((py0 << 8) + px1) << 2;
+                    const i01 = ((py1 << 8) + px0) << 2, i11 = ((py1 << 8) + px1) << 2;
+                    const diff = mod.diff;
                     let r = (pixels[i00] * w00 + pixels[i10] * w10 + pixels[i01] * w01 + pixels[i11] * w11) * diff;
                     let g = (pixels[i00 + 1] * w00 + pixels[i10 + 1] * w10 + pixels[i01 + 1] * w01 + pixels[i11 + 1] * w11) * diff;
                     let b = (pixels[i00 + 2] * w00 + pixels[i10 + 2] * w10 + pixels[i01 + 2] * w01 + pixels[i11 + 2] * w11) * diff;
@@ -426,43 +417,25 @@
                       const limb = lL * ot + lR * t;
                       r += limb * 140; g += limb * 66; b += limb * 32;
                     }
-                    const ri = r >= 255 ? 255 : (r | 0);
-                    const gi = g >= 255 ? 255 : (g | 0);
-                    const bi = b >= 255 ? 255 : (b | 0);
-                    if (out32) {
-                      out32[rowPix + dx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
-                    } else {
-                      const o = (rowPix + dx) << 2;
-                      out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255;
-                    }
+                    const ri = r >= 255 ? 255 : (r | 0), gi = g >= 255 ? 255 : (g | 0), bi = b >= 255 ? 255 : (b | 0);
+                    if (out32) out32[rowPix + dx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
+                    else { const o = (rowPix + dx) << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
                   }
                 }
                 continue;
               }
 
               for (let dy = 0; dy < 4; dy++) {
-                const ty = dy * 0.25;
-                const oty = 1 - ty;
-                const uL = u00 * oty + u01 * ty;
-                const uR = u10 * oty + u11 * ty;
-                const vL = c00.v * oty + c01.v * ty;
-                const vR = c10.v * oty + c11.v * ty;
-                const dL = c00.diff * oty + c01.diff * ty;
-                const dR = c10.diff * oty + c11.diff * ty;
-                const lL = c00.limb * oty + c01.limb * ty;
-                const lR = c10.limb * oty + c11.limb * ty;
+                const ty = dy * 0.25, oty = 1 - ty;
+                const uL = u00 * oty + u01 * ty, uR = u10 * oty + u11 * ty;
+                const vL = c00.v * oty + c01.v * ty, vR = c10.v * oty + c11.v * ty;
+                const dL = c00.diff * oty + c01.diff * ty, dR = c10.diff * oty + c11.diff * ty;
+                const lL = c00.limb * oty + c01.limb * ty, lR = c10.limb * oty + c11.limb * ty;
                 const rowOff = (by0 + dy) * bw + bx0;
 
                 for (let dx = 0; dx < 4; dx++) {
-                  const tx = dx * 0.25;
-                  const otx = 1 - tx;
-                  const ok = sampleAtUV(
-                    uL * otx + uR * tx,
-                    vL * otx + vR * tx,
-                    dL * otx + dR * tx,
-                    lL * otx + lR * tx,
-                    rowOff + dx
-                  );
+                  const tx = dx * 0.25, otx = 1 - tx;
+                  const ok = sampleAtUV(uL * otx + uR * tx, vL * otx + vR * tx, dL * otx + dR * tx, lL * otx + lR * tx, rowOff + dx);
                   if (!ok) return false;
                 }
               }
@@ -471,11 +444,9 @@
           }
 
           for (let dy = 0; dy < blockH; dy++) {
-            const by = by0 + dy;
-            const rowOff = by * bw;
+            const by = by0 + dy, rowOff = by * bw;
             for (let dx = 0; dx < blockW; dx++) {
-              const bx = bx0 + dx;
-              if (!renderPixelExact(bx, by, rowOff + bx)) return false;
+              if (!renderPixelExact(bx0 + dx, by, rowOff + bx0 + dx)) return false;
             }
           }
         }
@@ -487,10 +458,10 @@
      * file:// protokolunde tarayici getImageData kilidi varsa hazir z=0..targetZ karolariyla
      * kuresel afin projeksiyonlu ve dikissiz 3D dokuyu doğrudan drawImage uzerinden cizer
      */
-    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false) {
+    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1) {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.arc(cx, cy, radius * 1.05, 0, Math.PI * 2);
       ctx.clip();
 
       const baseGrad = ctx.createRadialGradient(
@@ -517,33 +488,30 @@
           const cw = Math.max(16, Math.ceil(spanW / colsGrid));
           const ch = Math.max(16, Math.ceil(spanH / rowsGrid));
           const invR = 1 / radius;
-          const phi0 = (rotLat * Math.PI) / 180;
-          const lam0 = (rotLon * Math.PI) / 180;
-          const sinP0 = Math.sin(phi0);
-          const cosP0 = Math.cos(phi0);
-          const invTwoPi = 1 / (Math.PI * 2);
-          const invPi = 1 / Math.PI;
-          const halfPi = Math.PI * 0.5;
-          const rSqMax = radius * radius;
+          const phi0 = (rotLat * Math.PI) / 180, lam0 = (rotLon * Math.PI) / 180;
+          const sinP0 = Math.sin(phi0), cosP0 = Math.cos(phi0);
+          const invTwoPi = 1 / (Math.PI * 2), invPi = 1 / Math.PI, halfPi = Math.PI * 0.5;
+          const rSqMax = radius * radius * 1.08;
           const maxZ = Math.max(0, targetZ | 0);
-          const topCols = 1 << (maxZ + 1);
-          const topRows = 1 << maxZ;
+          const topCols = 1 << (maxZ + 1), topRows = 1 << maxZ;
 
           const uvAt = (sx, sy) => {
-            let nx = (sx - cx) * invR;
-            let ny = (cy - sy) * invR;
-            let r2 = nx * nx + ny * ny;
-            if (r2 > 0.996) {
-              const sc = 0.998 / Math.sqrt(r2);
-              nx *= sc; ny *= sc; r2 = nx * nx + ny * ny;
+            if (ns.marsTopo) {
+              const hit = ns.marsTopo.screenToElevatedMars3D(sx, sy, viewW, viewH, rotLat, rotLon, zoom, camPitch, camYaw, reliefScale);
+              if (hit.insideMap) {
+                let u = (hit.lon + 180) / 360; u -= Math.floor(u);
+                const v = Math.max(0, Math.min(0.9999, (90 - hit.lat) / 180));
+                return { u, v };
+              }
             }
+            let nx = (sx - cx) * invR, ny = (cy - sy) * invR;
+            let r2 = nx * nx + ny * ny;
+            if (r2 > 0.996) { const sc = 0.998 / Math.sqrt(r2); nx *= sc; ny *= sc; r2 = nx * nx + ny * ny; }
             const nz = Math.sqrt(Math.max(0, 1 - r2));
             const vy = Math.max(-1, Math.min(1, ny * cosP0 + nz * sinP0));
             const vz = -ny * sinP0 + nz * cosP0;
-            const lat = Math.asin(vy);
-            const lon = lam0 + Math.atan2(nx, vz);
-            let u = (lon + Math.PI) * invTwoPi;
-            u -= Math.floor(u);
+            const lat = Math.asin(vy), lon = lam0 + Math.atan2(nx, vz);
+            let u = (lon + Math.PI) * invTwoPi; u -= Math.floor(u);
             const v = Math.max(0, Math.min(0.9999, (halfPi - lat) * invPi));
             return { u, v };
           };
@@ -693,15 +661,15 @@
       ctx.restore();
     }
 
-    drawGraticule3D(ctx, rotLat, rotLon, cx, cy, radius) {
+    drawGraticule3D(ctx, project3D) {
       ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
       ctx.lineWidth = 0.8;
       for (let lat = -60; lat <= 60; lat += 30) {
         ctx.beginPath();
         let started = false;
         for (let lon = -180; lon <= 180; lon += 12) {
-          const p = this.overlays.projectToSphere(lat, lon, rotLat, rotLon, cx, cy, radius);
-          if (p.z > 0) {
+          const p = project3D(lat, lon);
+          if (p.visible) {
             if (!started) { ctx.moveTo(p.x, p.y); started = true; }
             else ctx.lineTo(p.x, p.y);
           } else started = false;
@@ -712,8 +680,8 @@
         ctx.beginPath();
         let started = false;
         for (let lat = -85; lat <= 85; lat += 12) {
-          const p = this.overlays.projectToSphere(lat, lon, rotLat, rotLon, cx, cy, radius);
-          if (p.z > 0) {
+          const p = project3D(lat, lon);
+          if (p.visible) {
             if (!started) { ctx.moveTo(p.x, p.y); started = true; }
             else ctx.lineTo(p.x, p.y);
           } else started = false;
@@ -724,16 +692,19 @@
 
     drawNomenclature3D(ctx, project3D) {
       const places = [
-        { name: "VALLES MARINERIS", lat: -13, lon: -65 },
-        { name: "OLYMPUS MONS", lat: 18.6, lon: -133.8 },
-        { name: "SYRTIS MAJOR", lat: 8.4, lon: 69.5 },
-        { name: "HELLAS PLANITIA", lat: -51.0, lon: 68.0 }
+        { name: "▲ OLYMPUS MONS (+21.2 km)", lat: 18.65, lon: -133.8 },
+        { name: "▲ ASCRAEUS MONS (+18.2 km)", lat: 11.9, lon: -104.5 },
+        { name: "▲ ARSIA MONS (+17.8 km)", lat: -8.3, lon: -120.1 },
+        { name: "▲ ELYSIUM MONS (+14.1 km)", lat: 25.0, lon: 147.2 },
+        { name: "▼ VALLES MARINERIS (-7.0 km)", lat: -13.9, lon: -59.2 },
+        { name: "▼ HELLAS PLANITIA (-7.1 km)", lat: -42.4, lon: 70.5 },
+        { name: "SYRTIS MAJOR", lat: 8.4, lon: 69.5 }
       ];
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
-      ctx.fillStyle = "rgba(255, 245, 235, 0.82)";
+      ctx.fillStyle = "rgba(255, 245, 235, 0.88)";
       for (const pl of places) {
         const p = project3D(pl.lat, pl.lon);
-        if (p.visible && p.z > 0.25) ctx.fillText(pl.name, p.x - 36, p.y);
+        if (p.visible && p.z > 0.22) ctx.fillText(pl.name, p.x - 42, p.y);
       }
     }
   }
@@ -746,8 +717,8 @@
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc viewport-kirpmali 4x4 blok enterpolasyonlu 3D motor tanimi.
    - Satir 11-40: constructor ve ensureCropBuffer; yalnizca gorunur ekran kesiti kadar Uint32/ImageData tampon ayirir.
-   - Satir 42-163: render; atmosfer, etkilesim/duragan cozunurluk olcekleme, raycast ve rotalari cizer.
-   - Satir 165-484: raycastSphereCrop; 4x4 blok trig enterpolasyonu + tek-karo hizli bilineer ornekleme ile donmasiz HiDPI 3D sunar.
-   - Satir 486-678: drawFallbackShadedSphere; file:// ortaminda getImageData olmadan z=0..targetZ karolarini kuresel afin hucrelerle keskin cizer.
-   - Satir 680-754: drawLoadingSphere, drawGraticule3D ve drawNomenclature3D yardimcilari.
+   - Satir 42-172: render; MOLA DEM senkronizasyonu, atmosfer, 3D kamera egimi ve rotalari cizer.
+   - Satir 174-456: raycastSphereCrop; 3D kamera egimi (Pitch/Yaw) + MOLA 3D topografik yukseltme ve egim isiklandirmasi yapar.
+   - Satir 458-643: drawFallbackShadedSphere; file:// ortaminda getImageData olmadan z=0..targetZ karolarini 3D topografyayla cizer.
+   - Satir 645-720: drawLoadingSphere, drawGraticule3D ve gercek rakim etiketli drawNomenclature3D yardimcilari.
    ========================================================================== */
