@@ -1,7 +1,7 @@
 {
   "name": "AstroChief-MarsMap",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "buildDate": "2026-11-14",
   "targets": ["linux-x64", "windows-x64"],
-  "description": "NASA Space Apps 2026 - Varsayilan 2D Harita, Uydular Paneli, Mavi/Soluk Mavi Guvenli Rota ve FPS < 10 Korumali Tamamen Yerel Mars Navigator"
+  "description": "NASA Space Apps 2026 - 10 Dil Destekli (ZH, KO, JA, TR, DE, EN, HE, AR, FR, ES), Varsayilan 3D Harita, Uydular Paneli ve Guvenli Rota Planlayici"
 }

@@ -1,7 +1,7 @@
 /**
  * @file SettingsPanel.js
- * @description Sol ust Ayarlar simgesi, ilk secenegi ZORUNLU "Factory Reset" olan menu
- * ve kisa hedef secim seridi (Genel Mars, Gale, Jezero, Korolev, Bilgi) bileseni.
+ * @description Sol ust Ayarlar simgesi, ilk secenegi ZORUNLU "Factory Reset" olan menu,
+ * 10 dilli (zh, ko, ja, tr, de, en, he, ar, fr, es) dil secici ve hizli hedef seridi bileseni.
  */
 
 (function (ns) {
@@ -30,79 +30,107 @@
     }
 
     /**
-     * Sol ust Ayarlar + Factory Reset + Hedef Seridini DOM'a cizer
+     * Sol ust Ayarlar + Factory Reset + 10 Dil Secici + Hedef Seridini DOM'a cizer
      */
     render(state, craters, backendStatus = "") {
       if (!this.mountEl) return;
+      const i18n = ns.i18n;
+      const t = (k, v) => (i18n ? i18n.t(k, v) : k);
+      const langs = i18n ? i18n.getSupportedLanguages() : [];
+      const currentLang = state.lang || (i18n ? i18n.getLang() : "tr");
+      const dirAttr = (i18n && i18n.isRtl()) ? 'dir="rtl"' : 'dir="ltr"';
 
       const craterButtons = craters.map((c) => {
-        const short = c.id === "gale-crater" ? "📍 Konumumuz (Gale)" : (c.id === "jezero-crater" ? "🎯 Jezero" : "🎯 Korolev");
+        const short = c.id === "gale-crater" ? `📍 ${t("originWord")} (Gale)` : (c.id === "jezero-crater" ? "🎯 Jezero" : "🎯 Korolev");
         const active = state.activeCraterId === c.id;
         return `<button class="nav-target-btn ${active ? "active" : ""}" data-crater-nav="${c.id}">${short}</button>`;
       }).join("");
 
+      const langChipsHtml = langs.map((l) => `
+        <button type="button"
+                class="lang-chip-btn ${l.code === currentLang ? "active" : ""}"
+                data-lang-code="${l.code}"
+                title="${l.label}">
+          <span class="lang-chip-badge">${l.badge}</span>
+          <span class="lang-chip-name">${l.label}</span>
+        </button>
+      `).join("");
+
+      const langSelectOptions = langs.map((l) => `
+        <option value="${l.code}" ${l.code === currentLang ? "selected" : ""}>🌐 ${l.badge} · ${l.label}</option>
+      `).join("");
+
       this.mountEl.innerHTML = `
         <div class="settings-anchor" id="settings-anchor">
-          <button class="icon-square-btn ${this.isOpen ? "active" : ""}" id="btn-settings" title="Ayarlar (1. Seçenek: Factory Reset)" aria-label="Ayarlar">
+          <button class="icon-square-btn ${this.isOpen ? "active" : ""}" id="btn-settings" title="${t("settingsTooltip")}" aria-label="${t("settingsAria")}">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3"></circle>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.77 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
           </button>
 
-          <div class="settings-dropdown ${this.isOpen ? "open" : ""}" id="settings-dropdown" role="menu">
+          <div class="settings-dropdown ${this.isOpen ? "open" : ""}" id="settings-dropdown" role="menu" ${dirAttr}>
             <!-- ZORUNLU KURAL: Acildiginda ilk secenek Factory Reset -->
             <button class="btn-factory-reset" id="btn-factory-reset" role="menuitem">
               <span class="reset-glyph">↺</span>
               <span>
-                <span class="reset-title">Factory Reset</span>
-                <span class="reset-sub">3D Varsayılan, Ölçekli LOD ve Birimleri Sıfırla</span>
+                <span class="reset-title">${t("factoryResetTitle")}</span>
+                <span class="reset-sub">${t("factoryResetSub")}</span>
               </span>
             </button>
 
             <div class="settings-sep"></div>
 
+            <div class="lang-config-box">
+              <div class="factory-spec-title">${t("languageSectionTitle")}</div>
+              <div class="lang-chip-grid" role="group" aria-label="${t("languageLabel")}">
+                ${langChipsHtml}
+              </div>
+            </div>
+
+            <div class="settings-sep"></div>
+
             <div class="factory-spec-box">
-              <div class="factory-spec-title">FACTORY AYAR STANDARTLARI</div>
-              <div class="factory-spec-row"><span>Render Ölçeği:</span><strong>Yaklaştıkça LOD (Görünür Alan)</strong></div>
-              <div class="factory-spec-row"><span>Hacim &amp; Rezerv:</span><strong>Litre (${state.oxygenReserveLiters} L O₂ / ${state.waterReserveLiters} L Su)</strong></div>
-              <div class="factory-spec-row"><span>Mesafe &amp; Süre:</span><strong>km / m · Saat</strong></div>
-              <div class="factory-spec-row"><span>Işıma &amp; Alan:</span><strong>Alfa (α) · Beta (β) · Gama (γ) + Foton</strong></div>
+              <div class="factory-spec-title">${t("factorySpecTitle")}</div>
+              <div class="factory-spec-row"><span>${t("specRenderScale")}</span><strong>${t("specRenderScaleVal")}</strong></div>
+              <div class="factory-spec-row"><span>${t("specVolumeReserve")}</span><strong>${t("specVolumeReserveVal", { o2: state.oxygenReserveLiters, water: state.waterReserveLiters })}</strong></div>
+              <div class="factory-spec-row"><span>${t("specDistDuration")}</span><strong>${t("specDistDurationVal")}</strong></div>
+              <div class="factory-spec-row"><span>${t("specRadiation")}</span><strong>${t("specRadiationVal")}</strong></div>
             </div>
 
             <div class="settings-sep"></div>
 
             <label class="setting-toggle-item">
-              <span>Yaklaştıkça Render Et (Ölçekli LOD)</span>
-              <input type="checkbox" data-setting-key="progressiveLodRender" data-setting-label="Ölçekli LOD Render" ${state.progressiveLodRender ? "checked" : ""} />
+              <span>${t("toggleLod")}</span>
+              <input type="checkbox" data-setting-key="progressiveLodRender" data-setting-label="${t("toggleLod")}" ${state.progressiveLodRender ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>Yol Yorumları &amp; Süre Etiketleri</span>
-              <input type="checkbox" data-setting-key="showRouteComments" data-setting-label="Yol Yorumları" ${state.showRouteComments ? "checked" : ""} />
+              <span>${t("toggleRouteComments")}</span>
+              <input type="checkbox" data-setting-key="showRouteComments" data-setting-label="${t("toggleRouteComments")}" ${state.showRouteComments ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>Bölge İsimleri (Nomenclature)</span>
-              <input type="checkbox" data-setting-key="showNomenclature" data-setting-label="Bölge İsimleri" ${state.showNomenclature ? "checked" : ""} />
+              <span>${t("toggleNomenclature")}</span>
+              <input type="checkbox" data-setting-key="showNomenclature" data-setting-label="${t("toggleNomenclature")}" ${state.showNomenclature ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>Koordinat Ağı (Graticule)</span>
-              <input type="checkbox" data-setting-key="showGraticule" data-setting-label="Koordinat Ağı" ${state.showGraticule ? "checked" : ""} />
+              <span>${t("toggleGraticule")}</span>
+              <input type="checkbox" data-setting-key="showGraticule" data-setting-label="${t("toggleGraticule")}" ${state.showGraticule ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>Yıldız Arkaplanı (Starfield)</span>
-              <input type="checkbox" data-setting-key="showStarfield" data-setting-label="Yıldız Arkaplanı" ${state.showStarfield ? "checked" : ""} />
+              <span>${t("toggleStarfield")}</span>
+              <input type="checkbox" data-setting-key="showStarfield" data-setting-label="${t("toggleStarfield")}" ${state.showStarfield ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>Yüksek Detay 3D Tarama</span>
-              <input type="checkbox" data-setting-key="highQualityGlobeRay" data-setting-label="Yüksek Detay 3D Tarama" ${state.highQualityGlobeRay ? "checked" : ""} />
+              <span>${t("toggleHqGlobe")}</span>
+              <input type="checkbox" data-setting-key="highQualityGlobeRay" data-setting-label="${t("toggleHqGlobe")}" ${state.highQualityGlobeRay ? "checked" : ""} />
             </label>
 
-            <div class="setting-fps-note">FPS &lt; 10 (10s) Koruma Aktif: Ayar 10 sn boyunca FPS'i 10 altina dusururse geri alinir.</div>
+            <div class="setting-fps-note">${t("fpsNote")}</div>
 
             <div class="settings-sep"></div>
 
             <div class="backend-config-box">
-              <div class="backend-config-title">RUST BACKEND ROTA MOTORU</div>
+              <div class="backend-config-title">${t("backendTitle")}</div>
               <input
                 type="url"
                 class="backend-url-input"
@@ -110,21 +138,25 @@
                 value="${(state.backendApiUrl || "").replace(/"/g, "&quot;")}"
                 placeholder="http://127.0.0.1:8080"
                 aria-label="Rust Backend URL"
+                dir="ltr"
               />
               <div class="backend-btn-row">
-                <button type="button" class="backend-mini-btn" id="btn-backend-save">Kaydet</button>
-                <button type="button" class="backend-mini-btn ghost" id="btn-backend-test">Test Et</button>
+                <button type="button" class="backend-mini-btn" id="btn-backend-save">${t("backendSave")}</button>
+                <button type="button" class="backend-mini-btn ghost" id="btn-backend-test">${t("backendTest")}</button>
               </div>
-              <div class="backend-status-line" id="backend-status-line">${backendStatus || (state.backendApiUrl ? "Hazir (Backend URL kayitli)" : "URL bos: Yerel yedek rota motoru aktif")}</div>
+              <div class="backend-status-line" id="backend-status-line">${backendStatus || (state.backendApiUrl ? t("backendReady") : t("backendFallbackActive"))}</div>
             </div>
           </div>
         </div>
 
-        <nav class="top-nav-pill" aria-label="Hızlı Hedefler">
+        <nav class="top-nav-pill" aria-label="${t("navGlobalRoute")}">
           <span class="brand-tag">ASTRO<span>CHIEF</span></span>
-          <button class="nav-target-btn ${state.routeScope === "global" ? "active" : ""}" id="btn-scope-global">Genel Rota</button>
+          <button class="nav-target-btn ${state.routeScope === "global" ? "active" : ""}" id="btn-scope-global">${t("navGlobalRoute")}</button>
           ${craterButtons}
-          <button class="nav-info-btn" id="btn-open-mission-modal" title="Yarışma, Kaynaklar ve Ekip">Bilgi</button>
+          <button class="nav-info-btn" id="btn-open-mission-modal" title="${t("navInfoTitle")}">${t("navInfo")}</button>
+          <select class="nav-lang-select" id="sel-top-lang" aria-label="${t("languageLabel")}" title="${t("languageLabel")}">
+            ${langSelectOptions}
+          </select>
         </nav>
       `;
 
@@ -142,6 +174,17 @@
       this.mountEl.querySelector("#btn-factory-reset")?.addEventListener("click", () => {
         this.close();
         this.handlers.onFactoryReset?.();
+      });
+
+      this.mountEl.querySelectorAll("[data-lang-code]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const code = btn.getAttribute("data-lang-code");
+          this.handlers.onLanguageChange?.(code);
+        });
+      });
+
+      this.mountEl.querySelector("#sel-top-lang")?.addEventListener("change", (e) => {
+        this.handlers.onLanguageChange?.(e.target.value);
       });
 
       this.mountEl.querySelectorAll("[data-setting-key]").forEach((cb) => {
@@ -184,8 +227,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sol ust Ayarlar ve Factory Reset menu bileseni tanimi.
-   - Satir 7-27: constructor, toggleOpen ve close; acilir menunun acik/kapali durumunu yonetir.
-   - Satir 29-128: render; 1. secenekte Factory Reset butonu, Factory birim standartlari, 10sn FPS korumali anahtarlar ve Rust Backend URL kutusunu cizer.
-   - Satir 130-177: bindEvents; ayar tiklamalarini, hedef secimlerini ve Rust backend URL kaydet/test dugmelerini baglar.
+   - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset ve 10 dil secici bileseni tanimi.
+   - Satir 7-30: constructor, toggleOpen ve close; acilir menunun durumunu yonetir.
+   - Satir 32-160: render; 1. secenekte Factory Reset butonu, 10 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve ust dil secim kutusunu cizer.
+   - Satir 162-222: bindEvents; dil degisimi, ayar tiklamalari, hedef secimleri ve Rust backend dugmelerini baglar.
    ========================================================================== */

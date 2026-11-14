@@ -33,6 +33,7 @@
      * @returns {Object} Kuresel tehlike alan listeleri
      */
     getGlobalHazardZones(options = {}) {
+      const t = (k, v) => (ns.i18n ? ns.i18n.t(k, v) : k);
       const acidSpec = this.intensityTable.acid[options.acidIntensity || "orta"];
       const stormSpec = this.intensityTable.storm[options.stormIntensity || "orta"];
 
@@ -40,7 +41,7 @@
       const acidZones = options.filterAcidRain ? [
         {
           id: "acid-cerberus",
-          name: `Asit Yağmuru (${acidSpec.ph})`,
+          name: t("hzAcidCerberus", { ph: acidSpec.ph }),
           lat: -6.5,
           lon: 112.0,
           radiusDeg: 13 * acidSpec.detourScale,
@@ -49,7 +50,7 @@
         },
         {
           id: "acid-tharsis",
-          name: `Volkanik Sülfat Sisi (${acidSpec.ph})`,
+          name: t("hzAcidTharsis", { ph: acidSpec.ph }),
           lat: -4.0,
           lon: -98.0,
           radiusDeg: 15 * acidSpec.detourScale,
@@ -58,7 +59,7 @@
         },
         {
           id: "acid-meridiani",
-          name: `Asidik Evaporit Zonu (${acidSpec.ph})`,
+          name: t("hzAcidMeridiani", { ph: acidSpec.ph }),
           lat: -3.5,
           lon: 12.0,
           radiusDeg: 12 * acidSpec.detourScale,
@@ -71,7 +72,7 @@
       const stormZones = options.filterDustStorm ? [
         {
           id: "storm-hellas",
-          name: `Hellas Kasırgası (${stormSpec.tau})`,
+          name: t("hzStormHellas", { tau: stormSpec.tau }),
           lat: -42.4,
           lon: 70.5,
           radiusDeg: 20 * stormSpec.detourScale,
@@ -80,7 +81,7 @@
         },
         {
           id: "storm-isidis",
-          name: `Syrtis-Isidis Toz Fırtınası (${stormSpec.tau})`,
+          name: t("hzStormIsidis", { tau: stormSpec.tau }),
           lat: 9.0,
           lon: 98.0,
           radiusDeg: 13 * stormSpec.detourScale,
@@ -89,7 +90,7 @@
         },
         {
           id: "storm-acidalia",
-          name: `Acidalia Cephe Fırtınası (${stormSpec.tau})`,
+          name: t("hzStormAcidalia", { tau: stormSpec.tau }),
           lat: 35.0,
           lon: -35.0,
           radiusDeg: 16 * stormSpec.detourScale,
@@ -98,7 +99,7 @@
         },
         {
           id: "storm-solis",
-          name: `Solis Planum Toz Girdabı (${stormSpec.tau})`,
+          name: t("hzStormSolis", { tau: stormSpec.tau }),
           lat: -26.0,
           lon: -90.0,
           radiusDeg: 14 * stormSpec.detourScale,
@@ -111,24 +112,24 @@
       const radiationZones = options.showRadiationZones !== false ? [
         {
           id: "rad-global-equator",
-          name: "Foton Bombardıman Kuşağı (α/β/γ)",
+          name: t("hzRadEquator"),
           lat: 13.0,
           lon: 48.0,
           radiusDeg: 14,
-          alphaLevel: "0.14 μSv/s (Alfa α)",
-          betaLevel: "1.65 mSv/h (Beta β)",
-          gammaLevel: "0.82 mSv/h (Gama γ)",
+          alphaLevel: "0.14 μSv/s (α)",
+          betaLevel: "1.65 mSv/h (β)",
+          gammaLevel: "0.82 mSv/h (γ)",
           photonFlux: "5.4x10^6 MeV/cm²·s"
         },
         {
           id: "rad-global-polar",
-          name: "Kutupsal Kozmik Gama Alanı",
+          name: t("hzRadPolar"),
           lat: 63.0,
           lon: 112.0,
           radiusDeg: 16,
-          alphaLevel: "0.06 μSv/s (Alfa α)",
-          betaLevel: "2.15 mSv/h (Beta β)",
-          gammaLevel: "0.96 mSv/h (Gama γ)",
+          alphaLevel: "0.06 μSv/s (α)",
+          betaLevel: "2.15 mSv/h (β)",
+          gammaLevel: "0.96 mSv/h (γ)",
           photonFlux: "6.3x10^6 MeV/cm²·s"
         }
       ] : [];
@@ -142,41 +143,42 @@
      * @returns {Array} Krater ici isima bolgeleri
      */
     getCraterRadiationZones(craterId) {
+      const t = (k, v) => (ns.i18n ? ns.i18n.t(k, v) : k);
       if (craterId === "jezero-crater") {
         return [{
           id: "rad-jz-1",
-          name: "Foton Bombardıman Alanı // Kuzey Delta",
+          name: t("hzRadJezero"),
           relX: 16,
           relY: -44,
           radius: 52,
-          alphaLevel: "0.08 μSv/s (Alfa α)",
-          betaLevel: "1.42 mSv/h (Beta β)",
-          gammaLevel: "0.64 mSv/h (Gama γ)",
+          alphaLevel: "0.08 μSv/s (α)",
+          betaLevel: "1.42 mSv/h (β)",
+          gammaLevel: "0.64 mSv/h (γ)",
           photonFlux: "4.8x10^6 MeV/cm²·s"
         }];
       }
       if (craterId === "korolev-crater") {
         return [{
           id: "rad-kr-1",
-          name: "Gama & Foton Bombardıman Kuşağı",
+          name: t("hzRadKorolev"),
           relX: -40,
           relY: 36,
           radius: 56,
-          alphaLevel: "0.04 μSv/s (Alfa α)",
-          betaLevel: "2.10 mSv/h (Beta β)",
-          gammaLevel: "0.95 mSv/h (Gama γ)",
+          alphaLevel: "0.04 μSv/s (α)",
+          betaLevel: "2.10 mSv/h (β)",
+          gammaLevel: "0.95 mSv/h (γ)",
           photonFlux: "6.2x10^6 MeV/cm²·s"
         }];
       }
       return [{
         id: "rad-gl-1",
-        name: "Foton Bombardıman Alanı // Merkezi Eyer",
+        name: t("hzRadGale"),
         relX: 10,
         relY: -48,
         radius: 50,
-        alphaLevel: "0.14 μSv/s (Alfa α)",
-        betaLevel: "1.65 mSv/h (Beta β)",
-        gammaLevel: "0.82 mSv/h (Gama γ)",
+        alphaLevel: "0.14 μSv/s (α)",
+        betaLevel: "1.65 mSv/h (β)",
+        gammaLevel: "0.82 mSv/h (γ)",
         photonFlux: "5.4x10^6 MeV/cm²·s"
       }];
     }

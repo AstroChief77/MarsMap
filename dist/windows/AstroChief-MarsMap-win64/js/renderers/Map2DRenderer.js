@@ -264,7 +264,7 @@
           }
           ctx.fillStyle = "#fde047";
           ctx.font = "800 10px 'Public Sans Web', sans-serif";
-          ctx.fillText("⚑ BOXWORK RİTJLERİ", bx - 44, by - 22 * scale);
+          ctx.fillText(ns.i18n ? ns.i18n.t("boxworkLabel") : "⚑ BOXWORK RİTJLERİ", bx - 44, by - 22 * scale);
         }
       }
 

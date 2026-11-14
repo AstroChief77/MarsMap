@@ -29,7 +29,7 @@
     }
 
     /**
-     * Saati "X saat Y dk" biciminde okunur metne donusturur
+     * Saati aktif dile gore "X saat Y dk" biciminde okunur metne donusturur
      */
     formatHours(totalHours) {
       const h = Math.floor(totalHours);
@@ -37,7 +37,13 @@
       if (h >= 24) {
         const sols = Math.floor(h / 24);
         const remH = h % 24;
+        if (ns.i18n) {
+          return ns.i18n.t("durationHoursSols", { total: totalHours.toFixed(1), sols, rem: remH });
+        }
         return `${totalHours.toFixed(1)} saat (~${sols} Sol ${remH} sa)`;
+      }
+      if (ns.i18n) {
+        return ns.i18n.t("durationHoursMins", { h, m });
       }
       return `${h} saat ${m} dk`;
     }
@@ -50,6 +56,7 @@
         return { primaryBlue: null, secondaryPaleBlue: null };
       }
 
+      const t = (k, v) => (ns.i18n ? ns.i18n.t(k, v) : k);
       const intensityTable = this.config.getIntensityTable();
       const acidSpec = intensityTable.acid[options.acidIntensity || "orta"];
       const stormSpec = intensityTable.storm[options.stormIntensity || "orta"];
@@ -140,16 +147,16 @@
           points: primaryPoints,
           steps: this.buildCraterSteps(crater, primaryPoints, m1.totalHours, m1.totalKm),
           colorHex: "#2563eb",
-          label: "En Güvenli Kısa Yol (Mavi)",
-          comment: `// Mavi Yol: ${crater.name} güvenli en kısa rota — ${m1.formattedDuration} sürer (${m1.totalKm.toFixed(1)} km)`
+          label: t("blueRouteTitle"),
+          comment: t("craterBlueComment", { name: crater.name, dur: m1.formattedDuration, km: m1.totalKm.toFixed(1) })
         },
         secondaryPaleBlue: {
           ...m2,
           points: secondaryPoints,
           steps: this.buildCraterSteps(crater, secondaryPoints, m2.totalHours, m2.totalKm),
           colorHex: "#93c5fd",
-          label: "Güvenli Uzun Alternatif Yol (Soluk Mavi)",
-          comment: `// Soluk Mavi: Fırtına/asit/foton dışı güvenli uzun yay — ${m2.formattedDuration} sürer (${m2.totalKm.toFixed(1)} km)`
+          label: t("paleRouteTitle"),
+          comment: t("craterPaleComment", { dur: m2.formattedDuration, km: m2.totalKm.toFixed(1) })
         }
       };
     }
@@ -159,6 +166,7 @@
      */
     buildCraterSteps(crater, pts, totalHours, totalKm) {
       if (!Array.isArray(pts) || pts.length === 0) return [];
+      const t = (k, v) => (ns.i18n ? ns.i18n.t(k, v) : k);
       const denomKm = Math.max(0.01, totalKm || 1);
       const baseLat = crater && crater.coordinates ? crater.coordinates.lat : -4.59;
       const baseLon = crater && crater.coordinates ? crater.coordinates.lon : 137.44;
@@ -171,11 +179,12 @@
         const slopeDeg = Number((wp.slope || 4.5).toFixed(1));
         const elevM = Math.round(wp.elevationM !== undefined ? wp.elevationM : (-4200 + idx * 145));
         const hazardWarning = wp.acidRisk
-          ? "Asit çökeltisi çevresinden koridor sapması"
-          : (wp.stormRisk ? "Fırtına/toz cebi çevresinden güvenli geçiş" : null);
+          ? t("warnAcidCorridor")
+          : (wp.stormRisk ? t("warnStormCorridor") : null);
+        const wpTitle = wp.title || wp.name || `#${idx + 1}`;
         const instruction = idx === 0
-          ? `Üs çıkışı: ${wp.title || wp.name || "Durak 1"} (EVA hazırlığı)`
-          : `${wp.title || wp.name || `Durak ${idx + 1}`} noktasına ${legKm.toFixed(2)} km ilerle (Eğim ${slopeDeg}°)`;
+          ? t("stepCraterStart", { name: wpTitle })
+          : t("stepCraterMove", { name: wpTitle, km: legKm.toFixed(2), slope: slopeDeg });
         return {
           step: idx + 1,
           lat,
@@ -196,6 +205,7 @@
     computeRoutesBetweenCoords(origin, destination, options = {}) {
       if (!origin || !destination) return { primaryBlue: null, secondaryPaleBlue: null };
 
+      const t = (k, v) => (ns.i18n ? ns.i18n.t(k, v) : k);
       const hzBundle = options.hazardBundle || this.hazardService.getGlobalHazardZones(options);
       const allHazards = [
         ...(hzBundle.acidZones || []).map((z) => ({ ...z, weight: 1.0 })),
@@ -205,13 +215,13 @@
 
       const startPt = {
         id: origin.id || "custom-origin",
-        name: origin.name || "Mevcut Konum (A)",
+        name: origin.name || `${t("originWord")} (A)`,
         lat: Number(origin.lat || 0),
         lon: this.geo.wrapLon(Number(origin.lon || 0))
       };
       const endPt = {
         id: destination.id || "custom-destination",
-        name: destination.name || "Varış Noktası (B)",
+        name: destination.name || `${t("destWord")} (B)`,
         lat: Number(destination.lat || 0),
         lon: this.geo.wrapLon(Number(destination.lon || 0))
       };
@@ -258,14 +268,14 @@
         primaryBlue: {
           ...g1,
           colorHex: "#2563eb",
-          label: "En Güvenli Kısa Yol (Mavi)",
-          comment: `// Mavi Yol: En güvenli & kısa rota — ${g1.formattedDuration} (${Math.round(g1.totalKm)} km)`
+          label: t("blueRouteTitle"),
+          comment: t("globalBlueComment", { dur: g1.formattedDuration, km: Math.round(g1.totalKm) })
         },
         secondaryPaleBlue: {
           ...g2,
           colorHex: "#93c5fd",
-          label: "Güvenli Uzun Alternatif Yol (Soluk Mavi)",
-          comment: `// Soluk Mavi: Fırtına/asit dışı güvenli uzun rota — ${g2.formattedDuration} (${Math.round(g2.totalKm)} km)`
+          label: t("paleRouteTitle"),
+          comment: t("globalPaleComment", { dur: g2.formattedDuration, km: Math.round(g2.totalKm) })
         }
       };
     }
