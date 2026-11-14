@@ -307,3 +307,16 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * 2D ve 3D harita uzerinden kesikli soluk mavi alternatif cizgi ve yorum kutusu kaldirilarak yalnizca tekil Mavi Yol (#2563eb) birakildi.
 
 [2026-11-14 21:42] v4.0 - Daire/GUI sekilleri kaldirildi; Asit Yagmuru (Mavi), Kum Firtinasi (Kizil-Altin) ve Radyasyon (Mor) 3D kure yuzeyine piksel bazli yapiskan, dusuk saydamlikli organik Isi Haritasi (Heatmap) olarak OverlayDrawHelper, Map3DRenderer, Map3DFallbackRenderer ve Map2DRenderer uzerine islendi.
+
+[2026-11-14T18:52:00Z] docs(parameters): Prameters.md Olusturulması ve Ajan/Kaynak Senkronizasyonu
+- Yedek Klasoru: backups/snapshot_20261114_prameters/ (SOURCES.md, ForAgents/PROJECT_STATE.md, ForAgents/SHARED_PLANS_AND_API.md, logs/change_log.txt)
+- Prameters.md (Yeni Dosya, Satir 1-168):
+  * Satir 1-23: Belge amaci ve dakika/saat bazli Hizli Ozet Tablosu (Oksijen, Rover Hizi, Insan Hizi, Su, CO2, Guc, Radyasyon).
+  * Satir 26-57: Dakikada insan oksijen tuketimi (nominal 0.80-1.01 L/dk, 10-dk xEMU zirvesi 2.52 L/dk, fizyolojik VO2max tavan 3.60-4.00 L/dk), 420 L rezerv dayanimi ve su/kalori butcesi.
+  * Satir 61-94: Dakikada Rover hizlari (Basincli SEV 166.7-241.7 m/dk, tavan 300-316.7 m/dk; robotik Perseverance 2.53 m/dk, Curiosity 1.50-2.33 m/dk) ve EVA insan hizlari (45-60 m/dk, guvenli ust 83.3-90.0 m/dk, acil sprint 116.7-150 m/dk).
+  * Satir 97-144: Basincli rover/giysi enerji parametreleri (Wh/dk), Mars fiziksel sabitleri, egim formulu ve alfa/beta/gama/asit/firtina tehlike esikleri.
+  * Satir 147-167: Kod tabani (RoutePlannerService.js, BackendApiService.js, backend/src/lib.rs) ile eslestirme notlari ve NASA kaynaklari.
+- SOURCES.md (Satir 67-72): NASA-STD-3001, NTRS 20260003038 / 19760003073, NASA-TP-2009-214796, SEV TM-20220006678, Perseverance ve Mars Fact Sheet kaynaklari eklendi.
+- ForAgents/PROJECT_STATE.md (Satir 66-74) & ForAgents/SHARED_PLANS_AND_API.md (Satir 65-66): Prameters.md ozeti ve backend/frontend parametre senkronizasyon plani eklendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
