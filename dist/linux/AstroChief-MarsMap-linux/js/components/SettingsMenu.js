@@ -59,6 +59,11 @@ export class SettingsMenu {
           </label>
 
           <label class="settings-toggle-row">
+            <span>Krater Odaklı Optimize Render</span>
+            <input type="checkbox" id="set-crater-focus" ${state.craterFocusOptimize ? "checked" : ""} />
+          </label>
+
+          <label class="settings-toggle-row">
             <span>Alfa/Beta/Gama &amp; Foton Alanları</span>
             <input type="checkbox" id="set-rad-zones" ${state.showRadiationZones ? "checked" : ""} />
           </label>
@@ -109,6 +114,9 @@ export class SettingsMenu {
 
     document.getElementById("set-lod-render")?.addEventListener("change", (e) => {
       this.callbacks.onChangeSetting?.("progressiveLodRender", e.target.checked);
+    });
+    document.getElementById("set-crater-focus")?.addEventListener("change", (e) => {
+      this.callbacks.onChangeSetting?.("craterFocusOptimize", e.target.checked);
     });
     document.getElementById("set-rad-zones")?.addEventListener("change", (e) => {
       this.callbacks.onChangeSetting?.("showRadiationZones", e.target.checked);

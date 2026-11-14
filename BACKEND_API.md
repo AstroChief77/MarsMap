@@ -37,7 +37,9 @@ Kullanıcı harita üzerinden **Başlangıç (`A`)** ve **Hedef (`B`)** koordina
   "goal": { "lat": -4.7120, "lon": 137.5840 },
   "filters": {
     "avoid_acid_rain": true,
+    "acid_rain_intensity": "moderate",
     "avoid_dust_storm": true,
+    "dust_storm_intensity": "moderate",
     "avoid_radiation_hotspots": true
   },
   "astronaut_params": {

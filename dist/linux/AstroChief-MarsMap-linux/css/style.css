@@ -9,11 +9,13 @@
 @import url('./variables.css');
 @import url('./base.css');
 @import url('./globe_viewer.css');
+@import url('./satellite_dock.css');
+@import url('./chat.css');
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc ana stil dosyasi ve Public Sans Web bold zorunlulugu.
    - Satir 7: Google Fonts uzerinden Public Sans (600-900) font ailesinin yuklenmesi.
-   - Satir 9-11: variables.css, base.css ve globe_viewer.css moduler iceri aktarimi.
+   - Satir 9-13: variables.css, base.css, globe_viewer.css, satellite_dock.css ve chat.css moduler iceri aktarimi.
    ========================================================================== */

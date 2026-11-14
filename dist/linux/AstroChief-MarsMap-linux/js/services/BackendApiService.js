@@ -132,7 +132,9 @@ export class BackendApiService {
       goal: { lat: Number(goalPoint.lat.toFixed(5)), lon: Number(goalPoint.lon.toFixed(5)) },
       filters: {
         avoid_acid_rain: Boolean(appState.filterAcidRain),
+        acid_rain_intensity: appState.acidIntensity || "moderate",
         avoid_dust_storm: Boolean(appState.filterDustStorm),
+        dust_storm_intensity: appState.stormIntensity || "moderate",
         avoid_radiation_hotspots: Boolean(appState.showRadiationZones)
       },
       astronaut_params: {
