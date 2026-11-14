@@ -6,10 +6,10 @@
   <base href="../">
   <title>AstroChief | /demo Mars Hayatta Kalma Simülasyonu</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%23d92b2b%22/><circle cx=%2250%22 cy=%2250%22 r=%2222%22 fill=%22%23ffffff%22 opacity=%220.22%22/></svg>">
-  <link rel="stylesheet" href="./css/fonts.css?v=4.3">
-  <link rel="stylesheet" href="./css/variables.css?v=4.3">
-  <link rel="stylesheet" href="./css/base.css?v=4.3">
-  <link rel="stylesheet" href="./css/demo_studio.css?v=4.3">
+  <link rel="stylesheet" href="./css/fonts.css?v=4.4">
+  <link rel="stylesheet" href="./css/variables.css?v=4.4">
+  <link rel="stylesheet" href="./css/base.css?v=4.4">
+  <link rel="stylesheet" href="./css/demo_studio.css?v=4.4">
 </head>
 <body class="demo-studio-body">
   <canvas id="demo-starfield" aria-hidden="true"></canvas>
@@ -61,7 +61,11 @@
           <label class="sim-field">Batarya (kWh)
             <input type="number" id="sim-energy-inp" min="0.5" max="200" step="0.5" value="65">
           </label>
-          <label class="sim-field">Hedef Hız (<span id="sim-speed-readout">14.5 km/sa</span>)
+          <label class="sim-field">
+            <span style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+              <span>Hedef Hız</span>
+              <strong id="sim-speed-readout" style="color:var(--mars-red);">14.5 km/sa</strong>
+            </span>
             <input type="range" id="sim-speed-inp" min="4" max="19" step="0.5" value="14.5">
           </label>
         </div>
@@ -163,47 +167,47 @@
     </main>
   </div>
 
-  <script defer src="./data/offlineDatasets.js?v=4.3"></script>
-  <script defer src="./data/craterLocations.js?v=4.3"></script>
-  <script defer src="./data/craterWaypointsData.js?v=4.3"></script>
-  <script defer src="./data/i18n/localesTrEnDe.js?v=4.3"></script>
-  <script defer src="./data/i18n/localesFrEs.js?v=4.3"></script>
-  <script defer src="./data/i18n/localesJaKoArHe.js?v=4.3"></script>
-  <script defer src="./data/i18n/localesDemo.js?v=4.3"></script>
+  <script defer src="./data/offlineDatasets.js?v=4.4"></script>
+  <script defer src="./data/craterLocations.js?v=4.4"></script>
+  <script defer src="./data/craterWaypointsData.js?v=4.4"></script>
+  <script defer src="./data/i18n/localesTrEnDe.js?v=4.4"></script>
+  <script defer src="./data/i18n/localesFrEs.js?v=4.4"></script>
+  <script defer src="./data/i18n/localesJaKoArHe.js?v=4.4"></script>
+  <script defer src="./data/i18n/localesDemo.js?v=4.4"></script>
 
-  <script defer src="./js/models/AppConfig.js?v=4.3"></script>
-  <script defer src="./js/services/I18nService.js?v=4.3"></script>
-  <script defer src="./js/services/DatasetLoader.js?v=4.3"></script>
-  <script defer src="./js/services/MarsTileLoader.js?v=4.3"></script>
-  <script defer src="./js/services/MarsTopographyService.js?v=4.3.2"></script>
-  <script defer src="./js/services/HazardFieldService.js?v=4.3"></script>
-  <script defer src="./js/services/MolaAStarGridHelper.js?v=4.3.2"></script>
-  <script defer src="./js/services/BackendApiService.js?v=4.3.2"></script>
-  <script defer src="./js/services/RouteGeometryHelper.js?v=4.3.1"></script>
-  <script defer src="./js/services/RoutePlannerService.js?v=4.3"></script>
-  <script defer src="./js/services/MarsSimulationEngine.js?v=4.3"></script>
+  <script defer src="./js/models/AppConfig.js?v=4.4"></script>
+  <script defer src="./js/services/I18nService.js?v=4.4"></script>
+  <script defer src="./js/services/DatasetLoader.js?v=4.4"></script>
+  <script defer src="./js/services/MarsTileLoader.js?v=4.4"></script>
+  <script defer src="./js/services/MarsTopographyService.js?v=4.4"></script>
+  <script defer src="./js/services/HazardFieldService.js?v=4.4"></script>
+  <script defer src="./js/services/MolaAStarGridHelper.js?v=4.4"></script>
+  <script defer src="./js/services/BackendApiService.js?v=4.4"></script>
+  <script defer src="./js/services/RouteGeometryHelper.js?v=4.4"></script>
+  <script defer src="./js/services/RoutePlannerService.js?v=4.4"></script>
+  <script defer src="./js/services/MarsSimulationEngine.js?v=4.4"></script>
 
-  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.3"></script>
-  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/Map2DRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/Map3DFallbackRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/Map3DRenderer.js?v=4.3"></script>
-  <script defer src="./js/renderers/SimulationChartRenderer.js?v=4.3"></script>
+  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.4"></script>
+  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/Map2DRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/Map3DFallbackRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/Map3DRenderer.js?v=4.4"></script>
+  <script defer src="./js/renderers/SimulationChartRenderer.js?v=4.4"></script>
 
-  <script defer src="./js/components/DemoStudioController.js?v=4.3.1"></script>
+  <script defer src="./js/components/DemoStudioController.js?v=4.4"></script>
 </body>
 </html>
 
 <!--
 ==========================================================================
-DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------
-- Satir 1-14: /demo HTML5 belgesi, kok goreceli <base href="../"> tanimi ve yerel CSS paketi.
-- Satir 15-42: Yildiz tuvali ve ust simulasyon arac cubugu (hazir senaryolar, 2D/3D, 5 sn Rust ping, Ana Harita donusu).
-- Satir 43-102: Sol parametre giris karti (Rover/Insan EVA/Bilim secimi, O2/Su/Batarya/Hiz, rota ve firtina/sizinti enjeksiyonu).
-- Satir 104-142: Sag canli telemetri karti (saat, mesafe, hiz, MOLA rakim, O2/Su/Batarya cubuklari, coklu egri grafik ve olay gunlugu).
-- Satir 144-156: Alt zaman kontrol ve hiz carpani (1x-240x) oynatma cubugu.
-- Satır 166-194: Paylaşılan harita/Rust WASM modülleri (MolaAStarGridHelper dahil) ile MarsSimulationEngine, SimulationChartRenderer ve DemoStudioController betikleri.
+- Satır 1-14: /demo HTML5 belgesi, kök göreceli <base href="../"> tanımı ve Açık Gri Stüdyo (?v=4.4) yerel CSS paketi.
+- Satır 15-42: Açık gri yörünge arka plan tuvali ve üst simülasyon araç çubuğu (hazır senaryolar, 2D/3D, 5 sn Rust ping, Ana Harita dönüşü).
+- Satır 43-116: Sol parametre giriş kartı (Rover/İnsan EVA/Bilim seçimi, O2/Su/Batarya/Hız, rota ve fırtına/sızıntı enjeksiyonu).
+- Satır 118-152: Sağ canlı telemetri kartı (saat, mesafe, hız, MOLA rakım, O2/Su/Batarya çubukları, çoklu eğri grafik ve olay günlüğü).
+- Satır 154-168: Alt zaman kontrolü ve hız çarpanı (1x-240x) oynatma çubuğu.
+- Satır 170-198: Paylaşılan harita/Rust WASM modülleri (MolaAStarGridHelper dahil) ile MarsSimulationEngine, SimulationChartRenderer ve DemoStudioController betikleri (?v=4.4).
 ==========================================================================
 -->

@@ -66,7 +66,7 @@
 
       const radZone = (Array.isArray(radZones) && radZones[0]) || null;
       const radSummaryHtml = radZone ? `
-        <div style="font-size:10px;background:var(--bg-white);border:1px solid var(--line-light);border-radius:4px;padding:4px 6px;color:var(--ink-dark);">
+        <div style="font-size:10px;background:var(--bg-solid-white);border:1px solid var(--line-light);border-radius:6px;padding:5px 7px;color:var(--ink-dark);">
           ☢ <strong>${esc(radZone.name || t("photonRadiation"))}:</strong>
           ${esc(radZone.alphaLevel || "0.14 μSv/s (α)")} · ${esc(radZone.betaLevel || "1.65 mSv/h (β)")} · ${esc(radZone.gammaLevel || "0.82 mSv/h (γ)")}
           ${radZone.photonFlux ? ` · ⚡ ${esc(radZone.photonFlux)}` : ""}
@@ -74,50 +74,42 @@
       ` : "";
 
       const wpChipsHtml = Array.isArray(waypoints) && waypoints.length > 0 ? `
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
-          ${waypoints.slice(0, 4).map((w) => `
-            <button type="button" data-wp-id="${esc(w.id)}"
-                    style="font-size:9.5px;padding:2px 6px;border-radius:4px;border:1px solid ${selectedWp && selectedWp.id === w.id ? "var(--mars-red)" : "var(--line-light)"};background:${selectedWp && selectedWp.id === w.id ? "rgba(217,43,43,0.1)" : "var(--bg-white)"};color:var(--ink-black);cursor:pointer;font-weight:700;">
+        <div class="wp-strip">
+          ${waypoints.slice(0, 4).map((w) => {
+            const isSel = selectedWp && selectedWp.id === w.id;
+            return `
+            <button type="button" class="wp-chip ${isSel ? "active" : ""}" data-wp-id="${esc(w.id)}">
               ${esc(w.name)} (${Number(w.elev || 0)}m)
             </button>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
       ` : "";
-
-      const endpointUrl = `${state.backendApiUrl || "http://127.0.0.1:8080"}/api/v1/route`;
-      const reqPreviewObj = uiMeta.lastRequestPayload
-        ? {
-            origin: uiMeta.lastRequestPayload.origin,
-            destination: uiMeta.lastRequestPayload.destination,
-            factors: uiMeta.lastRequestPayload.factors
-          }
-        : {
-            origin: { name: activeOrigin.name, lat: Number(Number(activeOrigin.lat).toFixed(4)), lon: Number(Number(activeOrigin.lon).toFixed(4)) },
-            destination: { name: activeDest.name, lat: Number(Number(activeDest.lat).toFixed(4)), lon: Number(Number(activeDest.lon).toFixed(4)) },
-            factors: {
-              acidRain: { enabled: state.filterAcidRain, intensity: state.acidIntensity },
-              dustStorm: { enabled: state.filterDustStorm, intensity: state.stormIntensity },
-              radiation: { enabled: state.showRadiationZones }
-            }
-          };
 
       this.mountEl.innerHTML = `
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
           <span>${esc(t("inspToggleBtn"))}</span>
           <span style="color:var(--mars-red);">${routeBadge}</span>
+          <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill" title="${esc(t("latTitle"))}">${esc(latencyLabel)}</span>
           <span>${state.inspectorOpen ? "▴" : "▾"}</span>
         </button>
 
         <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${esc(t("inspToggleBtn"))}" ${dirAttr}>
           <div class="insp-head">
-            <div class="insp-title">${esc(t("originWord"))} → ${esc(t("destWord"))}</div>
-            <span class="insp-badge">${esc(t("scopeGlobalBadge"))}</span>
+            <div>
+              <span class="insp-badge">${esc(t("scopeGlobalBadge"))}</span>
+              <div class="insp-title">${esc(t("originWord"))} → ${esc(t("destWord"))}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="insp-source-pill ${hasBackendResponse ? "rust" : ""}">${esc(sourceLabel)}</span>
+              <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill-card" title="${esc(t("latTitle"))}">${esc(latencyLabel)}</span>
+            </div>
           </div>
 
           <div class="insp-coord-box">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;background:var(--bg-white);padding:6px 8px;border-radius:5px;border:1px solid var(--line-light);">
-              <span>📍 <strong>${esc(t("originPresetLabel"))}:</strong></span>
-              <span style="font-weight:800;color:var(--route-blue);">${esc(activeOrigin.name || "Gale")} (${Number(activeOrigin.lat).toFixed(2)}°, ${Number(activeOrigin.lon).toFixed(2)}°)</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;background:var(--bg-solid-white);padding:6px 8px;border-radius:6px;border:1px solid var(--line-light);">
+              <span style="white-space:nowrap;">📍 <strong>${esc(t("originPresetLabel"))}:</strong></span>
+              <span style="font-weight:800;color:var(--route-blue);text-align:end;">${esc(activeOrigin.name || "Gale")} (${Number(activeOrigin.lat).toFixed(2)}°, ${Number(activeOrigin.lon).toFixed(2)}°)</span>
             </div>
 
             <div class="insp-select-wrap">
@@ -143,21 +135,22 @@
                 <span style="color:var(--route-blue);">${esc(t("blueRouteTitle"))}</span>
                 <span class="route-duration-pill">${esc(pri.formattedDuration)}</span>
               </div>
-              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km · ${pri.o2Liters}/${o2Max} L O₂ · ${pri.waterLiters}/${waterMax} L ${esc(t("waterUnit"))}</div>
-              ${(o2Over || waterOver) ? `<div style="font-size:10px;font-weight:800;color:var(--mars-red);">⚠ Rezerv Aşımı: ${o2Over ? `O₂ +${pri.o2Liters - o2Max}L ` : ""}${waterOver ? `Su +${(pri.waterLiters - waterMax).toFixed(1)}L` : ""}</div>` : ""}
+              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km (${totalMeters} m) · ${pri.o2Liters}/${o2Max} L O₂ · ${pri.waterLiters}/${waterMax} L ${esc(t("waterUnit"))}</div>
+              ${(o2Over || waterOver) ? `<div style="font-size:10px;font-weight:800;color:var(--mars-red);">${esc(t("reserveDeficitAlert"))} ${o2Over ? `O₂ +${pri.o2Liters - o2Max}L ` : ""}${waterOver ? `${esc(t("waterUnit"))} +${(pri.waterLiters - waterMax).toFixed(1)}L` : ""}</div>` : ""}
+              ${pri.comment ? `<div class="route-comment-line">${esc(pri.comment)}</div>` : ""}
             </div>
             ${radSummaryHtml}
             ${wpChipsHtml}
 
             ${stepRowsHtml ? `
               <div class="step-panel">
-                <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">ADIMLAR (${(pri && pri.steps) ? pri.steps.length : 0})</div>
+                <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">${esc(t("stepsHeading"))} (${(pri && pri.steps) ? pri.steps.length : 0})</div>
                 <div class="step-list">${stepRowsHtml}</div>
               </div>
             ` : ""}
           ` : `
             <div class="step-panel" style="font-size:11px;color:var(--ink-muted);">
-              Hedef seçip rota hesaplayın.
+              ${esc(t("stepsEmptyHint"))}
             </div>
           `}
         </aside>
@@ -217,8 +210,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sag ust Rota Planlayici, O2/Su rezerv ve radyasyon denetimi tanimi (9 dil destekli).
-   - Satir 7-14: constructor; baglanti elemani ve geri cagirilari saklar.
-   - Satir 16-188: render; dinamik Konumumuz, Hedef secimi, Mavi/Soluk Mavi rota metrikleri, O2/Su rezerv kontrolu, Alfa/Beta/Gama + Foton paneli ve EVA duraklarini cizer.
-   - Satir 190-225: bindEvents; hedef secimi, haritadan hedef tiklama, backend istek gonderme, EVA durak ve adim odaklama dugmelerini baglar.
+   - Satir 1-5: JSDoc sag ust Rota Planlayici, 5 sn backend gecikme rozeti ve O2/Su/Radyasyon denetimi tanimi (9 dil destekli).
+   - Satir 7-13: constructor; baglanti elemani ve geri cagirilari saklar.
+   - Satir 15-163: render; 5 sn #insp-latency-pill ve ayrik .insp-source-pill / #insp-latency-pill-card rozet yigini, Konum/Hedef secimi, Mavi rota metrikleri, O2/Su rezerv uyarisi, Alfa/Beta/Gama + Foton paneli, .wp-chip EVA duraklari ve adimlari cizer.
+   - Satir 165-208: bindEvents; hedef secimi, haritadan hedef tiklama, backend istek gonderme, EVA durak ve adim odaklama dugmelerini baglar.
    ========================================================================== */

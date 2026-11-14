@@ -1,11 +1,11 @@
 /**
  * @file demo_studio.css
  * @description /demo Mars Hayatta Kalma ve Rota Simulasyon Studyosu stilleri.
- * Tema: %60 Beyaz yuzey, %30 Siyah tipografi/uzay, %10 Mars Kirmizisi + Public Sans Web.
+ * Tema: Acik Gri Studio (%60 Beyaz/Buzlu yuzey, %30 Acik Gri zemin & Slate tipografi, %10 Mars Kirmizisi + Public Sans Web).
  */
 
 .demo-studio-body {
-  background: var(--space-black);
+  background: var(--bg-canvas);
   color: var(--ink-black);
   font-family: var(--font-main);
   overflow: hidden;
@@ -36,7 +36,9 @@
   gap: 10px;
   padding: 0 14px;
   background: var(--bg-white);
-  border-bottom: 2px solid var(--ink-black);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--line-light);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
   z-index: 20;
 }
 
@@ -60,18 +62,19 @@
 }
 
 .sim-route-pill {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--bg-gray-200);
+  color: var(--ink-black);
+  border: 1px solid var(--line-light);
   font-size: 10.5px;
   font-weight: 900;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: var(--r-pill);
 }
 
 .sim-btn {
   padding: 5px 10px;
   border-radius: 6px;
-  border: 1.5px solid var(--line-light);
+  border: 1px solid var(--line-light);
   background: var(--bg-offwhite);
   color: var(--ink-black);
   font-size: 11.5px;
@@ -80,37 +83,47 @@
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 
 .sim-btn:hover {
-  border-color: var(--ink-black);
+  border-color: var(--line-dark);
+  background: var(--surface-control-hover);
 }
 
 .sim-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--bg-gray-200);
+  color: var(--mars-red-dark);
+  border-color: var(--mars-red);
+  box-shadow: inset 0 0 0 1px var(--mars-red);
 }
 
 .sim-btn.red {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   border-color: var(--mars-red-dark);
 }
 
+.sim-btn.red:hover {
+  background: var(--mars-red-dark);
+}
+
 .sim-btn.red.active {
-  background: var(--ink-black);
-  border-color: var(--mars-red);
+  background: var(--mars-red-dark);
+  color: #ffffff;
+  border-color: var(--mars-red-dark);
 }
 
 .sim-pill-badge {
   background: var(--bg-soft);
   border: 1px solid var(--line-light);
   border-radius: var(--r-pill);
-  padding: 4px 9px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 800;
+  color: var(--ink-black);
 }
 
 .sim-workspace {
@@ -136,26 +149,27 @@
   position: absolute;
   top: 12px;
   bottom: 72px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 2px solid var(--ink-black);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 10px 12px;
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
   z-index: 15;
 }
 
 .sim-left-card {
   left: 12px;
-  width: 300px;
+  width: 304px;
 }
 
 .sim-right-card {
   right: 12px;
-  width: 336px;
+  width: 338px;
 }
 
 .sim-sec-title {
@@ -164,42 +178,49 @@
   letter-spacing: 0.06em;
   color: var(--mars-red);
   border-bottom: 1px solid var(--line-light);
-  padding-bottom: 3px;
+  padding-bottom: 4px;
 }
 
 .sim-veh-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
 .sim-veh-btn {
   padding: 6px 4px;
   border-radius: 6px;
-  border: 1.5px solid var(--line-light);
+  border: 1px solid var(--line-light);
   background: var(--bg-offwhite);
+  color: var(--ink-black);
   font-size: 10.5px;
   font-weight: 800;
   text-align: center;
   cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.sim-veh-btn:hover {
+  background: var(--surface-control-hover);
 }
 
 .sim-veh-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--bg-gray-200);
+  color: var(--mars-red-dark);
+  border-color: var(--mars-red);
+  box-shadow: inset 0 0 0 1px var(--mars-red);
 }
 
 .sim-field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 7px;
 }
 
 .sim-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   font-size: 10.5px;
   font-weight: 800;
   color: var(--ink-dark);
@@ -209,9 +230,10 @@
 .sim-field select {
   width: 100%;
   padding: 5px 7px;
-  border: 1.5px solid var(--line-light);
+  border: 1px solid var(--line-light);
   border-radius: 6px;
-  background: var(--bg-white);
+  background: var(--bg-solid-white);
+  color: var(--ink-black);
   font-size: 11.5px;
   font-weight: 700;
 }
@@ -224,23 +246,35 @@
   font-size: 11px;
   font-weight: 700;
   background: var(--bg-offwhite);
-  padding: 4px 7px;
+  border: 1px solid var(--line-light);
+  padding: 5px 8px;
   border-radius: 6px;
 }
 
 .sim-haz-row select {
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 2px 6px;
+  border-radius: 5px;
   border: 1px solid var(--line-light);
   font-size: 10.5px;
   font-weight: 800;
-  background: var(--bg-white);
+  color: var(--ink-black);
+  background: var(--bg-solid-white);
 }
 
 .sim-inject-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+}
+
+.sim-inject-row .sim-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 7px 6px;
+  min-height: 36px;
+  line-height: 1.2;
 }
 
 .sim-kpi-grid {
@@ -253,7 +287,7 @@
   background: var(--bg-offwhite);
   border: 1px solid var(--line-light);
   border-radius: 7px;
-  padding: 5px 8px;
+  padding: 6px 8px;
 }
 
 .sim-kpi-lbl {
@@ -333,7 +367,7 @@
   background: var(--bg-offwhite);
   border: 1px solid var(--line-light);
   border-radius: 6px;
-  padding: 6px;
+  padding: 7px;
 }
 
 .sim-log-item {
@@ -369,7 +403,8 @@
   transform: translateX(-50%);
   width: min(740px, calc(100vw - 24px));
   background: var(--bg-white);
-  border: 2px solid var(--ink-black);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-pill);
   box-shadow: var(--shadow-card);
   padding: 7px 14px;
@@ -399,8 +434,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc /demo simulasyon studyosu CSS tanimlari.
-   - Satir 7-105: Uzay tuvali, ust arac cubugu, hazir senaryo dugmeleri ve 2D/3D seciciler.
-   - Satir 107-235: Sol parametre giris karti ve sag telemetri/ilerleme cubugu stilleri.
-   - Satir 237-325: Canli O2/Su/Batarya cubuklari, chart tuvali, olay gunlugu ve alt oynatma cubugu.
+   - Satir 1-5: JSDoc /demo Acik Gri Studio simulasyon studyosu CSS tanimlari.
+   - Satir 7-125: Acik gri yuzeyler, buzlu ust arac cubugu, hazir senaryo dugmeleri ve 2D/3D seciciler.
+   - Satir 127-262: Sol parametre giris karti, hizalanmis acil durum enjeksiyon butonlari ve sag telemetri karti.
+   - Satir 264-420: Canli O2/Su/Batarya cubuklari, chart tuvali, olay gunlugu ve buzlu alt oynatma cubugu.
    ========================================================================== */
+

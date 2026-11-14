@@ -302,6 +302,20 @@
       });
     }
 
+    computeUiAvoidRects() {
+      if (!this.canvas || typeof document === "undefined") return [];
+      const cr = this.canvas.getBoundingClientRect();
+      const rects = [];
+      for (const sel of [".sim-left-card", ".sim-right-card", ".sim-transport-bar"]) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const b = el.getBoundingClientRect();
+        if (b.width <= 0 || b.height <= 0) continue;
+        rects.push({ x: b.left - cr.left, y: b.top - cr.top, w: b.width, h: b.height });
+      }
+      return rects;
+    }
+
     drawMap() {
       if (!this.ctx || !this.canvas) return;
       this.fpsFrames++;
@@ -339,7 +353,8 @@
         progressiveLodRender: true, showGraticule: s.showGraticule,
         showNomenclature: s.showNomenclature, showRadiationZones: s.showRadiationZones,
         showRouteComments: s.showRouteComments, routeScope: "global", highQualityGlobeRay: false,
-        demoSim
+        demoSim,
+        uiAvoidRects: this.computeUiAvoidRects()
       };
 
       if (s.viewMode === "3d") this.renderer3D.render(this.ctx, payload);
@@ -653,9 +668,9 @@
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc /demo Mars hayatta kalma ve rota simulasyon studyosu denetleyicisi.
    - Satir 15-82: constructor; 3D/2D harita motorlari, Rust WASM/HTTP istemcisi, fizik motoru ve varsayilan parametreler.
-   - Satir 84-160: init, presets, applyPreset ve syncSiteCoords; hazir senaryolari ve baslangic verilerini yukler.
-   - Satir 162-215: getHazardBundle ve recomputeRouteAndTimeline; Rust WASM A* rota ile zaman serisi simulasyonunu hesaplar.
-   - Satir 217-295: startLoop, stopLoop, drawMap ve requestTiles; canli Rover/EVA ilerlemesi ile 2D/3D haritayi cizer.
-   - Satir 297-380: renderTelemetryAndChart, renderEventLog ve syncInputsFromState; O2/Su/Batarya/Radyasyon gostergelerini ve grafigi gunceller.
-   - Satir 382-645: bindControls, startLatencyMonitor ve bindCanvasEvents; kontroller, 5 sn ping, surukleme (computePanStep) ve imlece odakli tekerlek zoom.
+   - Satir 84-165: init, presets, applyPreset ve syncSiteCoords; hazir senaryolari ve baslangic verilerini yukler.
+   - Satir 167-236: getHazardBundle, recomputeRouteAndTimeline ve rebuildTimelineOnly; Rust WASM A* rota ile zaman serisi simulasyonunu hesaplar.
+   - Satir 238-340: startLoop, stopLoop, requestTiles, computeUiAvoidRects (HUD cakisma onleme) ve drawMap; canli Rover/EVA ilerlemesi ile 2D/3D haritayi cizer.
+   - Satir 342-425: renderTelemetryAndChart, renderEventLog ve syncInputsFromState; O2/Su/Batarya/Radyasyon gostergelerini ve grafigi gunceller.
+   - Satir 427-656: bindControls, startLatencyMonitor ve bindCanvasEvents; kontroller, 5 sn ping, surukleme (computePanStep) ve imlece odakli tekerlek zoom.
    ========================================================================== */

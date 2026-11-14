@@ -159,6 +159,165 @@
   }
 
   class OverlayDrawHelper {
+    constructor() {
+      this._viewW = 4096;
+      this._viewH = 4096;
+      this._avoidRects = [];
+      this._placedRects = [];
+    }
+
+    /**
+     * Her cizim karesinin basinda cakismasiz etiket yerleşimi icin sahne ve HUD sinir kutularini sifirlar
+     */
+    beginLabelFrame(viewW = 4096, viewH = 4096, avoidRects = []) {
+      this._viewW = Math.max(1, viewW || 4096);
+      this._viewH = Math.max(1, viewH || 4096);
+      this._avoidRects = Array.isArray(avoidRects)
+        ? avoidRects.filter((r) => r && r.w > 0 && r.h > 0).map((r) => ({ x: r.x, y: r.y, w: r.w, h: r.h }))
+        : [];
+      this._placedRects = [];
+    }
+
+    _rectsOverlap(a, b, pad = 5) {
+      return !(
+        a.x + a.w + pad <= b.x ||
+        b.x + b.w + pad <= a.x ||
+        a.y + a.h + pad <= b.y ||
+        b.y + b.h + pad <= a.y
+      );
+    }
+
+    _overlapArea(a, b, pad = 4) {
+      const ix = Math.max(0, Math.min(a.x + a.w + pad, b.x + b.w + pad) - Math.max(a.x, b.x));
+      const iy = Math.max(0, Math.min(a.y + a.h + pad, b.y + b.h + pad) - Math.max(a.y, b.y));
+      return ix * iy;
+    }
+
+    reserveRect(x, y, w, h) {
+      if (!this._placedRects) this.beginLabelFrame();
+      this._placedRects.push({ x, y, w, h });
+    }
+
+    isPointInAvoidRect(px, py, pad = 2) {
+      return this._avoidRects.some(
+        (r) => px >= r.x - pad && px <= r.x + r.w + pad && py >= r.y - pad && py <= r.y + r.h + pad
+      );
+    }
+
+    /**
+     * Etiket kutusunu HUD panelleri ve daha yuksek oncelikli etiketlerle cakismayacak en temiz konuma yerlestirir
+     */
+    claimLabelSlot(prefX, prefY, w, h, offsets = [[0, 0]], allowFallback = true) {
+      if (!this._placedRects) this.beginLabelFrame();
+      const vw = this._viewW || 4096;
+      const vh = this._viewH || 4096;
+      const margin = 8;
+      const inView = (rx, ry) => (rx >= margin && ry >= margin && rx + w <= vw - margin && ry + h <= vh - margin);
+      const isFree = (cand) => !this._avoidRects.some((r) => this._rectsOverlap(cand, r, 6)) && !this._placedRects.some((r) => this._rectsOverlap(cand, r, 5));
+
+      for (const [ox, oy] of offsets) {
+        const rx = prefX + ox;
+        const ry = prefY + oy;
+        const cand = { x: rx, y: ry, w, h };
+        if (inView(rx, ry) && isFree(cand)) {
+          this._placedRects.push(cand);
+          return { x: rx, y: ry, w, h, placed: true, shifted: ox !== 0 || oy !== 0 };
+        }
+        // HUD kenarindan yatay iterek bosluk ara
+        for (const ar of this._avoidRects) {
+          if (!this._rectsOverlap(cand, ar, 6)) continue;
+          for (const nx of [ar.x + ar.w + 8, ar.x - w - 8]) {
+            const pushed = { x: nx, y: ry, w, h };
+            if (inView(nx, ry) && isFree(pushed)) {
+              this._placedRects.push(pushed);
+              return { x: nx, y: ry, w, h, placed: true, shifted: true };
+            }
+          }
+        }
+      }
+
+      if (!allowFallback) {
+        return { x: prefX, y: prefY, w, h, placed: false, shifted: false };
+      }
+
+      const maxX = Math.max(margin, vw - w - margin);
+      const maxY = Math.max(margin, vh - h - margin);
+      let best = null;
+      let bestScore = Infinity;
+
+      for (const [ox, oy] of offsets) {
+        const rx = Math.max(margin, Math.min(maxX, prefX + ox));
+        const ry = Math.max(margin, Math.min(maxY, prefY + oy));
+        const cand = { x: rx, y: ry, w, h };
+        let score = 0;
+        for (const ar of this._avoidRects) score += this._overlapArea(cand, ar, 6) * 50;
+        for (const pr of this._placedRects) score += this._overlapArea(cand, pr, 5);
+        score += Math.hypot(ox, oy) * 0.01;
+        if (score < bestScore) {
+          bestScore = score;
+          best = cand;
+        }
+      }
+
+      if (!best) {
+        best = {
+          x: Math.max(margin, Math.min(maxX, prefX)),
+          y: Math.max(margin, Math.min(maxY, prefY)),
+          w,
+          h
+        };
+      }
+      this._placedRects.push(best);
+      return { x: best.x, y: best.y, w, h, placed: true, shifted: true };
+    }
+
+    drawRoundRectPath(ctx, x, y, w, h, r) {
+      const rr = Math.max(0, Math.min(r, w * 0.5, h * 0.5));
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.lineTo(x + w - rr, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+      ctx.lineTo(x + w, y + h - rr);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      ctx.lineTo(x + rr, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+      ctx.lineTo(x, y + rr);
+      ctx.quadraticCurveTo(x, y, x + rr, y);
+      ctx.closePath();
+    }
+
+    /**
+     * Acik Gri Studio standartlarinda yuvarlatilmis, ince cerceveli ve sol renk seritli etiket hapi cizer
+     */
+    drawRoundedPill(ctx, x, y, w, h, radius = 7, accentHex = "#64748b", isStrong = false) {
+      ctx.save();
+      ctx.shadowColor = "rgba(15, 23, 42, 0.16)";
+      ctx.shadowBlur = 9;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 2;
+      this.drawRoundRectPath(ctx, x, y, w, h, radius);
+      ctx.fillStyle = isStrong ? "rgba(255, 255, 255, 0.96)" : "rgba(241, 245, 249, 0.94)";
+      ctx.fill();
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      if (accentHex) {
+        ctx.save();
+        this.drawRoundRectPath(ctx, x, y, w, h, radius);
+        ctx.clip();
+        ctx.fillStyle = accentHex;
+        ctx.fillRect(x, y, 3.5, h);
+        ctx.restore();
+      }
+
+      this.drawRoundRectPath(ctx, x, y, w, h, radius);
+      ctx.strokeStyle = isStrong ? accentHex : "rgba(148, 163, 184, 0.88)";
+      ctx.lineWidth = isStrong ? 1.2 : 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+
     /**
      * 3D kure uzerine cografik nokta projeksiyonu uygular (3D kamera egimi Pitch/Yaw + MOLA yuksekligi destekli)
      */
@@ -352,39 +511,75 @@
         g.addColorStop(0.0, `rgba(232, 121, 249, ${lb.a0})`);
         g.addColorStop(0.45, `rgba(168, 85, 247, ${(lb.a0 * 0.72).toFixed(2)})`);
         g.addColorStop(0.78, `rgba(109, 40, 217, ${(lb.a0 * 0.28).toFixed(2)})`);
-        g.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+        g.addColorStop(1.0, "rgba(109, 40, 217, 0)");
         ctx.fillStyle = g;
         ctx.fillRect(lx - lr, ly - lr, lr * 2, lr * 2);
       }
       ctx.restore();
 
       if (labelText && px >= -140 && px <= viewW + 140 && py >= -30 && py <= viewH + 30) {
-        this.drawCompactHazardLabel(ctx, px, py, labelText, "#c084fc");
+        this.drawCompactHazardLabel(ctx, px, py, labelText, "#9333ea", false);
       }
     }
 
-    drawCompactHazardLabel(ctx, px, py, labelText, accentHex = "#94a3b8") {
+    drawCompactHazardLabel(ctx, px, py, labelText, accentHex = "#64748b", allowFallback = false) {
       ctx.save();
       ctx.font = "700 10px 'Public Sans Web', sans-serif";
       const tw = ctx.measureText(labelText).width;
-      ctx.fillStyle = "rgba(8, 12, 22, 0.78)";
-      ctx.fillRect(px - tw / 2 - 6, py - 9, tw + 12, 17);
-      ctx.strokeStyle = accentHex;
-      ctx.lineWidth = 0.8;
-      ctx.strokeRect(px - tw / 2 - 6, py - 9, tw + 12, 17);
-      ctx.fillStyle = "#f8fafc";
-      ctx.textAlign = "center";
-      ctx.fillText(labelText, px, py + 3);
+      const boxW = Math.ceil(tw + 18);
+      const boxH = 19;
+      const prefX = px - boxW / 2;
+      const prefY = py - 9.5;
+      const offsets = [
+        [0, 0],
+        [0, -23],
+        [0, 23],
+        [-(boxW * 0.55 + 8), -16],
+        [boxW * 0.55 + 8, -16],
+        [-(boxW * 0.55 + 8), 16],
+        [boxW * 0.55 + 8, 16]
+      ];
+      const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, allowFallback);
+      if (!slot.placed) {
+        ctx.restore();
+        return;
+      }
+
+      this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, accentHex, false);
+      ctx.fillStyle = "#1e293b";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(labelText, slot.x + 9, slot.y + boxH / 2 + 0.5);
       ctx.restore();
     }
 
     /**
-     * 2D veya 3D projeksiyonda tum aktif Asit Yagmuru (Mavi), Firtina ve Foton isi haritalari ile etiketlerini cizer.
-     * Not: 3D modunda isi haritasi piksel bazli kureye yapiskandir; burada yalnizca kure on yuzündeki etiket cizilir.
+     * Asit Yagmuru, Kum Firtinasi ve Radyasyon kusak etiketlerini yuksek oncelikli pinlerle cakismadan cizer
      */
-    drawGlobalHazards(ctx, mode, projFn, hazardBundle, zoom, viewW = 4096, viewH = 4096, map2DBounds = null) {
+    drawGlobalHazardLabels(ctx, mode, projFn, hazardBundle, zoom, viewW = 4096, viewH = 4096) {
       if (!hazardBundle) return;
       const { acidZones = [], stormZones = [], radiationZones = [] } = hazardBundle;
+      const drawLabels = (zones, prefix, accentHex, minZoom) => {
+        if (zoom < minZoom) return;
+        for (const z of zones) {
+          const p = projFn(z.lat, z.lon);
+          if (!p) continue;
+          if (mode === "3d" && (!p.visible || p.z < 0.25)) continue;
+          if (p.x < -80 || p.x > viewW + 80 || p.y < -30 || p.y > viewH + 30) continue;
+          this.drawCompactHazardLabel(ctx, p.x, p.y, `${prefix} ${z.name}`, accentHex, false);
+        }
+      };
+
+      drawLabels(acidZones, "⚗", "#0284c7", 0.85);
+      drawLabels(stormZones, "🌪", "#ea580c", 0.85);
+      drawLabels(radiationZones, "☢", "#9333ea", 0.90);
+    }
+
+    /**
+     * 2D veya 3D projeksiyonda tum aktif Asit Yagmuru (Mavi), Firtina ve Foton isi haritalarini (ve istenirse etiketlerini) cizer.
+     */
+    drawGlobalHazards(ctx, mode, projFn, hazardBundle, zoom, viewW = 4096, viewH = 4096, map2DBounds = null, drawLabelsNow = true) {
+      if (!hazardBundle) return;
 
       // 2D haritada yuzey kilitli isi haritasi atlasini tum gorunur sarmalara ciz (sıfır daire)
       if (mode === "2d" && map2DBounds) {
@@ -403,20 +598,9 @@
         }
       }
 
-      const drawLabels = (zones, prefix, accentHex, minZoom) => {
-        if (zoom < minZoom) return;
-        for (const z of zones) {
-          const p = projFn(z.lat, z.lon);
-          if (!p) continue;
-          if (mode === "3d" && (!p.visible || p.z < 0.22)) continue;
-          if (p.x < -120 || p.x > viewW + 120 || p.y < -30 || p.y > viewH + 30) continue;
-          this.drawCompactHazardLabel(ctx, p.x, p.y, `${prefix} ${z.name}`, accentHex);
-        }
-      };
-
-      drawLabels(acidZones, "⚗", "#38bdf8", 0.85);
-      drawLabels(stormZones, "🌪", "#fb923c", 0.85);
-      drawLabels(radiationZones, "☢", "#c084fc", 0.90);
+      if (drawLabelsNow) {
+        this.drawGlobalHazardLabels(ctx, mode, projFn, hazardBundle, zoom, viewW, viewH);
+      }
     }
 
     /**
@@ -431,10 +615,10 @@
           if (!p || !p.visible) continue;
           ctx.beginPath();
           ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255, 255, 255, 0.82)";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
           ctx.fill();
-          ctx.strokeStyle = "#000000";
-          ctx.lineWidth = 1;
+          ctx.strokeStyle = "#334155";
+          ctx.lineWidth = 1.1;
           ctx.stroke();
         }
       }
@@ -449,27 +633,49 @@
         ctx.fillStyle = isActive ? "#d92b2b" : "#ffffff";
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#000000";
+        ctx.strokeStyle = "#334155";
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, isActive ? 14 : 10, 0, Math.PI * 2);
-        ctx.strokeStyle = isActive ? "rgba(217, 43, 43, 0.9)" : "rgba(255, 255, 255, 0.45)";
-        ctx.lineWidth = 1.3;
+        ctx.strokeStyle = isActive ? "rgba(217, 43, 43, 0.9)" : "rgba(255, 255, 255, 0.72)";
+        ctx.lineWidth = 1.4;
         ctx.stroke();
 
+        this.reserveRect(p.x - 10, p.y - 10, 20, 20);
+        hitTargets.push({ crater, x: p.x, y: p.y, r: 22 });
+
+        if (p.x < -20 || p.x > (this._viewW || 4096) + 20 || p.y < -20 || p.y > (this._viewH || 4096) + 20 || this.isPointInAvoidRect(p.x, p.y, 4)) {
+          continue;
+        }
+
+        ctx.save();
         ctx.font = "800 11px 'Public Sans Web', sans-serif";
         const label = crater.id === "gale-crater" ? `★ ${crater.name}` : crater.name;
         const lw = ctx.measureText(label).width;
-        ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-        ctx.fillRect(p.x + 11, p.y - 10, lw + 12, 20);
-        ctx.strokeStyle = isActive ? "#d92b2b" : "rgba(255, 255, 255, 0.4)";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(p.x + 11, p.y - 10, lw + 12, 20);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(label, p.x + 17, p.y + 4);
-
-        hitTargets.push({ crater, x: p.x, y: p.y, r: 22 });
+        const boxW = Math.ceil(lw + 18);
+        const boxH = 22;
+        const prefX = p.x + 12;
+        const prefY = p.y - 11;
+        const offsets = [
+          [0, 0],
+          [0, 23],
+          [0, -23],
+          [-(boxW + 24), 0],
+          [-(boxW + 24), 23],
+          [-(boxW + 24), -23],
+          [-(boxW * 0.5 + 12), -30],
+          [-(boxW * 0.5 + 12), 20]
+        ];
+        const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, false);
+        if (slot.placed) {
+          this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 7, isActive ? "#d92b2b" : "#475569", isActive);
+          ctx.fillStyle = "#1e293b";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(label, slot.x + 9, slot.y + boxH / 2 + 0.5);
+        }
+        ctx.restore();
       }
 
       return hitTargets;
@@ -507,22 +713,39 @@
         ctx.textBaseline = "middle";
         ctx.fillText(tag, p.x, p.y + 0.5);
 
-        const originLbl = ns.i18n ? ns.i18n.t("originWord") : "Konumumuz";
-        const destLbl = ns.i18n ? ns.i18n.t("destWord") : "Hedef";
-        const caption = tag === "A"
-          ? `📍 ${originLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`
-          : `🎯 ${destLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
-        ctx.font = "800 10px 'Public Sans Web', sans-serif";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "alphabetic";
-        const tw = ctx.measureText(caption).width;
-        ctx.fillStyle = "rgba(13, 15, 18, 0.92)";
-        ctx.fillRect(p.x + 14, p.y - 22, tw + 10, 17);
-        ctx.strokeStyle = bgHex;
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(p.x + 14, p.y - 22, tw + 10, 17);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(caption, p.x + 19, p.y - 10);
+        this.reserveRect(p.x - 12, p.y - 12, 24, 24);
+
+        if (p.x >= -24 && p.x <= (this._viewW || 4096) + 24 && p.y >= -24 && p.y <= (this._viewH || 4096) + 24) {
+          const originLbl = ns.i18n ? ns.i18n.t("originWord") : "Konumumuz";
+          const destLbl = ns.i18n ? ns.i18n.t("destWord") : "Hedef";
+          const caption = tag === "A"
+            ? `📍 ${originLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`
+            : `🎯 ${destLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
+          ctx.font = "800 10px 'Public Sans Web', sans-serif";
+          const tw = ctx.measureText(caption).width;
+          const boxW = Math.ceil(tw + 16);
+          const boxH = 20;
+          const prefX = p.x + 15;
+          const prefY = p.y - 24;
+          const offsets = [
+            [0, 0],
+            [0, -22],
+            [-(boxW + 30), 0],
+            [0, 20],
+            [-(boxW + 30), -22],
+            [-(boxW + 30), 20],
+            [-(boxW * 0.5 + 15), -38],
+            [-(boxW * 0.5 + 15), 24]
+          ];
+          const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, true);
+          if (slot.placed) {
+            this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, bgHex, true);
+            ctx.fillStyle = "#1e293b";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(caption, slot.x + 9, slot.y + boxH / 2 + 0.5);
+          }
+        }
         ctx.restore();
       };
 
@@ -538,11 +761,11 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-14: JSDoc ve 1024x512 kuresel organik isi haritasi (heatmap) boyut sabitleri.
-   - Satir 17-129: getSphereLookup, buildOrganicLobes ve sampleHeatmapColor; kuresel birim vektor
+   - Satir 17-159: getSphereLookup, buildOrganicLobes ve sampleHeatmapColor; kuresel birim vektor
      uzerinde dairesel olmayan cok-loblu Asit (Mavi), Firtina (Kizil-Altin) ve Radyasyon (Mor) isi haritasi rampalarini hesaplar.
-   - Satir 135-162: projectToSphere; enlem/boylami 3D kamera pitch/yaw ve MOLA yuksekligiyle ekrana yansitir.
-   - Satir 168-271: getGlobalHeatmapAtlas; tehlike alanlarini 1024x512 RGBA + 128x64 maske + 2D canvas olarak onbellekler.
-   - Satir 276-315: drawLocalHeatmapPlume ve drawCompactHazardLabel; krater ici organik bulut ve kompakt etiket cizer.
-   - Satir 321-351: drawGlobalHazards; 2D haritada yuzeye kilitli isi haritasi dokusunu, 3D'de ise yuzey etiketlerini cizer.
-   - Satir 356-455: drawMarkers ve drawCustomEndpoints; NASA inis sahalari, kraterler ve A/B noktalarini cizer.
+   - Satir 161-278: beginLabelFrame, isPointInAvoidRect, claimLabelSlot (HUD kenar itme dahil) ve drawRoundedPill; harita etiketlerini cakismasiz Acik Gri haplar olarak konumlandirir.
+   - Satir 280-445: projectToSphere ve getGlobalHeatmapAtlas; 3D kamera projeksiyonu ile 1024x512 tehlike isi haritasi dokusunu onbellekler.
+   - Satir 447-598: drawLocalHeatmapPlume, drawCompactHazardLabel, drawGlobalHazardLabels ve drawGlobalHazards; isi haritalari ve acik gri tehlike etiketlerini cizer.
+   - Satir 600-758: drawMarkers ve drawCustomEndpoints; NASA inis sahalari, kraterler ve A/B noktalarini HUD/pin cakismasi olmadan Acik Gri hap etiketleriyle cizer.
    ========================================================================== */
+

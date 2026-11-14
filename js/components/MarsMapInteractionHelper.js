@@ -65,7 +65,7 @@
 
         if (c.isOrbitDragging) {
           c.state.camYaw = ((c.state.camYaw || 0) + dx * 0.28 + 360) % 360;
-          c.state.camPitch = Math.max(0, Math.min(68, (c.state.camPitch ?? 28) - dy * 0.24));
+          c.state.camPitch = Math.max(0, Math.min(68, (c.state.camPitch ?? 0) - dy * 0.24));
           const tiltBtn = document.getElementById("btn-3d-tilt");
           if (tiltBtn) tiltBtn.textContent = `${Math.round(c.state.camPitch)}°`;
           c.scheduleRender(false);
@@ -149,11 +149,11 @@
         else if (k === "s" || e.key === "ArrowDown") c.state.rotLat = Math.max(-78, Math.min(78, c.state.rotLat - step));
         else if (k === "a" || e.key === "ArrowLeft") c.state.rotLon = c.normalizeLon(c.state.rotLon - step);
         else if (k === "d" || e.key === "ArrowRight") c.state.rotLon = c.normalizeLon(c.state.rotLon + step);
-        else if (k === "r") { c.state.camPitch = Math.min(68, (c.state.camPitch ?? 28) + 5); c.renderBottomRight(); }
-        else if (k === "f") { c.state.camPitch = Math.max(0, (c.state.camPitch ?? 28) - 5); c.renderBottomRight(); }
+        else if (k === "r") { c.state.camPitch = Math.min(68, (c.state.camPitch ?? 0) + 5); c.renderBottomRight(); }
+        else if (k === "f") { c.state.camPitch = Math.max(0, (c.state.camPitch ?? 0) - 5); c.renderBottomRight(); }
         else if (k === "c" || k === " ") {
           const cr = c.getActiveCrater();
-          c.state.camPitch = 28;
+          c.state.camPitch = 0;
           c.state.camYaw = 0;
           c.renderBottomRight();
           this.animateTo(cr.coordinates.lat, cr.coordinates.lon, 1.05);
@@ -245,7 +245,7 @@
           rotLon: c.state.rotLon,
           zoom: c.state.zoom,
           nextZoom,
-          camPitch: c.state.camPitch ?? 28,
+          camPitch: c.state.camPitch ?? 0,
           camYaw: c.state.camYaw ?? 0,
           reliefScale: relief
         });

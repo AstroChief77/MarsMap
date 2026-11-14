@@ -1,29 +1,30 @@
 /**
  * @file demo.css
  * @description Rehberli Juri Demo Modu Kontrol Cubugu ve ust bar Demo dugmesi stilleri.
- * Tema: %60 Beyaz, %30 Siyah, %10 Mars Kirmizisi + Public Sans Web.
+ * Tema: Acik Gri Studio (%60 Beyaz, %30 Acik Gri & Slate, %10 Mars Kirmizisi + Public Sans Web).
  */
 
 .nav-demo-btn {
   padding: 7px 13px;
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   font-size: 12.5px;
-  font-weight: 900;
+  font-weight: 800;
   background: var(--mars-red);
-  color: var(--bg-white);
-  border: 1.5px solid var(--ink-black);
+  color: var(--bg-solid-white);
+  border: 1px solid var(--mars-red-dark);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
 }
 
 .nav-demo-btn:hover {
   background: var(--mars-red-dark);
+  transform: translateY(-1px);
 }
 
 .nav-demo-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--mars-red);
+  background: var(--route-blue-soft);
+  color: var(--route-blue-dark);
+  border-color: var(--route-blue);
 }
 
 .demo-bar-root {
@@ -31,7 +32,7 @@
   bottom: 74px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(690px, calc(100vw - 32px));
+  width: min(700px, calc(100vw - 32px));
   z-index: 45;
   pointer-events: none;
 }
@@ -40,8 +41,9 @@
 .demo-collapsed-pill {
   pointer-events: auto;
   background: var(--bg-white);
+  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
-  border: 2px solid var(--ink-black);
+  border: 1px solid var(--line-light);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   font-family: var(--font-main);
@@ -70,10 +72,10 @@
 }
 
 .demo-panel {
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
 
 .demo-head {
@@ -96,12 +98,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--mars-red-soft);
+  color: var(--mars-red-dark);
+  border: 1px solid #fecaca;
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.05em;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: var(--r-pill);
 }
 
@@ -133,6 +136,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .demo-scen-pill,
@@ -140,31 +144,41 @@
 .demo-mini-btn,
 .demo-ctrl-btn,
 .demo-veh-btn {
-  border-radius: 6px;
-  border: 1.5px solid var(--line-light);
-  background: var(--bg-offwhite);
+  border-radius: 7px;
+  border: 1px solid var(--line-light);
+  background: var(--surface-control);
   color: var(--ink-black);
   font-size: 11px;
   font-weight: 800;
-  padding: 4px 8px;
+  padding: 5px 9px;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.demo-scen-pill:hover,
+.demo-speed-btn:hover,
+.demo-mini-btn:hover,
+.demo-ctrl-btn:hover,
+.demo-veh-btn:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--line-dark);
 }
 
 .demo-scen-pill.active,
 .demo-speed-btn.active,
 .demo-mini-btn.active,
 .demo-veh-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--bg-gray-200);
+  color: var(--mars-red-dark);
+  border-color: var(--mars-red);
+  box-shadow: inset 0 0 0 1px rgba(217, 43, 43, 0.25);
 }
 
 .demo-ctrl-btn.primary {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: var(--bg-solid-white);
   border-color: var(--mars-red-dark);
-  padding: 4px 10px;
+  padding: 5px 11px;
 }
 
 .demo-ctrl-btn.primary:hover {
@@ -173,18 +187,18 @@
 
 .demo-mini-btn.danger:hover {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: var(--bg-solid-white);
   border-color: var(--mars-red);
 }
 
 .demo-cue-text {
   font-size: 11.5px;
-  line-height: 1.38;
+  line-height: 1.42;
   color: var(--ink-dark);
-  background: var(--bg-offwhite);
+  background: var(--bg-soft);
   border-left: 3px solid var(--mars-red);
-  padding: 5px 8px;
-  border-radius: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
 }
 
 .demo-controls-row,
@@ -218,17 +232,18 @@
 }
 
 .demo-metric-chip {
-  background: var(--bg-offwhite);
+  background: var(--bg-soft);
   border: 1px solid var(--line-light);
-  border-radius: 5px;
-  padding: 3px 7px;
+  border-radius: 6px;
+  padding: 3px 8px;
   font-size: 11px;
   font-weight: 800;
   color: var(--ink-black);
+  white-space: nowrap;
 }
 
 .demo-metric-chip.warn {
-  background: var(--mars-red-tint);
+  background: var(--mars-red-soft);
   border-color: var(--mars-red);
   color: var(--mars-red-dark);
 }
@@ -243,9 +258,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Demo modu CSS sablonu ve kurumsal tema aciklamasi.
-   - Satir 7-26: .nav-demo-btn; ust cubuktaki kirmizi/siyah Demo baslatma dugmesi.
-   - Satir 28-64: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakisimsiz konumlandirma ve kucultulmus hap gorunumu.
-   - Satir 66-160: .demo-panel, senaryo secici, oynat/duraklat, ilerleme kaydirici ve anlatim karti stilleri.
-   - Satir 162-215: .demo-tele-row, .demo-metric-chip ve dar ekran duyarli kurallari.
+   - Satir 1-5: JSDoc Demo modu CSS sablonu ve Acik Gri Studio tema aciklamasi.
+   - Satir 7-27: .nav-demo-btn; ust cubuktaki kirmizi/acik gri aktif Demo dugmesi.
+   - Satir 29-70: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakismasiz buzlu cam konumlandirma.
+   - Satir 72-182: .demo-panel, senaryo secici, oynat/duraklat, hiz/arac acik gri aktif haplari ve anlatim karti.
+   - Satir 184-242: .demo-tele-row, .demo-metric-chip ve dar ekran duyarli kurallari.
    ========================================================================== */

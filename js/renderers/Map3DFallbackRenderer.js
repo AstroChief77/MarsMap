@@ -214,9 +214,9 @@
           cx + radius * 0.08, cy + radius * 0.08, radius * 1.02
         );
         shade.addColorStop(0.0, "rgba(255, 224, 198, 0.12)");
-        shade.addColorStop(0.48, "rgba(0, 0, 0, 0)");
-        shade.addColorStop(0.84, "rgba(10, 4, 2, 0.42)");
-        shade.addColorStop(1.0, "rgba(235, 118, 62, 0.34)");
+        shade.addColorStop(0.48, "rgba(180, 90, 45, 0)");
+        shade.addColorStop(0.84, "rgba(105, 42, 22, 0.34)");
+        shade.addColorStop(1.0, "rgba(235, 118, 62, 0.32)");
         ctx.fillStyle = shade;
         ctx.fillRect(0, 0, viewW, viewH);
       }
@@ -232,6 +232,7 @@
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc file:// ve tainted tuval ortamlari icin 3D yedek kure cizici tanimi.
    - Satir 11-18: Map3DFallbackRenderer constructor; MarsTileLoader ornegini saklar.
-   - Satir 20-192: drawFallbackShadedSphere; z=0..targetZ karolarini kuresel afin izgara ve alt-hucre drawImage donusumuyle 3D kureye cizer, kuresel golge ekler.
-   - Satir 195-196: Sinifi AstroChief ad alanina kaydeder.
+   - Satir 20-224: drawFallbackShadedSphere; z=0..targetZ karolarini kuresel afin izgara ve alt-hucre drawImage donusumuyle 3D kureye cizer, acik gri zemin uyumlu limb isigi ekler.
+   - Satir 227-228: Sinifi AstroChief ad alanina kaydeder.
    ========================================================================== */
+

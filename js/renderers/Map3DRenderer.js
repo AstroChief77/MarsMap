@@ -59,11 +59,12 @@
       } = state;
 
       ctx.clearRect(0, 0, width, height);
+      this.overlays.beginLabelFrame(width, height, state.uiAvoidRects || []);
       const cx = width * 0.5;
       const cy = height * 0.5;
       const clampedZoom = Math.min(Math.max(zoom, 0.55), 80.0);
       const radius = Math.min(width, height) * 0.41 * clampedZoom;
-      const pitch = Math.max(0, Math.min(72, camPitch ?? 28));
+      const pitch = Math.max(0, Math.min(72, camPitch ?? 0));
       const yaw = camYaw ?? 0;
       const reliefScale = enable3DTerrain === false ? 0 : (topoReliefScale ?? 1.0);
       const topo = ns.marsTopo;
@@ -77,12 +78,21 @@
       const pivotZ = Math.max(0, Math.min(1, (clampedZoom - 1.1) / 1.1));
       const sphereCy = cy + pivotZ * sinP * radius;
 
-      // 1. Dis Mars atmosferi kehribar limb isimasi (Google Earth tipi tam yuvarlak 3D kure)
+      // 1. Acik Gri arka planda Mars kuresine derinlik veren yumusak studyo golgesi ve dis atmosfer isimasi
       if (limbVisible) {
+        const dropShadow = ctx.createRadialGradient(cx + radius * 0.04, sphereCy + radius * 0.06, radius * 0.85, cx + radius * 0.04, sphereCy + radius * 0.06, limbRadius * 1.12);
+        dropShadow.addColorStop(0.0, "rgba(15, 23, 42, 0.16)");
+        dropShadow.addColorStop(0.65, "rgba(15, 23, 42, 0.08)");
+        dropShadow.addColorStop(1.0, "rgba(15, 23, 42, 0)");
+        ctx.fillStyle = dropShadow;
+        ctx.beginPath();
+        ctx.arc(cx + radius * 0.04, sphereCy + radius * 0.06, limbRadius * 1.12, 0, Math.PI * 2);
+        ctx.fill();
+
         const atmo = ctx.createRadialGradient(cx, sphereCy, radius * 0.94, cx, sphereCy, limbRadius * 1.10);
-        atmo.addColorStop(0.0, "rgba(235, 128, 70, 0.5)");
-        atmo.addColorStop(0.45, "rgba(205, 88, 38, 0.2)");
-        atmo.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+        atmo.addColorStop(0.0, "rgba(235, 128, 70, 0.42)");
+        atmo.addColorStop(0.45, "rgba(205, 88, 38, 0.16)");
+        atmo.addColorStop(1.0, "rgba(235, 128, 70, 0)");
         ctx.fillStyle = atmo;
         ctx.beginPath();
         ctx.arc(cx, sphereCy, limbRadius * 1.10, 0, Math.PI * 2);
@@ -201,20 +211,36 @@
       };
 
       if (showGraticule) this.drawGraticule3D(ctx, project3D);
-      this.overlays.drawGlobalHazards(ctx, "3d", project3D, hazardBundle, clampedZoom, width, height);
-      if (showNomenclature) this.drawNomenclature3D(ctx, project3D);
 
+      let pendingComment = null;
       if (computedRoutes && computedRoutes.scope === "global") {
-        this.routeRenderer.drawGlobalDualRoutes(ctx, project3D, computedRoutes, showRouteComments, width, height);
+        pendingComment = this.routeRenderer.drawGlobalDualRoutes(
+          ctx, project3D, computedRoutes, showRouteComments, width, height, 240, this.overlays, true
+        );
         if (state.demoSim && state.demoSim.active) {
-          this.routeRenderer.drawDemoSimulation(ctx, project3D, computedRoutes, state.demoSim, width, height);
+          this.routeRenderer.drawDemoSimulation(
+            ctx, project3D, computedRoutes, state.demoSim, width, height, 240, this.overlays, false
+          );
+        }
+      }
+
+      if (routeScope === "global" || (computedRoutes && computedRoutes.scope === "global")) {
+        if (state.demoSim && state.demoSim.active && typeof state.demoSim.lat === "number") {
+          const vp = project3D(state.demoSim.lat, state.demoSim.lon);
+          if (vp && vp.visible) this.overlays.reserveRect(vp.x - 18, vp.y - 18, 36, 36);
+        }
+        this.overlays.drawCustomEndpoints(ctx, project3D, customOrigin, customDestination);
+        if (state.demoSim && state.demoSim.active) {
+          this.routeRenderer.drawDemoVehicleBadge(ctx, project3D, state.demoSim, width, height, this.overlays);
         }
       }
 
       const hitTargets = this.overlays.drawMarkers(ctx, project3D, craters, landingSites, activeCrater?.id);
-      if (routeScope === "global" || (computedRoutes && computedRoutes.scope === "global")) {
-        this.overlays.drawCustomEndpoints(ctx, project3D, customOrigin, customDestination);
+      if (pendingComment) {
+        this.routeRenderer.drawDeferredRouteComment(ctx, pendingComment, width, height, this.overlays);
       }
+      this.overlays.drawGlobalHazardLabels(ctx, "3d", project3D, hazardBundle, clampedZoom, width, height);
+      if (showNomenclature) this.drawNomenclature3D(ctx, project3D);
       ctx.restore();
       return hitTargets;
     }
@@ -300,12 +326,12 @@
         }
 
         if (!pixels) {
-          const gridLine = (Math.abs((cu * (1 << targetZ)) % 1) < 0.02 || Math.abs((cv * (1 << (targetZ - 1))) % 1) < 0.02);
-          const scan = (((cv * 360) | 0) & 1) ? 1.0 : 0.86;
-          const shade = (0.35 + diff * 0.65) * scan;
-          const ri = Math.min(255, ((gridLine ? 120 : 78) * shade) | 0);
-          const gi = Math.min(255, ((gridLine ? 58 : 34) * shade) | 0);
-          const bi = Math.min(255, ((gridLine ? 40 : 24) * shade) | 0);
+          const gridLine = (Math.abs((cu * (1 << targetZ)) % 1) < 0.02 || Math.abs((cv * (1 << Math.max(0, targetZ - 1))) % 1) < 0.02);
+          const scan = (((cv * 360) | 0) & 1) ? 1.0 : 0.92;
+          const shade = (0.62 + diff * 0.38) * scan;
+          const ri = Math.min(255, ((gridLine ? 235 : 214) * shade) | 0);
+          const gi = Math.min(255, ((gridLine ? 198 : 168) * shade) | 0);
+          const bi = Math.min(255, ((gridLine ? 180 : 146) * shade) | 0);
           if (out32) out32[pIdx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
           else { const o = pIdx << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
           return true;
@@ -614,26 +640,22 @@
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      const grad = ctx.createRadialGradient(cx - radius * 0.25, cy - radius * 0.25, radius * 0.1, cx, cy, radius);
-      grad.addColorStop(0, "#5c2718");
-      grad.addColorStop(0.7, "#2d130c");
-      grad.addColorStop(1, "#120806");
-      ctx.fillStyle = grad;
+      ctx.fillStyle = "#dfe5ee";
       ctx.fill();
-      ctx.clip();
-      ctx.strokeStyle = "rgba(224, 90, 50, 0.22)";
-      ctx.lineWidth = 1;
-      for (let y = cy - radius; y <= cy + radius; y += 6) {
-        ctx.beginPath();
-        ctx.moveTo(cx - radius, y);
-        ctx.lineTo(cx + radius, y);
-        ctx.stroke();
-      }
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = "#1e293b";
+      ctx.font = "800 12px 'Public Sans Web', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const loadingMsg = ns.i18n ? ns.i18n.t("loadingGlobeText") : "Mars 3D dokusu ./data/tiles/ dizininden yükleniyor...";
+      ctx.fillText(loadingMsg, cx, cy, Math.max(24, radius * 1.72));
       ctx.restore();
     }
 
     drawGraticule3D(ctx, project3D) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
       ctx.lineWidth = 0.8;
       for (let lat = -60; lat <= 60; lat += 30) {
         ctx.beginPath();
@@ -671,12 +693,25 @@
         { name: "▼ HELLAS PLANITIA (-7.1 km)", lat: -42.4, lon: 70.5 },
         { name: "SYRTIS MAJOR", lat: 8.4, lon: 69.5 }
       ];
+      ctx.save();
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
-      ctx.fillStyle = "rgba(255, 245, 235, 0.88)";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "rgba(30, 41, 59, 0.78)";
+      ctx.lineWidth = 3;
+      ctx.lineJoin = "round";
+      ctx.fillStyle = "rgba(255, 250, 244, 0.94)";
       for (const pl of places) {
         const p = project3D(pl.lat, pl.lon);
-        if (p.visible && p.z > 0.22) ctx.fillText(pl.name, p.x - 42, p.y);
+        if (!p.visible || p.z <= 0.25) continue;
+        const tw = ctx.measureText(pl.name).width;
+        const slot = this.overlays.claimLabelSlot(
+          p.x - tw / 2, p.y - 7, tw + 8, 14, [[0, 0], [0, -18], [0, 18]], false
+        );
+        if (!slot.placed) continue;
+        ctx.strokeText(pl.name, slot.x + 4, slot.y + 7);
+        ctx.fillText(pl.name, slot.x + 4, slot.y + 7);
       }
+      ctx.restore();
     }
   }
 
@@ -688,8 +723,8 @@
    --------------------------------------------------------------------------
    - Satir 1-7: JSDoc piksellesmesiz (anti-pixelated) 60+ FPS 4x4 blok enterpolasyonlu 3D motor tanimi.
    - Satir 13-46: constructor (Map3DFallbackRenderer baslatma dahil) ve ensureCropBuffer; Uint32 tamponu ve kare-onbellek (lastRayKey) degiskenlerini yonetir.
-   - Satir 48-225: render; yuksek cozunurluklu ara tampon, kare-onbellek kontrolu ve 3D vektor projeksiyonunu calistirir.
-   - Satir 227-548: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear) ve dokuyu 4-tap bilineer/Hermite suzmeyle cizer.
-   - Satir 550-559: drawFallbackShadedSphere; file:// / tainted tuval ortamlarinda cizimi Map3DFallbackRenderer modulune devreder.
-   - Satir 561-623: drawLoadingSphere, drawGraticule3D ve drawNomenclature3D yardimcilari.
+   - Satir 48-246: render; Acik Gri Studio kure golgesi, atmosfer, yuksek cozunurluklu ara tampon ve cakismasiz 3D vektor projeksiyonunu calistirir.
+   - Satir 248-626: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear), dokuyu 4-tap bilineer/Hermite suzmeyle ve acik kumtasi grid yedeğiyle cizer.
+   - Satir 628-637: drawFallbackShadedSphere; file:// / tainted tuval ortamlarinda cizimi Map3DFallbackRenderer modulune devreder.
+   - Satir 639-715: drawLoadingSphere (Acik Gri Studio), drawGraticule3D ve cakismasiz drawNomenclature3D yardimcilari.
    ========================================================================== */

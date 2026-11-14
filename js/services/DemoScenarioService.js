@@ -170,6 +170,7 @@
     toggleCollapsed() {
       this.collapsed = !this.collapsed;
       this.adapter.renderDemoBar?.();
+      this.adapter.scheduleRender?.(false);
     }
 
     toggleAutoTour() {
@@ -419,9 +420,9 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc rehberli demo modu ve animasyonlu rover/astronot servis tanimi.
-   - Satir 14-31: constructor; senaryolar, oynatma durumu ve rAF dongu referanslarini kurar.
-   - Satir 33-122: buildScenarios; 4 adet juri sunum senaryosunu (Gale->Jezero, Siddetli Firtina, Gale 3D MOLA, 2D Karo) tanimlar.
-   - Satir 124-224: toggleDemo, startDemo, stopDemo, selectScenario, togglePlay, setSpeed ve autoTour zamanlayici metodlari.
-   - Satir 226-260: startLoop ve stopLoop; animasyon karesi (rAF) boyunca arac ilerlemesini gunceller.
-   - Satir 262-336: samplePointAtProgress, getRenderPayload ve getUiState; gercek Mars mesafesiyle konum, MOLA rakim ve kalan O2 hesaplar.
+   - Satir 15-32: constructor; senaryolar, oynatma durumu ve rAF dongu referanslarini kurar.
+   - Satir 34-139: buildScenarios; 4 adet juri sunum senaryosunu (Gale->Jezero, Siddetli Firtina, Gale 3D MOLA, 2D Karo) tanimlar.
+   - Satir 141-252: toggleDemo, startDemo, stopDemo, toggleCollapsed (scheduleRender sync), selectScenario, togglePlay, setSpeed ve autoTour metodlari.
+   - Satir 254-290: startLoop ve stopLoop; animasyon karesi (rAF) boyunca arac ilerlemesini gunceller.
+   - Satir 292-415: samplePointAtProgress, getRenderPayload, getUiState ve attach; gercek Mars mesafesiyle konum, MOLA rakim ve kalan O2 hesaplar.
    ========================================================================== */

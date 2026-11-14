@@ -34,6 +34,7 @@
       } = state;
 
       ctx.clearRect(0, 0, width, height);
+      this.overlays.beginLabelFrame(width, height, state.uiAvoidRects || []);
 
       const baseWidth = Math.max(width * 0.86, 620);
       const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 32.0);
@@ -60,10 +61,10 @@
 
       this.drawVisibleTiles(ctx, activeLayerId, targetZ, ox, oy, mapW, mapH, width, height, Boolean(state.isInteracting));
 
-      // Kutup ust/alt sinir cizgileri (antimeridyende dikey dikis izi olusturmadan)
+      // Kutup ust/alt sinir cizgileri (Acik Gri arka planda net ayrim icin ince slate cerceve)
       ctx.save();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(100, 116, 139, 0.48)";
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       if (oy >= 0 && oy <= height) {
         ctx.moveTo(0, oy);
@@ -90,47 +91,55 @@
         this.drawGraticule(ctx, ox, oy, mapW, mapH, width, height);
       }
 
-      // 4. Aktif Asit Yagmuru (Mavi), Kum Firtinasi ve Radyasyon yuzey kilitli isi haritalari
-      this.overlays.drawGlobalHazards(ctx, "2d", project2D, hazardBundle, zoom, width, height, { ox, oy, mapW, mapH });
+      // 4. Yuzeye kilitli Asit Yagmuru, Kum Firtinasi ve Radyasyon isi haritasi (etiketler pinlerden sonra cizilir)
+      this.overlays.drawGlobalHazards(ctx, "2d", project2D, hazardBundle, zoom, width, height, { ox, oy, mapW, mapH }, false);
 
-      // 5. Bolge isimleri (Nomenclature)
-      if (showNomenclature) {
-        this.drawNomenclature(ctx, project2D);
-      }
-
-      // 6. Krater EVA modu yakinlasmasi (LOD >= 2 ve routeScope === "crater" ise krater ici kontur + Boxwork + EVA yollari)
+      // 5. Rotalar & Demo izi -> Yuksek Oncelikli Pinler (A/B, Rover, Kraterler) -> Ertelenmis Yorum -> Tehlike/Bolge Etiketleri
       const activeAnchor = activeCrater ? project2D(activeCrater.coordinates.lat, activeCrater.coordinates.lon) : null;
       const isHyperLocal = routeScope === "crater" && activeCrater && zoom >= 1.75 && activeAnchor;
+      let pendingComment = null;
 
       if (isHyperLocal) {
         const localScale = (zoom - 0.75) * 0.85;
         this.drawCraterLocalOverlays(ctx, activeAnchor.x, activeAnchor.y, localScale, activeCrater, state.craterRadZones, showRadiationZones, zoom, width, height);
         this.routeRenderer.drawCraterEvaRoutes(
           ctx, activeAnchor.x, activeAnchor.y, localScale,
-          computedRoutes, craterWaypoints, selectedWaypoint, showRouteComments, width, height
+          computedRoutes, craterWaypoints, selectedWaypoint, showRouteComments, width, height, true, this.overlays
         );
       } else if (routeScope === "global") {
-        // Kuresel Inis Sahalari Arasi Guvenli Mavi / Soluk Mavi Rotalar
         const jumpLimit = Math.max(240, mapW * 0.45);
-        this.routeRenderer.drawGlobalDualRoutes(
-          ctx, project2D, computedRoutes, showRouteComments, width, height, jumpLimit
+        pendingComment = this.routeRenderer.drawGlobalDualRoutes(
+          ctx, project2D, computedRoutes, showRouteComments, width, height, jumpLimit, this.overlays, true
         );
         if (state.demoSim && state.demoSim.active) {
-          this.routeRenderer.drawDemoSimulation(ctx, project2D, computedRoutes, state.demoSim, width, height, jumpLimit);
+          this.routeRenderer.drawDemoSimulation(ctx, project2D, computedRoutes, state.demoSim, width, height, jumpLimit, this.overlays, false);
         }
       } else if (activeAnchor && activeAnchor.visible) {
-        // Krater modunda uzak olcekte krater EVA koridorunu ve yol yorumlarini goster
         const miniScale = Math.max(0.24, zoom * 0.28);
         this.routeRenderer.drawCraterEvaRoutes(
           ctx, activeAnchor.x, activeAnchor.y, miniScale,
-          computedRoutes, craterWaypoints, selectedWaypoint, showRouteComments && zoom >= 0.9, width, height, zoom >= 1.55
+          computedRoutes, craterWaypoints, selectedWaypoint, showRouteComments && zoom >= 0.9, width, height, zoom >= 1.55, this.overlays
         );
       }
 
-      // 7. Tiklanabilir krater, NASA inis sahasi ve A/B konum-varis pinleri
-      const hits = this.overlays.drawMarkers(ctx, project2D, craters, landingSites, activeCrater?.id);
       if (routeScope === "global") {
+        if (state.demoSim && state.demoSim.active && typeof state.demoSim.lat === "number") {
+          const vp = project2D(state.demoSim.lat, state.demoSim.lon);
+          if (vp && vp.visible) this.overlays.reserveRect(vp.x - 18, vp.y - 18, 36, 36);
+        }
         this.overlays.drawCustomEndpoints(ctx, project2D, customOrigin, customDestination);
+        if (state.demoSim && state.demoSim.active) {
+          this.routeRenderer.drawDemoVehicleBadge(ctx, project2D, state.demoSim, width, height, this.overlays);
+        }
+      }
+
+      const hits = this.overlays.drawMarkers(ctx, project2D, craters, landingSites, activeCrater?.id);
+      if (pendingComment) {
+        this.routeRenderer.drawDeferredRouteComment(ctx, pendingComment, width, height, this.overlays);
+      }
+      this.overlays.drawGlobalHazardLabels(ctx, "2d", project2D, hazardBundle, zoom, width, height);
+      if (showNomenclature) {
+        this.drawNomenclature(ctx, project2D);
       }
       return hits;
     }
@@ -224,10 +233,21 @@
       ];
       ctx.save();
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
-      ctx.fillStyle = "rgba(255, 246, 238, 0.85)";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "rgba(30, 41, 59, 0.78)";
+      ctx.lineWidth = 3;
+      ctx.lineJoin = "round";
+      ctx.fillStyle = "rgba(255, 250, 244, 0.94)";
       for (const f of features) {
         const p = project2D(f.lat, f.lon);
-        if (p.visible) ctx.fillText(f.name, p.x - 42, p.y);
+        if (!p.visible) continue;
+        const tw = ctx.measureText(f.name).width;
+        const slot = this.overlays.claimLabelSlot(
+          p.x - tw / 2, p.y - 7, tw + 8, 14, [[0, 0], [0, -18], [0, 18]], false
+        );
+        if (!slot.placed) continue;
+        ctx.strokeText(f.name, slot.x + 4, slot.y + 7);
+        ctx.fillText(f.name, slot.x + 4, slot.y + 7);
       }
       ctx.restore();
     }
@@ -299,9 +319,9 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc varsayilan 2D harita motoru ve 1x overdraw LOD kirpma aciklamasi.
-   - Satir 11-20: constructor; MarsTileLoader, OverlayDrawHelper ve RouteCanvasRenderer baglar.
-   - Satir 25-115: render; 2D Equirectangular tuvalde HiDPI olcekli gorunur karolari, dikissiz yatay sarmayi, tehlike ve rotalari cizer.
-   - Satir 120-169: drawVisibleTiles; yalnizca gorunur indeks araligindaki en keskin karolari (yoksa ata karo alt kesitini) 1 kez cizer.
-   - Satir 171-206: drawGraticule ve drawNomenclature yardimcilari.
-   - Satir 211-265: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve foton alanini cizer.
+   - Satir 12-21: constructor; MarsTileLoader, OverlayDrawHelper ve RouteCanvasRenderer baglar.
+   - Satir 26-145: render; 2D Equirectangular tuvalde HiDPI karolari, acik gri kutup cizgisi, rotalar ve cakismasiz etiketleri cizer.
+   - Satir 150-224: drawVisibleTiles ve drawGraticule; gorunur karolari (1x overdraw) ve enlem/boylam izgarasini cizer.
+   - Satir 226-253: drawNomenclature; cakismasiz yuva secimi ve koyu slate hale ile gezegen yer adlarini cizer.
+   - Satir 255-312: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve foton alanini cizer.
    ========================================================================== */
