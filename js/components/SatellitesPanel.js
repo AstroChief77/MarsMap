@@ -110,43 +110,43 @@
             </button>
           </div>
 
-          <!-- 2. Asit Yagmurlari ve Siddetleri (Arka Planda Asit Bolge Fotografi) -->
-          <div class="sat-photo-card sat-hazard-card sat-bg-acid">
+          <!-- 2. Asit Yagmurlari ve Siddetleri (Arka Planda Asit Bolge Fotografi - Resme Tiklayinca Ac/Kapa) -->
+          <div class="sat-photo-card sat-hazard-card sat-bg-acid ${state.filterAcidRain ? "active" : ""}" data-card-toggle="filterAcidRain" role="button" tabindex="0">
             <div class="sat-hazard-head">
               <span class="sat-hazard-title">${t("acidRain")}</span>
-              <button class="sat-switch ${state.filterAcidRain ? "on" : ""}" id="btn-toggle-acid">
+              <span class="sat-switch ${state.filterAcidRain ? "on" : ""}" id="btn-toggle-acid">
                 ${state.filterAcidRain ? t("stateOn") : t("stateOff")}
-              </button>
+              </span>
             </div>
             <div class="sat-intensity-row">
-              ${intensityBtn("acidIntensity", "hafif", `${t("intensityLow")} · pH 3.8`, state.acidIntensity, state.filterAcidRain)}
-              ${intensityBtn("acidIntensity", "orta", `${t("intensityMedium")} · pH 2.4`, state.acidIntensity, state.filterAcidRain)}
-              ${intensityBtn("acidIntensity", "siddetli", `${t("intensitySevere")} · pH 1.3`, state.acidIntensity, state.filterAcidRain)}
+              ${intensityBtn("acidIntensity", "hafif", `${t("intensityLow")} · pH 3.8`, state.acidIntensity, true)}
+              ${intensityBtn("acidIntensity", "orta", `${t("intensityMedium")} · pH 2.4`, state.acidIntensity, true)}
+              ${intensityBtn("acidIntensity", "siddetli", `${t("intensitySevere")} · pH 1.3`, state.acidIntensity, true)}
             </div>
           </div>
 
-          <!-- 3. Kum Firtinalari / Kasirga ve Siddetleri (Arka Planda Firtinali Bolge Fotografi) -->
-          <div class="sat-photo-card sat-hazard-card sat-bg-storm">
+          <!-- 3. Kum Firtinalari / Kasirga ve Siddetleri (Arka Planda Firtinali Bolge Fotografi - Resme Tiklayinca Ac/Kapa) -->
+          <div class="sat-photo-card sat-hazard-card sat-bg-storm ${state.filterDustStorm ? "active" : ""}" data-card-toggle="filterDustStorm" role="button" tabindex="0">
             <div class="sat-hazard-head">
               <span class="sat-hazard-title">${t("dustStorm")}</span>
-              <button class="sat-switch ${state.filterDustStorm ? "on" : ""}" id="btn-toggle-storm">
+              <span class="sat-switch ${state.filterDustStorm ? "on" : ""}" id="btn-toggle-storm">
                 ${state.filterDustStorm ? t("stateOn") : t("stateOff")}
-              </button>
+              </span>
             </div>
             <div class="sat-intensity-row">
-              ${intensityBtn("stormIntensity", "hafif", `${t("intensityLow")} · τ 1.2`, state.stormIntensity, state.filterDustStorm)}
-              ${intensityBtn("stormIntensity", "orta", `${t("intensityMedium")} · τ 2.8`, state.stormIntensity, state.filterDustStorm)}
-              ${intensityBtn("stormIntensity", "siddetli", `${t("intensitySevere")} · τ 4.5`, state.stormIntensity, state.filterDustStorm)}
+              ${intensityBtn("stormIntensity", "hafif", `${t("intensityLow")} · τ 1.2`, state.stormIntensity, true)}
+              ${intensityBtn("stormIntensity", "orta", `${t("intensityMedium")} · τ 2.8`, state.stormIntensity, true)}
+              ${intensityBtn("stormIntensity", "siddetli", `${t("intensitySevere")} · τ 4.5`, state.stormIntensity, true)}
             </div>
           </div>
 
-          <!-- 4. Radyasyon / Foton Kusagi (Arka Planda Aurora/Foton Fotografi) -->
-          <div class="sat-photo-card sat-hazard-card sat-bg-rad">
+          <!-- 4. Radyasyon / Foton Kusagi (Arka Planda Aurora/Foton Fotografi - Resme Tiklayinca Ac/Kapa) -->
+          <div class="sat-photo-card sat-hazard-card sat-bg-rad ${state.showRadiationZones ? "active" : ""}" data-card-toggle="showRadiationZones" role="button" tabindex="0">
             <div class="sat-hazard-head">
               <span class="sat-hazard-title">${t("photonRadiation")}</span>
-              <button class="sat-switch ${state.showRadiationZones ? "on" : ""}" id="btn-toggle-rad">
+              <span class="sat-switch ${state.showRadiationZones ? "on" : ""}" id="btn-toggle-rad">
                 ${state.showRadiationZones ? t("stateOn") : t("stateOff")}
-              </button>
+              </span>
             </div>
           </div>
 
@@ -178,27 +178,30 @@
 
       this.mountEl.querySelectorAll("[data-view-mode]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const mode = btn.getAttribute("data-view-mode");
-          this.handlers.onSettingChange?.("viewMode", mode, mode === "3d" ? t("view3d") : t("view2d"));
+          const clickedMode = btn.getAttribute("data-view-mode");
+          const nextMode = state.viewMode === clickedMode ? (clickedMode === "3d" ? "2d" : "3d") : clickedMode;
+          this.handlers.onSettingChange?.("viewMode", nextMode, nextMode === "3d" ? t("view3d") : t("view2d"));
         });
       });
 
-      this.mountEl.querySelector("#btn-toggle-acid")?.addEventListener("click", () => {
-        this.handlers.onSettingChange?.("filterAcidRain", !state.filterAcidRain, t("acidRain"));
-      });
-
-      this.mountEl.querySelector("#btn-toggle-storm")?.addEventListener("click", () => {
-        this.handlers.onSettingChange?.("filterDustStorm", !state.filterDustStorm, t("dustStorm"));
-      });
-
-      this.mountEl.querySelector("#btn-toggle-rad")?.addEventListener("click", () => {
-        this.handlers.onSettingChange?.("showRadiationZones", !state.showRadiationZones, t("photonRadiation"));
+      this.mountEl.querySelectorAll("[data-card-toggle]").forEach((card) => {
+        card.addEventListener("click", (e) => {
+          if (e.target.closest("[data-intensity-kind]")) return;
+          const key = card.getAttribute("data-card-toggle");
+          const labelMap = { filterAcidRain: t("acidRain"), filterDustStorm: t("dustStorm"), showRadiationZones: t("photonRadiation") };
+          this.handlers.onSettingChange?.(key, !state[key], labelMap[key] || key);
+        });
       });
 
       this.mountEl.querySelectorAll("[data-intensity-kind]").forEach((btn) => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
           const kind = btn.getAttribute("data-intensity-kind");
           const val = btn.getAttribute("data-intensity-val");
+          const toggleKey = kind === "acidIntensity" ? "filterAcidRain" : "filterDustStorm";
+          if (!state[toggleKey]) {
+            this.handlers.onSettingChange?.(toggleKey, true, kind === "acidIntensity" ? t("acidRain") : t("dustStorm"));
+          }
           this.handlers.onSettingChange?.(kind, val, kind === "acidIntensity" ? t("acidRain") : t("dustStorm"));
         });
       });

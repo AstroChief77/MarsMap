@@ -43,7 +43,10 @@
       const uCenter = (rotLon + 180) / 360;
       const vCenter = (90 - rotLat) / 180;
       const ox = width / 2 - uCenter * mapW;
-      const oy = height / 2 - vCenter * mapH;
+      const rawOy = height / 2 - vCenter * mapH;
+      const oy = mapH <= height
+        ? (height - mapH) * 0.5
+        : Math.max(height - mapH, Math.min(0, rawOy));
 
       // 1. Olcege gore yalnizca gorunur karolari tek geciste (1x overdraw + ata karo yedegi) ciz
       const layer = this.tileLoader.getLayerById(activeLayerId);
