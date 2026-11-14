@@ -54,3 +54,6 @@
 [2026-11-14 11:24:32] [BACKUP] backups/readme_backup_20261114_1124.md yedeği alındı.
 [2026-11-14 11:24:38] [UPDATE] readme.md güncellendi (Veri seti adımı tamamlandı olarak işaretlendi).
 [2026-11-14 11:24:45] [GIT] Yeni veri setleri, katalog, yedekler ve güncellenmiş kaynak belgeleri git stage alanına eklendi.
+[2026-11-14 11:26:02] [BACKUP] backups/readme_backup_before_rebase2_20261114_1126.md oluşturuldu (2. rebase öncesi yedek).
+[2026-11-14 11:26:47] [GIT] origin/main ile rebase başarıyla tamamlandı (origin/main'deki deploy betikleri ve font/masaüstü kuralları birleştirildi).
+[2026-11-14 11:26:55] [GIT] Tüm veri setleri ve güncellemeler GitHub origin/main dalına gönderilmeye hazır.
