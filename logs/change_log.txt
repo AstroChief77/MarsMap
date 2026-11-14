@@ -120,3 +120,10 @@
 [2026-11-14 12:32:33] [CREATE/UPDATE] js/components/MarsGlobeViewer.js olusturuldu; SettingsMenu.js (1. secenek Factory Reset) ve navbar olmayan tam ekran gezinebilen kureye baglandi (pathfind backend'e birakildi).
 [2026-11-14 12:33:22] [UPDATE] index.html, js/app.js, css/base.css, css/globe_viewer.css, css/style.css ve version.json (v2.4.0) guncellendi.
 [2026-11-14 12:36:25] [UPDATE] tools/build_tool.ps1 güncellendi (Açık çalışan MarsMap-win64.exe kilitliyken web ve data/tiles dosyalarının masaüstüne hatasız güncellenmesi sağlandı).
+[2026-11-14 12:38:10] [BACKUP] backups/snapshot_20261114_v25_hires_backend klasorune v2.5.0 oncesi 13 dosya yedeklendi.
+[2026-11-14 12:39:40] [UPDATE] data/datasets/jpl_mars_trek_layers.json & tools/fetch_mars_tiles.ps1 guncellendi (cors_enabled, max_crater_zoom=5, max_remote_zoom=9, manifest.json + z3-z5 krater karolari indirildi; toplam 465 karo).
+[2026-11-14 12:41:05] [CREATE] js/services/BackendApiService.js & BACKEND_API.md olusturuldu (7 /api/v1/* endpoint, ?api= / ASTROCHIEF_CONFIG / Settings URL kancalari ve JSON semalari).
+[2026-11-14 12:42:30] [UPDATE] js/services/StateStorageService.js & MarsTileLoader.js guncellendi (LRU 220 karo bellek piramidi z=0..7, HiDPI hedef zoom hesabi, Local -> Proxy -> CORS WMTS akisi).
+[2026-11-14 12:44:15] [UPDATE] js/renderers/MarsGlobeRenderer.js guncellendi (1:1 HiDPI viewport-cropped raytracer, screenToLatLon, 14x zoom ve Backend Mavi #2563eb / Soluk Mavi #93c5fd rota yuvasi).
+[2026-11-14 12:45:40] [UPDATE] js/components/SettingsMenu.js & MarsGlobeViewer.js guncellendi (A/B koordinat secim modu, window.astroChiefGlobe JS kancasi, Top-Right Backend Rota Kancasi).
+[2026-11-14 12:48:50] [UPDATE] css/globe_viewer.css, index.html, version.json (v2.5.0), SOURCES.md ve logs/change_log.txt guncellendi.

@@ -24,6 +24,10 @@
   cursor: grabbing;
 }
 
+#globe-stage.pick-cursor #mars-globe-canvas {
+  cursor: crosshair;
+}
+
 /* SOL UST YUZER KONTROL GRUBU (Ayarlar + Katman + Kraterler) */
 .globe-top-left {
   position: absolute;
@@ -138,6 +142,54 @@
   margin: 0.25rem 0;
 }
 
+.settings-backend-box {
+  padding: 0.48rem 0.6rem;
+  background: var(--surface-offwhite);
+  border: 1px solid var(--border-hairline);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.backend-input-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.backend-input-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.32rem 0.5rem;
+  font-size: 0.72rem;
+  font-family: inherit;
+  color: var(--ink-black);
+  background: var(--surface-white);
+  border: 1px solid var(--border-medium);
+  border-radius: 5px;
+  outline: none;
+}
+
+.backend-input-row input:focus {
+  border-color: var(--mars-red);
+}
+
+.backend-save-btn {
+  padding: 0.34rem 0.62rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--surface-white);
+  background: var(--mars-red);
+  border-radius: 5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.backend-save-btn:hover {
+  background: var(--mars-red-dark);
+}
+
 .settings-factory-specs {
   padding: 0.45rem 0.6rem;
   background: var(--surface-offwhite);
@@ -227,12 +279,163 @@
   color: var(--surface-white);
 }
 
-/* TIKLANAN KRATER BILGI KARTI (Sag Ust) */
-.globe-crater-card {
+/* SAG UST KONTROL SUTUNU (Backend Rota Kancasi + Krater Karti) */
+.globe-top-right {
   position: absolute;
   top: 1.15rem;
   right: 1.15rem;
-  width: 310px;
+  width: 316px;
+  max-width: calc(100vw - 2.3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  z-index: 25;
+}
+
+.globe-backend-dock {
+  width: 100%;
+  background: var(--surface-white);
+  color: var(--ink-black);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  padding: 0.78rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+}
+
+.gbd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.gbd-title {
+  font-size: 0.78rem;
+  color: var(--ink-black);
+}
+
+.gbd-status {
+  font-size: 0.63rem;
+  padding: 0.14rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-offwhite);
+  color: var(--ink-muted);
+  border: 1px solid var(--border-hairline);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gbd-status.connected {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.gbd-status.configured {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fcd34d;
+}
+
+.gbd-status.error {
+  background: var(--mars-red-soft);
+  color: var(--mars-red-dark);
+  border-color: var(--mars-red);
+}
+
+.gbd-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.gbd-pick-btn {
+  padding: 0.38rem 0.45rem;
+  font-size: 0.69rem;
+  color: var(--ink-black);
+  background: var(--surface-offwhite);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gbd-pick-btn:hover {
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.gbd-pick-btn.picking {
+  background: #2563eb;
+  color: var(--surface-white);
+  border-color: #1d4ed8;
+}
+
+.gbd-pick-hint {
+  font-size: 0.68rem;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  padding: 0.3rem 0.5rem;
+}
+
+.gbd-actions {
+  display: flex;
+}
+
+.gbd-compute-btn {
+  width: 100%;
+  padding: 0.46rem 0.65rem;
+  font-size: 0.71rem;
+  color: var(--surface-white);
+  background: var(--ink-black);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.gbd-compute-btn:hover {
+  background: var(--mars-red);
+}
+
+.backend-route-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.brr-row {
+  font-size: 0.69rem;
+  padding: 0.34rem 0.5rem;
+  border-radius: 5px;
+  border-left: 4px solid transparent;
+  background: var(--surface-offwhite);
+}
+
+.brr-blue {
+  border-left-color: #2563eb;
+  color: #1e3a8a;
+}
+
+.brr-pale {
+  border-left-color: #93c5fd;
+  color: var(--ink-dark);
+}
+
+.gbd-foot {
+  font-size: 0.66rem;
+  color: var(--ink-muted);
+  line-height: 1.35;
+}
+
+/* TIKLANAN KRATER BILGI KARTI (Sag Ust Sutun Ici) */
+.globe-crater-card {
+  width: 100%;
   background: var(--surface-white);
   color: var(--ink-black);
   border: 1px solid var(--border-medium);
@@ -242,7 +445,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  z-index: 25;
 }
 
 .gcc-top {
@@ -450,9 +652,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc tam ekran Mars kuresi stilleri tanimi.
-   - Satir 7-26: Tam ekran siyah yildizli kure tuvali yerlesimi.
-   - Satir 28-174: Sol ust yuzer Ayarlar ikonu, 1. secenek Factory Reset menusu ve katman/krater secici seritleri.
-   - Satir 176-256: Tiklanan krater ozet karti (%60 beyaz zemin + backend uyari notu).
-   - Satir 258-384: Sol alt 2D/3D/Asit/Firtina filtreleri ve sag alt zoom/telemetri cubugu.
+   - Satir 1-5: JSDoc tam ekran Mars kuresi ve HiDPI Backend kancasi stilleri.
+   - Satir 7-29: Tam ekran siyah yildizli kure tuvali ve A/B secim crosshair imleci.
+   - Satir 31-265: Sol ust Ayarlar ikonu (1. secenek Factory Reset), Backend API URL kutusu ve katman/krater secicileri.
+   - Satir 267-470: Sag ust .globe-top-right sutunu, Backend Rota Kancasi paneli (#2563eb / #93c5fd) ve krater karti.
+   - Satir 472-615: Sol alt 2D/3D/Asit/Firtina filtreleri ve sag alt zoom/telemetri/toast bilesenleri.
    ========================================================================== */

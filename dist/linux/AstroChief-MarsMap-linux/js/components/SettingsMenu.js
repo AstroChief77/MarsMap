@@ -1,24 +1,17 @@
 /**
  * @file SettingsMenu.js
- * @description Sol ust kosede bulunan Ayarlar menusu bileseni (Navbar olmadan yuzer konumda).
- * Acildiginda ILK secenek "Factory Reset" olur; altinda olcekli LOD karo yukleme,
- * Litre / km-m / Saat ve Alfa-Beta-Gama radyasyon parametreleri yer alir.
+ * @description Sol ust kosede bulunan Ayarlar menusu (Navbar olmadan).
+ * Acildiginda ILK secenek "Factory Reset" olur; altinda Factory standartlari,
+ * Backend API URL baglanti alani ve tam kalite tile LOD anahtarlari yer alir.
  */
 
 export class SettingsMenu {
-  /**
-   * SettingsMenu yapici metodu
-   * @param {Object} callbacks - Factory Reset ve ayar degisikligi callback'leri
-   */
   constructor(callbacks) {
     this.callbacks = callbacks;
     this.isOpen = false;
   }
 
-  /**
-   * Sol ust ayarlar dugmesi ve acilir Factory menu HTML ciktisini uretir
-   */
-  renderMarkup(state) {
+  renderMarkup(state, backendStatus = "standalone") {
     return `
       <div class="globe-settings-anchor" id="trek-settings-anchor">
         <button class="globe-icon-btn ${this.isOpen ? "active" : ""}" id="btn-top-left-settings" title="Ayarlar (İlk Seçenek: Factory Reset)" aria-label="Ayarlar">
@@ -34,9 +27,20 @@ export class SettingsMenu {
             <span class="reset-icon">↺</span>
             <span class="reset-text-wrap">
               <span class="reset-title">Factory Reset</span>
-              <span class="reset-sub">Ölçekli tile LOD, birimler ve küreyi sıfırla</span>
+              <span class="reset-sub">Ölçekli tile LOD, birimler, backend URL ve küreyi sıfırla</span>
             </span>
           </button>
+
+          <div class="settings-divider"></div>
+
+          <!-- Backend Sunucu Adresi Yapilandirmasi -->
+          <div class="settings-backend-box">
+            <div class="spec-head">BACKEND API ADRESİ (${backendStatus.toUpperCase()})</div>
+            <div class="backend-input-row">
+              <input type="url" id="input-backend-url" placeholder="http://127.0.0.1:8000" value="${state.backendApiUrl || ""}" />
+              <button class="backend-save-btn" id="btn-test-backend" title="Kaydet ve /api/v1/health Test Et">Bağlan</button>
+            </div>
+          </div>
 
           <div class="settings-divider"></div>
 
@@ -50,7 +54,7 @@ export class SettingsMenu {
           <div class="settings-divider"></div>
 
           <label class="settings-toggle-row">
-            <span>Yaklaştıkça Karo Yükle (LOD)</span>
+            <span>Yaklaştıkça Tam Kalite Tile LOD</span>
             <input type="checkbox" id="set-lod-render" ${state.progressiveLodRender ? "checked" : ""} />
           </label>
 
@@ -98,6 +102,11 @@ export class SettingsMenu {
       this.callbacks.onFactoryReset?.();
     });
 
+    document.getElementById("btn-test-backend")?.addEventListener("click", () => {
+      const val = document.getElementById("input-backend-url")?.value || "";
+      this.callbacks.onUpdateBackendUrl?.(val);
+    });
+
     document.getElementById("set-lod-render")?.addEventListener("change", (e) => {
       this.callbacks.onChangeSetting?.("progressiveLodRender", e.target.checked);
     });
@@ -126,8 +135,7 @@ export class SettingsMenu {
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc Navbar'siz yuzer sol-ust Ayarlar menusu tanimi.
-   - Satir 8-16: SettingsMenu constructor.
-   - Satir 18-81: renderMarkup; 1. secenek Factory Reset butonu, Factory birim standartlari (Litre, km/m, Saat, Alfa/Beta/Gama) ve kure gorunum anahtarlarini uretir.
-   - Satir 83-122: bindEvents ve close; ayar degisikliklerini MarsGlobeViewer'a iletir.
+   - Satir 1-6: JSDoc sol ust Ayarlar ve Backend URL yapilandirma menusu.
+   - Satir 13-95: renderMarkup; 1. secenek Factory Reset, Backend URL baglan kutusu, Factory standartlari ve LOD anahtarlari.
+   - Satir 97-136: bindEvents ve close olay yöneticileri.
    ========================================================================== */

@@ -1,7 +1,7 @@
 {
   "name": "AstroChief-MarsMap",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "buildDate": "2026-11-14",
   "targets": ["windows-x64", "linux-x64"],
-  "description": "NASA Space Apps 2026 - Navbar'siz Tam Ekran data/tiles Tabanli Gezinebilen Mars Kuresi"
+  "description": "NASA Space Apps 2026 - HiDPI 1:1 Yakinlasan Mars Kuresi (data/tiles z0-z5 + WMTS z3-z7) & /api/v1 Backend Kancalari"
 }

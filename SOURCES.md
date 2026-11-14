@@ -55,3 +55,7 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
    - **Projeksiyon & Şablon Referansları:** NASA Mars Trek (`https://trek.nasa.gov/mars/`, `EPSG:104905` Equirectangular & 3D Globe modu) ve Google Maps kurumsal Sidebar + Header düzeni
    - **Windows Derleyici:** Microsoft .NET Framework `csc.exe` (`tools/WinLauncher.cs` -> `MarsMap-win64.exe` bağımsız yerel sunucu ikilisi)
    - **Linux Paketleyici:** POSIX Bash başlatıcı (`tools/launch-linux.sh`) + `tar.exe` (`.tar.gz`) ve SHA-256 doğrulama manifestosu (`tools/build_tool.ps1`)
+
+## v2.5.0 Eklemeleri (HiDPI Zoom Karo Piramidi & Backend API Sözleşmesi)
+- **Yerel Karo Piramidi (`./data/tiles/` & `./data/tiles/manifest.json`)**: `tools/fetch_mars_tiles.ps1` güncellenerek global `z=0..2` (`Mars_Viking_MDIM21`, `MGS_MOLA_ClrShade`, `THEMIS_DayIR`, `SIM3292_Global_Geology`) + Krater bölgeleri (Gale, Jezero, Korolev) `z=3..5` 3x3 karolar dahil toplam **465 yerel Mars karosu** indirildi; çevrimiçi CORS destekli WMTS katmanlarında (`Viking`, `MOLA`, `THEMIS`) `z=3..7` dinamik akışı etkinleştirildi.
+- **Backend API & Rota Kancaları (`./js/services/BackendApiService.js`, `./BACKEND_API.md`)**: Pathfinding sunucusu için `/api/v1/health`, `/api/v1/craters`, `POST /api/v1/pathfind/compute`, `/api/v1/hazards/live`, `/api/v1/radiation/zones`, `/api/v1/telemetry/elevation` ve `/api/v1/tiles/{layer_id}/{z}/{y}/{x}` sözleşmesi ile Mavi (`#2563eb`) / Soluk Mavi (`#93c5fd`) rota çizim yuvaları dokümante edildi.

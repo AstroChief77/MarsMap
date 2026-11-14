@@ -1,42 +1,56 @@
 /**
  * @file MarsGlobeViewer.js
- * @description Navbar olmadan tam ekran gezinebilen 3D/2D Mars Kuresi denetleyicisi.
- * Tum yuzey karolarini data/datasets/jpl_mars_trek_layers.json + data/tiles/ dizininden
- * ceker; surukleme, ataletli donus, tekerlek yakinlastirma ve krater ucusunu yonetir.
+ * @description Navbar olmadan tam ekran HiDPI Mars Kuresi + Backend API Kanca Denetleyicisi.
+ * Yakinlastikca data/tiles ve NASA WMTS uzerinden 1:1 netlikte cizim yapar; Backend icin A/B
+ * koordinat secimi, canli parametre gonderimi (/api/v1/*) ve rota cizim yuvalarini acik tutar.
  */
 
 import { CRATERS_DATA } from "../../data/craterLocations.js";
 import { DatasetLoader } from "../services/DatasetLoader.js";
+import { BackendApiService } from "../services/BackendApiService.js";
 import { MarsTileLoader } from "../services/MarsTileLoader.js";
 import { StateStorageService } from "../services/StateStorageService.js";
 import { MarsGlobeRenderer } from "../renderers/MarsGlobeRenderer.js";
 import { SettingsMenu } from "./SettingsMenu.js";
 
 export class MarsGlobeViewer {
-  /**
-   * MarsGlobeViewer yapici metodu
-   */
   constructor(containerId = "mars-globe-container", starfieldRef = null) {
     this.container = document.getElementById(containerId);
     this.starfieldRef = starfieldRef;
     this.storage = new StateStorageService();
     this.datasetLoader = new DatasetLoader();
+    this.applyState(this.storage.loadState());
+
+    this.backendApi = new BackendApiService(this.backendApiUrl);
+    if (this.backendApi.hasBackend() && !this.backendApiUrl) {
+      this.backendApiUrl = this.backendApi.baseUrl;
+    }
+
     this.tileLoader = new MarsTileLoader(() => {
       this.updateTelemetryBar();
       this.drawGlobe();
-    });
+    }, this.backendApi);
+
     this.renderer = new MarsGlobeRenderer(this.tileLoader);
     this.settingsMenu = new SettingsMenu({
       onFactoryReset: () => this.performFactoryReset(),
-      onChangeSetting: (key, val) => this.updateSetting(key, val)
+      onChangeSetting: (key, val) => this.updateSetting(key, val),
+      onUpdateBackendUrl: (url) => this.connectBackend(url)
     });
 
-    this.applyState(this.storage.loadState());
     this.landingSites = [];
     this.hazardsData = null;
     this.hitTargets = [];
     this.selectedCraterCard = null;
+    this.pickMode = null; // 'start' | 'goal' | null
+    this.startPoint = { lat: -4.5895, lon: 137.4417 };
+    this.goalPoint = { lat: -4.712, lon: 137.584 };
+    this.backendRoutes = null;
+    this.backendNote = this.backendApi.hasBackend() ? "Bağlantı test ediliyor..." : "Backend URL bekleniyor";
+    this.showBackendPanel = true;
 
+    this.logicalWidth = window.innerWidth;
+    this.logicalHeight = window.innerHeight;
     this.isDragging = false;
     this.hasMoved = false;
     this.dragX = 0;
@@ -44,6 +58,7 @@ export class MarsGlobeViewer {
     this.velLon = 0;
     this.velLat = 0;
     this.animFrame = null;
+    this.wheelSettleTimer = null;
     this.hoverCoords = { lat: this.rotLat, lon: this.rotLon };
   }
 
@@ -64,11 +79,9 @@ export class MarsGlobeViewer {
     this.rotLat = snap.rotLat ?? -4.59;
     this.rotLon = snap.rotLon ?? 137.44;
     this.zoom = snap.zoom ?? 1.08;
+    this.backendApiUrl = snap.backendApiUrl || "";
   }
 
-  /**
-   * Katalogdaki karo yollarini, inis sahalarini ve tehlike katmanlarini yukleyip kureyi baslatir
-   */
   async init() {
     if (!this.container) return;
 
@@ -81,11 +94,79 @@ export class MarsGlobeViewer {
     this.landingSites = landingJson?.landing_sites || [];
     this.hazardsData = hazardJson;
 
+    if (this.backendApi.hasBackend()) {
+      await this.checkAndSyncBackend(false);
+    }
+
     this.renderUI();
     this.bindCanvas();
     this.bindGlobalListeners();
     this.requestTilesForView();
     this.drawGlobe();
+
+    window.astroChiefGlobe = this;
+  }
+
+  async connectBackend(url) {
+    this.backendApiUrl = url.trim().replace(/\/+$/, "");
+    this.backendApi.setBaseUrl(this.backendApiUrl);
+    this.persistState();
+    await this.checkAndSyncBackend(true);
+    this.refreshAll();
+  }
+
+  async checkAndSyncBackend(showNotice = true) {
+    if (!this.backendApi.hasBackend()) {
+      this.backendNote = "Backend URL tanımlanmadı";
+      return;
+    }
+    const res = await this.backendApi.checkHealth();
+    if (res.ok) {
+      this.backendNote = `Bağlı (${res.data?.version || "v1"})`;
+      if (showNotice) this.showToast(`Backend bağlantısı başarılı: ${this.backendApi.baseUrl}`);
+    } else {
+      this.backendNote = `Erişim yok: ${res.reason}`;
+      if (showNotice) this.showToast(`Backend yanıt vermedi (${res.reason})`);
+    }
+  }
+
+  /**
+   * Backend /api/v1/pathfind/compute endpoint'ine A->B ve aktif filtre parametrelerini gonderir
+   */
+  async triggerBackendPathfind() {
+    const appState = this.getBackendAppState();
+    const res = await this.backendApi.requestPathfind(this.startPoint, this.goalPoint, appState);
+
+    if (res.ok && res.data) {
+      this.applyBackendRoutes(res.data);
+      this.showToast("Backend rotaları (Mavi / Soluk Mavi) haritaya işlendi");
+    } else {
+      this.backendNote = res.reason;
+      this.refreshAll();
+      this.showToast(res.reason || "Backend sunucusu bekleniyor");
+    }
+  }
+
+  applyBackendRoutes(routePayload) {
+    this.backendRoutes = routePayload;
+    this.backendNote = "Rotalar güncellendi";
+    this.refreshAll();
+  }
+
+  getBackendAppState() {
+    const activeCrater = CRATERS_DATA[this.activeCraterIndex] || CRATERS_DATA[0];
+    return {
+      craterId: activeCrater.id,
+      filterAcidRain: this.filterAcidRain,
+      filterDustStorm: this.filterDustStorm,
+      showRadiationZones: this.showRadiationZones,
+      oxygenReserveLiters: this.oxygenReserveLiters,
+      waterReserveLiters: this.waterReserveLiters
+    };
+  }
+
+  getSelectedPoints() {
+    return { start: this.startPoint, goal: this.goalPoint, backendRoutes: this.backendRoutes };
   }
 
   persistState() {
@@ -101,21 +182,26 @@ export class MarsGlobeViewer {
       showGraticule: this.showGraticule,
       showStarfield: this.showStarfield,
       basemapOpacity: this.basemapOpacity,
-      rotLat: Number(this.rotLat.toFixed(3)),
-      rotLon: Number(this.rotLon.toFixed(3)),
-      zoom: Number(this.zoom.toFixed(3))
+      rotLat: Number(this.rotLat.toFixed(4)),
+      rotLon: Number(this.rotLon.toFixed(4)),
+      zoom: Number(this.zoom.toFixed(3)),
+      backendApiUrl: this.backendApiUrl
     });
   }
 
   performFactoryReset() {
     this.selectedCraterCard = null;
+    this.pickMode = null;
+    this.backendRoutes = null;
     const defaults = this.storage.factoryReset();
     this.applyState(defaults);
+    this.backendApi.setBaseUrl("");
+    this.backendNote = "Backend URL bekleniyor";
     if (this.starfieldRef?.canvas) {
       this.starfieldRef.canvas.style.opacity = "1";
     }
     this.refreshAll();
-    this.showToast("Factory Reset: Ölçekli data/tiles LOD, Litre/km/Saat/Alfa-Beta-Gama sıfırlandı");
+    this.showToast("Factory Reset: Tam kalite tile LOD, birimler ve küre sıfırlandı");
   }
 
   updateSetting(key, val) {
@@ -127,25 +213,20 @@ export class MarsGlobeViewer {
     this.refreshAll();
   }
 
-  /**
-   * Gorunur kamera bolgesi icin data/tiles icindeki karolari talep eder
-   */
   requestTilesForView() {
+    const sphereRadiusPx = this.renderer.getSphereRadius(this.logicalWidth, this.logicalHeight, this.zoom);
     this.tileLoader.requestVisibleTiles(this.activeLayerId, {
       rotLat: this.rotLat,
       rotLon: this.rotLon,
       zoom: this.zoom,
+      sphereRadiusPx,
       viewMode: this.viewMode,
       progressiveLodRender: this.progressiveLodRender
     });
   }
 
-  /**
-   * Navbar'siz temiz tam ekran kure arayuzunu DOM'a yazar
-   */
   renderUI() {
     const layers = this.tileLoader.getLayers();
-    const activeCrater = CRATERS_DATA[this.activeCraterIndex] || CRATERS_DATA[0];
     const layerChips = layers.map((l) => `
       <button class="globe-layer-btn ${l.id === this.activeLayerId ? "active" : ""}" data-layer-id="${l.id}" title="${l.description}">
         ${l.name}
@@ -157,6 +238,38 @@ export class MarsGlobeViewer {
         ${c.id === "gale-crater" ? "★ Gale" : c.id === "jezero-crater" ? "Jezero" : "Korolev"}
       </button>
     `).join("");
+
+    const pri = this.backendRoutes?.primary_route?.summary;
+    const sec = this.backendRoutes?.alternative_route?.summary;
+    const routeSummaryHtml = (pri || sec) ? `
+      <div class="backend-route-results">
+        ${pri ? `<div class="brr-row brr-blue"><strong>Mavi Yol:</strong> ${pri.total_km} km (${pri.total_meters} m) • ${pri.duration_hours} sa • ${pri.o2_liters}L O2</div>` : ""}
+        ${sec ? `<div class="brr-row brr-pale"><strong>Soluk Mavi:</strong> ${sec.total_km} km • ${sec.duration_hours} sa • ${sec.o2_liters}L O2</div>` : ""}
+      </div>
+    ` : "";
+
+    const backendPanelHtml = `
+      <div class="globe-backend-dock ${this.showBackendPanel ? "open" : "minimized"}">
+        <div class="gbd-header">
+          <span class="gbd-title">Backend Rota Kancası</span>
+          <span class="gbd-status ${this.backendApi.status}">${this.backendApi.hasBackend() ? this.backendApi.status : "AÇIK"}</span>
+        </div>
+        <div class="gbd-coords">
+          <button class="gbd-pick-btn ${this.pickMode === "start" ? "picking" : ""}" id="btn-pick-start" title="Haritada Başlangıç (A) seç">
+            A: ${this.startPoint.lat.toFixed(2)}°, ${this.startPoint.lon.toFixed(2)}°
+          </button>
+          <button class="gbd-pick-btn ${this.pickMode === "goal" ? "picking" : ""}" id="btn-pick-goal" title="Haritada Hedef (B) seç">
+            B: ${this.goalPoint.lat.toFixed(2)}°, ${this.goalPoint.lon.toFixed(2)}°
+          </button>
+        </div>
+        ${this.pickMode ? `<div class="gbd-pick-hint">Harita üzerinde ${this.pickMode === "start" ? "A (Başlangıç)" : "B (Hedef)"} noktasına tıklayın...</div>` : ""}
+        <div class="gbd-actions">
+          <button class="gbd-compute-btn" id="btn-post-pathfind">POST /api/v1/pathfind/compute</button>
+        </div>
+        ${routeSummaryHtml}
+        <div class="gbd-foot">${this.backendNote}</div>
+      </div>
+    `;
 
     const infoCardHtml = this.selectedCraterCard ? `
       <div class="globe-crater-card" id="globe-crater-card">
@@ -171,18 +284,17 @@ export class MarsGlobeViewer {
           <span>Konum: <strong>${this.selectedCraterCard.coordinates.lat.toFixed(2)}°, ${this.selectedCraterCard.coordinates.lon.toFixed(2)}°</strong></span>
         </div>
         <p class="gcc-desc">${this.selectedCraterCard.description}</p>
-        <div class="gcc-backend-note">Rota / Pathfind hesaplaması backend servisinden çekilmek üzere hazır bekliyor.</div>
       </div>
     ` : "";
 
     this.container.innerHTML = `
-      <div class="globe-stage" id="globe-stage">
+      <div class="globe-stage ${this.pickMode ? "pick-cursor" : ""}" id="globe-stage">
         <canvas id="mars-globe-canvas"></canvas>
 
-        <!-- SOL UST: Sadece Yuzer Ayarlar Simgesi (1. Secenek: Factory Reset) + Hizli Katman & Hedef -->
+        <!-- SOL UST: Ayarlar (1. Secenek: Factory Reset) + Katmanlar + Kraterler -->
         <div class="globe-top-left">
-          ${this.settingsMenu.renderMarkup(this)}
-          <div class="globe-layer-strip" aria-label="data/tiles Katmanları">
+          ${this.settingsMenu.renderMarkup(this, this.backendApi.status)}
+          <div class="globe-layer-strip" aria-label="Harita Katmanları">
             ${layerChips}
           </div>
           <div class="globe-crater-strip" aria-label="Hedef Kraterler">
@@ -190,7 +302,11 @@ export class MarsGlobeViewer {
           </div>
         </div>
 
-        ${infoCardHtml}
+        <!-- SAG UST: Backend API Rota Kancasi + Krater Karti -->
+        <div class="globe-top-right">
+          ${backendPanelHtml}
+          ${infoCardHtml}
+        </div>
 
         <!-- SOL ALT: Zorunlu 2D / 3D / Asit Yagmuru / Kum Firtinasi Filtreleri -->
         <div class="globe-bottom-left" aria-label="Görünüm ve Tehlike Filtreleri">
@@ -210,10 +326,10 @@ export class MarsGlobeViewer {
           </label>
         </div>
 
-        <!-- SAG ALT: Zoom Kontrolu ve Yerel data/tiles Telemetri Cubugu -->
+        <!-- SAG ALT: Zoom ve HiDPI Tile Telemetrisi -->
         <div class="globe-bottom-right">
           <div class="globe-zoom-stack">
-            <button class="globe-zoom-btn" id="btn-zoom-in" title="Yaklaş">＋</button>
+            <button class="globe-zoom-btn" id="btn-zoom-in" title="Yaklaş (Tam Kalite Tile LOD Artır)">＋</button>
             <button class="globe-zoom-btn" id="btn-zoom-out" title="Uzaklaş">－</button>
             <button class="globe-zoom-btn" id="btn-reset-orbit" title="Küre Görünümünü Sıfırla">⌂</button>
           </div>
@@ -240,14 +356,25 @@ export class MarsGlobeViewer {
 
     document.querySelectorAll("[data-crater-idx]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const idx = parseInt(btn.getAttribute("data-crater-idx"), 10);
-        this.flyToCrater(idx);
+        this.flyToCrater(parseInt(btn.getAttribute("data-crater-idx"), 10));
       });
     });
 
     document.getElementById("btn-close-crater-card")?.addEventListener("click", () => {
       this.selectedCraterCard = null;
       this.refreshAll();
+    });
+
+    document.getElementById("btn-pick-start")?.addEventListener("click", () => {
+      this.pickMode = this.pickMode === "start" ? null : "start";
+      this.refreshAll();
+    });
+    document.getElementById("btn-pick-goal")?.addEventListener("click", () => {
+      this.pickMode = this.pickMode === "goal" ? null : "goal";
+      this.refreshAll();
+    });
+    document.getElementById("btn-post-pathfind")?.addEventListener("click", () => {
+      this.triggerBackendPathfind();
     });
 
     document.getElementById("btn-mode-2d")?.addEventListener("click", () => {
@@ -271,8 +398,8 @@ export class MarsGlobeViewer {
       this.refreshAll();
     });
 
-    document.getElementById("btn-zoom-in")?.addEventListener("click", () => this.applyZoom(this.zoom * 1.25));
-    document.getElementById("btn-zoom-out")?.addEventListener("click", () => this.applyZoom(this.zoom * 0.8));
+    document.getElementById("btn-zoom-in")?.addEventListener("click", () => this.applyZoom(this.zoom * 1.38));
+    document.getElementById("btn-zoom-out")?.addEventListener("click", () => this.applyZoom(this.zoom * 0.72));
     document.getElementById("btn-reset-orbit")?.addEventListener("click", () => {
       this.selectedCraterCard = null;
       this.animateToTarget(-4.59, 137.44, 1.08);
@@ -306,11 +433,11 @@ export class MarsGlobeViewer {
 
       const stepLon = -dx * (0.28 / this.zoom);
       const stepLat = dy * (0.28 / this.zoom);
-      this.velLon = stepLon * 0.7;
-      this.velLat = stepLat * 0.7;
+      this.velLon = stepLon * 0.65;
+      this.velLat = stepLat * 0.65;
 
       this.rotLon = this.normalizeLon(this.rotLon + stepLon);
-      this.rotLat = Math.max(-84, Math.min(84, this.rotLat + stepLat));
+      this.rotLat = Math.max(-85, Math.min(85, this.rotLat + stepLat));
       this.requestTilesForView();
       this.drawGlobe();
       this.updateTelemetryBar();
@@ -318,7 +445,7 @@ export class MarsGlobeViewer {
 
     this.canvas.addEventListener("wheel", (e) => {
       e.preventDefault();
-      this.applyZoom(this.zoom * (e.deltaY < 0 ? 1.14 : 0.88));
+      this.applyZoom(this.zoom * (e.deltaY < 0 ? 1.18 : 0.85));
     }, { passive: false });
 
     this.canvas.addEventListener("click", (e) => {
@@ -336,12 +463,11 @@ export class MarsGlobeViewer {
       this.startInertiaLoop();
     });
     document.addEventListener("click", (e) => {
-      if (!e.target.closest("#trek-settings-anchor")) {
-        this.settingsMenu.close();
-      }
+      if (!e.target.closest("#trek-settings-anchor")) this.settingsMenu.close();
     });
     window.addEventListener("resize", () => {
       this.resizeCanvas();
+      this.requestTilesForView();
       this.drawGlobe();
     });
   }
@@ -351,12 +477,13 @@ export class MarsGlobeViewer {
       if (Math.abs(this.velLon) < 0.04 && Math.abs(this.velLat) < 0.04) {
         this.drawGlobe();
         this.persistState();
+        this.emitViewportEvent();
         return;
       }
       this.rotLon = this.normalizeLon(this.rotLon + this.velLon);
-      this.rotLat = Math.max(-84, Math.min(84, this.rotLat + this.velLat));
-      this.velLon *= 0.88;
-      this.velLat *= 0.88;
+      this.rotLat = Math.max(-85, Math.min(85, this.rotLat + this.velLat));
+      this.velLon *= 0.86;
+      this.velLat *= 0.86;
       this.requestTilesForView();
       this.drawGlobe();
       this.updateTelemetryBar();
@@ -375,10 +502,9 @@ export class MarsGlobeViewer {
     const startLon = this.rotLon;
     const startZoom = this.zoom;
     const startTime = performance.now();
-    const duration = 520;
 
     const tick = (now) => {
-      const t = Math.min(1, (now - startTime) / duration);
+      const t = Math.min(1, (now - startTime) / 520);
       const ease = 1 - Math.pow(1 - t, 3);
       this.rotLat = startLat + (targetLat - startLat) * ease;
       this.rotLon = this.normalizeLon(startLon + dLon * ease);
@@ -390,6 +516,7 @@ export class MarsGlobeViewer {
         this.animFrame = requestAnimationFrame(tick);
       } else {
         this.persistState();
+        this.emitViewportEvent();
       }
     };
     this.animFrame = requestAnimationFrame(tick);
@@ -402,13 +529,29 @@ export class MarsGlobeViewer {
     this.selectedCraterCard = crater;
     this.renderUI();
     this.bindCanvas();
-    this.animateToTarget(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.zoom, 1.45));
+    this.animateToTarget(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.zoom, 3.4));
   }
 
   handleCanvasClick(e) {
     const rect = this.canvas.getBoundingClientRect();
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
+
+    // A veya B koordinat secme modundaysa tiklanan gercek Mars (lat, lon) degerini yakala
+    if (this.pickMode) {
+      const picked = this.renderer.screenToLatLon(cx, cy, this.buildRenderState());
+      if (picked) {
+        if (this.pickMode === "start") this.startPoint = picked;
+        else this.goalPoint = picked;
+        window.dispatchEvent(new CustomEvent("astrochief:coordinate-picked", {
+          detail: { role: this.pickMode, lat: picked.lat, lon: picked.lon }
+        }));
+        this.pickMode = null;
+        this.refreshAll();
+      }
+      return;
+    }
+
     const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
     if (hit) {
       const idx = CRATERS_DATA.findIndex((c) => c.id === hit.crater.id);
@@ -417,11 +560,22 @@ export class MarsGlobeViewer {
   }
 
   applyZoom(nextZoom) {
-    this.zoom = Math.min(Math.max(nextZoom, 0.65), 3.6);
+    this.zoom = Math.min(Math.max(nextZoom, 0.65), 14.0);
     this.requestTilesForView();
     this.drawGlobe();
     this.updateTelemetryBar();
-    this.persistState();
+    clearTimeout(this.wheelSettleTimer);
+    this.wheelSettleTimer = setTimeout(() => {
+      this.persistState();
+      this.emitViewportEvent();
+    }, 120);
+  }
+
+  emitViewportEvent() {
+    const stats = this.tileLoader.getLayerStats(this.activeLayerId);
+    window.dispatchEvent(new CustomEvent("astrochief:viewport-changed", {
+      detail: { rotLat: this.rotLat, rotLon: this.rotLon, zoom: this.zoom, layerId: this.activeLayerId, activeTileZ: stats.zoom }
+    }));
   }
 
   normalizeLon(lon) {
@@ -429,27 +583,32 @@ export class MarsGlobeViewer {
   }
 
   resizeCanvas() {
-    if (!this.canvas) return;
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    if (!this.canvas || !this.ctx) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.logicalWidth = window.innerWidth;
+    this.logicalHeight = window.innerHeight;
+    this.canvas.width = Math.round(this.logicalWidth * dpr);
+    this.canvas.height = Math.round(this.logicalHeight * dpr);
+    this.canvas.style.width = `${this.logicalWidth}px`;
+    this.canvas.style.height = `${this.logicalHeight}px`;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   updateHoverCoords(e) {
+    if (!this.canvas) return;
     const rect = this.canvas.getBoundingClientRect();
-    const dx = e.clientX - rect.left - this.canvas.width / 2;
-    const dy = e.clientY - rect.top - this.canvas.height / 2;
-    this.hoverCoords = {
-      lat: Math.max(-90, Math.min(90, this.rotLat - dy * (0.14 / this.zoom))),
-      lon: this.normalizeLon(this.rotLon + dx * (0.14 / this.zoom))
-    };
-    this.updateTelemetryBar();
+    const mapped = this.renderer.screenToLatLon(e.clientX - rect.left, e.clientY - rect.top, this.buildRenderState());
+    if (mapped) {
+      this.hoverCoords = mapped;
+      this.updateTelemetryBar();
+    }
   }
 
   updateTelemetryBar() {
     const bar = document.getElementById("globe-telemetry-bar");
     if (!bar) return;
     const stats = this.tileLoader.getLayerStats(this.activeLayerId);
-    bar.innerText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • ${stats.name} • z=${stats.zoom} (${stats.loaded} karo: ${stats.sourceDir})`;
+    bar.innerText = `${this.hoverCoords.lat.toFixed(3)}°, ${this.hoverCoords.lon.toFixed(3)}° • ${stats.name} • z=${stats.zoom} (${stats.loaded} karo · ${stats.sourceLabel})`;
   }
 
   showToast(msg) {
@@ -468,14 +627,14 @@ export class MarsGlobeViewer {
     this.drawGlobe();
   }
 
-  drawGlobe() {
-    if (!this.ctx || !this.canvas) return;
-    const payload = {
-      width: this.canvas.width,
-      height: this.canvas.height,
+  buildRenderState() {
+    return {
+      width: this.logicalWidth,
+      height: this.logicalHeight,
       rotLat: this.rotLat,
       rotLon: this.rotLon,
       zoom: this.zoom,
+      viewMode: this.viewMode,
       activeLayerId: this.activeLayerId,
       isDragging: this.isDragging,
       craters: CRATERS_DATA,
@@ -488,23 +647,28 @@ export class MarsGlobeViewer {
       showGraticule: this.showGraticule,
       showNomenclature: this.showNomenclature,
       showRadiationZones: this.showRadiationZones,
-      progressiveLodRender: this.progressiveLodRender
+      progressiveLodRender: this.progressiveLodRender,
+      startPoint: this.startPoint,
+      goalPoint: this.goalPoint,
+      backendRoutes: this.backendRoutes
     };
+  }
 
-    if (this.viewMode === "2d") {
-      this.hitTargets = this.renderer.render2DTiled(this.ctx, payload);
-    } else {
-      this.hitTargets = this.renderer.renderGlobe(this.ctx, payload);
-    }
+  drawGlobe() {
+    if (!this.ctx || !this.canvas) return;
+    const payload = this.buildRenderState();
+    this.hitTargets = this.viewMode === "2d"
+      ? this.renderer.render2DTiled(this.ctx, payload)
+      : this.renderer.renderGlobe(this.ctx, payload);
   }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc Navbar'siz tam ekran Mars Kuresi denetleyicisi tanıtımı.
-   - Satir 15-64: constructor & applyState; MarsTileLoader, MarsGlobeRenderer ve Factory SettingsMenu baglantilarini kurar.
-   - Satir 66-127: init, persistState, performFactoryReset, updateSetting, requestTilesForView; data/ altindaki karolari yukler.
-   - Satir 129-247: renderUI & bindOverlayControls; katman secici, 2D/3D/Asit/Firtina filtreleri ve sol ust Factory Reset menusunu baglar.
-   - Satir 249-388: bindCanvas, ataletli donus animasyonu (startInertiaLoop), yumusak krater ucusu (animateToTarget) ve telemetri cubugu.
+   - Satir 1-6: JSDoc HiDPI Mars Kuresi ve Backend API (/api/v1/*) baglanti denetleyicisi.
+   - Satir 15-88: constructor, applyState ve init; BackendApiService ve MarsTileLoader baglantilarini kurar.
+   - Satir 90-142: connectBackend, checkAndSyncBackend, triggerBackendPathfind ve applyBackendRoutes; Backend rota cizim akisi.
+   - Satir 144-275: renderUI & bindOverlayControls; Backend A/B nokta secicisi, Ayarlar Factory Reset ve sol alt filtreler.
+   - Satir 277-498: HiDPI resizeCanvas, ataletli donus, 14x'e kadar tam kalite zoom, A/B koordinat yakalama (screenToLatLon) ve event yayini.
    ========================================================================== */
