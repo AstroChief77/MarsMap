@@ -390,3 +390,17 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * Guncellenen RouteGeometryHelper.js, MarsMapInteractionHelper.js ve DemoStudioController.js betikleri ?v=4.3.1 ile onbellek kiriciya alindi.
 - VPS (marsmap.wiki / 20.102.97.92): /var/www/marsmap.wiki tam web senkronu ve Nginx //demo -> /demo/ 301 normalizasyonu uygulandi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15] UI Redesign: Koyu kozmik tema, ust arama+koordinat cubugu, 0 derece duz 3D baslangic, kare uydu fotografli buton, kompakt ve varsayilan kapali rota paneli, asamali tile yukleme gorseli, cakismayan paneller.
+
+[2026-11-15T00:36:00+03:00] feat(backend-api): Backend'e Tam 48x48 MOLA DEM, Krater Katalogu & Prameters.md Veri Paketi (v4.3.2):
+- Yedek Klasoru: backups/snapshot_20261115_backend_payload/
+- js/services/MarsTopographyService.js (Satir 44-70, 535-555): Fiziksel DEM ozellik dizisine (volkan, havza, krater) id/name alanlari ve getDemFeaturesCatalog() metodu eklendi.
+- js/services/MolaAStarGridHelper.js (Satir 41-275):
+  * sampleMolaCorridor icinde 5-noktali hucre-ici tepe egimi (sub-cell peak slope), cografi sinirlar ve metre cinsinden gercek hucre olcegi (dxMeters, dyMeters, diagonalMeters) hesaplandi.
+  * evaluateGridAndMasks ile engel bitmaskesi (0=gecilebilir, 1=egim>25, 2=asit, 4=firtina, 8=radyasyon) eklendi; buildRichTerrainPayload ile 48x48 tam terrainGrid ve routeGeometrySummary uretildi.
+- js/services/BackendApiService.js (Satir 165-525):
+  * buildRouteRequestPayload icinde varsayilan gridSize 24 -> 48 yukseltildi; terrainGrid (elevMeters, slopeDegs, blockedMask, gridFlatI32, lats, lons, cellSizeMeters), krater/volkan katalogu, radiation/astronaut/vehicleAndPhysics (Prameters.md) eklendi.
+  * computeViaRustWasm icinde Asama 1/2/3 fallback takibi (fallbackStage & fallbackWarning) ve HTTP A* icin dinamik 48x48 gridW/gridH eslemesi baglandi; non-enumerable _corridorCache ile cift ornekleme onlendi.
+- BACKEND_API.md, index.html & demo/index.html: API sartnamesi + Rust serde sablonlari v4.3.2'ye guncellendi, guncel servis betikleri ?v=4.3.2 onbellek kiriciya alindi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.

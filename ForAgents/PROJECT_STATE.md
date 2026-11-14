@@ -101,3 +101,11 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 - **İmleç Odaklı (Cursor-Anchored) 2D/3D Zoom & `marsmap.wiki` Canlı Düzeltmesi**:
   - `RouteGeometryHelper.js` içine `computeWheelTargetZoom`, `computePanStep` ve `computeZoomToPoint` (`_computeZoomToPoint2D` / `_computeZoomToPoint3D` — pitch, yaw, pivotZ, MOLA kabartma ters çözümü) eklendi; hem ana harita (`MarsMapInteractionHelper.js`) hem `/demo` (`DemoStudioController.js`) fare tekerleğinde imlecin gösterdiği Mars koordinatına yakınlaştırır (`?v=4.3.1` cache-bust).
   - `marsmap.wiki` VPS (`/var/www/marsmap.wiki` + Nginx `/etc/nginx/sites-available/marsmap.wiki`) v4.3.x dosyalarıyla senkronlandı ve `//demo` çift taksim yolları `301 -> /demo/` olacak şekilde düzeltildi.
+
+## 12. Zenginleştirilmiş Backend Veri Sözleşmesi & `Mustafa` Dalı Örnek JSON (`v4.3.2`)
+- **Tam Koridor & Fizik Yükü (`MarsTopographyService.js`, `MolaAStarGridHelper.js`, `BackendApiService.js`, `BACKEND_API.md`)**:
+  - Varsayılan koridor A* çözünürlüğü `24×24`'ten **`48×48`**'e çıkarıldı ve her hücrede 5-noktalı maksimum eğim örneklemesi eklendi.
+  - `POST /api/v1/route` artık yalnızca başlangıç/bitiş noktalarını değil; `terrainGrid` (`elevMeters`, `slopeDegs`, `blockedMask`, `gridFlatI32`, `lats`, `lons`, `cellSizeMeters`), `routeGeometrySummary`, `terrain.nearbyFeatures` (krater/volkan kataloğu), `factors.radiation` limitleri ve `Prameters.md` kalibrasyonlu `factors.astronaut` / `factors.vehicleAndPhysics` alanlarını da iletir.
+  - `computeViaRustWasm` üzerinde `fallbackStage` (`1|2|3`) ve dik eğim esnetme uyarıları (`fallbackWarning`) görünür hale getirildi.
+- **GitHub `Mustafa` Dalı (`ornek_json.json` & `ornek_json/`)**:
+  - `origin/Mustafa` dalına gerçek `48×48` MOLA DEM verisinden üretilen tam istek örneği (`ornek_json.json`), yakın krater kaçınma senaryosu, yanıt şeması ve geliştirici rehberi eklendi.
