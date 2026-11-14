@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AstroChief - Mars Trek &amp; Yerel Karo Piramidi Tabanlı Gezinebilen Mars Küresi.">
+  <title>AstroChief | Mars Küresi</title>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23d92b2b%22/></svg>">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <!-- Siyah Uzay & Yıldız Tuvali -->
+  <canvas id="starfield-canvas"></canvas>
+
+  <!-- Navbar Olmadan Tam Ekran Gezinebilen Mars Küresi Sahnesi -->
+  <main id="app-content-wrapper">
+    <div id="mars-globe-container"></div>
+  </main>
+
+  <!-- Runtime Backend Konfigurasyonu (Opsiyonel ?api= veya ASTROCHIEF_CONFIG uzerinden override) -->
+  <script>
+    window.ASTROCHIEF_CONFIG = window.ASTROCHIEF_CONFIG || { apiBaseUrl: "" };
+  </script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
+
+<!--
+==========================================================================
+DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+--------------------------------------------------------------------------
+- Satır 1-10: HTML5 belgesi, Türkçe dil etiketi, başlık, favikon ve CSS yüklemesi.
+- Satır 14: #starfield-canvas; tam ekran siyah yıldızlı uzay arka planı.
+- Satır 17-19: #mars-globe-container; navbar eklenmeden yalnızca gezinebilen Mars küresi yerleşimi.
+- Satır 21: js/app.js ES6 uygulama giriş betiği.
+==========================================================================
+-->

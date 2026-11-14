@@ -1,0 +1,212 @@
+/**
+ * @file satellite_dock.css
+ * @description Sol alt Uydular Paneli, acilir 2D/3D secicisi ve arka planinda
+ * gercek Mars bolge fotograflari olan Asit Yagmuru / Kum Kasirgasi siddet kartlari.
+ */
+
+.globe-bottom-left {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.sat-dock-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sat-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.46rem 0.86rem;
+  background: var(--surface-white);
+  color: var(--ink-black);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  box-shadow: var(--shadow-popover);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sat-trigger-btn:hover,
+.sat-trigger-btn.active {
+  background: var(--mars-red);
+  color: var(--surface-white);
+  border-color: var(--mars-red-dark);
+}
+
+.sat-mode-badge {
+  font-size: 0.63rem;
+  padding: 0.12rem 0.38rem;
+  border-radius: 4px;
+  background: rgba(17, 19, 23, 0.1);
+}
+
+.sat-trigger-btn.active .sat-mode-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--surface-white);
+}
+
+.sat-pill-acid {
+  background-image:
+    linear-gradient(rgba(17, 19, 23, 0.56), rgba(17, 19, 23, 0.76)),
+    url('../data/assets/acid_rain_mars.jpg');
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  border-color: rgba(245, 158, 11, 0.65);
+}
+
+.sat-pill-storm {
+  background-image:
+    linear-gradient(rgba(17, 19, 23, 0.52), rgba(17, 19, 23, 0.76)),
+    url('../data/assets/dust_storm_mars.jpg');
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  border-color: rgba(217, 43, 43, 0.7);
+}
+
+.sat-pill-acid:not(.active-acid),
+.sat-pill-storm:not(.active-storm) {
+  opacity: 0.62;
+  filter: grayscale(0.45);
+}
+
+/* ACILIR UYDULAR & ATMOSFER PENCERESI */
+.sat-popover {
+  display: none;
+  width: 318px;
+  max-width: calc(100vw - 2.3rem);
+  background: var(--surface-white);
+  color: var(--ink-black);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  padding: 0.72rem;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sat-popover.open {
+  display: flex;
+}
+
+.sat-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.77rem;
+  color: var(--ink-black);
+}
+
+.globe-mode-switch.compact .globe-mode-btn {
+  padding: 0.28rem 0.68rem;
+  font-size: 0.71rem;
+}
+
+/* FOTOGRAFLI ASIT & KASIRGA SIDDET KARTLARI */
+.sat-weather-card {
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sat-acid-bg {
+  background-image: url('../data/assets/acid_rain_mars.jpg');
+}
+
+.sat-storm-bg {
+  background-image: url('../data/assets/dust_storm_mars.jpg');
+}
+
+.sat-weather-card.muted {
+  filter: grayscale(0.55);
+  opacity: 0.75;
+}
+
+.sat-card-scrim {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.72) 0%, rgba(17, 19, 23, 0.48) 100%);
+  padding: 0.58rem 0.68rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #ffffff;
+}
+
+.sat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sat-card-title {
+  font-size: 0.76rem;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.sat-mini-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.67rem;
+  padding: 0.16rem 0.46rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.sat-mini-toggle input {
+  accent-color: var(--mars-red);
+}
+
+.sat-severity-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem;
+}
+
+.sat-sev-btn {
+  padding: 0.3rem 0.24rem;
+  font-size: 0.64rem;
+  color: #f3f4f6;
+  background: rgba(0, 0, 0, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sat-sev-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sat-sev-btn.active-acid {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #fde68a;
+}
+
+.sat-sev-btn.active-storm {
+  background: var(--mars-red);
+  color: #ffffff;
+  border-color: #fecaca;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+   --------------------------------------------------------------------------
+   - Satir 1-19: JSDoc ve sol alt Uydular Paneli alt seridi.
+   - Satir 21-73: Uydular tetikleme butonu, fotografli Asit/Kasirga hizli butonlari.
+   - Satir 75-145: Acilir #satellite-dock-popover 2D/3D secici, fotografli kart arkaplanlari ve 3 seviyeli siddet secim dugmeleri.
+   ========================================================================== */
