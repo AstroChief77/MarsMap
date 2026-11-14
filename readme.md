@@ -1,9 +1,20 @@
+# Bilgilendirme
+
+-Bu bir NASA Hackaton yarışmasıdır.
+
+-Mars haritalanacak bir navigator yapılıcak.
+
+-Yarışma detayları https://www.spaceappschallenge.org/2026/challenges/ adresinde var.
+
+-Asit yağmurları, fırtınalar hesaplanarak en güvenli ulaşılacak yerin rotasyonu belirlenicek.
 
 AstroChief
 # Kurallar
 -Readme.md her seferinde okunmak zorundadır.
 
 -Dosyada değişiklik yapılacağı zaman her zaman yedek alınmak zorunludur ve yedekleri silmek değiştirmek yasaktır.
+
+-Yarışma detayları her seferinde belleği alınmalı.
 
 -Yapılan her değişiklik satır satır loglanmalıdır.
 
@@ -18,9 +29,9 @@ Atahan: Kaptan,Başkan,Lider,Diktatör
 
 Akif:Lead Developer
 
-Rıfat:Coder 10.0.16.121
+Rıfat:Coder
 
-Ömer:Coder 10.0.16.122
+Ömer:Coder
 
 Mustafa:Coder
 
