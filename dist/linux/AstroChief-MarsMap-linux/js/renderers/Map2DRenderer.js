@@ -36,7 +36,7 @@
       ctx.clearRect(0, 0, width, height);
 
       const baseWidth = Math.max(width * 0.86, 620);
-      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 12.0);
+      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 32.0);
       const mapH = mapW * 0.5;
       const pxPerDeg = mapW / 360;
 
@@ -55,7 +55,7 @@
         progressiveLodRender: progressiveLodRender !== false
       }, layer);
 
-      this.drawVisibleTiles(ctx, activeLayerId, targetZ, ox, oy, mapW, mapH, width, height);
+      this.drawVisibleTiles(ctx, activeLayerId, targetZ, ox, oy, mapW, mapH, width, height, Boolean(state.isInteracting));
 
       // Kutup ust/alt sinir cizgileri (antimeridyende dikey dikis izi olusturmadan)
       ctx.save();
@@ -131,7 +131,7 @@
     /**
      * Yalnizca gorunur hucreler icin en keskin hazir karoyu (yoksa ata karo kesitini) cizer
      */
-    drawVisibleTiles(ctx, layerId, targetZ, ox, oy, mapW, mapH, viewW, viewH) {
+    drawVisibleTiles(ctx, layerId, targetZ, ox, oy, mapW, mapH, viewW, viewH, isInteracting = false) {
       const cols = 1 << (targetZ + 1);
       const rows = 1 << targetZ;
       const tw = mapW / cols;
@@ -143,9 +143,9 @@
 
       ctx.save();
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
+      ctx.imageSmoothingQuality = isInteracting ? "medium" : "high";
 
-      for (const wrapX of [-2 * mapW, -mapW, 0, mapW, 2 * mapW]) {
+      for (const wrapX of [-mapW, 0, mapW]) {
         const bx = ox + wrapX;
         if (bx + mapW < 0 || bx > viewW) continue;
 

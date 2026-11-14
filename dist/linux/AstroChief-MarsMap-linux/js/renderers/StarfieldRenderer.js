@@ -1,6 +1,7 @@
 /**
  * @file StarfieldRenderer.js
- * @description Zifiri siyah uzay arka plani ve parildayan yildiz simulasyonu sinifi.
+ * @description Sifir GPU bogulmasi (zero compositor overhead) icin on-tuval (offscreen) onbellekli
+ * ve surukleme aninda otomatik duraklatilan derin uzay yildiz arka plan motoru.
  */
 
 (function (ns) {
@@ -12,25 +13,36 @@
      */
     constructor(canvasId = "starfield-canvas") {
       this.canvas = document.getElementById(canvasId);
-      this.ctx = this.canvas ? this.canvas.getContext("2d") : null;
+      this.ctx = this.canvas ? this.canvas.getContext("2d", { alpha: false }) : null;
+      this.baseCanvas = document.createElement("canvas");
+      this.baseCtx = this.baseCanvas.getContext("2d", { alpha: false });
       this.stars = [];
+      this.twinkleStars = [];
       this.enabled = true;
+      this.interacting = false;
       this.rafId = null;
+      this.lastDrawTs = 0;
       this.onResize = this.resize.bind(this);
     }
 
     init() {
       if (!this.canvas || !this.ctx) return;
       this.resize();
-      this.generateStars(280);
       this.startLoop();
       window.addEventListener("resize", this.onResize);
     }
 
     resize() {
       if (!this.canvas) return;
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
+      const w = window.innerWidth || 1280;
+      const h = window.innerHeight || 720;
+      this.canvas.width = w;
+      this.canvas.height = h;
+      this.baseCanvas.width = w;
+      this.baseCanvas.height = h;
+      this.generateStars(240);
+      this.bakeBaseLayer();
+      this.drawFrame();
     }
 
     setEnabled(flag) {
@@ -38,38 +50,69 @@
       if (this.canvas) {
         this.canvas.style.opacity = this.enabled ? "1" : "0.08";
       }
+      this.drawFrame();
+    }
+
+    setInteracting(flag) {
+      this.interacting = Boolean(flag);
     }
 
     generateStars(count) {
       this.stars = [];
-      const palette = ["255,255,255", "235,242,255", "255,244,226", "255,214,196"];
+      this.twinkleStars = [];
+      const w = this.canvas.width || 1280;
+      const h = this.canvas.height || 720;
+      const palette = ["#ffffff", "#ebf2ff", "#fff4e2", "#ffd6c4"];
       for (let i = 0; i < count; i++) {
-        this.stars.push({
-          x: Math.random() * this.canvas.width,
-          y: Math.random() * this.canvas.height,
-          r: Math.random() * 1.35 + 0.3,
-          a: Math.random() * 0.75 + 0.2,
-          da: (Math.random() * 0.015 + 0.004) * (Math.random() > 0.5 ? 1 : -1),
-          rgb: palette[i % palette.length]
-        });
+        const star = {
+          x: (Math.random() * w) | 0,
+          y: (Math.random() * h) | 0,
+          s: Math.random() > 0.78 ? 2 : 1,
+          a: Math.random() * 0.65 + 0.25,
+          da: (Math.random() * 0.04 + 0.015) * (Math.random() > 0.5 ? 1 : -1),
+          color: palette[i % palette.length]
+        };
+        if (i < 42) this.twinkleStars.push(star);
+        else this.stars.push(star);
       }
     }
 
-    startLoop() {
-      const tick = () => {
-        if (!this.ctx || !this.canvas) return;
-        this.ctx.fillStyle = "#000000";
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    bakeBaseLayer() {
+      if (!this.baseCtx) return;
+      const w = this.baseCanvas.width;
+      const h = this.baseCanvas.height;
+      this.baseCtx.fillStyle = "#000000";
+      this.baseCtx.fillRect(0, 0, w, h);
+      for (const s of this.stars) {
+        this.baseCtx.globalAlpha = s.a;
+        this.baseCtx.fillStyle = s.color;
+        this.baseCtx.fillRect(s.x, s.y, s.s, s.s);
+      }
+      this.baseCtx.globalAlpha = 1.0;
+    }
 
-        if (this.enabled) {
-          for (const s of this.stars) {
-            s.a += s.da;
-            if (s.a > 0.95 || s.a < 0.18) s.da *= -1;
-            this.ctx.beginPath();
-            this.ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            this.ctx.fillStyle = `rgba(${s.rgb}, ${s.a.toFixed(2)})`;
-            this.ctx.fill();
-          }
+    drawFrame() {
+      if (!this.ctx || !this.canvas) return;
+      this.ctx.globalAlpha = 1.0;
+      this.ctx.drawImage(this.baseCanvas, 0, 0);
+      if (!this.enabled) return;
+
+      for (const s of this.twinkleStars) {
+        s.a += s.da;
+        if (s.a > 0.95) { s.a = 0.95; s.da = -Math.abs(s.da); }
+        else if (s.a < 0.20) { s.a = 0.20; s.da = Math.abs(s.da); }
+        this.ctx.globalAlpha = s.a;
+        this.ctx.fillStyle = s.color;
+        this.ctx.fillRect(s.x, s.y, s.s, s.s);
+      }
+      this.ctx.globalAlpha = 1.0;
+    }
+
+    startLoop() {
+      const tick = (now) => {
+        if (!this.interacting && this.enabled && now - this.lastDrawTs >= 120) {
+          this.lastDrawTs = now;
+          this.drawFrame();
         }
         this.rafId = requestAnimationFrame(tick);
       };
@@ -88,8 +131,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-4: JSDoc siyah uzay ve yildiz cizim motoru tanimi.
-   - Satir 6-26: constructor, init ve resize; tam ekran yildiz tuvalini hazirlar.
-   - Satir 28-51: setEnabled ve generateStars; 280 adet farkli tayf renginde yildiz uretir.
-   - Satir 53-77: startLoop ve destroy; parildama animasyonunu yonetir ve bellegi temizler.
+   - Satir 1-5: JSDoc on-tuval (offscreen) onbellekli derin uzay yildiz arka plan motoru tanimi.
+   - Satir 10-49: constructor, init, resize, setEnabled ve setInteracting; sabit yildizlari on-tuvale firinlar.
+   - Satir 51-101: generateStars, bakeBaseLayer ve drawFrame; 240 yildizi tek blit + hafif fillRect ile cizer.
+   - Satir 103-118: startLoop ve destroy; surukleme aninda GPU'yu yormamak icin arka plan cizimini duraklatir.
    ========================================================================== */

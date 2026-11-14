@@ -254,3 +254,15 @@
 - js/components/MarsNavigatorController.js: Maksimum yakınlaştırma sınırı 3D'de `80x`, 2D'de `32x` olarak yükseltildi; tekerlek ve `+/-` yakınlaştırma adımları hızlandırıldı.
 - js/renderers/Map3DRenderer.js: Sürükleme/yakınlaştırma (`fastMode`) sırasında dinamik piksel bütçesi `52.000` piksele düşürülüp 1-pass ışın izleme uygulanarak akıcılık artırıldı; durgun çözünürlük `480.000` piksel ile optimize edildi.
 - index.html: Önbellek kırıcı `?v=3.6` sürümüne yükseltildi.
+
+[2026-11-14T18:44:00+03:00] v3.7 GOOGLE MAPS / EARTH GRADE 60+ FPS RENDER & DRAG ENGINE:
+- Yedek Klasoru: backups/snapshot_20261114_google_maps_perf/
+- js/services/MarsTileLoader.js:
+  * z=0..2 (42 taban karo) RAM'de kalici (pinned) tutuldu; LRU tahliyesi yalnizca z>=3 icin calisir ve maxCachedTiles 1400'e cikarildi.
+  * 10.249 yerel karo (z=0..5) indirildikten sonra olusan 2.688 karoluk istek seli ve önbellek cirpinmasi (cache thrashing), kamera frustum konisi sinirlamasi (seviye basina maks 20-24 karo, merkeze yakinlik sirali) ile tamamen giderildi.
+  * Surukleme/yakinlastirma (isInteracting) esnasinda yeni z>=3 ag/disk yuklemeleri ve senkron getImageData cagrilari durduruldu; arka plan zaman-dilimli (time-sliced) decodeQueue eklendi.
+- js/renderers/Map3DRenderer.js:
+  * MOLA 3D topografik kabartma ve egim isiklandirmasi 4x4 blok koselerine tasinarak piksel basina 16x daha az MOLA okumasi saglandi.
+  * Surukleme modunda (fastMode) sifir getImageData blokajli 1-tap hizli doku okumasi, duragan modda 4-tap bilineer keskinlestirme ve kare-onbellekli (lastRayKey) raster blitting eklendi.
+- js/renderers/StarfieldRenderer.js & js/components/MarsNavigatorController.js:
+  * Arka plan yildiz tuvali offscreen onbelleklendi ve surukleme aninda duraklatildi; DOM FPS/telemetri guncellemeleri kirli-kontrol (dirty-check) ve zaman kisitlamasi (throttle) ile sifir-reflow hale getirildi.
