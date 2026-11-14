@@ -355,8 +355,7 @@
           v = (halfPi - lat) * invPi;
           if (elevGrid) {
             topoSample = sampleTopoBilinear(u, v);
-            dr = topoSample.h * radFactor;
-            rSurf = 1.0 + dr;
+            rSurf = 1.0 + topoSample.h * radFactor;
           }
         }
         const Cfin = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * sinP - rSurf * rSurf;
