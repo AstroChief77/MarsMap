@@ -19,6 +19,7 @@
       this.tileLoader = tileLoader;
       this.overlays = new OverlayDrawHelper();
       this.routeRenderer = new RouteCanvasRenderer();
+      this.fallbackRenderer = ns.Map3DFallbackRenderer ? new ns.Map3DFallbackRenderer(tileLoader) : null;
       this.cropCanvas = document.createElement("canvas");
       this.cropCtx = this.cropCanvas.getContext("2d");
       this.cropImgData = null;
@@ -86,6 +87,7 @@
         ctx.beginPath();
         ctx.arc(cx, sphereCy, limbRadius * 1.10, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       }
 
       if (!this.tileLoader.hasAnyReadyTile(activeLayerId)) {
@@ -354,7 +356,8 @@
           v = (halfPi - lat) * invPi;
           if (elevGrid) {
             topoSample = sampleTopoBilinear(u, v);
-            rSurf = 1.0 + topoSample.h * radFactor;
+            dr = topoSample.h * radFactor;
+            rSurf = 1.0 + dr;
           }
         }
         const Cfin = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * sinP - rSurf * rSurf;
@@ -539,18 +542,13 @@
     }
 
     /**
-     * file:// protokolunde tarayici getImageData kilidi varsa hazir z=0..targetZ karolariyla
-     * kuresel afin projeksiyonlu ve dikissiz 3D dokuyu dogrudan drawImage uzerinden cizer
+     * file:// veya tainted tuval ortamlarinda 3D yedek kure cizimini ayri moduldaki Map3DFallbackRenderer'a devreder
      */
     drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius * 1.05, 0, Math.PI * 2);
-      ctx.clip();
-
-      const baseGrad = ctx.createRadialGradient(
-        cx - radius * 0.34, cy - radius * 0.28, radius * 0.08,
-        cx, cy, radius * 1.05
+      if (!this.fallbackRenderer) { this.drawLoadingSphere(ctx, cx, cy, radius); return; }
+      this.fallbackRenderer.drawFallbackShadedSphere(
+        ctx, cx, cy, radius, rotLat, rotLon, activeLayerId,
+        viewW, viewH, targetZ, isInteracting, zoom, camPitch, camYaw, reliefScale
       );
       baseGrad.addColorStop(0.0, "#b85c38");
       baseGrad.addColorStop(0.55, "#7d311c");
@@ -783,9 +781,9 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-7: JSDoc piksellesmesiz (anti-pixelated) 60+ FPS 4x4 blok enterpolasyonlu 3D motor tanimi.
-   - Satir 13-47: constructor ve ensureCropBuffer; Uint32 tamponu ve kare-onbellek (lastRayKey) degiskenlerini yonetir.
-   - Satir 49-236: render; yuksek cozunurluklu ara tampon, kare-onbellek kontrolu ve 3D vektor projeksiyonunu calistirir.
-   - Satir 238-498: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear) ve dokuyu 4-tap bilineer/Hermite suzmeyle cizer.
-   - Satir 500-688: drawFallbackShadedSphere; file:// ortaminda getImageData olmadan z=0..targetZ karolarini 3D topografyayla cizer.
-   - Satir 690-752: drawLoadingSphere, drawGraticule3D ve drawNomenclature3D yardimcilari.
+   - Satir 13-46: constructor (Map3DFallbackRenderer baslatma dahil) ve ensureCropBuffer; Uint32 tamponu ve kare-onbellek (lastRayKey) degiskenlerini yonetir.
+   - Satir 48-225: render; yuksek cozunurluklu ara tampon, kare-onbellek kontrolu ve 3D vektor projeksiyonunu calistirir.
+   - Satir 227-548: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear) ve dokuyu 4-tap bilineer/Hermite suzmeyle cizer.
+   - Satir 550-559: drawFallbackShadedSphere; file:// / tainted tuval ortamlarinda cizimi Map3DFallbackRenderer modulune devreder.
+   - Satir 561-623: drawLoadingSphere, drawGraticule3D ve drawNomenclature3D yardimcilari.
    ========================================================================== */

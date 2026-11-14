@@ -409,7 +409,7 @@
 
     /**
      * 3D kure uzerindeki (lat, lon) noktasini gercek MOLA rakimiyla (elevM) yukseltip
-     * 3D egimli kamera (Pitch/Yaw) ekran koordinatlarina (x, y, z, visible, elevM) izdusurur.
+     * kure merkezini (cx, cy) her zaman ekran ortasinda sabit tutarak izdusurur.
      */
     projectToElevatedSphere(latDeg, lonDeg, rotLatDeg, rotLonDeg, cx, cy, radius, zoom = 1, camPitchDeg = 0, camYawDeg = 0, reliefScale = 1.0) {
       const phi = (latDeg * Math.PI) / 180;
@@ -419,63 +419,71 @@
 
       const elevM = this.getElevationMeters(latDeg, lonDeg);
       const radFactor = this.getRadialScaleFactor(zoom, camPitchDeg, reliefScale);
-      const rScale = 1.0 + elevM * radFactor;
+      const dr = elevM * radFactor;
+      const rScale = 1.0 + dr;
 
       const cosPhi = Math.cos(phi);
-      const x0 = cosPhi * Math.sin(lambda - lam0) * rScale;
-      const y0 = Math.sin(phi) * rScale;
-      const z0 = cosPhi * Math.cos(lambda - lam0) * rScale;
+      const x0 = cosPhi * Math.sin(lambda - lam0);
+      const y0 = Math.sin(phi);
+      const z0 = cosPhi * Math.cos(lambda - lam0);
 
-      // 1. Odak enlemine (phi0) göre yerel teğet düzleme döndür: (east, north, up)
+      // 1. Odak enlemine (phi0) göre birim küre koordinatı: (east, north, up)
       const east = x0;
       const north = y0 * Math.cos(phi0) - z0 * Math.sin(phi0);
       const up = y0 * Math.sin(phi0) + z0 * Math.cos(phi0);
 
-      // 2. Pusula bakış yönü (camYaw) dönüşü
+      // 2. Pusula bakış yönü (camYaw) dönüşü (merkez noktası sabit)
       const yawRad = ((camYawDeg || 0) * Math.PI) / 180;
       const cosY = Math.cos(yawRad);
       const sinY = Math.sin(yawRad);
-      const rx = east * cosY - north * sinY;
-      const ry = east * sinY + north * cosY;
-      // 3. Kamera yüzey eğimi (camPitch: 0° = dikey yörünge, 65° = 3D yüzey ufuk bakışı)
-      // Merkez odak noktası (east=0, north=0, up=rCenter) etrafında eğim verilir ki yakınlaşılan yer merkezde kalsın!
-      const centerElevM = this.getElevationMeters(rotLatDeg, rotLonDeg);
-      const rCenter = 1.0 + centerElevM * radFactor;
-      const dUp = up - rCenter;
+      const x1 = east * cosY - north * sinY;
+      const y1 = east * sinY + north * cosY;
+      const z1 = up;
 
+      // 3. Sağ tık 3D kamera eğimi (camPitch): küre merkezini (cx, cy) asla kaydırmadan 3D açı ve perspektif verir
       const pitchRad = (Math.max(0, Math.min(72, camPitchDeg || 0)) * Math.PI) / 180;
-      const cosP = Math.cos(pitchRad);
       const sinP = Math.sin(pitchRad);
+      const tiltRad = pitchRad * 0.45;
+      const cosT = Math.cos(tiltRad);
+      const sinT = Math.sin(tiltRad);
+      const yForeshorten = 1.0 - 0.36 * sinP;
 
-      const screenX = rx;
-      const screenY = ry * cosP + dUp * sinP;
-      const depthZ = rCenter + dUp * cosP - ry * sinP;
+      const y2 = y1 * cosT - z1 * sinT;
+      const z2 = y1 * sinT + z1 * cosT;
+
+      const screenX = x1 * rScale;
+      const screenY = (y2 * rScale + dr * sinP * 1.35 * Math.max(0, z2)) * yForeshorten;
+      const depthZ = z2 * rScale;
 
       return {
         x: cx + screenX * radius,
         y: cy - screenY * radius,
         z: depthZ,
         elevM,
-        visible: up > 0.02
+        visible: z2 > 0.04
       };
     }
 
     /**
-     * Ekran pikselinden (px, py) 3D egimli ve topografik yukseltilmis Mars yuzeyine ters isin atarak
+     * Ekran pikselinden (px, py) merkezi sabit 3D topografik Mars yuzeyine ters isin atarak
      * gercek (lat, lon, elevM, slopeDeg) koordinatini bulur.
      */
     screenToElevatedMars3D(px, py, width, height, rotLatDeg, rotLonDeg, zoom = 1, camPitchDeg = 0, camYawDeg = 0, reliefScale = 1.0) {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 24.0);
-
-      const sx = (px - cx) / radius;
-      const sy = (cy - py) / radius;
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0);
 
       const pitchRad = (Math.max(0, Math.min(72, camPitchDeg || 0)) * Math.PI) / 180;
       const yawRad = ((camYawDeg || 0) * Math.PI) / 180;
-      const cosP = Math.cos(pitchRad);
       const sinP = Math.sin(pitchRad);
+      const tiltRad = pitchRad * 0.45;
+      const cosT = Math.cos(tiltRad);
+      const sinT = Math.sin(tiltRad);
+      const yForeshorten = 1.0 - 0.36 * sinP;
+
+      const sx = (px - cx) / radius;
+      const sy = ((cy - py) / radius) / yForeshorten;
+
       const cosY = Math.cos(yawRad);
       const sinY = Math.sin(yawRad);
       const phi0 = (rotLatDeg * Math.PI) / 180;
@@ -484,51 +492,37 @@
       const cosP0 = Math.cos(phi0);
 
       const radFactor = this.getRadialScaleFactor(zoom, camPitchDeg, reliefScale);
-      const centerElevM = this.getElevationMeters(rotLatDeg, rotLonDeg);
-      const rCenter = 1.0 + centerElevM * radFactor;
+      const rMaxLimb = 1.0 + 21500 * radFactor;
+      if (sx * sx + sy * sy > rMaxLimb * rMaxLimb) {
+        return { lat: 0, lon: 0, elevM: 0, slopeDeg: 0, insideMap: false };
+      }
 
-      // Kamera ışını: P(t) = O + t * D (yerel east, north, up uzayında)
-      // screenX = rx, screenY = ry*cosP + (up - rCenter)*sinP, t = depthOffset = (up - rCenter)*cosP - ry*sinP
-      // Buradan: ry = screenY*cosP - t*sinP, up = rCenter + screenY*sinP + t*cosP
-      const rx = sx;
-      // Küre denklemi: rx^2 + ry(t)^2 + up(t)^2 = R_surf^2
-      // ry(t)^2 + up(t)^2 = (sy*cosP - t*sinP)^2 + (rCenter + sy*sinP + t*cosP)^2
-      const A = rCenter * sinP + sy;
-      const B = rCenter * cosP;
-      // (A)^2 + (B + t)^2 + rx^2 = R_surf^2 => (B + t)^2 = R_surf^2 - rx^2 - A^2
-
-      let rSurf = rCenter;
+      let dr = 0;
+      let rScale = 1.0;
+      let z2Est = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, sx * sx + sy * sy)));
       let hitLat = rotLatDeg;
       let hitLon = rotLonDeg;
       let hitInside = false;
 
       for (let iter = 0; iter < 3; iter++) {
-        const disc = rSurf * rSurf - rx * rx - A * A;
-        if (disc < 0) {
-          if (iter === 0) return { lat: 0, lon: 0, elevM: 0, slopeDeg: 0, insideMap: false };
-          break;
-        }
-        const bPlusT = Math.sqrt(disc);
-        const t = bPlusT - B;
-        const ry = sy * cosP - t * sinP;
-        const up = rCenter + sy * sinP + t * cosP;
-        if (up <= 0) return { lat: 0, lon: 0, elevM: 0, slopeDeg: 0, insideMap: false };
-
-        const east = rx * cosY + ry * sinY;
-        const north = -rx * sinY + ry * cosY;
-
-        const y0 = north * cosP0 + up * sinP0;
-        const z0 = -north * sinP0 + up * cosP0;
-        const x0 = east;
-        const norm = Math.hypot(x0, y0, z0) || 1;
-
-        const phi = Math.asin(Math.max(-1, Math.min(1, y0 / norm)));
-        const lambda = lam0 + Math.atan2(x0, z0);
+        const rx = sx / rScale;
+        const ry = (sy - dr * sinP * 1.35 * z2Est) / rScale;
+        const rhoSq = rx * rx + ry * ry;
+        if (rhoSq > 1.0) break;
+        z2Est = Math.sqrt(1.0 - rhoSq);
+        const y1 = ry * cosT + z2Est * sinT;
+        const z1 = -ry * sinT + z2Est * cosT;
+        const east = rx * cosY + y1 * sinY;
+        const north = -rx * sinY + y1 * cosY;
+        const y0 = north * cosP0 + z1 * sinP0;
+        const z0 = -north * sinP0 + z1 * cosP0;
+        const phi = Math.asin(Math.max(-1, Math.min(1, y0)));
+        const lambda = lam0 + Math.atan2(east, z0);
 
         hitLat = Math.max(-85, Math.min(85, (phi * 180) / Math.PI));
         hitLon = (((lambda * 180) / Math.PI + 180) % 360 + 360) % 360 - 180;
-        const elevM = this.getElevationMeters(hitLat, hitLon);
-        rSurf = 1.0 + elevM * radFactor;
+        dr = this.getElevationMeters(hitLat, hitLon) * radFactor;
+        rScale = 1.0 + dr;
         hitInside = true;
       }
 

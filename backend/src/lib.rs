@@ -1,5 +1,8 @@
 use pathfinding::prelude::astar;
-
+const MAX_SLOPE_LIMIT: i32 = 3;
+const POZITIVE_SLOP_COST: i32 = 5;
+const NEGATIVE_SLOP_COST: i32 = 2;
+const BASE_COST: u32 = 1;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
@@ -35,6 +38,7 @@ impl MarsMap {
         Self { width, height, grid }
     }
 
+    // Check goal is in map.
     pub fn get_elevation(&self, x: i32, y: i32) -> Option<i32> {
         if x < 0 || x >= self.width || y < 0 || y >= self.height {
             return None;
@@ -54,14 +58,14 @@ impl MarsMap {
                 continue;
             };
 
-            // -999 aşılamaz engel (uçurum, derin krater veya koca kaya)
+            // Unnavigable obsracle.
             if new_z == -999 {
                 continue;
             }
 
-            // Eğim kontrolü: Rover'ın devrilmesini önleyen maksimum tırmanma/iniş sınırı
+            // Check for map slope limit.
             let slope_diff = new_z - current.z;
-            if slope_diff.abs() > 3 {
+            if slope_diff.abs() > MAX_SLOPE_LIMIT {
                 continue;
             }
 
@@ -71,13 +75,12 @@ impl MarsMap {
                 z: new_z,
             };
 
-            let base_cost = 1;
             let total_cost = if slope_diff > 0 {
-                base_cost + (slope_diff * 5) as u32
+                BASE_COST + (slope_diff * POZITIVE_SLOP_COST) as u32
             } else if slope_diff < 0 {
-                base_cost + (slope_diff.abs() * 2) as u32
+                BASE_COST + (slope_diff.abs() * NEGATIVE_SLOP_COST) as u32
             } else {
-                base_cost
+                BASE_COST
             };
 
             neighbors.push((new_pos, total_cost));
@@ -104,14 +107,12 @@ impl MarsMap {
             &start_pos,
             |p| self.get_successors(p),
             |p| (p.x.abs_diff(goal.0) + p.y.abs_diff(goal.1)) as u32,
-            |p| p.x == goal.0 && p.y == goal.1,
+            |p| p.x == goal.0 && p.y == goal.1
         )
     }
 }
 
-/// JS tarafından doğrudan çağrılan ana Rust hesaplama fonksiyonu.
-/// Harita dizisini (tek boyutlu dizi veya 2D), boyutları, başlangıç ve hedefi JS verir.
-/// Çıktı olarak JSON formatında yolu ve toplam maliyeti döner.
+/// Find the optimal path using A* algorithm.
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn find_rover_path(
     grid_flat: &[i32],

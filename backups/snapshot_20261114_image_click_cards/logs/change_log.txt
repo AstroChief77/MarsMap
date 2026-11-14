@@ -1,0 +1,299 @@
+# AstroChief Proje Değişiklik Günlüğü (Change Log)
+# Kural Gereği: Yapılan her değişiklik satır satır loglanmalıdır.
+# Tarih: 2026-11-14
+
+[2026-11-14 11:05:00] [INITIALIZE] Proje dizin yapısı oluşturuldu.
+[2026-11-14 11:05:01] [CREATE] logs/change_log.txt oluşturuldu.
+[2026-11-14 11:05:05] [CREATE] SOURCES.md oluşturuldu (NASA disclaimer ve 5 veri kaynağı eklendi).
+[2026-11-14 11:05:10] [CREATE] data/teamData.js oluşturuldu (Atahan, Buse, Akif, Rıfat, Ömer, Mustafa verileri).
+[2026-11-14 11:05:15] [CREATE] data/resourcesData.js oluşturuldu (JPL Mars Trek, USGS, Curiosity, Worldview, Perseverance).
+[2026-11-14 11:05:20] [CREATE] js/models/TeamMember.js oluşturuldu (Ekip üyesi nesne modeli ve kart render metodu).
+[2026-11-14 11:05:25] [CREATE] js/models/ResourceItem.js oluşturuldu (Kaynak nesne modeli ve kart render metodu).
+[2026-11-14 11:05:30] [CREATE] js/components/Navbar.js oluşturuldu (Responsive navbar ve mobil menü mantığı).
+[2026-11-14 11:05:35] [CREATE] js/components/DetailsSection.js oluşturuldu (Görev detayları, mimari ve metrik şeridi).
+[2026-11-14 11:05:40] [CREATE] js/components/ResourcesSection.js oluşturuldu (NASA Disclaimer ve kaynak kartları ızgarası).
+[2026-11-14 11:05:45] [CREATE] js/components/TeamSection.js oluşturuldu (AstroChief mürettebat grid arayüzü).
+[2026-11-14 11:05:50] [CREATE] js/components/Footer.js oluşturuldu (Alt bilgi, uyarı metni ve aktif statü).
+[2026-11-14 11:05:55] [CREATE] js/app.js oluşturuldu (Ana uygulama orkestratörü ve smooth scroll entegrasyonu).
+[2026-11-14 11:06:00] [CREATE] css/variables.css oluşturuldu (Mars renk paleti, koyu uzay teması ve değişkenler).
+[2026-11-14 11:06:05] [CREATE] css/base.css oluşturuldu (Reset, container, özel Mars scrollbar).
+[2026-11-14 11:06:10] [CREATE] css/navbar.css oluşturuldu (Gezinti çubuğu, logo ve mobil çekmece menüsü).
+[2026-11-14 11:06:15] [CREATE] css/hero.css oluşturuldu (Hero alanı, Mars ışıması ve CTA butonları).
+[2026-11-14 11:06:20] [CREATE] css/sections.css oluşturuldu (Bölüm standartları, detay kartları ve disclaimer kutusu).
+[2026-11-14 11:06:25] [CREATE] css/cards.css oluşturuldu (Kaynak ve ekip kartları gölge ve hover efektleri).
+[2026-11-14 11:06:30] [CREATE] css/footer.css oluşturuldu (Footer responsive kolonları ve telif metinleri).
+[2026-11-14 11:06:35] [CREATE] css/style.css oluşturuldu (Tüm modüler CSS dosyalarının merkezi içe aktarımı).
+[2026-11-14 11:06:40] [CREATE] index.html oluşturuldu (Ana şablon iskeleti ve bileşen bağlama noktaları).
+[2026-11-14 11:08:35] [BACKUP] backups/readme_backup_20261114_1108.md alındı (Kural 2 gereğince değişiklik öncesi yedekleme).
+[2026-11-14 11:08:55] [UPDATE] readme.md güncellendi (Adımlar bölümüne tamamlanan aşamalar işlendi).
+[2026-11-14 11:10:30] [GIT] Değişiklikler ve yeni şablon dosyaları git stage alanına eklendi (git add .).
+[2026-11-14 11:10:35] [GIT] Commit oluşturuldu: "feat: AstroChief Mars template - Details, Resources, Teams, styles and documentation".
+[2026-11-14 11:10:40] [GIT] GitHub origin/main dalına push işlemi başlatıldı.
+[2026-11-14 11:12:02] [BACKUP] backups/readme_backup_before_rebase_20261114_1112.md oluşturuldu (Rebase öncesi yedek).
+[2026-11-14 11:12:08] [GIT] origin/main uzaktaki yeni değişiklikler (Bilgilendirme ve yeni yarışma kuralları) rebase ile yerel dala çekildi ve başarıyla birleştirildi.
+[2026-11-14 11:12:20] [GIT] Son yedek ve günlük dosyaları commitlendi.
+[2026-11-14 11:12:25] [GIT] origin/main dalına nihai push işlemi başlatıldı.
+[2026-11-14 11:14:23] [CREATE] serve.ps1 oluşturuldu (PowerShell dahili HttpListener yerel web sunucusu).
+[2026-11-14 11:14:29] [CREATE] preview.bat oluşturuldu (Kullanıcının tek tıkla tarayıcıda localhost:3000 açabilmesi için başlatıcı).
+[2026-11-14 11:21:30] [GIT] origin/main üzerindeki readme.md güncellemesi (50ec554: masaüstüne güncel sürüm yükleme kuralı) yerel dala birleştirildi.
+[2026-11-14 11:21:40] [CREATE] data/datasets dizini oluşturuldu.
+[2026-11-14 11:21:46] [BACKUP] backups/change_log_backup_20261114_1122.txt oluşturuldu (Değişiklik öncesi yedek).
+[2026-11-14 11:22:00] [CREATE] deploy_desktop.ps1 oluşturuldu (Güncel sürümü masaüstündeki AstroChief-MarsMap klasörüne kopyalayan PowerShell betiği).
+[2026-11-14 11:22:01] [DOWNLOAD] data/datasets/perseverance_raw_images.json indirildi (NASA Mars 2020 Raw Images API'sinden canlı görsel metadataları).
+[2026-11-14 11:22:05] [CREATE] deploy_desktop.bat oluşturuldu (Tek tıkla masaüstüne güncel sürüm dağıtım başlatıcısı).
+[2026-11-14 11:22:13] [CREATE] data/datasets/images dizini oluşturuldu.
+[2026-11-14 11:22:32] [DOWNLOAD] data/datasets/images/perseverance_supercam_sol2031.jpg indirildi (Perseverance Sol 2031 SuperCam gerçek ham Mars yüzey görseli).
+[2026-11-14 11:23:01] [CREATE] data/datasets/mars_landing_sites.json oluşturuldu (JPL Mars Trek iniş sahaları, koordinatlar, irtifalar ve enstrümanlar).
+[2026-11-14 11:23:12] [CREATE] data/datasets/jpl_mars_trek_layers.json oluşturuldu (JPL Mars Trek WMTS/XYZ harita katmanları ve sabitler).
+[2026-11-14 11:23:24] [CREATE] data/datasets/usgs_mars_geology.json oluşturuldu (USGS Geologic Map of Mars birimleri, sürülebilirlik ve asit zonları).
+[2026-11-14 11:23:41] [CREATE] data/datasets/curiosity_mount_sharp_route.json oluşturuldu (Curiosity Mount Sharp tırmanış istasyonları, eğimler ve tehlikeler).
+[2026-11-14 11:23:54] [CREATE] data/datasets/nasa_worldview_and_hazards.json oluşturuldu (Worldview gözlem katmanları, fırtına koridorları ve asidik tehlikeler).
+[2026-11-14 11:24:13] [CREATE] data/datasets/README.md oluşturuldu (Tüm indirilen veri setlerinin ayrıntılı Türkçe açıklamaları ve katalog indeksi).
+[2026-11-14 11:24:17] [BACKUP] backups/SOURCES_backup_20261114_1124.md yedeği alındı.
+[2026-11-14 11:24:27] [UPDATE] SOURCES.md güncellendi (İndirilen tüm veri setleri ve dosya yolları belgelendi).
+[2026-11-14 11:24:32] [BACKUP] backups/readme_backup_20261114_1124.md yedeği alındı.
+[2026-11-14 11:24:38] [UPDATE] readme.md güncellendi (Veri seti adımı tamamlandı olarak işaretlendi).
+[2026-11-14 11:24:45] [GIT] Yeni veri setleri, katalog, yedekler ve güncellenmiş kaynak belgeleri git stage alanına eklendi.
+[2026-11-14 11:26:02] [BACKUP] backups/readme_backup_before_rebase2_20261114_1126.md oluşturuldu (2. rebase öncesi yedek).
+[2026-11-14 11:26:47] [GIT] origin/main ile rebase başarıyla tamamlandı (origin/main'deki deploy betikleri ve font/masaüstü kuralları birleştirildi).
+[2026-11-14 11:26:55] [GIT] Tüm veri setleri ve güncellemeler GitHub origin/main dalına gönderilmeye hazır.
+[2026-11-14 11:35:50] [BACKUP] backups/index_backup_*.html ve backups/readme_backup_*.md yedeği alındı.
+[2026-11-14 11:36:06] [CREATE] data/craterLocations.js oluşturuldu (Gale Krateri / Mount Sharp & Boxwork ve Jezero Krateri veri modeli).
+[2026-11-14 11:36:24] [CREATE] js/components/Starfield.js oluşturuldu (Zifiri siyah zemin üzerinde 320 adet gerçekçi parıldayan yıldız tuval motoru).
+[2026-11-14 11:37:34] [CREATE] js/components/CraterMapViewer.js oluşturuldu (Google Earth / NASA Trek tarzı çok katmanlı etkileşimli krater motoru, canlı telemetri, pan/zoom, waypoint inceleme).
+[2026-11-14 11:37:46] [CREATE] js/components/HudTelemetry.js oluşturuldu (Astronot EVA kask HUD canlı görev saati, O2 rezervi, radyasyon izleme çubuğu).
+[2026-11-14 11:38:14] [UPDATE] js/components/DetailsSection.js güncellendi (NASA Space Apps 2026 meydan okuma hedefleri, çok katmanlı veri, Boxwork formasyonları).
+[2026-11-14 11:38:25] [UPDATE] js/components/Navbar.js güncellendi (Mission Control temiz navigasyon çubuğu).
+[2026-11-14 11:38:36] [UPDATE] js/app.js güncellendi (Yıldız tuvali, krater haritası ve HUD koordinasyonu sağlandı).
+[2026-11-14 11:38:52] [UPDATE] css/variables.css güncellendi (Zorunlu 'Public Sans Web' fontu ve bold ağırlıklar, zifiri siyah uzay paleti).
+[2026-11-14 11:39:03] [UPDATE] css/base.css güncellendi (Sabit yıldız canvası, zifiri siyah arka plan, Public Sans bold tipografi).
+[2026-11-14 11:39:20] [UPDATE] css/navbar.css güncellendi (EVA HUD üst çubuğu ve temiz navigasyon tasarımı).
+[2026-11-14 11:39:45] [CREATE] css/crater_viewer.css oluşturuldu (Google Earth esintili harita arayüzü, katman anahtarları, imleç HUD ve inceleme paneli).
+[2026-11-14 11:39:58] [UPDATE] css/sections.css güncellendi (Space Apps meydan okuma sütunları ve mimari format kutusu).
+[2026-11-14 11:40:16] [UPDATE] css/cards.css güncellendi (Temiz kaynak ve mürettebat manifestosu kartları).
+[2026-11-14 11:40:26] [UPDATE] css/footer.css güncellendi (Görev Kontrol alt bilgi alanı).
+[2026-11-14 11:40:43] [UPDATE] css/style.css güncellendi (Google Fonts Public Sans 600-900 ve tüm modüler CSS bağlantıları).
+[2026-11-14 11:40:55] [UPDATE] index.html güncellendi (Yıldız tuvali, EVA HUD ve krater haritası mount noktaları).
+[2026-11-14 11:41:09] [UPDATE] readme.md güncellendi (Yeni temiz şablon adımı eklendi).
+[2026-11-14 11:47:14] [GIT] origin/main üzerindeki readme.md (# Tasarım Kuralları ve readme değiştirme yasağı) korundu ve rebase tamamlandı.
+[2026-11-14 11:48:20] [UPDATE] css/crater_viewer.css güncellendi (Sol alt 2D/3D, Asit Yağmuru ve Kum Fırtınası filtre stilleri eklendi).
+[2026-11-14 11:50:02] [BACKUP] backups/snapshot_20261114_1150 dizinine tüm HTML, CSS, JS ve SOURCES dosyalarının düzenleme öncesi yedeği alındı.
+[2026-11-14 11:50:36] [CREATE] data/craterWaypointsData.js oluşturuldu (Gale, Jezero ve Korolev kraterleri için EVA durak verileri ve görseller).
+[2026-11-14 11:50:45] [CREATE] js/services/DatasetLoader.js oluşturuldu (İndirilen NASA/USGS JSON veri setlerini önbellekle okuyan servis).
+[2026-11-14 11:51:17] [CREATE] js/renderers/CraterCanvasRenderer.js oluşturuldu (Google Earth prosedürel Mars yüzeyi, yıldızlı uzay, 2D/3D projeksiyon, asit/fırtına filtre çizim motoru).
+[2026-11-14 11:51:48] [UPDATE] js/components/CraterMapViewer.js yeniden yapılandırıldı (467 satıra düşürüldü, sol alt 2D/3D/Asit/Kum filtre kontrolleri ve NASA fotoğraf önizlemesi bağlandı).
+[2026-11-14 11:51:59] [UPDATE] css/variables.css güncellendi (%60 Beyaz, %30 Siyah, %10 Kırmızı tema ve Public Sans Web bold değişkenleri).
+[2026-11-14 11:52:08] [UPDATE] css/base.css güncellendi (Zifiri siyah yıldızlı zemin ve tüm metinlerde Public Sans Web bold zorunluluğu).
+[2026-11-14 11:52:22] [UPDATE] css/navbar.css güncellendi (Siyah telemetri çubuğu ve %60 beyaz ana menü barı).
+[2026-11-14 11:52:44] [UPDATE] css/crater_viewer.css güncellendi (Beyaz yan paneller, siyah yıldızlı orta harita, beyaz sol alt filtre grubu, kırmızı vurgular).
+[2026-11-14 11:52:57] [UPDATE] css/sections.css güncellendi (.white-panel-wrapper ve Hangi Krater? karşılaştırma tablosu stilleri).
+[2026-11-14 11:53:08] [UPDATE] css/cards.css güncellendi (%60 Beyaz, %30 Siyah, %10 Kırmızı kaynak ve ekip kartları).
+[2026-11-14 11:53:18] [UPDATE] css/footer.css güncellendi (Beyaz zemin, siyah kenarlık ve kırmızı telemetri rozeti).
+[2026-11-14 11:53:36] [UPDATE] js/components/DetailsSection.js güncellendi (Gale/Jezero/Korolev krater karşılaştırma tablosu ve beyaz panel sarmalayıcısı eklendi).
+[2026-11-14 11:53:43] [UPDATE] js/components/ResourcesSection.js güncellendi (.white-panel-wrapper yapısına geçirildi).
+[2026-11-14 11:53:50] [UPDATE] js/components/TeamSection.js güncellendi (.white-panel-wrapper yapısına geçirildi).
+[2026-11-14 11:54:02] [UPDATE] SOURCES.md güncellendi (Space Apps 2026 Challenge URL, Public Sans font ve Mars RSS API eklendi).
+[2026-11-14 11:55:20] [BACKUP] backups/deploy_desktop_backup_20261114_1155.ps1 yedeği alındı.
+[2026-11-14 11:55:37] [UPDATE] deploy_desktop.ps1 güncellendi (Açık masaüstü klasöründe güvenli üzerine yazma ve iç içe klasör önleme mantığı eklendi).
+[2026-11-14 11:56:25] [DEPLOY] Güncel sürüm C:\Users\nasaapp\Desktop\AstroChief-MarsMap klasörüne başarıyla dağıtıldı.
+[2026-11-14 11:58:58] [GIT] origin/main üzerindeki güncel readme.md kuralları (Sol üst Ayarlar -> 1. Seçenek Factory Reset, Windows & Linux derleme aracı) yerel dala birleştirildi.
+[2026-11-14 12:06:55] [BACKUP] backups/snapshot_20261114_mars_trek klasörüne 37 dosya yedeklendi.
+[2026-11-14 12:07:30] [CREATE] js/services/StateStorageService.js oluşturuldu (localStorage durum yönetimi ve Factory Reset servisi).
+[2026-11-14 12:07:45] [CREATE] js/renderers/MarsGlobeRenderer.js oluşturuldu (NASA Mars Trek 3D Küresi ve EPSG:104905 2D küresel projeksiyon motoru).
+[2026-11-14 12:08:19] [UPDATE] js/renderers/CraterCanvasRenderer.js güncellendi (şeffaf yıldızlı arkaplan uyumu ve krater terrain çizimi).
+[2026-11-14 12:08:53] [CREATE] js/components/SettingsMenu.js oluşturuldu (Sol üst Ayarlar simgesi ve ilk seçeneği Factory Reset olan açılır menü).
+[2026-11-14 12:10:40] [UPDATE] js/components/Navbar.js, CraterDrawers.js, CraterMapViewer.js, js/app.js ve index.html kurumsal Google Maps (sade Header + Sidebar + orta yıldızlı harita + sol alt 2D/3D/Asit/Kum filtreleri) düzenine sadeleştirildi.
+[2026-11-14 12:11:45] [UPDATE] css/variables.css, navbar.css, crater_viewer.css, sections.css, cards.css ve footer.css yormayan kurumsal %60 Beyaz / %30 Siyah / %10 Kırmızı tasarım sistemine geçirildi.
+[2026-11-14 12:12:25] [CREATE] version.json (v2.2.0), build.bat, tools/WinLauncher.cs, tools/launch-linux.sh ve tools/build_tool.ps1 otomatik Windows+Linux derleme aracı oluşturuldu.
+[2026-11-14 12:12:55] [BUILD] tools/build_tool.ps1 ile Windows (MarsMap-win64.exe + ZIP) ve Linux (launch-linux.sh + TAR.GZ) paketleri hatasız derlendi.
+[2026-11-14 12:13:20] [UPDATE] SOURCES.md ve deploy_desktop.ps1 güncellendi.
+[2026-11-14 12:16:51] [BACKUP] backups/snapshot_20261114_lod_routes klasörüne ilgili JS/CSS/log dosyaları yedeklendi.
+[2026-11-14 12:17:30] [CREATE] js/services/RoutePlannerService.js oluşturuldu (Mavi kısa güvenli rota, Soluk Mavi uzun güvenli alternatif rota, saat/km/m/Litre hesabı ve Alfa/Beta/Gama foton bölgeleri).
+[2026-11-14 12:17:33] [UPDATE] js/services/StateStorageService.js & SettingsMenu.js güncellendi (Factory ayarları: yaklaştıkça LOD render, Litre, km/m, Saat ve Alfa/Beta/Gama + Foton Bombardıman alanları).
+[2026-11-14 12:18:45] [UPDATE] js/renderers/CraterCanvasRenderer.js, CraterDrawers.js, CraterMapViewer.js, css/navbar.css ve css/crater_viewer.css ölçekli LOD kırpma, çift mavi yol ve radyasyon katmanlarıyla güncellendi.
+[2026-11-14 12:19:15] [VERSION] version.json v2.3.0 sürümüne yükseltildi ve Windows/Linux derleme aracı tetiklendi.
+[2026-11-14 12:29:05] [BACKUP] backups/snapshot_20261114_globe_tiles klasorune 13 dosya yedeklendi.
+[2026-11-14 12:29:25] [UPDATE] data/datasets/jpl_mars_trek_layers.json guncellendi (4 dogrulanmis NASA Trek katmani ve yerel ./data/tiles sablonlari tanimlandi).
+[2026-11-14 12:30:12] [DOWNLOAD] tools/fetch_mars_tiles.ps1 olusturulup calistirildi; 136 gercek NASA Mars Trek karosu data/tiles/ dizinine indirildi (6.64 MB).
+[2026-11-14 12:31:11] [CREATE] js/services/MarsTileLoader.js olusturuldu (jpl_mars_trek_layers.json okuyup data/tiles uzerinden Progressive LOD karolari ceken motor).
+[2026-11-14 12:31:52] [UPDATE] js/services/DatasetLoader.js, StateStorageService.js ve js/renderers/MarsGlobeRenderer.js guncellendi (bilineer 3D kure raycaster ve 2D karolu harita tamamen data/tiles dokusuna gecirildi).
+[2026-11-14 12:32:33] [CREATE/UPDATE] js/components/MarsGlobeViewer.js olusturuldu; SettingsMenu.js (1. secenek Factory Reset) ve navbar olmayan tam ekran gezinebilen kureye baglandi (pathfind backend'e birakildi).
+[2026-11-14 12:33:22] [UPDATE] index.html, js/app.js, css/base.css, css/globe_viewer.css, css/style.css ve version.json (v2.4.0) guncellendi.
+[2026-11-14 12:36:25] [UPDATE] tools/build_tool.ps1 güncellendi (Açık çalışan MarsMap-win64.exe kilitliyken web ve data/tiles dosyalarının masaüstüne hatasız güncellenmesi sağlandı).
+[2026-11-14 12:38:10] [BACKUP] backups/snapshot_20261114_v25_hires_backend klasorune v2.5.0 oncesi 13 dosya yedeklendi.
+[2026-11-14 12:39:40] [UPDATE] data/datasets/jpl_mars_trek_layers.json & tools/fetch_mars_tiles.ps1 guncellendi (cors_enabled, max_crater_zoom=5, max_remote_zoom=9, manifest.json + z3-z5 krater karolari indirildi; toplam 465 karo).
+[2026-11-14 12:41:05] [CREATE] js/services/BackendApiService.js & BACKEND_API.md olusturuldu (7 /api/v1/* endpoint, ?api= / ASTROCHIEF_CONFIG / Settings URL kancalari ve JSON semalari).
+[2026-11-14 12:42:30] [UPDATE] js/services/StateStorageService.js & MarsTileLoader.js guncellendi (LRU 220 karo bellek piramidi z=0..7, HiDPI hedef zoom hesabi, Local -> Proxy -> CORS WMTS akisi).
+[2026-11-14 12:44:15] [UPDATE] js/renderers/MarsGlobeRenderer.js guncellendi (1:1 HiDPI viewport-cropped raytracer, screenToLatLon, 14x zoom ve Backend Mavi #2563eb / Soluk Mavi #93c5fd rota yuvasi).
+[2026-11-14 12:45:40] [UPDATE] js/components/SettingsMenu.js & MarsGlobeViewer.js guncellendi (A/B koordinat secim modu, window.astroChiefGlobe JS kancasi, Top-Right Backend Rota Kancasi).
+[2026-11-14 12:48:50] [UPDATE] css/globe_viewer.css, index.html, version.json (v2.5.0), SOURCES.md ve logs/change_log.txt guncellendi.
+[2026-11-14 12:56:15] [BACKUP] backups/snapshot_20261114_v25_satdock klasorune 5 dosya yedeklendi.
+[2026-11-14 12:56:45] [CREATE] ForAgents/FRONTEND_AGENT_NOTES.md, js/components/SatelliteDockMenu.js, css/satellite_dock.css ve data/assets/{acid_rain_mars.jpg, dust_storm_mars.jpg} olusturuldu (readme.md v2.5 kurallarina uyumlu Uydular Paneli + 2D/3D + fotografli Asit/Kasirga siddetleri).
+[2026-11-14 12:57:05] [UPDATE] StateStorageService.js, BackendApiService.js, MarsGlobeViewer.js, css/style.css ve BACKEND_API.md guncellendi (acid_rain_intensity & dust_storm_intensity destegi).
+[2026-11-14 13:02:10] [BACKUP] backups/snapshot_20261114_v25_foveated klasorune 6 dosya yedeklendi.
+[2026-11-14 13:02:20] [CLEANUP] Uretilen data/assets/ klasoru silindi; css/satellite_dock.css dogrudan data/datasets/images/perseverance_supercam_sol2031.jpg ve data/tiles/mars-viking-mdim21/5/15/56.jpg dosyalarina baglandi.
+[2026-11-14 13:02:40] [OPTIMIZE] MarsTileLoader.js, MarsGlobeRenderer.js, MarsGlobeViewer.js, SettingsMenu.js ve StateStorageService.js guncellendi (Krater Odakli Foveated Optimize Render: hedef krater 1:1 HiDPI + bilineer + z2..z7, diger taraflar 2x2 piksel & z<=1 + hizli nearest-tap).
+[2026-11-14 13:05:00] [BACKUP] backups/snapshot_20261114_v2_4_before_rewrite/ dizinine sıfırdan yazım öncesi tam proje yedeği alındı.
+[2026-11-14 13:06:10] [CREATE] res/fonts/ dizini oluşturuldu; Google Fonts yerine tamamen çevrimdışı 10 adet PublicSans-{400..900}-{latin,latin-ext}.woff2 yerel font dosyası kaydedildi.
+[2026-11-14 13:06:30] [CREATE] css/fonts.css oluşturuldu (@font-face ile 'Public Sans Web', sans-serif ailesi yerel res/fonts/ altından tanımlandı).
+[2026-11-14 13:08:40] [CREATE] res/images/ dizinine 2D yörünge (sat_2d_view.jpg), 3D küre (sat_3d_view.jpg), asit yağmuru (acid_rain_region.jpg), kum fırtınası (dust_storm_region.jpg), foton/radyasyon (radiation_region.jpg) bölge fotoğrafları ve perseverance_supercam_sol2031.jpg yerleştirildi.
+[2026-11-14 13:10:00] [UPDATE] data/teamData.js ve data/craterWaypointsData.js güncellendi (harici Unsplash/NASA internet resim linkleri yerel rozet ve ./res/images/ yoluna geçirildi).
+[2026-11-14 13:12:00] [REWRITE] css/variables.css, css/base.css, css/controls.css, css/satellites_panel.css, css/inspector.css ve css/style.css %60 Beyaz / %30 Siyah / %10 Kırmızı tema ve Public Sans Web ile sıfırdan yazıldı.
+[2026-11-14 13:15:00] [REWRITE] js/models/ (AppConfig.js, TeamMember.js, ResourceItem.js) OOP modelleri sıfırdan yazıldı (varsayılan 2D harita, Litre/km-m/Saat ve Asit/Fırtına şiddet katsayıları).
+[2026-11-14 13:18:00] [REWRITE] js/services/ (StateStorageService.js, FpsGuardService.js, DatasetLoader.js, MarsTileLoader.js, HazardFieldService.js, RouteGeometryHelper.js, RoutePlannerService.js) sıfırdan yazıldı (Progressive LOD, FPS < 10 ayar geri alma koruması, Mavi/Soluk Mavi çift rota ve yol yorumları).
+[2026-11-14 13:21:00] [REWRITE] js/renderers/ (StarfieldRenderer.js, OverlayDrawHelper.js, RouteCanvasRenderer.js, Map2DRenderer.js, Map3DRenderer.js) sıfırdan yazıldı.
+[2026-11-14 13:24:00] [REWRITE] js/components/ (SettingsPanel.js, SatellitesPanel.js, RouteInspectorPanel.js, MissionInfoModal.js, MarsNavigatorController.js), js/app.js ve index.html sıfırdan yazıldı.
+[2026-11-14 13:25:05] [BACKUP] backups/snapshot_20261114_chat_feature klasorune 4 dosya yedeklendi.
+[2026-11-14 13:25:35] [CREATE] api/chat.php olusturuldu (Guvenli SQLite3 Mars Gorev Iletisim ve Dosya Aktarim API'si: XSS korumasi, IP Rate Limiting, MIME denetimi, 15MB limit, rastgele tokenli dosya adi, PDO SQL enjeksiyon korumasi).
+[2026-11-14 13:26:05] [CREATE] css/chat.css olusturuldu (%60 Beyaz / %30 Siyah / %10 Kirmizi AstroChief tasarim sistemi uyumlu sag-alt iletisim paneli, dosya kartlari ve animasyonlar).
+[2026-11-14 13:26:35] [CREATE] js/components/MissionChat.js olusturuldu (Gercek zamanli polling, ekip rolleri, dosya yukleme onizlemesi ve guvenli DOM render bileseni).
+[2026-11-14 13:26:45] [UPDATE] css/style.css guncellendi (chat.css iceri aktarildi).
+[2026-11-14 13:26:59] [UPDATE] js/app.js guncellendi (MissionChat bileseni baslatici zincirine baglandi).
+[2026-11-14 13:35:00] [CREATE] chat/index.html olusturuldu (fesnex.com/chat/ ve mars.kubitron.com/chat/ uzerinden tam ekran erisilebilir Mars Gorev Iletisim & Dosya Aktarim sayfasi).
+[2026-11-14 13:45:10] [BACKUP] backups/snapshot_20261114_autodeploy klasorune logs/change_log.txt ve ForAgents/FRONTEND_AGENT_NOTES.md yedeklendi.
+[2026-11-14 13:45:25] [CREATE] .gitattributes, .github/workflows/deploy-mars-web.yml, tools/server/{deploy_web_sync.sh, install_autodeploy.sh, README.md} ve api/github_webhook.php olusturuldu (GitHub main -> mars.kubitron.com otomatik web dagitim otomasyonu).
+[2026-11-14 13:45:35] [UPDATE] ForAgents/FRONTEND_AGENT_NOTES.md ve logs/change_log.txt guncellendi.
+[2026-11-14 14:00:30] [BACKUP] backups/snapshot_20261114_autodeploy2 klasorune deploy betikleri yedeklendi.
+[2026-11-14 14:00:45] [UPDATE] deploy_web_sync.sh, install_autodeploy.sh, deploy-mars-web.yml ve tools/server/README.md ozel (private) GitHub reposu Deploy Key + Protect filtreleriyle guncellendi.
+[2026-11-14 14:07:30] [BACKUP] backups/snapshot_20261114_autodeploy3 klasorune deploy-mars-web.yml yedeklendi.
+[2026-11-14 14:07:45] [UPDATE] deploy-mars-web.yml icine DEPLOY_SSH_KEY CRLF temizligi (tr -d '\r') ve mars:www-data sahipligi korumasi eklendi.
+[2026-11-14 14:22:20] [BACKUP] backups/snapshot_20261114_v3_pre_build/ dizinine derleme öncesi son düzenleme yedeği alındı.
+[2026-11-14 14:23:05] [UPDATE] js/renderers/Map2DRenderer.js ve RouteCanvasRenderer.js güncellendi (rotLon merkezli yatay wrap projeksiyonu, yüksek zoom segment koruması ve krater yol yorum hizalaması).
+[2026-11-14 14:23:15] [UPDATE] version.json v3.0.0 sürümüne yükseltildi; SOURCES.md yerel res/ font ve fotoğraf arşivleri ile güncellendi.
+[2026-11-14 14:23:50] [UPDATE] tools/WinLauncher.cs, serve.ps1, tools/launch-linux.sh (.woff2/.woff MIME tipleri) ve tools/build_tool.ps1 (res/ & ForAgents/ kopyalama) güncellendi.
+[2026-11-14 14:24:30] [CREATE] tools/build.py ve build.sh oluşturuldu (OS otomatik algılama, <800 satır & alt yorum & CDN yasağı denetimi ve Linux .tar.gz + Masaüstü dağıtımı).
+[2026-11-14 14:24:35] [CREATE] ForAgents/PROJECT_STATE.md ve ForAgents/SHARED_PLANS_AND_API.md ortak AI ajan belgeleri oluşturuldu.
+[2026-11-14 14:28:30] [BACKUP] backups/snapshot_20261114_v3_pre_polish/ dizinine görsel & rota kalibrasyonu öncesi yedek alındı.
+[2026-11-14 14:29:15] [UPDATE] HazardFieldService.js, RouteGeometryHelper.js ve RoutePlannerService.js güncellendi (yumuşak uç eğrisi, Mavi < Soluk Mavi süre/mesafe tutarlılığı ve çakışmasız koridor koordinatları).
+[2026-11-14 14:29:40] [UPDATE] Map2DRenderer.js, RouteCanvasRenderer.js, css/satellites_panel.css ve css/inspector.css güncellendi (Uydular fotoğraf görünürlüğü artırıldı, uzak ölçek durak yazısı sadeleştirildi, zoom çakışması giderildi).
+[2026-11-14 14:40:10] [BACKUP] backups/snapshot_20261114_v3_pre_final_polish/ dizinine son Uydular ve etiket kalibrasyonu öncesi 7 dosya yedeklendi.
+[2026-11-14 14:41:00] [UPDATE] css/satellites_panel.css ve js/components/SatellitesPanel.js güncellendi (display:none -> visibility/opacity geçişi ve #14161a kart tabanı ile 5 yerel Mars fotoğrafının açılışta anında dekode edilmesi sağlandı).
+[2026-11-14 14:41:25] [UPDATE] js/services/HazardFieldService.js, Map2DRenderer.js, Map3DRenderer.js ve RouteCanvasRenderer.js güncellendi (Syrtis/Kutupsal Gama/Hellas etiketleri kraterlerden ayrıştırıldı, rota yorumları noktalı işaret çizgisiyle açık alana alındı ve krater durak etiketlerine koyu okunabilirlik halesi eklendi).
+[2026-11-14 14:42:00] [BUILD] ./build.sh ile kural denetimi (<800 satır, alt yorumlar, sıfır CDN, readme değişmemiş) tamamlandı ve masaüstü (/home/antigravity/Desktop/AstroChief-MarsMap) paketi güncellendi.
+[2026-11-14 14:44:00] [BACKUP] backups/snapshot_20261114_v3_pre_final_polish_v2/ dizinine rota yorum/durak ofset ayarı öncesi yedek alındı.
+[2026-11-14 14:44:20] [UPDATE] js/renderers/RouteCanvasRenderer.js güncellendi (küresel Mavi rota yorumu t=0.25 kuzey açığına alındı, krater içi doğu durakları ve Mavi EVA yorumu üst/sol açık alana taşındı).
+[2026-11-14 14:45:00] [VERIFY] Headless Chromium E2E testleri (2D/3D, Uydular 5 fotoğraf dekode, şiddetli hava rota artışı, FPS < 10 koruma, Settings Factory Reset, Progressive LOD z=2, %0 dış CDN isteği) doğrulandı.
+[2026-11-14 14:46:10] [BACKUP] backups/snapshot_20261114_v3_pre_final_polish_v3/ yedeği alındı.
+[2026-11-14 14:46:25] [UPDATE] js/renderers/RouteCanvasRenderer.js güncellendi (küresel Mavi rota yorumu pBoxY=-84 ile Jezero pini üstündeki açık alana alındı).
+[2026-11-14 14:47:00] [BUILD/VERIFY] Son ./build.sh masaüstü dağıtımı ve headless Chromium E2E görsel doğrulaması tamamlandı.
+[2026-11-14 15:10:00] [BACKUP] backups/snapshot_20261114_v3_pre_win_dual/ dizinine Windows file:// doğrudan açılış dönüşümü öncesi tam kod yedeği alındı.
+[2026-11-14 15:12:00] [CREATE] data/offlineDatasets.js oluşturuldu (data/datasets/*.json dosyalarının file:// çift tıklama ortamı için çevrimdışı IIFE kopyaları).
+[2026-11-14 15:14:00] [UPDATE] Tüm JS modülleri (data/*, js/models/*, js/services/*, js/renderers/*, js/components/*, js/app.js) window.AstroChief ad alanına ve index.html sıralı <script defer> yapısına geçirildi.
+[2026-11-14 15:15:30] [UPDATE] DatasetLoader.js, MarsTileLoader.js, Map3DRenderer.js (getImageData kısıtında gerçek karo şeritli 3D küre yedeği) ve tools/build.py (--target all ile Windows win64 klasörü/ZIP + Linux paketi) güncellendi.
+[2026-11-14 14:11:45] [UPDATE] github_webhook.php ve deploy-mars-web.yml icinde v3.0.0 res/ dizini de web senkronizasyonuna eklendi.
+[2026-11-14 14:40:00] [BACKUP] backups/snapshot_20261114_lan_server/ dizinine serve.ps1, tools/WinLauncher.cs, chat/index.html ve logs/change_log.txt yedeklendi.
+[2026-11-14 14:40:20] [UPDATE] chat/index.html 9. satirdaki harici Google Fonts CDN @import kaldirilarak yerel ../css/fonts.css ve Public Sans Web fontuna gecirildi.
+[2026-11-14 14:40:40] [UPDATE] tools/WinLauncher.cs ve serve.ps1 URLACL gerektirmeyen coklu is parcacikli 0.0.0.0 TcpListener LAN sunucusuna ve guvenli web beyaz listesine yukseltildi.
+[2026-11-14 14:55:00] [CREATE] tools/github_autodeploy.ps1 olusturuldu (GitHub origin/main izleme, otomatik build_tool.ps1 derleme ve port 3000 kesintisiz yenileme otomasyonu).
+[2026-11-14 15:10:00] [BACKUP] backups/snapshot_20261114_backend_step_route/ dizinine 16 kaynak ve dokumantasyon dosyasi yedeklendi.
+[2026-11-14 15:11:00] [CREATE] js/services/BackendApiService.js olusturuldu (Rust backend URL cozumleme, GET /api/v1/health, GET /api/v1/hazards, POST /api/v1/route step-by-step istemcisi ve cevrimdisi normalize katmani).
+[2026-11-14 15:11:30] [UPDATE] js/models/AppConfig.js ve js/services/FpsGuardService.js guncellendi (10 saniye / 10000ms kesintisiz FPS < 10 koruma penceresi, customOrigin/customDestination ve backendApiUrl varsayilanlari).
+[2026-11-14 15:12:00] [UPDATE] js/services/RouteGeometryHelper.js ve RoutePlannerService.js guncellendi (screenToMarsCoords2D/3D ters projeksiyon, rastgele A->B noktalari arasi rota ve yukseklik/egim/uyarili steps[] uretimi).
+[2026-11-14 15:12:30] [UPDATE] js/renderers/OverlayDrawHelper.js, Map2DRenderer.js ve Map3DRenderer.js guncellendi (2D ve 3D haritada secilen Konum A / Varis B pinleri).
+[2026-11-14 15:13:00] [UPDATE] index.html, css/controls.css, css/inspector.css, SettingsPanel.js, RouteInspectorPanel.js ve MarsNavigatorController.js guncellendi (Rust Backend URL ayari, haritadan A->B tiklama secimi, step-by-step adim listesi, backend kaynak rozeti ve tehlike katmani senkronizasyonu).
+[2026-11-14 15:14:00] [DOCS] BACKEND_API.md ve ForAgents/SHARED_PLANS_AND_API.md guncellendi (POST /api/v1/route JSON semasi ve kopyalanabilir Rust serde modelleri).
+[2026-11-14 15:18:00] [UPDATE] readme.md (f689933) geregi AppConfig, StateStorageService, SettingsPanel, MarsNavigatorController ve ForAgents dokumanlarinda varsayilan gorunum 3D ("3d") yapildi ve storageKey v3_1 surumune alindi.
+[2026-11-14 15:22:00] [UPDATE] readme.md (d1e2869) geregi BackendApiService, css/inspector.css, RouteInspectorPanel ve MarsNavigatorController uzerine sag ustte 5 saniyede bir guncellenen backend gecikme (ms) gostergesi eklendi.
+[2026-11-14 15:36:00] [UPDATE] Kullanici istegiyle arayuz sadelestirildi: AppConfig (v3_2, varsayilan global mod), RouteInspectorPanel (sabit Bulundugumuz Konum + tekli Hedef Konum secici ve Haritadan Hedef Sec butonu), OverlayDrawHelper (📍 Konumumuz ve 🎯 Hedef etiketleri), SettingsPanel ve MarsNavigatorController guncellendi.
+[2026-11-14 15:53:00] [UPDATE] Tarayici onbellek sorunu icin index.html betiklerine ?v=3.2 surum parametresi ve tools/WinLauncher.cs icine Cache-Control: no-store basligi eklendi.
+
+[2026-11-14 16:04] Saf Rust Backend İstek/Yanıt Akışı ve Ultra Basit Rota Paneli (v3.3)
+- Yedek Klasörü: backups/snapshot_20261114_pure_backend/
+- js/models/AppConfig.js: storageKey "astrochief_mars_navigator_v3_3" olarak güncellendi, varsayılan backendApiUrl "http://127.0.0.1:8080" yapıldı.
+- js/components/MarsNavigatorController.js: Backend'den yanıt gelmeden sahte/yerel Mavi ve Soluk Mavi rota veya tehlike dairesi çizilmesi tamamen kaldırıldı (computeActiveRoutes yalnızca this.backendRoutes döner; getActiveHazardBundle yalnızca this.backendHazards geldiğinde tehlike bölgelerini döner). Haritaya tıklanınca doğrudan Hedef Konum seçilip POST /api/v1/route isteği gönderilir.
+- js/components/RouteInspectorPanel.js: Sağ üst panel sadeleştirildi; sabit "📍 Konumumuz: Gale (-4.59°, 137.44°)", "🎯 Hedef Konum", "🚀 Rotayı Hesapla (Backend'e Gönder)" butonu ve backend yanıtı gelene kadar gönderilen gerçek JSON istek paketinin (origin, destination, factors) canlı önizlemesi gösterilir.
+- index.html: Tarayıcı önbellek kırıcı ?v=3.3 sürümüne yükseltildi.
+[2026-11-14 16:00:00] [BACKUP] backups/snapshot_20261114_fix_pixel_freeze/ dizinine offlineDatasets.js, MarsTileLoader.js, RouteGeometryHelper.js, Map2DRenderer.js, Map3DRenderer.js, OverlayDrawHelper.js, MarsNavigatorController.js, PROJECT_STATE.md ve change_log.txt yedeği alındı.
+[2026-11-14 16:02:00] [UPDATE] data/offlineDatasets.js ve js/services/MarsTileLoader.js güncellendi (manifest.json z=0..5 krater karoları + çevrimiçi CORS WMTS z=3..7+ kademeli piramidi, O(görünür) pencere hesaplaması, LRU 360 karo önbelleği ve 256x256 tembel piksel çıkarımı).
+[2026-11-14 16:04:00] [UPDATE] js/renderers/Map2DRenderer.js, OverlayDrawHelper.js ve js/services/RouteGeometryHelper.js güncellendi (HiDPI netlik, 1x overdraw + ata karo yedeğiyle keskin 12x 2D / 10x 3D yakınlaştırma, dikey dikiş izi temizliği, viewport tehlike kırpması ve ters projeksiyon sınırları).
+[2026-11-14 16:06:00] [UPDATE] js/renderers/Map3DRenderer.js (viewport kırpmalı 4x4 blok trig enterpolasyonlu + Uint32Array raycast ve file:// küresel afin + kutup alt-örneklemesi) ve js/components/MarsNavigatorController.js güncellendi (rAF çizim birleştirme, 140ms durağan netleştirme, rota paketi önbelleği, HiDPI koordinat okuma, gecikmeli localStorage kaydı ve 5463346 v3.3 saf backend akışı uyumu).
+[2026-11-14 16:10:00] [BUILD/VERIFY] ./build.sh kural/paket/masaüstü derlemesi ve Chromium HTTP (dpr=2) + file:// (dpr=1) 2D/3D yakınlaştırma, donma ve 10s FPS koruma doğrulamaları tamamlandı.
+[2026-11-14 16:12:00] [BACKUP] backups/snapshot_20261114_v3_2_i18n_10langs/ dizinine 10 dilli i18n güncellemesi öncesi kaynak dosyaların tam yedeği alındı.
+[2026-11-14 16:13:00] [CREATE] data/i18n/localesTrEnDe.js (Türkçe, İngilizce, Almanca), data/i18n/localesFrEsZh.js (Fransızca, İspanyolca, Basitleştirilmiş Çince) ve data/i18n/localesJaKoArHe.js (Japonca, Korece, Arapça, İbranice) 10 dil sözlük modülleri oluşturuldu (<800 satır kuralına uygun).
+[2026-11-14 16:14:00] [CREATE] js/services/I18nService.js oluşturuldu (10 dil yönetimi, RTL/LTR yön desteği, şablon değişkeni yerleştirme, krater ve ekip üyesi yerelleştirme servisi).
+[2026-11-14 16:15:00] [UPDATE] js/models/AppConfig.js, js/services/HazardFieldService.js, js/services/RouteGeometryHelper.js, js/services/RoutePlannerService.js, js/renderers/OverlayDrawHelper.js ve js/renderers/Map2DRenderer.js 10 dil desteğine kavuşturuldu.
+[2026-11-14 16:16:00] [UPDATE] js/components/SettingsPanel.js (1. seçenek Factory Reset korundu + 10 dil seçici ızgara eklendi), SatellitesPanel.js, RouteInspectorPanel.js, MissionInfoModal.js ve MarsNavigatorController.js 10 dil desteğiyle güncellendi.
+[2026-11-14 16:17:00] [UPDATE] index.html, css/controls.css, version.json (v3.1.0), ForAgents/PROJECT_STATE.md ve ForAgents/FRONTEND_AGENT_NOTES.md güncellendi.
+[2026-11-14 16:26:00] [BACKUP] backups/snapshot_20261114_remove_zh/ dizinine Çince (zh) dilinin kaldırılması öncesi tüm ilgili dosyaların yedeği alındı.
+[2026-11-14 16:27:00] [UPDATE/REMOVE] Kullanıcı talebi ("Çince yasak") doğrultusunda Çince (zh) dil desteği tamamen kaldırıldı; data/i18n/localesFrEsZh.js yerine yalnızca Fransızca ve İspanyolca içeren data/i18n/localesFrEs.js oluşturuldu, I18nService.js, index.html, version.json ve ForAgents belgeleri 9 dil (TR, EN, DE, FR, ES, KO, JA, HE, AR) olarak güncellendi.
+
+
+[2026-11-14 16:38] Mustafa Dalındaki Rust A* Backend ve WebAssembly Derlemesi
+- Yedek Klasörü: backups/snapshot_20261114_mustafa_wasm/
+- Rust Araç Zinciri: rustc 1.100.0 (stable-x86_64-pc-windows-gnu + wasm32-unknown-unknown) ve wasm-pack 0.13.1 bu bilgisayara kuruldu.
+- backend/ (Cargo.toml, src/lib.rs, src/main.rs): Mustafa dalından çekilip hem native Windows ikilisi (backend/target/release/backend.exe) hem de WebAssembly modülü (js/wasm/backend_bg.wasm + js/wasm/backend.js) olarak derlendi.
+- js/services/BackendApiService.js: Derlenen Rust WebAssembly modülündeki `find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y)` fonksiyonuna bağlandı.
+- tools/WinLauncher.cs & serve.ps1: `.wasm` (`application/wasm`) MIME türü eklendi.
+
+[2026-11-14] — 3D Gezegen Gezinme ve Gerçek Boyutlu NASA MGS MOLA Topografya Yükseltme (v3.3.0):
+- Yedek Klasörü: `backups/snapshot_20261114_3d_topography/` içine değişiklik öncesi tüm dosyaların tam kopyası alındı.
+- `js/services/MarsTopographyService.js` (Satır 1-562):
+  * Mars fiziksel yarıçapı (`3,389,500 m`) ve NASA MGS MOLA yükseklik sınırları (`-8,200 m .. +21,229 m`) üzerine `1024x512` `Int16Array` küresel DEM (`elevGrid`) ve `Int8Array` Doğu/Kuzey yüzey eğim normalleri (`normXGrid`, `normYGrid`) oluşturuldu.
+  * Olympus Mons (`+21,229 m`), Ascraeus Mons (`+18,209 m`), Arsia Mons (`+17,779 m`), Pavonis Mons (`+14,058 m`), Elysium Mons (`+14,127 m`), Alba Mons (`+6,815 m`), Valles Marineris (`-7,000 m`), Hellas Planitia (`-7,152 m`), Gale Krateri (`-4,400 m`) & Aeolis Mons / Mount Sharp (`+5,500 m`), Jezero (`-2,570 m`) ve Korolev (`-2,000 m`) gerçek fiziksel boyutlarıyla kalibre edildi.
+  * `./data/tiles/mars-mola-elevation/` karoları gerçek zamanlı okunarak DEM ızgarasına kaynaştırıldı (`syncWithMolaTiles`).
+  * 3D eğimli kamera (`camPitch`, `camYaw`) ve gerçek rakımlı yüzey projeksiyonu (`projectToElevatedSphere`) ile iteratif ters ışın-yüzey kesişimi (`screenToElevatedMars3D`) eklendi.
+- `js/models/AppConfig.js` (Satır 59-67): `camPitch: 28`, `camYaw: 0`, `topoReliefScale: 1.0`, `enable3DTerrain: true` varsayılan 3D topografya ayarları eklendi.
+- `js/services/RouteGeometryHelper.js` (Satır 134-182): `screenToMarsCoords3D` ve `estimateElevationM` metodları `MarsTopographyService` gerçek MOLA DEM verilerine bağlandı.
+- `js/renderers/OverlayDrawHelper.js` (Satır 10-36): `projectToSphere` metodu 3D topografik yükseltme ve 3D kamera eğimi (`camPitch`, `camYaw`) ile hizalandı.
+- `js/renderers/Map3DRenderer.js` (Satır 46-724): `raycastSphereCrop` ve `drawFallbackShadedSphere` içine gerçek boyutlu 3D MOLA yüzey yükseltmesi, ufukta dağ silüetleri, piksel bazlı 3D yüzey eğim ışıklandırması (hillshade) ve paralaks eklendi.
+- `js/components/MarsNavigatorController.js` (Satır 34-790): Sağ-tık / Shift+Sol-tık ile 3D kamera eğimi (`0°..70°`) ve pusula dönüşü (`0°..360°`), `WASD / Ok` tuşları ve `Q/E/R/F` ile 3D gezegen gezinme, sağ alt `3D Eğim` ve `⛰ Zirve Gez` butonları, canlı MOLA rakım (`m`) ve eğim (`°`) telemetrisi eklendi.
+- `index.html` (Satır 57-59) ve `css/controls.css` (Satır 439-456): `MarsTopographyService.js` betiği ve 3D HUD buton stilleri eklendi.
+
+[2026-11-14 17:28] 3D Kamera Eğimi (Pitch/Yaw) Sağ Tık Orbit Düzeltmesi (v3.4)
+- Yedek Klasörü: backups/snapshot_20261114_3d_orbit_fix/
+- js/renderers/Map3DRenderer.js: `render()` metoduna `camPitch`, `camYaw`, `topoReliefScale`, `enable3DTerrain` parametreleri bağlandı; `raycastSphereCrop` çağrısına geçirildi; eğimli küre merkezi (`sphereCy`) ve kırpma kutusu güncellendi.
+- js/renderers/OverlayDrawHelper.js: `projectToSphere()` fonksiyonu `camPitch`, `camYaw` ve MOLA yükseklik (`elevM`) dönüşümüyle güncellendi, böylece sağ tıkla küre eğildiğinde pinler, rotalar ve tehlike bölgeleri 3D yüzeyle birlikte döner.
+- js/components/MarsNavigatorController.js: Sağ tık sürükleme sırasında telemetri çubuğundaki `3D Eğim` değeri canlı güncelleniyor.
+- index.html: Önbellek kırıcı `?v=3.4` sürümüne yükseltildi.
+
+[2026-11-14 17:34] 3D Açı (camYaw) Değişkenken Sürükleme Yönü Düzeltmesi (v3.5)
+- js/components/MarsNavigatorController.js: `mousemove` 3D sürükleme hesabındaki `sin(camYaw)` işaret hatası (`dEast = -dx*cosY + dy*sinY`, `dNorth = dx*sinY + dy*cosY`) ve enlem kosinüs ölçeklemesi düzeltildi.
+- index.html: Önbellek kırıcı `?v=3.5` sürümüne yükseltildi.
+
+[2026-11-14 17:38] Yakınlaştırma Sınırı Artışı & 3D Render Performans Optimizasyonu (v3.6)
+- js/components/MarsNavigatorController.js: Maksimum yakınlaştırma sınırı 3D'de `80x`, 2D'de `32x` olarak yükseltildi; tekerlek ve `+/-` yakınlaştırma adımları hızlandırıldı.
+- js/renderers/Map3DRenderer.js: Sürükleme/yakınlaştırma (`fastMode`) sırasında dinamik piksel bütçesi `52.000` piksele düşürülüp 1-pass ışın izleme uygulanarak akıcılık artırıldı; durgun çözünürlük `480.000` piksel ile optimize edildi.
+- index.html: Önbellek kırıcı `?v=3.6` sürümüne yükseltildi.
+
+[2026-11-14T18:44:00+03:00] v3.7 GOOGLE MAPS / EARTH GRADE 60+ FPS RENDER & DRAG ENGINE:
+- Yedek Klasoru: backups/snapshot_20261114_google_maps_perf/
+- js/services/MarsTileLoader.js:
+  * z=0..2 (42 taban karo) RAM'de kalici (pinned) tutuldu; LRU tahliyesi yalnizca z>=3 icin calisir ve maxCachedTiles 1400'e cikarildi.
+  * 10.249 yerel karo (z=0..5) indirildikten sonra olusan 2.688 karoluk istek seli ve önbellek cirpinmasi (cache thrashing), kamera frustum konisi sinirlamasi (seviye basina maks 20-24 karo, merkeze yakinlik sirali) ile tamamen giderildi.
+  * Surukleme/yakinlastirma (isInteracting) esnasinda yeni z>=3 ag/disk yuklemeleri ve senkron getImageData cagrilari durduruldu; arka plan zaman-dilimli (time-sliced) decodeQueue eklendi.
+- js/renderers/Map3DRenderer.js:
+  * MOLA 3D topografik kabartma ve egim isiklandirmasi 4x4 blok koselerine tasinarak piksel basina 16x daha az MOLA okumasi saglandi.
+  * Surukleme modunda (fastMode) sifir getImageData blokajli 1-tap hizli doku okumasi, duragan modda 4-tap bilineer keskinlestirme ve kare-onbellekli (lastRayKey) raster blitting eklendi.
+- js/renderers/StarfieldRenderer.js & js/components/MarsNavigatorController.js:
+  * Arka plan yildiz tuvali offscreen onbelleklendi ve surukleme aninda duraklatildi; DOM FPS/telemetri guncellemeleri kirli-kontrol (dirty-check) ve zaman kisitlamasi (throttle) ile sifir-reflow hale getirildi.
+
+[2026-11-14T19:32:00+03:00] v3.8 ANTI-PIXELATION & BILINEAR MOLA/HERMITE ZOOM ENGINE:
+- js/renderers/Map3DRenderer.js:
+  * Yakinlastirirken (zoom in/out) olusan "feci piksellesme"nin 3 ana nedeni kokten giderildi:
+    1. 1024x512 MOLA DEM ve egim izgarasi (elevGrid, normXGrid, normYGrid) en-yakin-komsu (nearest-neighbor) tamsayi indisi yerine 4-tap bilineer enterpolasyonla (sampleTopoBilinear) okunarak yuksek zoomda olusan dev dikdortgen bloklasma ve paralaks yirtilmasi tamamen kaldirildi.
+    2. fastMode (yakinlastirma/surukleme) icindeki 1-tap nearest-neighbor doku okumasi kaldirildi; her karede 4-tap bilineer + Hermite yumusatma (dx*dx*(3-2*dx)) aktif edildi.
+    3. Etkilesim sirasindaki ara tampon olcegi (scale) 64.000 pikselden 260.000 piksele (4 kat cozunurluk) ve duragan olcek 920.000-1.650.000 piksele yukseltildi.
+- js/services/MarsTileLoader.js & js/components/MarsNavigatorController.js:
+  * Tekerlekle yakinlastirma (isZooming) sirasinda z=3..5 yerel karolarinin bekletilmeden aninda yuklenmesi ve cozulmesi saglandi; computeTargetZoom esikleri erken yuksek-LOD sececek sekilde iyilestirildi.
+
+================================================================================
+TARIH / SAAT : 2026-11-14 (UI Buton Boyutlari, Resim Kartlarina Tiklayarak Ac/Kapa ve 3D/2D Mars Merkez Kilidi Duzeltmesi)
+YEDEK KLASORU: backups/snapshot_20261114_fix_ui_and_centering/
+DEGISIKLIK NEDENI:
+  Kullanicinin "Butonlar çok küçük resime basınca aç kapa olmuyor, Kontroller sikilmiş marsı ortalamamız lazım sürekli" geri bildirimi uzerine:
+  1. Ust bar, sag alt HUD ve sol alt Uydular panelindeki tum butonlar buyutulerek rahat tiklanabilir boyutlara cikarildi.
+  2. Uydular panelindeki Mars bolge fotografli kartlarin (2D/3D gorunum, Asit Yagmuru, Kum Firtinasi, Foton Radyasyon) dogrudan resmine/kartina tiklandiginda ac/kapa (toggle) yapmasi saglandi.
+  3. 3D MOLA topografya kamerasindaki egim kaynakli asagi kayma (sphereCy kaymasi) tamamen kaldirilarak Mars kuresi ve 2D harita ekranin tam merkezine (cx, cy) kilitlendi; surukleme kontrollerindeki camYaw eksen terslikleri sifirlanarak 1:1 piksel kilitli akici kontrol saglandi.
+
+DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
+  1) js/components/SatellitesPanel.js (Satir 1-236):
+     - Satir 43-128: .sat-photo-card kartlarina data-card-toggle ve .active sinifi eklendi; resmin her yerine tiklandiginda ilgili katmanin acilip kapanmasi saglandi.
+  2) css/satellites_panel.css (Satir 1-285) & css/controls.css (Satir 1-300):
+     - Tetikleyici butonlar, ust bar butonlari, zoom/3D HUD butonlari (48x46 px) ve Uydular paneli resim kartlari buyutuldu.
+  3) js/services/MarsTopographyService.js (Satir 1-291) & js/renderers/Map3DRenderer.js (Satir 1-786):
+     - 3D kure merkezi (cx, cy) noktasina %100 sabitlendi; zoom veya 3D egim (camPitch) degistiginde gezegenin ekran disina kaymasi onlendi.
+  4) js/renderers/Map2DRenderer.js (Satir 1-305) & js/services/RouteGeometryHelper.js (Satir 1-279):
+     - 2D haritada dikey oy ofseti ekran merkezine kilitlendi ve 3D/2D piksel->koordinat donusumleri guncellendi.
+  5) js/components/MarsNavigatorController.js (Satir 1-789):
+     - camYaw sifirlanarak ters/capraz surukleme hatasi giderildi; C ve Bosluk (Space) tuslari ile sag alt ⌂ butonu Mars'i aninda merkeze alacak sekilde iyilestirildi.
+================================================================================
