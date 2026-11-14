@@ -1,0 +1,133 @@
+{
+  "_metadata": {
+    "source": "NASA Science & Jet Propulsion Laboratory (JPL)",
+    "resource_title": "Curiosity's Proposed Path Up Mount Sharp (Aeolis Mons)",
+    "url": "https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/",
+    "landing_site": "Bradbury Landing, Gale Crater (-4.5895 S, 137.4417 E)",
+    "mission": "Mars Science Laboratory (MSL)",
+    "last_updated": "2026-11-14",
+    "description": "Annotated waypoints, elevation profiles, and route terrain hazards for Curiosity's ascent of lower Mount Sharp."
+  },
+  "route_overview": {
+    "target_mountain": "Mount Sharp (Aeolis Mons)",
+    "total_mountain_height_m": 5500,
+    "exploration_zone": "Lower strata (Pahrump Hills up to Gediz Vallis and Boxwork structures)",
+    "primary_objective": "Determine the transition from warm, wet habitable lake environments (clays) to dry, hyper-acidic desert conditions (sulfates)."
+  },
+  "waypoints": [
+    {
+      "sequence": 1,
+      "name": "Bradbury Landing",
+      "sol_reached": 0,
+      "latitude": -4.5895,
+      "longitude": 137.4417,
+      "elevation_m": -4400,
+      "slope_degrees": 1.2,
+      "terrain_type": "Smooth alluvial plains, fine gravel",
+      "hazard_level": "Low",
+      "scientific_target": "Landing touchdown verification and system checkout"
+    },
+    {
+      "sequence": 2,
+      "name": "Yellowknife Bay",
+      "sol_reached": 125,
+      "latitude": -4.592,
+      "longitude": 137.448,
+      "elevation_m": -4420,
+      "slope_degrees": 2.5,
+      "terrain_type": "Mudstone sedimentary rock (ancient lake bed)",
+      "hazard_level": "Low",
+      "scientific_target": "Discovery of ancient habitable freshwater lake with C, H, N, O, P, S"
+    },
+    {
+      "sequence": 3,
+      "name": "Pahrump Hills (Mount Sharp Base)",
+      "sol_reached": 753,
+      "latitude": -4.675,
+      "longitude": 137.385,
+      "elevation_m": -4450,
+      "slope_degrees": 6.8,
+      "terrain_type": "Murray formation mudstone with mineral veins",
+      "hazard_level": "Moderate (loose scree, outcrop ledges)",
+      "scientific_target": "First basal unit of Mount Sharp"
+    },
+    {
+      "sequence": 4,
+      "name": "Bagnold Dunes (Oasis)",
+      "sol_reached": 1170,
+      "latitude": -4.685,
+      "longitude": 137.378,
+      "elevation_m": -4420,
+      "slope_degrees": 14.5,
+      "terrain_type": "Active dark basaltic sand dunes with ripple fields",
+      "hazard_level": "High (wheel slippage, sand entrapment risk)",
+      "scientific_target": "First in-situ investigation of active extraterrestrial dune field"
+    },
+    {
+      "sequence": 5,
+      "name": "Vera Rubin Ridge",
+      "sol_reached": 1800,
+      "latitude": -4.720,
+      "longitude": 137.362,
+      "elevation_m": -4210,
+      "slope_degrees": 18.0,
+      "terrain_type": "Hematite-rich erosion-resistant bedrock ridge",
+      "hazard_level": "High (steep inclines, wheel puncture risk from ventifacts)",
+      "scientific_target": "Strong orbital hematite signature and iron oxide crystallization"
+    },
+    {
+      "sequence": 6,
+      "name": "Glen Torridon (Clay-Bearing Unit)",
+      "sol_reached": 2300,
+      "latitude": -4.735,
+      "longitude": 137.380,
+      "elevation_m": -4240,
+      "slope_degrees": 4.5,
+      "terrain_type": "Low-lying troughs, soft clay-rich bedrock (smectites)",
+      "hazard_level": "Low-Moderate (gentle driving)",
+      "scientific_target": "Highest concentration of clay minerals found in Gale Crater"
+    },
+    {
+      "sequence": 7,
+      "name": "Greenheugh Pediment",
+      "sol_reached": 2700,
+      "latitude": -4.745,
+      "longitude": 137.340,
+      "elevation_m": -4150,
+      "slope_degrees": 31.0,
+      "terrain_type": "Capping sandstone unconformity, extreme steep incline",
+      "hazard_level": "Severe (steepest climb tackled by Curiosity: 31 deg tilt)",
+      "scientific_target": "Erosional boundary and major planetary timescale transition"
+    },
+    {
+      "sequence": 8,
+      "name": "Sulfate-Bearing Unit",
+      "sol_reached": 3200,
+      "latitude": -4.760,
+      "longitude": 137.360,
+      "elevation_m": -4020,
+      "slope_degrees": 11.2,
+      "terrain_type": "Magnesium and calcium sulfate layers, polyhydrated minerals",
+      "hazard_level": "Moderate-High (knife-blade rocks, boxwork fractures)",
+      "scientific_target": "Drying of ancient Mars and transition to acidic hyper-saline waters"
+    },
+    {
+      "sequence": 9,
+      "name": "Gediz Vallis Channel",
+      "sol_reached": 3900,
+      "latitude": -4.785,
+      "longitude": 137.375,
+      "elevation_m": -3900,
+      "slope_degrees": 15.4,
+      "terrain_type": "Debris flow ridge, large boulders transported by water/mud floods",
+      "hazard_level": "High (boulder field navigation, rough terrain)",
+      "scientific_target": "Last major wet events and violent flash floods on Mount Sharp"
+    }
+  ],
+  "routing_risk_parameters": {
+    "max_safe_slope_degrees": 25.0,
+    "critical_wheel_slip_threshold": 0.40,
+    "roughness_limit_cm": 30.0,
+    "battery_charge_margin_percent": 35.0
+  }
+}

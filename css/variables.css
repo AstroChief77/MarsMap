@@ -1,35 +1,31 @@
 /**
  * @file variables.css
- * @description AstroChief %60 Beyaz, %30 Siyah, %10 Kırmızı NASA Teması ve 'Public Sans Web' Bold değişkenleri.
- * Kural Gereği: Tema %60 beyaz, %30 siyah, %10 kırmızı; font Public Sans Web, sans-serif ve bold olmalıdır.
+ * @description Kurumsal Google Maps tarzı %60 Beyaz, %30 Siyah, %10 Kırmızı tema ve Public Sans Web bold değişkenleri.
  */
 
 :root {
-  /* %60 Beyaz Temiz Arayüz Yüzeyleri */
+  /* %60 Beyaz Kurumsal Yüzeyler */
   --surface-white: #ffffff;
-  --surface-offwhite: #f4f6f8;
-  --surface-subtle: #e5e7eb;
+  --surface-offwhite: #f8f9fa;
+  --surface-subtle: #f1f3f5;
 
-  /* %30 Siyah Uzay Zemini, Harita Boşluğu ve Kontrast Metinler */
+  /* %30 Siyah Uzay Zemini ve Yüksek Kontrast Tipografi */
   --space-black: #000000;
-  --ink-black: #0a0a0a;
-  --ink-dark: #1f2937;
-  --ink-muted: #4b5563;
+  --ink-black: #111317;
+  --ink-dark: #374151;
+  --ink-muted: #6b7280;
 
-  /* %10 Mars & NASA Kırmızısı Vurgular */
-  --mars-red: #e03c31;
+  /* %10 NASA / Mars Kırmızısı Kurumsal Vurgu */
+  --mars-red: #d92b2b;
   --mars-red-dark: #b91c1c;
-  --mars-red-soft: rgba(224, 60, 49, 0.1);
+  --mars-red-soft: rgba(217, 43, 43, 0.08);
 
-  /* Yardımcı Bilimsel Telemetri Renkleri */
-  --hud-green: #16a34a;
-  --hud-cyan: #0284c7;
-  --hud-amber: #d97706;
-
-  /* Çerçeveler ve Gölgeler */
-  --border-black: #111111;
-  --border-light: #d1d5db;
-  --shadow-clean: 0 10px 30px rgba(0, 0, 0, 0.65);
+  /* İnce Hairline Kenarlıklar ve Kurumsal Gölgeler */
+  --border-hairline: #e5e7eb;
+  --border-medium: #d1d5db;
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-popover: 0 6px 24px rgba(0, 0, 0, 0.22);
+  --shadow-section: 0 12px 32px rgba(0, 0, 0, 0.55);
 
   /* KURAL: Public Sans Web, sans-serif ve Bold Standartı */
   --font-family-mars: 'Public Sans Web', 'Public Sans', system-ui, -apple-system, sans-serif;
@@ -38,23 +34,18 @@
   --font-weight-black: 900;
 
   /* Ölçüler */
+  --header-height: 60px;
   --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --max-width-container: 1360px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --max-width-container: 1280px;
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc dosya tanıtımı ve 60-30-10 tema + Public Sans bold kuralı açıklaması.
-   - Satır 7: :root global CSS değişkenleri bloğu başlangıcı.
-   - Satır 9-11: %60 Beyaz yüzey değişkenleri (--surface-white, --surface-offwhite, --surface-subtle).
-   - Satır 13-17: %30 Siyah uzay ve tipografi renkleri (--space-black: #000000, --ink-black).
-   - Satır 19-22: %10 Kırmızı NASA vurguları (--mars-red: #e03c31, --mars-red-dark).
-   - Satır 24-27: Yardımcı telemetri durum renkleri (yeşil, camgöbeği, amber).
-   - Satır 29-32: Net siyah kenarlıklar ve temiz gölge değişkenleri.
-   - Satır 34-38: Zorunlu 'Public Sans Web' font ailesi ve kalın (700/800/900) ağırlık kuralları.
-   - Satır 40-44: Köşe yarıçapları ve maksimum sayfa genişliği (1360px).
-   - Satır 45: :root kapanışı.
+   - Satır 1-4: JSDoc kurumsal tasarım değişkenleri tanımı.
+   - Satır 6-22: %60 Beyaz, %30 Siyah, %10 Kırmızı kurumsal renk paleti ve sade saç teli kenarlıklar.
+   - Satır 24-28: Zorunlu Public Sans Web bold tipografi değişkenleri.
+   - Satır 30-35: Header yüksekliği (60px), yumuşak köşe yarıçapları ve maksimum sayfa genişliği.
    ========================================================================== */

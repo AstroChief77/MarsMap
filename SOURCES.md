@@ -49,3 +49,8 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
 7. **Tipografi & Tasarım Kaynakları**
    - **Font Ailesi:** Public Sans (Google Fonts CDN / Public Sans Web, sans-serif, Bold 700-900)
    - **Resmi API:** `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json`
+
+8. **Harita Projeksiyon, Şablon ve Çoklu Platform Derleme Araçları**
+   - **Projeksiyon & Şablon Referansları:** NASA Mars Trek (`https://trek.nasa.gov/mars/`, `EPSG:104905` Equirectangular & 3D Globe modu) ve Google Maps kurumsal Sidebar + Header düzeni
+   - **Windows Derleyici:** Microsoft .NET Framework `csc.exe` (`tools/WinLauncher.cs` -> `MarsMap-win64.exe` bağımsız yerel sunucu ikilisi)
+   - **Linux Paketleyici:** POSIX Bash başlatıcı (`tools/launch-linux.sh`) + `tar.exe` (`.tar.gz`) ve SHA-256 doğrulama manifestosu (`tools/build_tool.ps1`)

@@ -1,0 +1,55 @@
+{
+  "_metadata": {
+    "source": "NASA Jet Propulsion Laboratory (JPL) Mars Trek GIS Web Services",
+    "url": "https://trek.nasa.gov/mars/",
+    "service_type": "WMTS / REST Tile Layers",
+    "projection": "EPSG:4326 (Equirectangular) & IAU2000 Mars",
+    "last_updated": "2026-11-14"
+  },
+  "tile_layers": [
+    {
+      "id": "mars-viking-mdim21",
+      "name": "Mars Viking MDIM 2.1 Global Mosaic",
+      "type": "Optical Visible Color",
+      "resolution": "231 meters/pixel",
+      "coverage": "Global (100%)",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+      "description": "Standard true-color baseline global mosaic produced from Viking Orbiter images."
+    },
+    {
+      "id": "mars-mola-elevation",
+      "name": "MOLA Global Topography Shaded Relief (Colorized)",
+      "type": "Digital Elevation Model (DEM)",
+      "resolution": "463 meters/pixel",
+      "coverage": "Global (100%)",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+      "description": "Mars Global Surveyor Mars Orbiter Laser Altimeter colored shaded relief."
+    },
+    {
+      "id": "mars-themis-day-ir",
+      "name": "Mars Odyssey THEMIS Daytime Infrared Global Mosaic",
+      "type": "Thermal Infrared (IR)",
+      "resolution": "100 meters/pixel",
+      "coverage": "Global (98%)",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MO_THEMIS-IR-Day_mosaic_global_100m_v2/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+      "description": "Thermal properties of Mars surface, rock abundance, and thermophysical units."
+    },
+    {
+      "id": "mars-mro-ctx-mosaic",
+      "name": "Mars Reconnaissance Orbiter CTX Global Mosaic",
+      "type": "High Resolution Monochromatic",
+      "resolution": "5-6 meters/pixel",
+      "coverage": "Selected Target Regions / Global Beta",
+      "wmts_template": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MRO_CTX_mosaic_global_5m/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+      "description": "Sub-10 meter resolution context camera imagery for rover landing sites and terrain roughness."
+    }
+  ],
+  "planetary_constants": {
+    "equatorial_radius_km": 3396.19,
+    "polar_radius_km": 3376.20,
+    "volumetric_mean_radius_km": 3389.50,
+    "surface_gravity_ms2": 3.72076,
+    "solar_day_seconds_sol": 88775.244,
+    "orbital_period_days": 686.98
+  }
+}

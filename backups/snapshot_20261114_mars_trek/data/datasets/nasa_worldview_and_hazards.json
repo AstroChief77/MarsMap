@@ -1,0 +1,86 @@
+{
+  "_metadata": {
+    "source": "NASA Worldview (Earthdata GIBS) & Mars Atmospheric Climate Data",
+    "url": "https://worldview.earthdata.nasa.gov/",
+    "service": "Global Imagery Browse Services (GIBS) & Mars Climate Sounder (MCS)",
+    "last_updated": "2026-11-14",
+    "description": "Satellite perspective observation layers, Mars dust storm tracks, atmospheric hazards, and safe routing corridors."
+  },
+  "worldview_observation_layers": [
+    {
+      "layer_id": "MODIS_Terra_Dust_Aerosol",
+      "platform": "NASA Earthdata GIBS / Planetary Analogs",
+      "purpose": "Aerosol optical depth and storm tracking algorithm calibration",
+      "wmts_endpoint": "https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/wmts.cgi",
+      "format": "image/png"
+    },
+    {
+      "layer_id": "Mars_Climate_Sounder_Atmospheric_Dust",
+      "platform": "Mars Reconnaissance Orbiter (MRO MCS)",
+      "purpose": "3D profile of atmospheric dust, water ice clouds, and temperature soundings from 0 to 80 km altitude",
+      "format": "PDS4 / NetCDF"
+    }
+  ],
+  "mars_environmental_hazards": {
+    "global_and_regional_dust_storm_corridors": [
+      {
+        "region_id": "hellas-basin-corridor",
+        "name": "Hellas Impact Basin Storm Gateway",
+        "center_lat": -42.7,
+        "center_lon": 70.0,
+        "hazard_type": "Primary Global Storm Trigger Zone",
+        "dust_optical_depth_tau_max": 4.5,
+        "risk_level": "CRITICAL",
+        "description": "Deepest depression on Mars (-7.2 km); high atmospheric pressure triggers massive convective regional storms that often evolve into planet-encircling dust events."
+      },
+      {
+        "region_id": "acidalia-chryse-storm-track",
+        "name": "Acidalia - Chryse Northern Frontal Storm Track",
+        "center_lat": 35.0,
+        "center_lon": 325.0,
+        "hazard_type": "Frontal Dust Storms & Wind Jet Corridor",
+        "dust_optical_depth_tau_max": 2.8,
+        "risk_level": "HIGH",
+        "description": "Baroclinic frontal systems pushing cold polar dust fronts southwards toward equatorial exploration sites."
+      },
+      {
+        "region_id": "solis-planum-trigger",
+        "name": "Solis Planum High-Plateau Storm Zone",
+        "center_lat": -26.0,
+        "center_lon": 270.0,
+        "hazard_type": "Thermal Anomaly Storm Origin",
+        "dust_optical_depth_tau_max": 3.2,
+        "risk_level": "HIGH",
+        "description": "High thermal inertia and intense daytime ground heating creates severe dust devils and thermal dust lifting."
+      }
+    ],
+    "atmospheric_and_chemical_weathering_hazards": {
+      "acidic_atmospheric_interactions": {
+        "hazard_name": "Volcanic Acidic Fog & Sulfate Aerosols (Vog Analog)",
+        "active_regions": ["Tharsis volcanic flanks", "Cerberus Fossae fissures"],
+        "chemical_constituents": ["Sulfur dioxide (SO2)", "Hydrogen sulfide (H2S)", "Hydrochloric acid (HCl) condensates"],
+        "impact_on_rover_materials": "Surface oxidation, accelerated corrosion of metallic linkages, degradation of optical lens coatings."
+      },
+      "dust_devil_activity": {
+        "frequency": "Highest during southern spring and summer (Ls 180 to 270)",
+        "wind_speeds_ms": "Up to 30 m/s inside vortex cores",
+        "electrostatic_discharge_volts_m": "Up to 20,000 V/m",
+        "mitigation": "Equip rovers with grounded chassis and ESD-protected electronics."
+      }
+    },
+    "safe_navigation_corridors": [
+      {
+        "corridor_id": "corridor-gale-southwest",
+        "name": "Gale Crater Floor to Lower Mount Sharp",
+        "safety_rating": "OPTIMAL",
+        "reason": "Crater rim provides partial wind shielding from global storm jets; predictable bedrock navigation."
+      },
+      {
+        "corridor_id": "corridor-jezero-delta-inlet",
+        "name": "Jezero Neretva Vallis Delta Front",
+        "safety_rating": "MODERATE_SAFE",
+        "reason": "Firm deltaic sandstone; avoidance of northern boulder-choked mega-channels."
+      }
+    ]
+  }
+}

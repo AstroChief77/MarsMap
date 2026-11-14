@@ -1,103 +1,101 @@
 /**
  * @file sections.css
- * @description Space Apps 2026 detayları, krater karşılaştırması ve %60 Beyaz, %30 Siyah, %10 Kırmızı bölüm stilleri.
+ * @description Space Apps 2026 detayları ve krater karşılaştırma bölümü sade kurumsal stilleri.
  */
 
 .section-details-dark,
 .section-resources-clean,
 .section-teams-clean {
-  padding: 2.5rem 1.5rem;
+  padding: 2rem 1.5rem;
   max-width: var(--max-width-container);
   margin: 0 auto;
 }
 
-/* Zifiri siyah yıldızlar üzerinde yüzen temiz %60 Beyaz ana içerik konteyneri */
 .white-panel-wrapper {
   background: var(--surface-white);
   color: var(--ink-black);
-  border: 3px solid var(--space-black);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-md);
-  padding: 3rem 2.5rem;
-  box-shadow: var(--shadow-clean);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-section);
 }
 
-/* Bölüm Başlıkları */
 .section-header-clean {
   text-align: left;
-  max-width: 920px;
-  margin-bottom: 2.5rem;
+  max-width: 860px;
+  margin-bottom: 2rem;
 }
 
 .challenge-event-badge {
   display: inline-block;
-  padding: 0.3rem 0.75rem;
-  font-size: 0.72rem;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.7rem;
   color: var(--surface-white);
   background: var(--mars-red);
   border-radius: var(--radius-xs);
-  letter-spacing: 0.08em;
-  margin-bottom: 0.85rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
 }
 
 .clean-section-title {
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
   color: var(--ink-black);
   letter-spacing: -0.02em;
   line-height: 1.2;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 .clean-section-subtitle {
-  font-size: 1rem;
+  font-size: 0.96rem;
   color: var(--ink-dark);
   line-height: 1.65;
 }
 
-/* 3 Temel Sütun Kartları */
+/* 3 Temel Sütun */
 .challenge-pillars-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.6rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.4rem;
+  margin-bottom: 2.4rem;
 }
 
 .pillar-card {
   background: var(--surface-offwhite);
-  border: 2px solid var(--space-black);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-sm);
-  padding: 1.8rem 1.6rem;
+  padding: 1.6rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .pillar-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 6px 6px 0px var(--space-black);
+  transform: translateY(-2px);
+  border-color: var(--border-medium);
 }
 
 .pillar-card-accent {
   background: var(--surface-white);
-  border: 2px solid var(--mars-red);
+  border: 1.5px solid var(--mars-red);
 }
 
 .pillar-num {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   color: var(--mars-red);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 .pillar-title {
-  font-size: 1.15rem;
+  font-size: 1.08rem;
   color: var(--ink-black);
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.6rem;
 }
 
 .pillar-desc {
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: var(--ink-dark);
   line-height: 1.6;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.1rem;
 }
 
 .pillar-check-list {
@@ -105,11 +103,11 @@
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .pillar-check-list li {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--ink-black);
   display: flex;
   align-items: flex-start;
@@ -117,28 +115,25 @@
 }
 
 .pillar-check-list li::before {
-  content: '■';
+  content: '•';
   color: var(--mars-red);
-  font-size: 0.65rem;
-  margin-top: 3px;
+  font-size: 1rem;
+  line-height: 1;
 }
 
-/* Krater Karşılaştırma Tablosu (Hangi Krater?) */
+/* Krater Karşılaştırma Tablosu */
 .crater-comparison-box {
   background: var(--surface-white);
-  border: 2px solid var(--space-black);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-sm);
-  padding: 1.8rem;
-  margin-bottom: 2.5rem;
+  padding: 1.6rem;
+  margin-bottom: 2rem;
 }
 
 .comp-title {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   color: var(--ink-black);
-  margin-bottom: 1.1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .comp-table-wrapper {
@@ -148,98 +143,93 @@
 .comp-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.84rem;
+  font-size: 0.83rem;
 }
 
 .comp-table th,
 .comp-table td {
   text-align: left;
   padding: 0.85rem 1rem;
-  border-bottom: 1.5px solid var(--border-light);
+  border-bottom: 1px solid var(--border-hairline);
 }
 
 .comp-table th {
-  background: var(--space-black);
+  background: var(--ink-black);
   color: var(--surface-white);
+  font-size: 0.74rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: 0.76rem;
 }
 
 .comp-table tr.recommended-row {
-  background: rgba(224, 60, 49, 0.06);
+  background: var(--mars-red-soft);
 }
 
 .badge-winner {
   display: inline-block;
-  padding: 0.15rem 0.5rem;
+  padding: 0.15rem 0.45rem;
   background: var(--mars-red);
   color: var(--surface-white);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   border-radius: 3px;
   margin-left: 0.4rem;
 }
 
-/* HUD Format Mimarisi Kutusu (%30 Siyah Kontrast Bloğu) */
+/* Görev Mimarisi Alt Şeridi */
 .hud-format-box {
-  background: var(--space-black);
+  background: var(--ink-black);
   color: var(--surface-white);
-  border: 2px solid var(--space-black);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .hud-format-header {
-  background: #141414;
-  padding: 0.75rem 1.4rem;
-  border-bottom: 1px solid #333333;
+  background: #181a20;
+  padding: 0.7rem 1.3rem;
+  border-bottom: 1px solid #2b2e37;
 }
 
 .hud-terminal-prompt {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--mars-red);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .hud-format-body {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem 1.4rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.4rem;
+  padding: 1.4rem;
 }
 
 .format-item {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .format-tag {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--mars-red);
-  letter-spacing: 0.05em;
 }
 
 .format-item p {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: #e5e7eb;
   line-height: 1.55;
 }
 
 @media (max-width: 768px) {
   .white-panel-wrapper {
-    padding: 1.8rem 1.2rem;
+    padding: 1.5rem 1.15rem;
   }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc bölüm stilleri başlığı.
-   - Satır 6-22: .white-panel-wrapper; siyah yıldızlı zemin üstünde temiz %60 beyaz içerik panelleri.
-   - Satır 24-54: Bölüm başlıkları, kırmızı Space Apps rozeti ve siyah yüksek kontrastlı yazılar.
-   - Satır 56-123: 3 sütunlu meydan okuma kartları (.pillar-card) ve sert siyah gölge efektleri.
-   - Satır 125-178: Hangi Krater? karşılaştırma tablosu (.comp-table) ve önerilen krater vurgusu.
-   - Satır 180-222: Siyah arka planlı HUD Format Mimarisi bloğu (.hud-format-box).
-   - Satır 224-228: Mobil ekranlar için iç boşluk uyarlaması.
+   - Satır 1-4: JSDoc kurumsal detaylar ve krater analizi CSS başlığı.
+   - Satır 6-49: Beyaz ana içerik konteyneri (.white-panel-wrapper) ve başlık blokları.
+   - Satır 51-118: 3 sütunlu sade meydan okuma kartları.
+   - Satır 120-217: Krater karşılaştırma tablosu ve koyu kontrast görev mimarisi bloğu.
    ========================================================================== */
