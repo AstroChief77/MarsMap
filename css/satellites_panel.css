@@ -12,63 +12,89 @@
   z-index: 35;
 }
 
-/* Tek Sol Alt Tetikleyici: Uydular Butonu */
+/* Tek Sol Alt Tetikleyici: Kare Uydu Fotografli Uydular Butonu */
 .sat-trigger-btn {
-  display: inline-flex;
+  position: relative;
+  width: 78px;
+  height: 78px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 13px 22px;
-  background: var(--bg-white);
-  color: var(--ink-black);
-  border: 2px solid var(--ink-black);
-  border-radius: var(--r-sm);
-  font-size: 15px;
+  justify-content: space-between;
+  padding: 7px 6px;
+  background-color: #16100e;
+  background-image: linear-gradient(180deg, rgba(10, 12, 18, 0.25) 0%, rgba(10, 12, 18, 0.82) 100%),
+    url("../data/tiles/mars-viking-mdim21/0/0/0.jpg");
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 900;
   cursor: pointer;
   box-shadow: var(--shadow-btn);
-  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 .sat-trigger-btn:hover,
 .sat-trigger-btn.open {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  border-color: var(--mars-red);
+  box-shadow: 0 0 0 2px rgba(224, 62, 45, 0.45), var(--shadow-btn);
+  transform: translateY(-1px);
+}
+
+.sat-trigger-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sat-live-dot {
-  width: 11px;
-  height: 11px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--mars-red);
+  box-shadow: 0 0 6px var(--mars-red);
   flex-shrink: 0;
 }
 
 .sat-mode-tag {
-  font-size: 11px;
+  font-size: 9.5px;
   font-weight: 900;
-  padding: 3px 8px;
-  border-radius: 5px;
+  padding: 2px 5px;
+  border-radius: 4px;
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
 }
 
-/* Acilan Uydular Penceresi (%60 Beyaz Zemin, %30 Siyah Cerceve)
+.sat-trigger-label {
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+
+/* Acilan Uydular Penceresi (Koyu Kozmik Cam Zemin)
  * Not: display:none yerine visibility/opacity kullanilarak 5 Mars fotografının sayfa acilisinda
  * hemen dekode edilmesi saglanir. */
 .sat-popover {
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 10px);
   left: 0;
-  width: 386px;
+  width: 382px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 110px);
+  max-height: calc(100vh - 185px);
   overflow-y: auto;
   background: var(--bg-white);
   color: var(--ink-black);
-  border: 2px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(16px);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 14px;
+  padding: 13px;
   display: flex;
   flex-direction: column;
   gap: 11px;
@@ -202,7 +228,7 @@
   inset-block-start: 8px;
   inset-inline-end: 8px;
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   font-size: 10px;
   font-weight: 900;
   padding: 3px 7px;
@@ -263,14 +289,14 @@
   font-size: 11.5px;
   font-weight: 900;
   background: rgba(0, 0, 0, 0.55);
-  color: var(--bg-white);
+  color: #ffffff;
   border: 1.5px solid rgba(255, 255, 255, 0.7);
   pointer-events: none;
 }
 
 .sat-switch.on {
   background: var(--mars-red);
-  border-color: var(--bg-white);
+  border-color: #ffffff;
 }
 
 .sat-intensity-row {
@@ -297,8 +323,8 @@
 }
 
 .sat-int-btn.active {
-  background: var(--bg-white);
-  color: var(--ink-black);
+  background: #ffffff;
+  color: #0d0f12;
   border-color: var(--mars-red);
 }
 
@@ -331,9 +357,9 @@
 }
 
 .sat-layer-chip.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--mars-red);
+  color: #ffffff;
+  border-color: var(--mars-red);
 }
 
 /* ==========================================================================

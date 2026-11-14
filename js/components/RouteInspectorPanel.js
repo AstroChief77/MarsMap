@@ -105,17 +105,13 @@
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
           <span>${esc(t("inspToggleBtn"))}</span>
           <span style="color:var(--mars-red);">${routeBadge}</span>
-          <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill" title="${esc(t("latTitle"))}">${esc(latencyLabel)}</span>
           <span>${state.inspectorOpen ? "▴" : "▾"}</span>
         </button>
 
         <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${esc(t("inspToggleBtn"))}" ${dirAttr}>
           <div class="insp-head">
-            <div>
-              <span class="insp-badge">${esc(t("scopeGlobalBadge"))}</span>
-              <div class="insp-title">${esc(t("originWord"))} → ${esc(t("destWord"))}</div>
-            </div>
-            <span class="insp-source-pill ${hasBackendResponse ? "rust" : ""}" id="insp-latency-pill-card">${esc(sourceLabel)}</span>
+            <div class="insp-title">${esc(t("originWord"))} → ${esc(t("destWord"))}</div>
+            <span class="insp-badge">${esc(t("scopeGlobalBadge"))}</span>
           </div>
 
           <div class="insp-coord-box">
@@ -147,30 +143,21 @@
                 <span style="color:var(--route-blue);">${esc(t("blueRouteTitle"))}</span>
                 <span class="route-duration-pill">${esc(pri.formattedDuration)}</span>
               </div>
-              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km (${totalMeters} m) · ${pri.o2Liters}/${o2Max} L O₂ · ${pri.waterLiters}/${waterMax} L ${esc(t("waterUnit"))}</div>
-              ${(o2Over || waterOver) ? `<div style="font-size:10px;font-weight:800;color:var(--mars-red);">⚠ Rezerv Asimi: ${o2Over ? `O₂ +${pri.o2Liters - o2Max}L ` : ""}${waterOver ? `Su +${(pri.waterLiters - waterMax).toFixed(1)}L` : ""} ikmal gerekli</div>` : ""}
-              <div class="route-comment-line">${esc(pri.comment)}</div>
+              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km · ${pri.o2Liters}/${o2Max} L O₂ · ${pri.waterLiters}/${waterMax} L ${esc(t("waterUnit"))}</div>
+              ${(o2Over || waterOver) ? `<div style="font-size:10px;font-weight:800;color:var(--mars-red);">⚠ Rezerv Aşımı: ${o2Over ? `O₂ +${pri.o2Liters - o2Max}L ` : ""}${waterOver ? `Su +${(pri.waterLiters - waterMax).toFixed(1)}L` : ""}</div>` : ""}
             </div>
             ${radSummaryHtml}
             ${wpChipsHtml}
 
             ${stepRowsHtml ? `
               <div class="step-panel">
-                <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">STEP-BY-STEP (${(pri && pri.steps) ? pri.steps.length : 0})</div>
+                <div style="font-size:10.5px;font-weight:900;color:var(--ink-black);">ADIMLAR (${(pri && pri.steps) ? pri.steps.length : 0})</div>
                 <div class="step-list">${stepRowsHtml}</div>
               </div>
             ` : ""}
           ` : `
-            <div class="step-panel" style="gap:4px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:10.5px;font-weight:900;color:var(--ink-black);">${esc(t("backendTitle"))}</span>
-                <span style="font-size:9.5px;font-weight:800;color:var(--mars-red);">POST /api/v1/route</span>
-              </div>
-              <div style="font-size:10.5px;color:var(--ink-muted);">
-                ${esc(uiMeta.backendStatusText || t("backendReady"))}
-              </div>
-              <div style="font-size:9.5px;font-weight:700;color:var(--ink-dark);word-break:break-all;" dir="ltr">${esc(endpointUrl)}</div>
-              <pre id="backend-request-preview" dir="ltr" style="margin:2px 0 0;padding:6px;background:var(--bg-white);border:1px solid var(--line-light);border-radius:4px;font-size:9.5px;max-height:130px;overflow:auto;color:var(--ink-black);">${esc(JSON.stringify(reqPreviewObj, null, 2))}</pre>
+            <div class="step-panel" style="font-size:11px;color:var(--ink-muted);">
+              Hedef seçip rota hesaplayın.
             </div>
           `}
         </aside>

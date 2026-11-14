@@ -58,7 +58,7 @@
         highQualityGlobeRay: false,     // Agir 3D ornekleme (FPS testine duyarli)
         enable3DTerrain: true,
         topoReliefScale: 1.0,
-        camPitch: 28,
+        camPitch: 0,
         camYaw: 0,
         rotLat: -4.59,
         rotLon: 137.44,
@@ -67,7 +67,7 @@
         panY: 0,
         oxygenReserveLiters: 420,       // Litre birimi
         waterReserveLiters: 24.0,       // Litre birimi
-        inspectorOpen: true
+        inspectorOpen: false
       };
     }
 

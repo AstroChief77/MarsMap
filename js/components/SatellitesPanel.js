@@ -45,6 +45,7 @@
 
     toggleOpen(forceState) {
       this.isOpen = typeof forceState === "boolean" ? forceState : !this.isOpen;
+      if (this.isOpen) this.handlers.onPopoverOpen?.();
       this.mountEl.querySelector("#btn-satellites-toggle")?.classList.toggle("open", this.isOpen);
       this.mountEl.querySelector("#satellites-popover")?.classList.toggle("open", this.isOpen);
     }
@@ -184,9 +185,11 @@
         </div>
 
         <button type="button" class="sat-trigger-btn ${this.isOpen ? "open" : ""}" id="btn-satellites-toggle" aria-expanded="${this.isOpen}">
-          <span class="sat-live-dot"></span>
-          <span>${t("satTrigger")}</span>
-          <span class="sat-mode-tag">${state.viewMode.toUpperCase()}</span>
+          <span class="sat-trigger-top">
+            <span class="sat-live-dot"></span>
+            <span class="sat-mode-tag">${state.viewMode.toUpperCase()}</span>
+          </span>
+          <span class="sat-trigger-label">${t("satTrigger")}</span>
         </button>
       `;
 

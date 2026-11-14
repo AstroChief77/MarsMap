@@ -4,13 +4,13 @@
  * Kural geregi hicbir harici CDN kutuphanesi veya fontu internetten cekilmez.
  */
 
-@import url('./fonts.css?v=4.3');
-@import url('./variables.css?v=4.3');
-@import url('./base.css?v=4.3');
-@import url('./controls.css?v=4.3');
-@import url('./satellites_panel.css?v=4.3');
-@import url('./inspector.css?v=4.3');
-@import url('./demo.css?v=4.3');
+@import url('./fonts.css?v=4.5');
+@import url('./variables.css?v=4.5');
+@import url('./base.css?v=4.5');
+@import url('./controls.css?v=4.5');
+@import url('./satellites_panel.css?v=4.5');
+@import url('./inspector.css?v=4.5');
+@import url('./demo.css?v=4.5');
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
