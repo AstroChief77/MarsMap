@@ -116,6 +116,11 @@
   border-color: var(--mars-red-dark);
 }
 
+.sim-btn-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .sim-pill-badge {
   background: var(--bg-soft);
   border: 1px solid var(--line-light);
@@ -150,6 +155,7 @@
   top: 12px;
   bottom: 72px;
   background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-black);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--line-light);
   border-radius: var(--r-md);
@@ -164,12 +170,12 @@
 
 .sim-left-card {
   left: 12px;
-  width: 304px;
+  width: 306px;
 }
 
 .sim-right-card {
   right: 12px;
-  width: 338px;
+  width: 342px;
 }
 
 .sim-sec-title {
@@ -183,12 +189,12 @@
 
 .sim-veh-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
 }
 
 .sim-veh-btn {
-  padding: 6px 4px;
+  padding: 7px 6px;
   border-radius: 6px;
   border: 1px solid var(--line-light);
   background: var(--bg-offwhite);
@@ -202,6 +208,7 @@
 
 .sim-veh-btn:hover {
   background: var(--surface-control-hover);
+  border-color: var(--mars-red);
 }
 
 .sim-veh-btn.active {
@@ -218,6 +225,7 @@
 }
 
 .sim-field {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -226,16 +234,54 @@
   color: var(--ink-dark);
 }
 
+.sim-cap-pct {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  font-size: 9.5px;
+  font-weight: 900;
+  color: var(--route-blue);
+}
+
 .sim-field input,
-.sim-field select {
+.sim-field select,
+#sim-layer-sel {
   width: 100%;
   padding: 5px 7px;
   border: 1px solid var(--line-light);
   border-radius: 6px;
   background: var(--bg-solid-white);
   color: var(--ink-black);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
+}
+
+.sim-field input:focus,
+.sim-field select:focus,
+#sim-layer-sel:focus {
+  outline: none;
+  border-color: var(--route-blue);
+}
+
+.sim-input-missing {
+  border-color: var(--mars-red) !important;
+  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.22);
+  background: #fef2f2 !important;
+}
+
+.sim-param-alert {
+  background: var(--mars-red-soft);
+  border: 1px solid var(--mars-red);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--mars-red-dark);
+  line-height: 1.35;
+}
+
+.sim-param-alert.hidden {
+  display: none;
 }
 
 .sim-haz-row {
@@ -246,13 +292,25 @@
   font-size: 11px;
   font-weight: 700;
   background: var(--bg-offwhite);
-  border: 1px solid var(--line-light);
   padding: 5px 8px;
   border-radius: 6px;
+  border: 1px solid var(--line-light);
+}
+
+.sim-haz-row label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.sim-haz-row input[type="checkbox"] {
+  accent-color: var(--mars-red);
+  cursor: pointer;
 }
 
 .sim-haz-row select {
-  padding: 2px 6px;
+  padding: 3px 6px;
   border-radius: 5px;
   border: 1px solid var(--line-light);
   font-size: 10.5px;
@@ -275,6 +333,48 @@
   padding: 7px 6px;
   min-height: 36px;
   line-height: 1.2;
+}
+
+.sim-arrival-box {
+  background: var(--bg-offwhite);
+  border: 1px solid var(--line-light);
+  border-left: 3px solid var(--route-blue);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 10.5px;
+  color: var(--ink-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.35;
+}
+
+.sim-arr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.sim-arr-row span {
+  color: var(--ink-muted);
+}
+
+.sim-arr-row strong {
+  color: var(--ink-black);
+  font-weight: 800;
+  text-align: right;
+}
+
+.sim-arr-warn {
+  margin-top: 2px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: var(--mars-red-soft);
+  border: 1px solid var(--mars-red);
+  color: var(--mars-red-dark);
+  font-weight: 900;
+  font-size: 10px;
 }
 
 .sim-kpi-grid {
@@ -392,7 +492,7 @@
 }
 
 .sim-log-item.ok {
-  color: #15803d;
+  color: var(--status-ok-text);
   font-weight: 800;
 }
 
@@ -426,17 +526,18 @@
 }
 
 @media (max-width: 1080px) {
-  .sim-left-card { width: 260px; }
-  .sim-right-card { width: 280px; }
+  .sim-left-card { width: 266px; }
+  .sim-right-card { width: 288px; }
   .sim-preset-row { display: none; }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc /demo Acik Gri Studio simulasyon studyosu CSS tanimlari.
-   - Satir 7-125: Acik gri yuzeyler, buzlu ust arac cubugu, hazir senaryo dugmeleri ve 2D/3D seciciler.
-   - Satir 127-262: Sol parametre giris karti, hizalanmis acil durum enjeksiyon butonlari ve sag telemetri karti.
-   - Satir 264-420: Canli O2/Su/Batarya cubuklari, chart tuvali, olay gunlugu ve buzlu alt oynatma cubugu.
+   - Satir 1-5: JSDoc /demo Acik Gri Studio ortak sefer ve hayatta kalma studyosu CSS tanimlari.
+   - Satir 7-154: Acik gri zemin, buzlu ust arac cubugu, 4 ortak senaryo, kapi kilit rozeti ve 2D/3D seciciler.
+   - Satir 156-340: Buzlu beyaz sol/sag kartlar, 2 sutunlu Rover+Insan mod gridi, beyaz girdiler ve yuksek kontrastli O2/Su/Enerji kapi uyarilari.
+   - Satir 342-502: Varis ozeti (.sim-arrival-box), hizalanmis olay enjeksiyon butonlari, canli O2/Su/Batarya cubuklari, chart tuvali ve okunakli olay gunlugu renkleri.
+   - Satir 504-542: Buzlu alt zaman/hiz oynatma cubugu ve duyarli ekran kurallari.
    ========================================================================== */
 

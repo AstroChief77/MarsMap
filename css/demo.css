@@ -10,7 +10,7 @@
   font-size: 12.5px;
   font-weight: 800;
   background: var(--mars-red);
-  color: var(--bg-solid-white);
+  color: #ffffff;
   border: 1px solid var(--mars-red-dark);
   cursor: pointer;
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
@@ -176,7 +176,7 @@
 
 .demo-ctrl-btn.primary {
   background: var(--mars-red);
-  color: var(--bg-solid-white);
+  color: #ffffff;
   border-color: var(--mars-red-dark);
   padding: 5px 11px;
 }
@@ -187,7 +187,7 @@
 
 .demo-mini-btn.danger:hover {
   background: var(--mars-red);
-  color: var(--bg-solid-white);
+  color: #ffffff;
   border-color: var(--mars-red);
 }
 
@@ -258,9 +258,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Demo modu CSS sablonu ve Acik Gri Studio tema aciklamasi.
-   - Satir 7-27: .nav-demo-btn; ust cubuktaki kirmizi/acik gri aktif Demo dugmesi.
-   - Satir 29-70: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakismasiz buzlu cam konumlandirma.
-   - Satir 72-182: .demo-panel, senaryo secici, oynat/duraklat, hiz/arac acik gri aktif haplari ve anlatim karti.
-   - Satir 184-242: .demo-tele-row, .demo-metric-chip ve dar ekran duyarli kurallari.
+   - Satir 1-5: JSDoc Ortak Sefer Demo Kontrol Cubugu CSS sablonu ve Acik Gri Studio tema aciklamasi.
+   - Satir 7-31: .nav-demo-btn; ust cubuktaki kirmizi/mavi-yumusak aktif Demo dugmesi.
+   - Satir 33-78: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakismasiz buzlu cam konumlandirma.
+   - Satir 80-200: .demo-panel, senaryo, birlesik Rover+Ekip / Rover+Yaya EVA mod haplari ve oynatma kontrolleri.
+   - Satir 202-264: .demo-tele-row, .demo-metric-chip (yuksek kontrastli .warn stili) ve duyarli kurallar.
    ========================================================================== */

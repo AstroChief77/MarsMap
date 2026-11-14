@@ -101,7 +101,7 @@
             <div class="factory-spec-box">
               <div class="factory-spec-title">${esc(t("factorySpecTitle"))}</div>
               <div class="factory-spec-row"><span>${esc(t("specRenderScale"))}</span><strong>${esc(t("specRenderScaleVal"))}</strong></div>
-              <div class="factory-spec-row"><span>${esc(t("specVolumeReserve"))}</span><strong>${esc(t("specVolumeReserveVal", { o2: state.oxygenReserveLiters, water: state.waterReserveLiters }))}</strong></div>
+              <div class="factory-spec-row"><span>${esc(t("specVolumeReserve"))}</span><strong>${esc(t("specVolumeReserveVal", { o2: state.oxygenReserveLiters ?? "—", water: state.waterReserveLiters ?? "—" }))}</strong></div>
               <div class="factory-spec-row"><span>${esc(t("specDistDuration"))}</span><strong>${esc(t("specDistDurationVal"))}</strong></div>
               <div class="factory-spec-row"><span>${esc(t("specRadiation"))}</span><strong>${esc(t("specRadiationVal"))}</strong></div>
             </div>
@@ -253,5 +253,5 @@
    - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset, 9 dil secici ve ust arama seridi bileseni tanimi.
    - Satir 7-34: constructor, toggleOpen (onPopoverOpen + onPanelToggle geri cagrilari dahil) ve close; acilir menunun durumunu yonetir.
    - Satir 36-191: render; 1. secenekte Factory Reset butonu, 9 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve yerellestirilmis ust arama/bilgi/demo cubugunu cizer.
-   - Satir 193-247: bindEvents; dil degisimi, ayar anahtarlari, yer/koordinat arama formu ve Rust backend dugmelerini baglar.
+   - Satir 193-247: bindEvents; dil degisimi, ayar anahtarlari, yer/koordinat arama formu, Demo dugmesi ve Rust backend dugmelerini baglar.
    ========================================================================== */
