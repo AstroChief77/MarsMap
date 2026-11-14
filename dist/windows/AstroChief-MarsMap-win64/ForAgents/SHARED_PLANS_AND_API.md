@@ -62,9 +62,11 @@ Tüm ayar değişiklikleri **mutlaka** `MarsNavigatorController.applyGuardedSett
 ## 2. Sıradaki Ortak Planlar (Next Agent Roadmap)
 1. **Gerçek DEM Eğim Maliyet A* Motoru**: `mars-mola-elevation` yüksek çözünürlüklü piksel ızgarasından eğim gradientini okuyarak `RouteGeometryHelper` üzerine eklemek (800 satır sınırı altında yeni bir `ElevationCostGrid.js` sınıfı açılmalı).
 2. **Backend Köprüsü (Opsiyonel)**: Python FastAPI veya C++ servisi eklenirse yerel çevrimdışı mod her zaman fallback olarak korunmalıdır; harici CDN yasaktır.
-3. **Derleme Komutu**: Her sürüm veya kod değişikliği sonrasında Linux'ta `./build.sh`, Windows'ta `build.bat` çalıştırılarak `dist/` ve Masaüstü güncellenmelidir.
+3. **Parametre Senkronizasyonu (`Prameters.md`)**: Backend (`backend/src/lib.rs` içindeki sabit `DISTANCE_PER_MT` yerine süre/hız/eğim bazlı O₂ tüketimi) ve Frontend (`RoutePlannerService.js`) hesaplamalarının `Prameters.md` dakika/saat bazlı gerçekçi limitleriyle (`O₂ max 3.60–4.00 L/dk`, `EVA 45–60 m/dk`, `Basınçlı Rover 166.7–241.7 m/dk`) tam uyumlu hale getirilmesi planlanmaktadır.
+4. **Derleme Komutu**: Her sürüm veya kod değişikliği sonrasında Linux'ta `./build.sh`, Windows'ta `build.bat` çalıştırılarak `dist/` ve Masaüstü güncellenmelidir.
 
 ## 3. Kesin Kırmızı Çizgiler
 - `readme.md` dosyasına ASLA dokunma.
 - `backups/` klasöründeki mevcut yedekleri ASLA silme/değiştirme; düzenleme öncesi yeni tarihli yedek al.
 - Tüm değişiklikleri `logs/change_log.txt` dosyasına işleyip her kod dosyasının sonuna satır-işlev açıklaması ekle.
+

@@ -51,9 +51,17 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 - **Doğrudan Fotoğraf Kartı Etkileşimi (`SatellitesPanel.js`, `css/satellites_panel.css`)**:
   - `2D`/`3D`, `Asit Yağmuru`, `Kum Fırtınası` ve `Radyasyon / Foton Kuşağı` kartlarının tamamı doğrudan resme basılarak açılıp kapanır.
 - **< 800 Satır Kuralı Uyumu**:
-  - `Map3DRenderer.js` (638 satır) ve `Map3DFallbackRenderer.js` (258 satır) modüler olarak ayrıldı; `MarsNavigatorController.js` 776 satıra indirildi.
+  - `Map3DRenderer.js` ve `Map3DFallbackRenderer.js` modüler olarak ayrıldı; `MarsNavigatorController.js` 776 satıra indirildi.
 
-## 7. `rapor.md` Güvenlik, Mimari ve Performans Denetimi Çözümleri (v3.9.0)
+## 7. Gerçekçi Görev ve Fizik Parametreleri Belgesi (`Prameters.md`)
+- **Yeni Kök Referans Dosyası (`Prameters.md`)**: `readme.md` kuralları okunarak, NASA standartları (`NASA-STD-3001`, `xEMU/Apollo PLSS`, `NASA SEV / TM-20220006678`, `Perseverance/Curiosity`, `Mars Fact Sheet`, `Curiosity RAD / OCHMO-TB-020`) doğrultusunda dakika ve saat bazlı gerçekçi görev parametreleri tanımlandı:
+  - **İnsan Dakikada Maksimum Oksijen Tüketimi:** Nominal EVA `0.80 – 1.01 L/dk`, ağır tırmanış `1.58 – 2.01 L/dk`, NASA xEMU 10-dk tasarım zirvesi `2.52 L/dk`, mutlak fizyolojik VO₂max tavanı **`3.60 – 4.00 L/dk`** (`216 – 240 L/saat` STP).
+  - **Dakikada Rover Hızı:** İnsanlı Basınçlı Rover (SEV) nominal **`166.7 m/dk`** (`10.0 km/saat`), MarsMap seyir **`241.7 m/dk`** (`14.5 km/saat`), güvenli tavan **`300.0 – 316.7 m/dk`** (`18–19 km/saat`); robotik referans Perseverance **`2.53 m/dk`**, Curiosity **`1.50 – 2.33 m/dk`**.
+  - **Dakikada İnsan Hızı (EVA):** Uzun yürüyüş **`45.0 m/dk`** (`2.7 km/saat`), kısa nominal **`60.0 m/dk`** (`3.6 km/saat`), güvenli loping üst sınırı **`83.3 – 90.0 m/dk`** (`5.0–5.4 km/saat`).
+  - **Ek Parametreler:** Su (`0.013 – 0.0358 L/dk`), CO₂ üretimi, basınçlı rover/giysi batarya & güç (`Wh/dk`), Mars fiziksel sabitleri, eğim sınırları ve α/β/γ radyasyon eşikleri.
+- **Yedek & Kaynak Kaydı:** Düzenlenen tüm mevcut dokümanlar (`SOURCES.md`, `ForAgents/*`, `logs/change_log.txt`) öncesinde `backups/snapshot_20261114_prameters/` dizinine yedeklendi; `readme.md` dosyasına dokunulmadı.
+
+## 8. `rapor.md` Güvenlik, Mimari ve Performans Denetimi Çözümleri (v4.1 / v3.9.0)
 - **DOM XSS ve URL Güvenliği (`BackendApiService.js`, `SettingsPanel.js`, `RouteInspectorPanel.js`, `ResourceItem.js`)**:
   - `normalizeBaseUrl` yalnızca `http:`/`https:` şemalarını ve yerel/resmi origin allowlist adreslerini kabul eder; protokol-göreli (`//`) ve harici origin adreslerini reddeder.
   - `SettingsPanel`, `RouteInspectorPanel` ve `ResourceItem` içindeki tüm dinamik alanlar HTML kaçışından (`escapeHtml` / `safeUrl`) geçirildi; `#inp-backend-url` yazma odağı ve kaydırma konumu korundu.
