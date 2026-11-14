@@ -276,7 +276,7 @@ namespace AstroChiefLauncher
         private static void WriteBytesResponse(NetworkStream stream, int code, string reason, string contentType, byte[] data, bool sendBody)
         {
             string headers = string.Format(
-                "HTTP/1.1 {0} {1}\r\nContent-Type: {2}\r\nContent-Length: {3}\r\nCache-Control: no-cache\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",
+                "HTTP/1.1 {0} {1}\r\nContent-Type: {2}\r\nContent-Length: {3}\r\nCache-Control: no-store, no-cache, must-revalidate\r\nPragma: no-cache\r\nExpires: 0\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",
                 code, reason, contentType, data.Length);
             byte[] headerBytes = Encoding.ASCII.GetBytes(headers);
             stream.Write(headerBytes, 0, headerBytes.Length);
