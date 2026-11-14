@@ -66,24 +66,22 @@
       const yaw = camYaw ?? 0;
       const reliefScale = enable3DTerrain === false ? 0 : (topoReliefScale ?? 1.0);
       const topo = ns.marsTopo;
+      if (topo) topo.syncWithMolaTiles(this.tileLoader);
       const radFactor = (topo && reliefScale > 0) ? topo.getRadialScaleFactor(clampedZoom, pitch, reliefScale) : 0;
-      const centerElevM = (topo && reliefScale > 0) ? topo.getElevationMeters(rotLat, rotLon) : 0;
-      const rCenter = 1.0 + centerElevM * radFactor;
       const rMaxLimb = 1.0 + 21500 * radFactor;
       const pitchRad = (pitch * Math.PI) / 180;
-      const sphereCy = cy + radius * rCenter * Math.sin(pitchRad);
       const limbRadius = radius * rMaxLimb;
-      const limbVisible = limbRadius < Math.sqrt(cx * cx + sphereCy * sphereCy) * 1.18;
+      const limbVisible = limbRadius < Math.hypot(cx, cy) * 1.18;
 
-      // 1. Dis Mars atmosferi kehribar limb isimasi (yalnizca kenar gorunurken)
+      // 1. Dis Mars atmosferi kehribar limb isimasi (kure her zaman ekranin tam ortasinda: cx, cy)
       if (limbVisible) {
-        const atmo = ctx.createRadialGradient(cx, sphereCy, limbRadius * 0.94, cx, sphereCy, limbRadius * 1.12);
+        const atmo = ctx.createRadialGradient(cx, cy, radius * 0.94, cx, cy, limbRadius * 1.10);
         atmo.addColorStop(0.0, "rgba(235, 128, 70, 0.5)");
         atmo.addColorStop(0.45, "rgba(205, 88, 38, 0.2)");
         atmo.addColorStop(1.0, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = atmo;
         ctx.beginPath();
-        ctx.arc(cx, sphereCy, limbRadius * 1.12, 0, Math.PI * 2);
+        ctx.arc(cx, cy, limbRadius * 1.10, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -92,10 +90,10 @@
         return [];
       }
 
-      const sx0 = Math.max(0, Math.floor(cx - limbRadius - 2));
-      const sy0 = Math.max(0, Math.floor(sphereCy - limbRadius - 2));
-      const sx1 = Math.min(width, Math.ceil(cx + limbRadius + 2));
-      const sy1 = Math.min(height, Math.ceil(sphereCy + limbRadius + 2));
+      const sx0 = Math.max(0, Math.floor(cx - limbRadius - 4));
+      const sy0 = Math.max(0, Math.floor(cy - limbRadius - 4));
+      const sx1 = Math.min(width, Math.ceil(cx + limbRadius + 4));
+      const sy1 = Math.min(height, Math.ceil(cy + limbRadius + 4));
       const cropW = sx1 - sx0;
       const cropH = sy1 - sy0;
 
@@ -103,11 +101,8 @@
       const fastMode = Boolean(isDragging || isInteracting);
       const layer = this.tileLoader.getLayerById(activeLayerId);
       const targetZ = this.tileLoader.computeTargetZoom({
-        zoom: clampedZoom,
-        sphereRadiusPx: radius,
-        dpr: devDpr,
-        viewMode: "3d",
-        progressiveLodRender: progressiveLodRender !== false
+        zoom: clampedZoom, sphereRadiusPx: radius, dpr: devDpr,
+        viewMode: "3d", progressiveLodRender: progressiveLodRender !== false
       }, layer);
 
       const isTainted = this.tileLoader.isAtlasTainted?.(activeLayerId);
@@ -132,8 +127,7 @@
 
         if (rayKey === this.lastRayKey && this.lastRayOk) {
           ctx.save();
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
+          ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
           ctx.drawImage(this.cropCanvas, sx0, sy0, cropW, cropH);
           ctx.restore();
           renderedRay = true;
@@ -144,11 +138,9 @@
           );
           if (ok) {
             this.cropCtx.putImageData(this.cropImgData, 0, 0);
-            this.lastRayKey = rayKey;
-            this.lastRayOk = true;
+            this.lastRayKey = rayKey; this.lastRayOk = true;
             ctx.save();
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
             ctx.drawImage(this.cropCanvas, sx0, sy0, cropW, cropH);
             ctx.restore();
             renderedRay = true;
@@ -158,53 +150,51 @@
 
       if (!renderedRay) {
         this.drawFallbackShadedSphere(
-          ctx, cx, sphereCy, radius, rotLat, rotLon, activeLayerId,
+          ctx, cx, cy, radius, rotLat, rotLon, activeLayerId,
           width, height, targetZ, fastMode, clampedZoom, pitch, yaw, reliefScale
         );
       }
 
       ctx.save();
       if (limbVisible) {
-        ctx.strokeStyle = "rgba(244, 145, 92, 0.72)";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(244, 145, 92, 0.55)";
+        ctx.lineWidth = 1.4;
         ctx.beginPath();
-        ctx.arc(cx, sphereCy, limbRadius, 0, Math.PI * 2);
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // 2. Vektor katmanlari icin on-hesaplanmis hizli 3D projeksiyon fonksiyonu
+      // 2. Vektor katmanlari icin merkezi sabit (cx, cy) 3D topografik projeksiyon fonksiyonu
       const pxPerDeg = radius / 57.2958;
       const degToRad = Math.PI / 180;
-      const phi0 = rotLat * degToRad;
-      const lam0 = rotLon * degToRad;
+      const phi0 = rotLat * degToRad, lam0 = rotLon * degToRad;
       const cosP0 = Math.cos(phi0), sinP0 = Math.sin(phi0);
       const yawRad = yaw * degToRad;
       const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+      const sinP = Math.sin(pitchRad);
 
       const project3D = (lat, lon) => {
         const elevM = (topo && reliefScale > 0) ? topo.getElevationMeters(lat, lon) : 0;
-        const rPt = 1.0 + elevM * radFactor;
-        const phi = lat * degToRad;
-        const dLam = lon * degToRad - lam0;
+        const dr = elevM * radFactor;
+        const rScale = 1.0 + dr;
+        const phi = lat * degToRad, dLam = lon * degToRad - lam0;
         const cosPhi = Math.cos(phi);
-        const east = rPt * cosPhi * Math.sin(dLam);
-        const y0 = rPt * Math.sin(phi);
-        const z0 = rPt * cosPhi * Math.cos(dLam);
+        const east = cosPhi * Math.sin(dLam);
+        const y0 = Math.sin(phi);
+        const z0 = cosPhi * Math.cos(dLam);
 
         const north = y0 * cosP0 - z0 * sinP0;
         const up = y0 * sinP0 + z0 * cosP0;
-        const nx = east * cosY - north * sinY;
+        const rx = east * cosY - north * sinY;
         const ry = east * sinY + north * cosY;
-        const du = up - rCenter;
-        const ny = ry * cosP + du * sinP;
-        const camDepth = (-ry * sinP + du * cosP) / Math.max(0.5, rPt);
+        const screenX = rx * rScale;
+        const screenY = ry * rScale + dr * sinP * Math.max(0, up);
 
         return {
-          x: cx + nx * radius,
-          y: cy - ny * radius,
-          z: camDepth,
-          visible: camDepth > -0.15 && up > -0.35,
+          x: cx + screenX * radius,
+          y: cy - screenY * radius,
+          z: up * rScale,
+          visible: up > 0.04,
           pxPerDeg
         };
       };
@@ -230,30 +220,23 @@
      */
     raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0, fastMode = false) {
       const levels = this.tileLoader.getLayerFastTables(layerId);
-      const out = this.cropImgData.data;
-      const out32 = this.cropBuf32;
+      const out = this.cropImgData.data, out32 = this.cropBuf32;
       const topo = ns.marsTopo;
       const elevGrid = (topo && reliefScale > 0) ? topo.elevGrid : null;
       const normXGrid = (topo && reliefScale > 0) ? topo.normXGrid : null;
       const normYGrid = (topo && reliefScale > 0) ? topo.normYGrid : null;
       const radFactor = (topo && reliefScale > 0) ? topo.getRadialScaleFactor(zoom, camPitch, reliefScale) : 0;
-      const centerElevM = (topo && reliefScale > 0) ? topo.getElevationMeters(rotLat, rotLon) : 0;
-      const rCenter = 1.0 + centerElevM * radFactor;
       const rMaxLimb = 1.0 + 21500 * radFactor;
       const rMaxLimbSq = rMaxLimb * rMaxLimb;
 
-      const phi0 = (rotLat * Math.PI) / 180;
-      const lam0 = (rotLon * Math.PI) / 180;
+      const phi0 = (rotLat * Math.PI) / 180, lam0 = (rotLon * Math.PI) / 180;
       const sinP0 = Math.sin(phi0), cosP0 = Math.cos(phi0);
       const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
       const yawRad = ((camYaw || 0) * Math.PI) / 180;
-      const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
-      const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-      const B = rCenter * cosP;
+      const sinP = Math.sin(pitchRad), cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
       const invTwoPi = 1 / (Math.PI * 2), invPi = 1 / Math.PI, halfPi = Math.PI * 0.5;
 
-      const invScale = 1 / scale, invRadius = 1 / radius;
-      const step = invScale * invRadius;
+      const invScale = 1 / scale, invRadius = 1 / radius, step = invScale * invRadius;
       const nxBase = (sx0 + 0.5 * invScale - cx) * invRadius;
       const nyBase = (cy - (sy0 + 0.5 * invScale)) * invRadius;
       const minLight = Math.min(0.68, Math.max(0.38, 0.38 + (zoom - 1.0) * 0.10));
@@ -268,16 +251,10 @@
       const sampleTopoBilinear = (uIn, vIn) => {
         let cu = uIn - Math.floor(uIn); if (cu < 0) cu += 1;
         const cv = vIn <= 0 ? 0 : vIn >= 0.99999 ? 0.99999 : vIn;
-        const gx = cu * 1024.0;
-        const gy = cv * 511.0;
-        const x0 = gx | 0;
-        const y0 = gy | 0;
-        const fx = gx - x0;
-        const fy = gy - y0;
-        const ix0 = x0 & 1023;
-        const ix1 = (x0 + 1) & 1023;
-        const iy0 = y0 <= 511 ? y0 : 511;
-        const iy1 = iy0 < 511 ? iy0 + 1 : 511;
+        const gx = cu * 1024.0, gy = cv * 511.0;
+        const x0 = gx | 0, y0 = gy | 0, fx = gx - x0, fy = gy - y0;
+        const ix0 = x0 & 1023, ix1 = (x0 + 1) & 1023;
+        const iy0 = y0 <= 511 ? y0 : 511, iy1 = iy0 < 511 ? iy0 + 1 : 511;
         const r0 = iy0 << 10, r1 = iy1 << 10;
         const i00 = r0 | ix0, i10 = r0 | ix1, i01 = r1 | ix0, i11 = r1 | ix1;
         const ofx = 1 - fx, ofy = 1 - fy;
@@ -291,9 +268,7 @@
       const resolveTilePixels = (rec) => {
         if (rec.pixels) return rec.pixels;
         if (rec.tainted) return null;
-        if (rec.z <= 2 || (!fastMode && rec.z <= 3)) {
-          return this.tileLoader.extractTilePixels(rec);
-        }
+        if (rec.z <= 2 || (!fastMode && rec.z <= 3)) return this.tileLoader.extractTilePixels(rec);
         this.tileLoader.enqueueDecode?.(rec, true);
         return null;
       };
@@ -329,10 +304,7 @@
         const px1 = px0 < 255 ? px0 + 1 : 255, py1 = py0 < 255 ? py0 + 1 : 255;
         let dx = fx <= px0 ? 0 : fx >= px1 ? 1 : fx - px0;
         let dy = fy <= py0 ? 0 : fy >= py1 ? 1 : fy - py0;
-        if (useHermite) {
-          dx = dx * dx * (3 - 2 * dx);
-          dy = dy * dy * (3 - 2 * dy);
-        }
+        if (useHermite) { dx = dx * dx * (3 - 2 * dx); dy = dy * dy * (3 - 2 * dy); }
         const odx = 1 - dx, ody = 1 - dy;
         const w00 = odx * ody, w10 = dx * ody, w01 = odx * dy, w11 = dx * dy;
         const i00 = ((py0 << 8) + px0) << 2, i10 = ((py0 << 8) + px1) << 2;
@@ -348,41 +320,43 @@
       };
 
       const evalRay = (nx, ny) => {
-        const A = rCenter * sinP + ny;
-        const rhoSq = nx * nx + A * A;
-        if (rhoSq >= rMaxLimbSq) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
+        const baseR2 = nx * nx + ny * ny;
+        if (baseR2 >= rMaxLimbSq) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
 
-        let rSurf = rhoSq < rCenter * rCenter ? rCenter : rMaxLimb;
-        let u = 0, v = 0, vy = 0, up = 0, topoSample = null;
-        const passes = (!fastMode && elevGrid && (rhoSq > 0.78 || camPitch > 12)) ? 2 : 1;
+        let dr = 0;
+        let rSurf = baseR2 < 1.0 ? 1.0 : rMaxLimb;
+        let up = Math.sqrt(Math.max(0, 1.0 - Math.min(1.0, baseR2)));
+        let u = 0, v = 0, vy = 0, rhoSq = baseR2, topoSample = null;
+        const passes = (!fastMode && elevGrid && (baseR2 > 0.78 || camPitch > 8)) ? 2 : 1;
 
         for (let it = 0; it < passes; it++) {
-          const disc = rSurf * rSurf - rhoSq;
-          if (disc < 0) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
-          const t = Math.sqrt(disc) - B;
-          const ry = ny * cosP - t * sinP;
-          up = rCenter + ny * sinP + t * cosP;
-          if (up <= 0.005) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
+          const rx = nx / rSurf;
+          const ry = (ny - dr * sinP * up) / rSurf;
+          rhoSq = rx * rx + ry * ry;
+          if (rhoSq > 1.0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
+          up = Math.sqrt(1.0 - rhoSq);
 
-          const east = nx * cosY + ry * sinY;
-          const north = -nx * sinY + ry * cosY;
+          const east = rx * cosY + ry * sinY;
+          const north = -rx * sinY + ry * cosY;
           const y0 = north * cosP0 + up * sinP0;
           const z0 = -north * sinP0 + up * cosP0;
-          const normSq = east * east + y0 * y0 + z0 * z0;
-          const invNorm = normSq > 0 ? 1 / Math.sqrt(normSq) : 1;
-          vy = y0 * invNorm;
-          if (vy > 1) vy = 1; else if (vy < -1) vy = -1;
+          vy = y0 > 1 ? 1 : y0 < -1 ? -1 : y0;
           const lat = Math.asin(vy);
           const lon = lam0 + Math.atan2(east, z0);
           u = (lon + Math.PI) * invTwoPi;
           v = (halfPi - lat) * invPi;
           if (elevGrid) {
             topoSample = sampleTopoBilinear(u, v);
-            rSurf = 1.0 + topoSample.h * radFactor;
+            dr = topoSample.h * radFactor;
+            rSurf = 1.0 + dr;
           }
         }
-        if (rhoSq > rSurf * rSurf) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
-        const nzNorm = Math.min(1, up / rSurf);
+        const finalRx = nx / rSurf;
+        const finalRy = (ny - dr * sinP * up) / rSurf;
+        const finalRhoSq = finalRx * finalRx + finalRy * finalRy;
+        if (finalRhoSq > 1.0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
+
+        const nzNorm = Math.sqrt(1.0 - finalRhoSq);
         let diff = Math.max(minLight, -0.34 * nx + 0.26 * ny + 0.90 * nzNorm);
         const om = 1.0 - nzNorm;
         const limb = nzNorm < 0.62 ? om * om * om : 0;
@@ -395,7 +369,7 @@
           diff = Math.max(0.22, Math.min(1.42, diff + slopeLight));
         }
 
-        return { hit: true, r2: rhoSq / (rSurf * rSurf), nx, ny, vy, u, v, diff, limb };
+        return { hit: true, r2: finalRhoSq, nx, ny, vy, u, v, diff, limb };
       };
 
       const renderPixelExact = (bx, by, pIdx) => {
@@ -632,42 +606,28 @@
               const clY = Math.max(py, Math.min(py + cellH, cy));
               if ((clX - cx) * (clX - cx) + (clY - cy) * (clY - cy) > rSqMax) continue;
 
-              const p00 = uvAt(px, py);
-              const p10 = uvAt(px + cellW, py);
-              const p01 = uvAt(px, py + cellH);
-              const p11 = uvAt(px + cellW, py + cellH);
-
+              const p00 = uvAt(px, py), p10 = uvAt(px + cellW, py), p01 = uvAt(px, py + cellH), p11 = uvAt(px + cellW, py + cellH);
               const u00 = p00.u;
               let du10 = p10.u - u00; if (du10 > 0.5) du10 -= 1; else if (du10 < -0.5) du10 += 1;
               let du01 = p01.u - u00; if (du01 > 0.5) du01 -= 1; else if (du01 < -0.5) du01 += 1;
               let du11 = p11.u - u00; if (du11 > 0.5) du11 -= 1; else if (du11 < -0.5) du11 += 1;
 
-              const uMin = u00 + Math.min(0, du10, du01, du11);
-              const uMax = u00 + Math.max(0, du10, du01, du11);
-              const vMin = Math.min(p00.v, p10.v, p01.v, p11.v);
-              const vMax = Math.max(p00.v, p10.v, p01.v, p11.v);
-
-              const ax = du10 / cellW;
-              const bx = (p10.v - p00.v) / cellW;
-              const ay = du01 / cellH;
-              const by = (p01.v - p00.v) / cellH;
+              const uMin = u00 + Math.min(0, du10, du01, du11), uMax = u00 + Math.max(0, du10, du01, du11);
+              const vMin = Math.min(p00.v, p10.v, p01.v, p11.v), vMax = Math.max(p00.v, p10.v, p01.v, p11.v);
+              const ax = du10 / cellW, bx = (p10.v - p00.v) / cellW, ay = du01 / cellH, by = (p01.v - p00.v) / cellH;
               const det = ax * by - ay * bx;
 
               if (Math.abs(det) < 1e-10 || (uMax - uMin) > 0.25) {
-                const subW = cellW * 0.25;
-                const subH = cellH * 0.25;
+                const subW = cellW * 0.25, subH = cellH * 0.25;
                 for (let syi = 0; syi < 4; syi++) {
                   for (let sxi = 0; sxi < 4; sxi++) {
                     const pm = uvAt(px + (sxi + 0.5) * subW, py + (syi + 0.5) * subH);
                     for (let z = maxZ; z >= 0; z--) {
-                      const cols = 1 << (z + 1);
-                      const rows = 1 << z;
-                      const tx = Math.min(cols - 1, Math.max(0, (pm.u * cols) | 0));
-                      const ty = Math.min(rows - 1, Math.max(0, (pm.v * rows) | 0));
+                      const cols = 1 << (z + 1), rows = 1 << z;
+                      const tx = Math.min(cols - 1, Math.max(0, (pm.u * cols) | 0)), ty = Math.min(rows - 1, Math.max(0, (pm.v * rows) | 0));
                       const img = this.tileLoader.getTileImage(activeLayerId, z, ty, tx);
                       if (!img) continue;
-                      const iw = img.width || 256;
-                      const ih = img.height || 256;
+                      const iw = img.width || 256, ih = img.height || 256;
                       const sx = Math.max(0, Math.min(iw - 6, (pm.u * cols - tx) * iw - 3));
                       const sy = Math.max(0, Math.min(ih - 6, (pm.v * rows - ty) * ih - 3));
                       ctx.drawImage(img, sx, sy, 6, 6, px + sxi * subW - 0.3, py + syi * subH - 0.3, subW + 0.6, subH + 0.6);
@@ -679,10 +639,7 @@
               }
 
               const invDet = 1 / det;
-              const mXu = by * invDet;
-              const mXv = -ay * invDet;
-              const mYu = -bx * invDet;
-              const mYv = ax * invDet;
+              const mXu = by * invDet, mXv = -ay * invDet, mYu = -bx * invDet, mYv = ax * invDet;
 
               const ix0 = Math.floor(uMin * topCols);
               const ix1 = Math.min(ix0 + 3, Math.floor(Math.max(uMin, uMax - 1e-9) * topCols));
