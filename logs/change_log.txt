@@ -195,3 +195,4 @@
 [2026-11-14 15:18:00] [UPDATE] readme.md (f689933) geregi AppConfig, StateStorageService, SettingsPanel, MarsNavigatorController ve ForAgents dokumanlarinda varsayilan gorunum 3D ("3d") yapildi ve storageKey v3_1 surumune alindi.
 [2026-11-14 15:22:00] [UPDATE] readme.md (d1e2869) geregi BackendApiService, css/inspector.css, RouteInspectorPanel ve MarsNavigatorController uzerine sag ustte 5 saniyede bir guncellenen backend gecikme (ms) gostergesi eklendi.
 [2026-11-14 15:36:00] [UPDATE] Kullanici istegiyle arayuz sadelestirildi: AppConfig (v3_2, varsayilan global mod), RouteInspectorPanel (sabit Bulundugumuz Konum + tekli Hedef Konum secici ve Haritadan Hedef Sec butonu), OverlayDrawHelper (📍 Konumumuz ve 🎯 Hedef etiketleri), SettingsPanel ve MarsNavigatorController guncellendi.
+[2026-11-14 15:53:00] [UPDATE] Tarayici onbellek sorunu icin index.html betiklerine ?v=3.2 surum parametresi ve tools/WinLauncher.cs icine Cache-Control: no-store basligi eklendi.
