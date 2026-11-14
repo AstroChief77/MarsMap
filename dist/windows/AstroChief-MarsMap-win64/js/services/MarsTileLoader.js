@@ -2,9 +2,8 @@
  * @file MarsTileLoader.js
  * @description Google Earth / Google Maps mimarisiyle tasarlanmis yuksek performansli karo piramidi yoneticisi.
  * - z=0..2 temel gezegen karolarini (42 karo = tam kure) RAM'de kalici (pinned) ve on-cozulmus (RGBA) tutar.
- * - z=3..7+ yuksek cozunurluklu karolari yalnizca kameranin baktigi frustum konisi (maks ~20 karo/seviye) icin yukler.
- * - Surukleme/yakinlastirma (isInteracting) sirasinda senkron getImageData ve ag/disk selini durdurarak 60+ FPS garanti eder.
- * - Zaman-dilimli (time-sliced) arka plan piksel cozucu kuyrugu ile sifir takilma (zero-jank) saglar.
+ * - Yakinlastirma (zoom) sirasinda z=3..5 yerel karolari kesintisiz yukleyerek piksellesmeyi onler.
+ * - Zaman-dilimli (time-sliced) arka plan piksel cozucu kuyrugu ile hem 60 FPS akicilik hem aninda netlik saglar.
  */
 
 (function (ns) {
@@ -26,14 +25,15 @@
       this.fastGrid = new Map();
       this.atlasMap = new Map();
 
-      // Google Maps / Earth tarzi genis LRU onbellek (z<=2 asla silinmez)
-      this.maxCachedTiles = 1400;
-      this.maxConcurrentLoads = 6;
+      // Genis LRU onbellek (z<=2 asla silinmez)
+      this.maxCachedTiles = 1500;
+      this.maxConcurrentLoads = 10;
       this.activeLoads = 0;
       this.loadQueue = [];
       this.decodeQueue = [];
       this.decodeRafId = null;
       this.isInteracting = false;
+      this.lastInteractEnqueueTs = 0;
       this.decodedVersion = 1;
 
       this.currentLodZoom = 0;
@@ -99,7 +99,7 @@
     }
 
     /**
-     * Kullanici haritayi suruklerken veya tekerlekle yakinlastirirken arka plan yuk/cozme islerini askiya alir
+     * Etkilesim durumunu gunceller; etkilesim bittiginde bekleyen tum yukleme/cozme kuyruklarini hizlandirir
      */
     setInteracting(flag) {
       const next = Boolean(flag);
@@ -149,7 +149,7 @@
     }
 
     /**
-     * Google Earth ekran-uzayi hata (Screen-Space Error) metrigine gore optimal hedef karo seviyesini belirler
+     * Yakinlastirma esnasinda piksellesmeyi onlemek icin erken yuksek-LOD (z=3..5+) secen hedef fonksiyonu
      */
     computeTargetZoom(viewStateOrZoom, layer, progressiveLodArg) {
       if (!layer) return 0;
@@ -168,18 +168,18 @@
 
       let z;
       if (vs.viewMode === "3d" || vs.sphereRadiusPx) {
-        if (zoom < 1.35) z = 2;
-        else if (zoom < 2.65) z = 3;
-        else if (zoom < 5.2) z = 4;
-        else if (zoom < 10.5) z = 5;
-        else if (zoom < 21.0) z = 6;
+        if (zoom < 0.92) z = 2;
+        else if (zoom < 1.55) z = 3;
+        else if (zoom < 2.75) z = 4;
+        else if (zoom < 6.8) z = 5;
+        else if (zoom < 14.0) z = 6;
         else z = 7;
       } else {
-        if (zoom < 1.35) z = 2;
-        else if (zoom < 2.7) z = 3;
-        else if (zoom < 5.4) z = 4;
-        else if (zoom < 11.0) z = 5;
-        else if (zoom < 22.0) z = 6;
+        if (zoom < 0.95) z = 2;
+        else if (zoom < 1.65) z = 3;
+        else if (zoom < 3.0) z = 4;
+        else if (zoom < 7.2) z = 5;
+        else if (zoom < 15.0) z = 6;
         else z = 7;
       }
 
@@ -187,12 +187,14 @@
     }
 
     /**
-     * Yalnizca aktif kamera frustum konisine dusen karolari oncelik sirasiyla talep eder
+     * Aktif kamera frustum konisine dusen karolari ata-piramit (z=2..targetZ) sirasiyla talep eder
      */
     requestVisibleTiles(layerId, viewState) {
       const layer = this.getLayerById(layerId);
       if (!layer) return 0;
 
+      const isDragging = Boolean(viewState.isDragging);
+      const isZooming = Boolean(viewState.isZooming);
       if (typeof viewState.isInteracting === "boolean") {
         this.setInteracting(viewState.isInteracting);
       }
@@ -213,17 +215,21 @@
         return targetZ;
       }
 
-      // 2. Surukleme/yakinlastirma esnasinda yeni z>=3 ag/disk kuyrugu baslatma (mevcut onbellek + z=2 taban ile 60 FPS ciz)
-      if (this.isInteracting) {
-        this.visibleRequested = requested;
-        return targetZ;
+      // 2. Hizli surukleme esnasinda 75ms'de bir yalnizca merkezdeki karolari guncelle; yakinlastirma (zoom) sirasinda ise kesintisiz yukle!
+      const now = performance.now();
+      if (isDragging && !isZooming) {
+        if (now - this.lastInteractEnqueueTs < 75) {
+          this.visibleRequested = requested;
+          return targetZ;
+        }
+        this.lastInteractEnqueueTs = now;
       }
 
-      // 3. Duraganlasinca eski kamera konumuna ait bekleyen z>=3 kuyrugunu temizle ve yeni frustum konisini sirala
+      // 3. Eski kamera konumuna ait bekleyen z>=3 kuyrugunu temizle ve yeni frustum konisini (z=3..targetZ) sirala
       this.loadQueue = this.loadQueue.filter((item) => item.z <= 2);
 
       for (let lz = 3; lz <= targetZ; lz++) {
-        requested += this.requestViewportWindow(layer, lz, viewState);
+        requested += this.requestViewportWindow(layer, lz, viewState, isDragging && !isZooming);
       }
 
       this.visibleRequested = requested;
@@ -232,9 +238,9 @@
     }
 
     /**
-     * Kamera merkezine, 3D egime (camPitch/camYaw) ve olcege gore frustum-sinirli karo penceresini hesaplar
+     * Kamera merkezine ve olcege gore frustum-sinirli karo penceresini merkeze yakinlik sirasiyla yukler
      */
-    requestViewportWindow(layer, z, viewState) {
+    requestViewportWindow(layer, z, viewState, compactDragWindow = false) {
       const cols = 1 << (z + 1);
       const rows = 1 << z;
       const rotLat = viewState.rotLat ?? 0;
@@ -246,17 +252,17 @@
       if (viewState.viewMode === "2d") {
         const mapW = viewState.mapWidthPx || (Math.max(vw * 0.86, 620) * zoom);
         const mapH = mapW * 0.5;
-        const maxSpanLat = (180 / rows) * 2.5;
-        const maxSpanLon = (360 / cols) * 3.0;
-        const halfLon = Math.min(180, maxSpanLon, (vw * 0.52 / mapW) * 360);
-        const halfLat = Math.min(90, maxSpanLat, (vh * 0.52 / mapH) * 180);
+        const maxSpanLat = (180 / rows) * (compactDragWindow ? 1.8 : 2.8);
+        const maxSpanLon = (360 / cols) * (compactDragWindow ? 2.2 : 3.2);
+        const halfLon = Math.min(180, maxSpanLon, (vw * 0.55 / mapW) * 360);
+        const halfLat = Math.min(90, maxSpanLat, (vh * 0.55 / mapH) * 180);
 
         const yMin = Math.max(0, Math.floor(((90 - (rotLat + halfLat)) / 180) * rows));
         const yMax = Math.min(rows - 1, Math.floor(((90 - (rotLat - halfLat)) / 180) * rows));
         const uMin = (rotLon - halfLon + 180) / 360;
         const uMax = (rotLon + halfLon + 180) / 360;
         const ixStart = Math.floor(uMin * cols);
-        const ixEnd = Math.min(ixStart + 6, Math.floor(uMax * cols));
+        const ixEnd = Math.min(ixStart + 7, Math.floor(uMax * cols));
 
         const candidates = [];
         const cyMid = ((90 - rotLat) / 180) * rows;
@@ -270,22 +276,24 @@
           }
         }
         candidates.sort((a, b) => a.dist - b.dist);
-        for (const c of candidates) {
+        const cap = Math.min(candidates.length, compactDragWindow ? 12 : 28);
+        for (let i = 0; i < cap; i++) {
+          const c = candidates[i];
           this.loadTile(layer, z, c.y, c.x, false);
         }
-        return candidates.length;
+        return cap;
       }
 
-      // 3D Kure Frustum Konisi: Her z>=3 seviyesinde yalnizca kameranin onundeki ~16-25 karoluk koniyi yukle
+      // 3D Kure Frustum Konisi
       const radius = viewState.sphereRadiusPx || (Math.min(vw, vh) * 0.41 * zoom);
       const maxHalfPx = Math.hypot(vw * 0.5, vh * 0.5);
       const screenDeg = radius > maxHalfPx
-        ? (Math.asin(Math.min(0.95, maxHalfPx / radius)) * 180) / Math.PI + 6
-        : 52;
+        ? (Math.asin(Math.min(0.96, maxHalfPx / radius)) * 180) / Math.PI + 8
+        : 58;
       const tileLatDeg = 180 / rows;
-      const maxConeDeg = tileLatDeg * 2.25;
-      const halfLatSpan = Math.min(72, screenDeg, maxConeDeg);
-      const halfLonSpan = Math.min(90, screenDeg * 1.15, maxConeDeg * 1.25);
+      const maxConeDeg = tileLatDeg * (compactDragWindow ? 1.65 : 2.5);
+      const halfLatSpan = Math.min(76, screenDeg, maxConeDeg);
+      const halfLonSpan = Math.min(96, screenDeg * 1.18, maxConeDeg * 1.3);
 
       const yMin = Math.max(0, Math.floor(((90 - (rotLat + halfLatSpan)) / 180) * rows));
       const yMax = Math.min(rows - 1, Math.floor(((90 - (rotLat - halfLatSpan)) / 180) * rows));
@@ -295,12 +303,12 @@
 
       for (let y = yMin; y <= yMax; y++) {
         const latCenter = 90 - ((y + 0.5) / rows) * 180;
-        const latCos = Math.max(0.28, Math.cos((latCenter * Math.PI) / 180));
-        const adjLonSpan = Math.min(135, halfLonSpan / latCos);
+        const latCos = Math.max(0.26, Math.cos((latCenter * Math.PI) / 180));
+        const adjLonSpan = Math.min(145, halfLonSpan / latCos);
         const uMin = (rotLon - adjLonSpan + 180) / 360;
         const uMax = (rotLon + adjLonSpan + 180) / 360;
         const ixStart = Math.floor(uMin * cols);
-        const ixEnd = Math.min(ixStart + 5, Math.floor(uMax * cols));
+        const ixEnd = Math.min(ixStart + 6, Math.floor(uMax * cols));
 
         for (let ix = ixStart; ix <= ixEnd; ix++) {
           const x = ((ix % cols) + cols) % cols;
@@ -310,7 +318,7 @@
       }
 
       candidates.sort((a, b) => a.dist - b.dist);
-      const cap = Math.min(candidates.length, 24);
+      const cap = Math.min(candidates.length, compactDragWindow ? 12 : 28);
       for (let i = 0; i < cap; i++) {
         const c = candidates[i];
         this.loadTile(layer, z, c.y, c.x, false);
@@ -348,7 +356,6 @@
       const key = `${layer.id}:${z}/${y}/${x}`;
       const existing = this.tileCache.get(key);
       if (existing) {
-        // LRU yenilemesi
         this.tileCache.delete(key);
         this.tileCache.set(key, existing);
         if (existing.status === "ready" && !existing.pixels && !existing.decodeQueued && !existing.tainted) {
@@ -388,7 +395,6 @@
     }
 
     pumpLoadQueue() {
-      if (this.isInteracting) return;
       while (this.activeLoads < this.maxConcurrentLoads && this.loadQueue.length > 0) {
         const nextRec = this.loadQueue.shift();
         if (!nextRec || nextRec.status !== "queued") continue;
@@ -412,7 +418,7 @@
         if (record.z <= 2) {
           this.drawToFallbackAtlas(record.layer, record.z, record.y, record.x, img);
         }
-        this.enqueueDecode(record, record.z <= 2);
+        this.enqueueDecode(record, record.z <= 3);
         this.pumpLoadQueue();
       };
 
@@ -432,7 +438,7 @@
     }
 
     /**
-     * Karo piksellerini ana cizim dongusunu hic bloklamadan arka planda zaman-dilimli (time-sliced) cozer
+     * Karo piksellerini ana cizim dongusunu bloklamadan arka planda zaman-dilimli (time-sliced) cozer
      */
     enqueueDecode(record, highPriority = false) {
       if (!record || record.pixels || record.decodeQueued || record.tainted || record.status !== "ready") return;
@@ -456,13 +462,12 @@
     processDecodeQueue() {
       if (this.decodeQueue.length === 0) return;
 
-      // Surukleme sirasinda yalnizca z<=2 taban karolarini coz, z>=3 karolarini surukleme bitene beklet
-      const budget = this.isInteracting ? 1 : 3;
+      // Etkilesim sirasinda kare basina 2 karo, duragan iken 6 karo cozerek aninda netlesme sagla
+      const budget = this.isInteracting ? 2 : 6;
       let decodedAny = false;
       let count = 0;
 
       while (count < budget && this.decodeQueue.length > 0) {
-        if (this.isInteracting && this.decodeQueue[0].z > 2) break;
         const rec = this.decodeQueue.shift();
         if (!rec) continue;
         rec.decodeQueued = false;
@@ -479,7 +484,7 @@
         this.onTileReady?.();
       }
 
-      if (this.decodeQueue.length > 0 && (!this.isInteracting || this.decodeQueue[0].z <= 2)) {
+      if (this.decodeQueue.length > 0) {
         this.scheduleDecodePump();
       }
     }
@@ -587,10 +592,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-8: JSDoc Google Earth/Maps mimarili frustum-sinirli ve zaman-dilimli karo piramidi tanimi.
-   - Satir 14-125: constructor, initCatalog, setInteracting ve kaynak cozucu metodlar.
-   - Satir 127-166: computeTargetZoom; ekran-uzayi hata metrigine gore optimal z=2..7 hedefini belirler.
-   - Satir 168-288: requestVisibleTiles & requestViewportWindow; z=0..2 tabanini RAM'e sabitler, z>=3 icin yalnizca kameranin onundeki ~20 karoyu merkeze yakinlik sirasiyla yukler.
-   - Satir 290-415: evictIfNeeded (z<=2 korumali 1400 karo LRU), eszamanlilik sinirli yukleme kuyrugu ve zaman-dilimli arka plan RGBA piksel cozucu (processDecodeQueue).
-   - Satir 417-505: extractTilePixels, file:// mozaik yedegi ve katman telemetri istatistikleri.
+   - Satir 1-7: JSDoc Google Earth/Maps mimarili kesintisiz yakinlastirma ve karo piramidi tanimi.
+   - Satir 13-125: constructor, initCatalog, setInteracting ve kaynak cozucu metodlar.
+   - Satir 127-166: computeTargetZoom; yakinlastirma sirasinda piksellesmeyi onleyen yuksek-LOD secimi.
+   - Satir 168-295: requestVisibleTiles & requestViewportWindow; yakinlastirma ve suruklemede merkezden disa dogru z=3..5+ karolarini akici yukler.
+   - Satir 297-425: evictIfNeeded (z<=2 korumali 1500 karo LRU), yukleme kuyrugu ve zaman-dilimli arka plan RGBA piksel cozucu.
+   - Satir 427-512: extractTilePixels, file:// mozaik yedegi ve katman telemetri istatistikleri.
    ========================================================================== */

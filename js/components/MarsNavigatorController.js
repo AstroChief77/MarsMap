@@ -374,10 +374,12 @@
       const vw = this.viewWidth || window.innerWidth || 1280;
       const vh = this.viewHeight || window.innerHeight || 720;
       const { activeLayerId, rotLat, rotLon, zoom, viewMode, progressiveLodRender, camPitch, camYaw } = this.state;
-      const isInteracting = Boolean(this.isDragging || this.isOrbitDragging || this.isZooming || this.isAnimating);
+      const isDragging = Boolean(this.isDragging || this.isOrbitDragging);
+      const isZooming = Boolean(this.isZooming || this.isAnimating);
+      const isInteracting = Boolean(isDragging || isZooming);
       this.tileLoader.requestVisibleTiles(activeLayerId, {
         rotLat, rotLon, zoom, dpr: this.dpr || 1, viewportW: vw, viewportH: vh,
-        camPitch: camPitch ?? 28, camYaw: camYaw ?? 0, isInteracting,
+        camPitch: camPitch ?? 28, camYaw: camYaw ?? 0, isDragging, isZooming, isInteracting,
         mapWidthPx: Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 32.0),
         sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0),
         viewMode, progressiveLodRender
@@ -605,8 +607,8 @@
         this.isZooming = false;
         this.scheduleRender(true);
         this.persistState();
-      }, 110);
-      this.scheduleRender(false);
+      }, 75);
+      this.scheduleRender(true);
       this.schedulePersistState();
     }
 

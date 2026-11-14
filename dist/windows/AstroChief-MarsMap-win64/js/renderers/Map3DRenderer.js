@@ -1,9 +1,9 @@
 /**
  * @file Map3DRenderer.js
- * @description Google Earth sinifi 60+ FPS 3D Kure isin izleme (raycasting) motoru.
- * - MOLA topografik kabartma ve egim isiklandirmasini 4x4 blok koselerinde hesaplayarak 16x hizlanma saglar.
- * - Surukleme esnasinda sifir getImageData blokajli progressive parent-tile yedegi ve 1-tap hizliornekleme kullanir.
- * - Duraganlasinca 4-tap bilineer yuksek cozunurluklu netlestirme ve kare-onbellekli (frame-cached) raster cizimi yapar.
+ * @description Google Earth sinifi piksellesmesiz (anti-pixelated) 60+ FPS 3D Kure isin izleme motoru.
+ * - MOLA 1024x512 yukseklik ve egim izgarasini 4-tap bilineer enterpolasyonla okuyarak yakinlastirmada bloklasmayi onler.
+ * - Hem yakinlastirma/surukleme sirasinda hem duragan modda 4-tap bilineer + Hermite yumusatmali doku suzmesi uygular.
+ * - Yuksek ara tampon cozunurlugu ve kare-onbellekli (lastRayKey) blitting ile keskin ve akici goruntu sunar.
  */
 
 (function (ns) {
@@ -116,11 +116,11 @@
       if (!isTainted && cropW > 0 && cropH > 0) {
         let scale;
         if (fastMode) {
-          scale = Math.min(0.52, Math.sqrt(64000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(0.84, Math.sqrt(260000 / Math.max(1, cropW * cropH)));
         } else if (highQualityGlobeRay) {
-          scale = Math.min(devDpr, Math.sqrt(1350000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(devDpr, Math.sqrt(1650000 / Math.max(1, cropW * cropH)));
         } else {
-          scale = Math.min(Math.min(devDpr, 1.2), Math.sqrt(560000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(Math.min(devDpr, 1.35), Math.sqrt(920000 / Math.max(1, cropW * cropH)));
         }
 
         const bw = Math.max(1, Math.round(cropW * scale));
@@ -133,7 +133,7 @@
         if (rayKey === this.lastRayKey && this.lastRayOk) {
           ctx.save();
           ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = fastMode ? "medium" : (highQualityGlobeRay ? "high" : "medium");
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(this.cropCanvas, sx0, sy0, cropW, cropH);
           ctx.restore();
           renderedRay = true;
@@ -148,7 +148,7 @@
             this.lastRayOk = true;
             ctx.save();
             ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = fastMode ? "medium" : (highQualityGlobeRay ? "high" : "medium");
+            ctx.imageSmoothingQuality = "high";
             ctx.drawImage(this.cropCanvas, sx0, sy0, cropW, cropH);
             ctx.restore();
             renderedRay = true;
@@ -226,8 +226,7 @@
     }
 
     /**
-     * Gorunur ekran kesiti uzerinde 3D MOLA topografik yukseltme + 3D kamera egimi (Pitch/Yaw) isin izleme motoru.
-     * MOLA egim ve paralaks hesabi 4x4 blok koselerinde yapilarak piksel basina 16x hizlanma saglanir.
+     * Gorunur ekran kesiti uzerinde 3D bilineer MOLA topografik kabartma + 4-tap bilineer/Hermite doku suzmeli isin izleme motoru
      */
     raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0, fastMode = false) {
       const levels = this.tileLoader.getLayerFastTables(layerId);
@@ -258,20 +257,44 @@
       const nxBase = (sx0 + 0.5 * invScale - cx) * invRadius;
       const nyBase = (cy - (sy0 + 0.5 * invScale)) * invRadius;
       const minLight = Math.min(0.68, Math.max(0.38, 0.38 + (zoom - 1.0) * 0.10));
-      const shadeBoost = Math.min(0.68, 0.32 + Math.abs(camPitch) * 0.0045) * Math.min(2.0, reliefScale || 1);
-      const parallaxU = sinY * sinP * radFactor * 0.22;
-      const parallaxV = cosY * sinP * radFactor * 0.22;
+      const shadeBoost = Math.min(0.62, 0.30 + Math.abs(camPitch) * 0.004) * Math.min(1.8, reliefScale || 1) / (1 + Math.max(0, zoom - 2.5) * 0.18);
+      const parallaxU = sinY * sinP * radFactor * 0.20;
+      const parallaxV = cosY * sinP * radFactor * 0.20;
+      const useHermite = zoom > 3.2;
 
       let lastZ = -1, lastTx = -1, lastTy = -1, lastPixels = null;
 
-      // Karo piksel erisimi: Surukleme veya z>=3 icin asla senkron getImageData ile ana thread'i bloklama!
+      // 1024x512 MOLA DEM ve egim izgarasini bilineer enterpolasyonla okuyarak yuksek zoomda bloklasmayi tamamen yok eder
+      const sampleTopoBilinear = (uIn, vIn) => {
+        let cu = uIn - Math.floor(uIn); if (cu < 0) cu += 1;
+        const cv = vIn <= 0 ? 0 : vIn >= 0.99999 ? 0.99999 : vIn;
+        const gx = cu * 1024.0;
+        const gy = cv * 511.0;
+        const x0 = gx | 0;
+        const y0 = gy | 0;
+        const fx = gx - x0;
+        const fy = gy - y0;
+        const ix0 = x0 & 1023;
+        const ix1 = (x0 + 1) & 1023;
+        const iy0 = y0 <= 511 ? y0 : 511;
+        const iy1 = iy0 < 511 ? iy0 + 1 : 511;
+        const r0 = iy0 << 10, r1 = iy1 << 10;
+        const i00 = r0 | ix0, i10 = r0 | ix1, i01 = r1 | ix0, i11 = r1 | ix1;
+        const ofx = 1 - fx, ofy = 1 - fy;
+        const w00 = ofx * ofy, w10 = fx * ofy, w01 = ofx * fy, w11 = fx * fy;
+        const h = elevGrid[i00] * w00 + elevGrid[i10] * w10 + elevGrid[i01] * w01 + elevGrid[i11] * w11;
+        const sx = (normXGrid[i00] * w00 + normXGrid[i10] * w10 + normXGrid[i01] * w01 + normXGrid[i11] * w11) * 0.007874;
+        const sy = (normYGrid[i00] * w00 + normYGrid[i10] * w10 + normYGrid[i01] * w01 + normYGrid[i11] * w11) * 0.007874;
+        return { h, sx, sy };
+      };
+
       const resolveTilePixels = (rec) => {
         if (rec.pixels) return rec.pixels;
         if (rec.tainted) return null;
-        if (!fastMode && rec.z <= 2) {
+        if (rec.z <= 2 || (!fastMode && rec.z <= 3)) {
           return this.tileLoader.extractTilePixels(rec);
         }
-        this.tileLoader.enqueueDecode?.(rec, rec.z <= 2);
+        this.tileLoader.enqueueDecode?.(rec, true);
         return null;
       };
 
@@ -301,21 +324,16 @@
         }
 
         const fx = (gx - tx) * 255.0, fy = (gy - ty) * 255.0;
-        const px0 = fx | 0, py0 = fy | 0;
-
-        if (fastMode) {
-          const i00 = ((py0 << 8) + px0) << 2;
-          const rTex = pixels[i00] * diff + limb * 140;
-          const gTex = pixels[i00 + 1] * diff + limb * 66;
-          const bTex = pixels[i00 + 2] * diff + limb * 32;
-          const ri = rTex >= 255 ? 255 : (rTex | 0), gi = gTex >= 255 ? 255 : (gTex | 0), bi = bTex >= 255 ? 255 : (bTex | 0);
-          if (out32) out32[pIdx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
-          else { const o = pIdx << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
-          return true;
-        }
-
+        const px0 = fx <= 0 ? 0 : fx >= 255 ? 255 : (fx | 0);
+        const py0 = fy <= 0 ? 0 : fy >= 255 ? 255 : (fy | 0);
         const px1 = px0 < 255 ? px0 + 1 : 255, py1 = py0 < 255 ? py0 + 1 : 255;
-        const dx = fx - px0, dy = fy - py0, odx = 1 - dx, ody = 1 - dy;
+        let dx = fx <= px0 ? 0 : fx >= px1 ? 1 : fx - px0;
+        let dy = fy <= py0 ? 0 : fy >= py1 ? 1 : fy - py0;
+        if (useHermite) {
+          dx = dx * dx * (3 - 2 * dx);
+          dy = dy * dy * (3 - 2 * dy);
+        }
+        const odx = 1 - dx, ody = 1 - dy;
         const w00 = odx * ody, w10 = dx * ody, w01 = odx * dy, w11 = dx * dy;
         const i00 = ((py0 << 8) + px0) << 2, i10 = ((py0 << 8) + px1) << 2;
         const i01 = ((py1 << 8) + px0) << 2, i11 = ((py1 << 8) + px1) << 2;
@@ -335,7 +353,7 @@
         if (rhoSq >= rMaxLimbSq) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
 
         let rSurf = rhoSq < rCenter * rCenter ? rCenter : rMaxLimb;
-        let u = 0, v = 0, vy = 0, up = 0, hSurf = 0;
+        let u = 0, v = 0, vy = 0, up = 0, topoSample = null;
         const passes = (!fastMode && elevGrid && (rhoSq > 0.78 || camPitch > 12)) ? 2 : 1;
 
         for (let it = 0; it < passes; it++) {
@@ -359,10 +377,8 @@
           u = (lon + Math.PI) * invTwoPi;
           v = (halfPi - lat) * invPi;
           if (elevGrid) {
-            let cu0 = u - Math.floor(u); if (cu0 < 0) cu0 += 1;
-            const cv0 = v <= 0 ? 0 : v >= 0.99999 ? 0.99999 : v;
-            hSurf = elevGrid[(((cv0 * 511) | 0) << 10) | ((cu0 * 1024) & 1023)];
-            rSurf = 1.0 + hSurf * radFactor;
+            topoSample = sampleTopoBilinear(u, v);
+            rSurf = 1.0 + topoSample.h * radFactor;
           }
         }
         if (rhoSq > rSurf * rSurf) return { hit: false, r2: rhoSq, nx, ny, vy: 1 };
@@ -371,15 +387,11 @@
         const om = 1.0 - nzNorm;
         const limb = nzNorm < 0.62 ? om * om * om : 0;
 
-        if (elevGrid) {
-          u -= hSurf * parallaxU;
-          v += hSurf * parallaxV;
+        if (topoSample) {
+          u -= topoSample.h * parallaxU;
+          v += topoSample.h * parallaxV;
           if (v < 0) v = 0; else if (v > 0.99999) v = 0.99999;
-          let cu = u - Math.floor(u); if (cu < 0) cu += 1;
-          const idx = (((v * 511) | 0) << 10) | ((cu * 1024) & 1023);
-          const sx = normXGrid[idx] * 0.007874;
-          const sy = normYGrid[idx] * 0.007874;
-          const slopeLight = (-0.46 * sx + 0.38 * sy) * shadeBoost + elevGrid[idx] * 0.0000045;
+          const slopeLight = (-0.46 * topoSample.sx + 0.38 * topoSample.sy) * shadeBoost + topoSample.h * 0.0000045;
           diff = Math.max(0.22, Math.min(1.42, diff + slopeLight));
         }
 
@@ -473,42 +485,6 @@
                 const { pixels, cols, rows, tx: txOff, ty: tyOff } = uniform;
                 const doLimb = c00.limb > 0 || c10.limb > 0 || c01.limb > 0 || c11.limb > 0;
 
-                if (fastMode) {
-                  for (let dy = 0; dy < 4; dy++) {
-                    const ty = dy * 0.25, oty = 1 - ty;
-                    const uL = u00 * oty + u01 * ty, uR = u10 * oty + u11 * ty;
-                    const vL = c00.v * oty + c01.v * ty, vR = c10.v * oty + c11.v * ty;
-                    const dL = c00.diff * oty + c01.diff * ty, dR = c10.diff * oty + c11.diff * ty;
-                    const lL = doLimb ? (c00.limb * oty + c01.limb * ty) : 0;
-                    const lR = doLimb ? (c10.limb * oty + c11.limb * ty) : 0;
-                    const rowPix = (by0 + dy) * bw + bx0;
-
-                    for (let dx = 0; dx < 4; dx++) {
-                      const t = dx * 0.25, ot = 1 - t;
-                      const u = uL * ot + uR * t;
-                      const v = vL * ot + vR * t;
-                      const diff = dL * ot + dR * t;
-                      let px0 = ((u * cols - txOff) * 255.0) | 0;
-                      let py0 = ((v * rows - tyOff) * 255.0) | 0;
-                      if (px0 < 0) px0 = 0; else if (px0 > 255) px0 = 255;
-                      if (py0 < 0) py0 = 0; else if (py0 > 255) py0 = 255;
-
-                      const i00 = ((py0 << 8) + px0) << 2;
-                      let r = pixels[i00] * diff;
-                      let g = pixels[i00 + 1] * diff;
-                      let b = pixels[i00 + 2] * diff;
-                      if (doLimb) {
-                        const limb = lL * ot + lR * t;
-                        r += limb * 140; g += limb * 66; b += limb * 32;
-                      }
-                      const ri = r >= 255 ? 255 : (r | 0), gi = g >= 255 ? 255 : (g | 0), bi = b >= 255 ? 255 : (b | 0);
-                      if (out32) out32[rowPix + dx] = 0xff000000 | (bi << 16) | (gi << 8) | ri;
-                      else { const o = (rowPix + dx) << 2; out[o] = ri; out[o + 1] = gi; out[o + 2] = bi; out[o + 3] = 255; }
-                    }
-                  }
-                  continue;
-                }
-
                 for (let dy = 0; dy < 4; dy++) {
                   const ty = dy * 0.25, oty = 1 - ty;
                   const uL = u00 * oty + u01 * ty, uR = u10 * oty + u11 * ty;
@@ -528,8 +504,12 @@
                     const px0 = fx <= 0 ? 0 : fx >= 255 ? 255 : (fx | 0);
                     const py0 = fy <= 0 ? 0 : fy >= 255 ? 255 : (fy | 0);
                     const px1 = px0 < 255 ? px0 + 1 : 255, py1 = py0 < 255 ? py0 + 1 : 255;
-                    const fdx = fx <= px0 ? 0 : fx >= px1 ? 1 : fx - px0;
-                    const fdy = fy <= py0 ? 0 : fy >= py1 ? 1 : fy - py0;
+                    let fdx = fx <= px0 ? 0 : fx >= px1 ? 1 : fx - px0;
+                    let fdy = fy <= py0 ? 0 : fy >= py1 ? 1 : fy - py0;
+                    if (useHermite) {
+                      fdx = fdx * fdx * (3 - 2 * fdx);
+                      fdy = fdy * fdy * (3 - 2 * fdy);
+                    }
                     const odx = 1 - fdx, ody = 1 - fdy;
                     const w00 = odx * ody, w10 = fdx * ody, w01 = odx * fdy, w11 = fdx * fdy;
 
@@ -608,8 +588,8 @@
         const spanH = yEnd - yStart;
 
         if (spanW > 0 && spanH > 0) {
-          const colsGrid = isInteracting ? 22 : 34;
-          const rowsGrid = isInteracting ? 18 : 28;
+          const colsGrid = isInteracting ? 28 : 36;
+          const rowsGrid = isInteracting ? 24 : 30;
           const cw = Math.max(16, Math.ceil(spanW / colsGrid));
           const ch = Math.max(16, Math.ceil(spanH / rowsGrid));
           const invR = 1 / radius;
@@ -642,7 +622,7 @@
           };
 
           ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = isInteracting ? "medium" : "high";
+          ctx.imageSmoothingQuality = "high";
 
           for (let py = yStart; py < yEnd; py += ch) {
             const cellH = Math.min(ch, yEnd - py);
@@ -840,10 +820,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-7: JSDoc Google Earth sinifi 60+ FPS 4x4 blok enterpolasyonlu 3D motor tanimi.
+   - Satir 1-7: JSDoc piksellesmesiz (anti-pixelated) 60+ FPS 4x4 blok enterpolasyonlu 3D motor tanimi.
    - Satir 13-47: constructor ve ensureCropBuffer; Uint32 tamponu ve kare-onbellek (lastRayKey) degiskenlerini yonetir.
-   - Satir 49-236: render; kare-onbellek kontrolu, 3D raycast ve on-hesaplanmis trigonometrili vektor projeksiyonunu calistirir.
-   - Satir 238-515: raycastSphereCrop; MOLA topografik kabartmayi 4x4 blok koselerinde hesaplar, suruklemede 1-tap hizli okuma ve duraganda 4-tap bilineer suzme uygular.
-   - Satir 517-705: drawFallbackShadedSphere; file:// ortaminda getImageData olmadan z=0..targetZ karolarini 3D topografyayla cizer.
-   - Satir 707-768: drawLoadingSphere, drawGraticule3D ve drawNomenclature3D yardimcilari.
+   - Satir 49-236: render; yuksek cozunurluklu ara tampon, kare-onbellek kontrolu ve 3D vektor projeksiyonunu calistirir.
+   - Satir 238-498: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear) ve dokuyu 4-tap bilineer/Hermite suzmeyle cizer.
+   - Satir 500-688: drawFallbackShadedSphere; file:// ortaminda getImageData olmadan z=0..targetZ karolarini 3D topografyayla cizer.
+   - Satir 690-752: drawLoadingSphere, drawGraticule3D ve drawNomenclature3D yardimcilari.
    ========================================================================== */
