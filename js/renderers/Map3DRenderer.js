@@ -375,7 +375,7 @@
           diff = Math.max(0.22, Math.min(1.42, diff + slopeLight));
         }
 
-        return { hit: true, r2: finalRhoSq, nx, ny, vy, u, v, diff, limb };
+        return { hit: true, r2: baseR2, nx, ny, vy, u, v, diff, limb };
       };
 
       const renderPixelExact = (bx, by, pIdx) => {
