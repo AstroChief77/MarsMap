@@ -55,7 +55,7 @@
       ctx.clearRect(0, 0, width, height);
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 22.0);
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0);
       const pitch = Math.max(0, Math.min(72, camPitch ?? 28));
       const yaw = camYaw ?? 0;
       const reliefScale = enable3DTerrain === false ? 0 : (topoReliefScale ?? 1.0);
@@ -110,11 +110,11 @@
       if (!isTainted && cropW > 0 && cropH > 0) {
         let scale;
         if (fastMode) {
-          scale = Math.min(0.62, Math.sqrt(120000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(0.45, Math.sqrt(52000 / Math.max(1, cropW * cropH)));
         } else if (highQualityGlobeRay) {
-          scale = Math.min(devDpr, Math.sqrt(1450000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(devDpr, Math.sqrt(1350000 / Math.max(1, cropW * cropH)));
         } else {
-          scale = Math.min(Math.min(devDpr, 1.25), Math.sqrt(780000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(Math.min(devDpr, 1.15), Math.sqrt(480000 / Math.max(1, cropW * cropH)));
         }
 
         const bw = Math.max(1, Math.round(cropW * scale));
@@ -123,7 +123,7 @@
 
         const ok = this.raycastSphereCrop(
           activeLayerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius,
-          scale, rotLat, rotLon, zoom, false, pitch, yaw, reliefScale
+          scale, rotLat, rotLon, zoom, false, pitch, yaw, reliefScale, fastMode
         );
         if (ok) {
           this.cropCtx.putImageData(this.cropImgData, 0, 0);
@@ -181,7 +181,7 @@
     /**
      * Gorunur ekran kesiti uzerinde 3D MOLA topografik yukseltme + 3D kamera egimi (Pitch/Yaw) isin izleme motoru
      */
-    raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0) {
+    raycastSphereCrop(layerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius, scale, rotLat, rotLon, zoom, exactAll, camPitch = 0, camYaw = 0, reliefScale = 1.0, fastMode = false) {
       const levels = this.tileLoader.getLayerFastTables(layerId);
       const out = this.cropImgData.data;
       const out32 = this.cropBuf32;
@@ -284,7 +284,7 @@
 
         let rSurf = rhoSq < rCenter * rCenter ? rCenter : rMaxLimb;
         let u = 0, v = 0, vy = 0, up = 0;
-        const passes = (elevGrid && (rhoSq > 0.78 || camPitch > 6)) ? 2 : 1;
+        const passes = (!fastMode && elevGrid && (rhoSq > 0.78 || camPitch > 10)) ? 2 : 1;
 
         for (let it = 0; it < passes; it++) {
           const disc = rSurf * rSurf - rhoSq;

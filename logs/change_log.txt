@@ -249,3 +249,8 @@
 [2026-11-14 17:34] 3D Açı (camYaw) Değişkenken Sürükleme Yönü Düzeltmesi (v3.5)
 - js/components/MarsNavigatorController.js: `mousemove` 3D sürükleme hesabındaki `sin(camYaw)` işaret hatası (`dEast = -dx*cosY + dy*sinY`, `dNorth = dx*sinY + dy*cosY`) ve enlem kosinüs ölçeklemesi düzeltildi.
 - index.html: Önbellek kırıcı `?v=3.5` sürümüne yükseltildi.
+
+[2026-11-14 17:38] Yakınlaştırma Sınırı Artışı & 3D Render Performans Optimizasyonu (v3.6)
+- js/components/MarsNavigatorController.js: Maksimum yakınlaştırma sınırı 3D'de `80x`, 2D'de `32x` olarak yükseltildi; tekerlek ve `+/-` yakınlaştırma adımları hızlandırıldı.
+- js/renderers/Map3DRenderer.js: Sürükleme/yakınlaştırma (`fastMode`) sırasında dinamik piksel bütçesi `52.000` piksele düşürülüp 1-pass ışın izleme uygulanarak akıcılık artırıldı; durgun çözünürlük `480.000` piksel ile optimize edildi.
+- index.html: Önbellek kırıcı `?v=3.6` sürümüne yükseltildi.
