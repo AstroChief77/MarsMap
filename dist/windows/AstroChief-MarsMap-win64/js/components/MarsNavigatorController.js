@@ -447,8 +447,8 @@
         this.dragX = e.clientX; this.dragY = e.clientY;
 
         if (this.isOrbitDragging) {
-          this.state.camYaw = ((this.state.camYaw || 0) + dx * 0.42 + 360) % 360;
-          this.state.camPitch = Math.max(0, Math.min(68, (this.state.camPitch ?? 28) - dy * 0.35));
+          this.state.camYaw = ((this.state.camYaw || 0) + dx * 0.28 + 360) % 360;
+          this.state.camPitch = Math.max(0, Math.min(68, (this.state.camPitch ?? 28) - dy * 0.24));
           const tiltBtn = document.getElementById("btn-3d-tilt");
           if (tiltBtn) tiltBtn.textContent = `${Math.round(this.state.camPitch)}°`;
           this.scheduleRender(false); this.schedulePersistState();
@@ -461,10 +461,10 @@
           const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(this.state.zoom, 0.55), 80.0);
           const degPerPx = 57.29578 / Math.max(80, radius);
           const pitchRad = (Math.max(0, Math.min(72, this.state.camPitch ?? 28)) * Math.PI) / 180;
-          const yFore = Math.max(0.55, 1.0 - 0.36 * Math.sin(pitchRad));
+          const cosP = Math.max(0.38, Math.cos(pitchRad));
           const yawRad = ((this.state.camYaw || 0) * Math.PI) / 180;
           const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-          const dx1 = -dx, dy1 = dy / yFore;
+          const dx1 = -dx, dy1 = dy / cosP;
           const dEast = dx1 * cosY + dy1 * sinY;
           const dNorth = -dx1 * sinY + dy1 * cosY;
           const cosLat = Math.max(0.35, Math.cos((this.state.rotLat * Math.PI) / 180));
