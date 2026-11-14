@@ -1,0 +1,14 @@
+# Derleme ciktilari ve arsiv paketleri (tools/build_tool.ps1 / build.py ile uretilir)
+dist/
+
+# Yerel duzenleme yedekleri ve calisma zamani sunucu/otomatik-dagitim loglari
+backups/
+logs/autodeploy_lan.log
+logs/autodeploy_lan.sha
+logs/server_*.log
+
+# Rust derleme onbellegi
+backend/target/
+
+# Yerelde indirilen yuksek zoom karolari (z>=3; Git yalnizca temel z=0..2 ve krater karolarini tutar)
+data/tiles/*/[3-9]/

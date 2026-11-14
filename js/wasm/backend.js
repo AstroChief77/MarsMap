@@ -204,7 +204,7 @@ export { initSync, __wbg_init as default };
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-35: Rust ind_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y, begin_oxy) wasm-bindgen sarmalayicisi.
+   - Satir 1-35: Rust find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y, begin_oxy) wasm-bindgen sarmalayicisi.
    - Satir 36-159: Wasm bellek okuma/yazma, dizi aktarimi ve runtime yardimcilari.
    - Satir 160-202: WebAssembly modul yukleme ve eszamanli/eszamansiz init cikislari.
    ========================================================================== */

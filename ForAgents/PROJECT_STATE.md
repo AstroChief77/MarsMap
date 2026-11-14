@@ -28,7 +28,7 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 |---|---|---|
 | `readme.md` dokunulmazlığı | Korundu | `git diff readme.md` temiz |
 | Değişiklik öncesi yedek (`backups/`) | Uygulandı | `backups/snapshot_20261114_rapor_fixes/` |
-| Her dosya < 800 satır & OOP | Uygulandı | Tüm modüller < 800 satır (`MarsNavigatorController.js`: 776, `Map3DRenderer.js`: 638) |
+| Her dosya < 800 satır & OOP | Uygulandı | Tüm modüller < 800 satır (`MarsNavigatorController.js`: 615, `BackendApiService.js`: 638, `Map3DRenderer.js`: 638) |
 | Alt satır/işlev özeti & loglama | Uygulandı | Tüm kaynak kod dosyalarının sonunda ve `logs/change_log.txt` |
 | %60 Beyaz / %30 Siyah / %10 Kırmızı + Public Sans Web | Uygulandı | `css/variables.css`, `css/fonts.css`, `css/inspector.css`, `css/chat.css` |
 | İşletim sistemine göre derleme + Masaüstü | Uygulandı | `tools/build.py`, `build.sh`, `tools/build_tool.ps1` |
@@ -51,7 +51,7 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 - **Doğrudan Fotoğraf Kartı Etkileşimi (`SatellitesPanel.js`, `css/satellites_panel.css`)**:
   - `2D`/`3D`, `Asit Yağmuru`, `Kum Fırtınası` ve `Radyasyon / Foton Kuşağı` kartlarının tamamı doğrudan resme basılarak açılıp kapanır.
 - **< 800 Satır Kuralı Uyumu**:
-  - `Map3DRenderer.js` ve `Map3DFallbackRenderer.js` modüler olarak ayrıldı; `MarsNavigatorController.js` 776 satıra indirildi.
+  - `Map3DRenderer.js` ve `Map3DFallbackRenderer.js` modüler olarak ayrıldı; `MarsNavigatorController.js` `MarsMapInteractionHelper.js` bölünmesiyle 615 satıra, `BackendApiService.js` `MolaAStarGridHelper.js` bölünmesiyle 638 satıra indirildi.
 
 ## 7. Gerçekçi Görev ve Fizik Parametreleri Belgesi (`Prameters.md`)
 - **Yeni Kök Referans Dosyası (`Prameters.md`)**: `readme.md` kuralları okunarak, NASA standartları (`NASA-STD-3001`, `xEMU/Apollo PLSS`, `NASA SEV / TM-20220006678`, `Perseverance/Curiosity`, `Mars Fact Sheet`, `Curiosity RAD / OCHMO-TB-020`) doğrultusunda dakika ve saat bazlı gerçekçi görev parametreleri tanımlandı:
@@ -88,3 +88,13 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - `SimulationChartRenderer`: Gerçek zamanlı `O₂ %`, `Enerji %`, `MOLA Rakım`, `%20` kritik eşik çizgisi ve canlı zaman imleci çizer.
   - `BackendApiService.js`: WASM mutlak yol çözümü `document.baseURI` tabanlı hale getirilerek `/demo/` alt dizininde de sorunsuz çalışır duruma getirildi.
   - `tools/build_tool.ps1`, `tools/build.py` ve `.github/workflows/deploy-mars-web.yml`: `demo` dizini paketlemeye ve `< 800` satır doğrulamasına dahil edildi; kilitli çalışan `MarsMap-win64.exe` için geçici derleme hedefi koruması eklendi.
+
+## 11. Büyük Temizlik, Runtime / CI Düzeltmeleri & Git Hijyeni (`v4.3.1`)
+- **Rota Hatası ve `< 800` Satır Modüler Bölünme (`MolaAStarGridHelper.js`, `MarsMapInteractionHelper.js`, `BackendApiService.js`, `MarsNavigatorController.js`)**:
+  - `BackendApiService` üzerinde eksik olan `shortestDeltaLon` metodu tamamlandı ve yerel A* yedeğinde (`solvePathLocalAStar`) başlangıç `avaible_oxy` hesabı düzeltildi.
+  - MOLA koridor örneklemesi / küresel A* ızgara mantığı `MolaAStarGridHelper.js` (221 satır), tuval/kamera etkileşim mantığı ise `MarsMapInteractionHelper.js` (271 satır) olarak ayrıldı; `BackendApiService.js` 638 satıra ve `MarsNavigatorController.js` 615 satıra düşürüldü.
+- **CI `validate-web` & `index.html` UTF-8 Düzeltmeleri**:
+  - `data/tiles/manifest.json` repoda izlenen gerçek **465** yerel karoyla (`120 + 120 + 105 + 120`) senkronize edilerek CI karo eksikliği hatası giderildi.
+  - `index.html` içindeki mojibake karakterler temizlendi, başlık `v4.3` olarak güncellendi, yeni yardımcı betikler `index.html` ve `demo/index.html` içine bağlandı ve `js/wasm/*.d.ts` dosya sonu açıklamaları tamamlandı.
+- **Git Deposu & Derleme Hijyeni (`.gitignore`, `dist/`, `backups/`)**:
+  - Takılı kalmış `.git/rebase-merge` durumu `git rebase --quit` ile temizlendi; `.gitignore` eklendi ve `dist/` ile `backups/` yerel diskteki kopyalar korunarak Git indeksinden (`git rm -r --cached`) çıkarıldı.

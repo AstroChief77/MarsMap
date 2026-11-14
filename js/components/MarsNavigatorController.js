@@ -53,6 +53,7 @@
       this.zoomSettleTimer = null; this.dragSettleTimer = null; this.persistTimer = null; this.routeDebounceTimer = null;
       this.latencyTimer = null; this.toastTimer = null; this.lastTelemetryText = "";
       this.lastFpsVal = -1; this.lastHoverTs = 0; this.lastTelemTs = 0;
+      this.interactionHelper = ns.MarsMapInteractionHelper ? new ns.MarsMapInteractionHelper(this) : null;
 
       this.initUiPanels();
     }
@@ -188,11 +189,9 @@
 
     /** ZORUNLU KURAL: Sol ust Ayarlar -> 1. Secenek Factory Reset */
     performFactoryReset() {
-      if (this.animFrame) cancelAnimationFrame(this.animFrame);
+      this.interactionHelper?.cancelAll();
       if (this.renderRafId) cancelAnimationFrame(this.renderRafId);
-      clearTimeout(this.zoomSettleTimer);
-      this.animFrame = null; this.renderRafId = null;
-      this.isDragging = false; this.isOrbitDragging = false; this.isZooming = false; this.isAnimating = false;
+      this.renderRafId = null;
       this.pickMode = null;
       this.demoService?.resetSilent?.();
       if (this.canvas) this.canvas.style.cursor = "";
@@ -429,191 +428,11 @@
       this.fpsGuard.recordRenderCost(performance.now() - t0);
     }
 
-    bindCanvasEvents() {
-      if (!this.canvas) return;
-      this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-      this.canvas.addEventListener("mousedown", (e) => {
-        if (this.animFrame) cancelAnimationFrame(this.animFrame);
-        clearTimeout(this.dragSettleTimer);
-        this.animFrame = null; this.isAnimating = false; this.isDragging = true;
-        this.isOrbitDragging = (e.button === 2 || e.shiftKey) && this.state.viewMode === "3d";
-        this.hasMoved = false; this.dragX = e.clientX; this.dragY = e.clientY;
-        this.velLat = 0; this.velLon = 0;
-      });
-
-      this.canvas.addEventListener("mousemove", (e) => {
-        if (!this.isDragging) { this.updateHoverCoords(e); return; }
-        const dx = e.clientX - this.dragX, dy = e.clientY - this.dragY;
-        if (dx === 0 && dy === 0) return;
-        if (dx * dx + dy * dy > 4) this.hasMoved = true;
-        this.dragX = e.clientX; this.dragY = e.clientY;
-
-        if (this.isOrbitDragging) {
-          this.state.camYaw = ((this.state.camYaw || 0) + dx * 0.28 + 360) % 360;
-          this.state.camPitch = Math.max(0, Math.min(68, (this.state.camPitch ?? 28) - dy * 0.24));
-          const tiltBtn = document.getElementById("btn-3d-tilt");
-          if (tiltBtn) tiltBtn.textContent = `${Math.round(this.state.camPitch)}°`;
-          this.scheduleRender(false); this.schedulePersistState();
-          return;
-        }
-
-        const vw = this.viewWidth || 1280, vh = this.viewHeight || 720;
-        let stepLon, stepLat;
-        if (this.state.viewMode === "3d") {
-          const radius = Math.min(vw, vh) * 0.41 * Math.min(Math.max(this.state.zoom, 0.55), 80.0);
-          const degPerPx = 57.29578 / Math.max(80, radius);
-          const pitchRad = (Math.max(0, Math.min(72, this.state.camPitch ?? 28)) * Math.PI) / 180;
-          const cosP = Math.max(0.38, Math.cos(pitchRad));
-          const yawRad = ((this.state.camYaw || 0) * Math.PI) / 180;
-          const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-          const dx1 = -dx, dy1 = dy / cosP;
-          const dEast = dx1 * cosY + dy1 * sinY;
-          const dNorth = -dx1 * sinY + dy1 * cosY;
-          const cosLat = Math.max(0.35, Math.cos((this.state.rotLat * Math.PI) / 180));
-          stepLon = (dEast / cosLat) * degPerPx;
-          stepLat = dNorth * degPerPx;
-        } else {
-          const mapW = Math.max(vw * 0.86, 620) * Math.min(Math.max(this.state.zoom, 0.65), 32.0);
-          stepLon = (-dx / mapW) * 360;
-          stepLat = (dy / (mapW * 0.5)) * 180;
-        }
-        this.velLon = stepLon * 0.42; this.velLat = stepLat * 0.42;
-        this.state.rotLon = this.normalizeLon(this.state.rotLon + stepLon);
-        this.state.rotLat = Math.max(-78, Math.min(78, this.state.rotLat + stepLat));
-        this.hoverCoords.lat = this.state.rotLat;
-        this.hoverCoords.lon = this.state.rotLon;
-        this.scheduleRender(false);
-      });
-
-      this.canvas.addEventListener("wheel", (e) => {
-        e.preventDefault();
-        const clampedDelta = Math.max(-160, Math.min(160, e.deltaY));
-        this.applyZoom(this.state.zoom * Math.pow(1.002, -clampedDelta));
-      }, { passive: false });
-
-      this.canvas.addEventListener("click", (e) => {
-        if (this.hasMoved) return;
-        const rect = this.canvas.getBoundingClientRect();
-        const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
-
-        const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
-        if (hit && !this.pickMode) { this.flyToCraterById(hit.crater.id); return; }
-        if (this.pickMode !== "destination") return;
-
-        const geo = this.pixelToGeo(cx, cy);
-        if (!geo.insideMap) {
-          this.showToast(this.t("toastClickMarsSurface"), true);
-          return;
-        }
-        this.pickMode = null; this.canvas.style.cursor = "";
-        this.state.customDestination = this.routePlanner.geo.makeEndpointPoint("picked-dest", this.t("pickedDestName"), geo.lat, geo.lon);
-        this.state.useCustomCoordinates = true; this.state.routeScope = "global";
-        this.backendRoutes = null;
-        this.persistState(); this.refreshAll();
-        this.showToast(this.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
-        this.scheduleBackendRouteFetch(20);
-      });
-    }
-
-    bindGlobalEvents() {
-      window.addEventListener("mouseup", () => {
-        if (!this.isDragging) return;
-        const wasOrbit = this.isOrbitDragging;
-        this.isDragging = false; this.isOrbitDragging = false;
-        if (!wasOrbit) this.startInertia();
-        else { this.scheduleRender(true); this.schedulePersistState(); }
-      });
-
-      window.addEventListener("keydown", (e) => {
-        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
-        if (tag === "input" || tag === "select" || tag === "textarea") return;
-        const k = e.key.toLowerCase();
-        const step = Math.max(0.15, 4.5 / Math.max(1, this.state.zoom));
-        if (k === "w" || e.key === "ArrowUp") this.state.rotLat = Math.max(-78, Math.min(78, this.state.rotLat + step));
-        else if (k === "s" || e.key === "ArrowDown") this.state.rotLat = Math.max(-78, Math.min(78, this.state.rotLat - step));
-        else if (k === "a" || e.key === "ArrowLeft") this.state.rotLon = this.normalizeLon(this.state.rotLon - step);
-        else if (k === "d" || e.key === "ArrowRight") this.state.rotLon = this.normalizeLon(this.state.rotLon + step);
-        else if (k === "r") { this.state.camPitch = Math.min(68, (this.state.camPitch ?? 28) + 5); this.renderBottomRight(); }
-        else if (k === "f") { this.state.camPitch = Math.max(0, (this.state.camPitch ?? 28) - 5); this.renderBottomRight(); }
-        else if (k === "c" || k === " ") {
-          const c = this.getActiveCrater();
-          this.state.camPitch = 28; this.state.camYaw = 0;
-          this.renderBottomRight(); this.animateTo(c.coordinates.lat, c.coordinates.lon, 1.05);
-          return;
-        } else return;
-        this.scheduleRender(true); this.schedulePersistState();
-      });
-
-      document.addEventListener("click", (e) => {
-        if (!e.target.closest("#settings-anchor")) this.settingsPanel.close();
-        if (!e.target.closest("#bottom-left-dock")) this.satellitesPanel.close();
-      });
-
-      window.addEventListener("resize", () => { this.resizeCanvas(); this.scheduleRender(true); });
-    }
-
-    startInertia() {
-      if (this.animFrame) cancelAnimationFrame(this.animFrame);
-      const step = () => {
-        if (Math.abs(this.velLon) < 0.03 && Math.abs(this.velLat) < 0.03) {
-          this.isAnimating = false; this.animFrame = null;
-          this.scheduleRender(true); this.schedulePersistState();
-          return;
-        }
-        this.isAnimating = true;
-        this.state.rotLon = this.normalizeLon(this.state.rotLon + this.velLon);
-        this.state.rotLat = Math.max(-78, Math.min(78, this.state.rotLat + this.velLat));
-        this.velLon *= 0.82; this.velLat *= 0.82;
-        this.scheduleRender(false);
-        this.animFrame = requestAnimationFrame(step);
-      };
-      this.animFrame = requestAnimationFrame(step);
-    }
-
-    animateTo(targetLat, targetLon, targetZoom) {
-      if (this.animFrame) cancelAnimationFrame(this.animFrame);
-      clearTimeout(this.zoomSettleTimer);
-      this.isZooming = false;
-      const maxZ = this.state.viewMode === "3d" ? 80.0 : 32.0;
-      const clampedZoom = Math.min(Math.max(targetZoom, 0.65), maxZ);
-      let dLon = targetLon - this.state.rotLon;
-      if (dLon > 180) dLon -= 360; else if (dLon < -180) dLon += 360;
-
-      const startLat = this.state.rotLat, startLon = this.state.rotLon, startZoom = this.state.zoom;
-      const tStart = performance.now(), duration = 420;
-      this.isAnimating = true;
-
-      const tick = (now) => {
-        const t = Math.min(1, (now - tStart) / duration);
-        const ease = 1 - Math.pow(1 - t, 3);
-        this.state.rotLat = startLat + (targetLat - startLat) * ease;
-        this.state.rotLon = this.normalizeLon(startLon + dLon * ease);
-        this.state.zoom = startZoom + (clampedZoom - startZoom) * ease;
-        if (t < 1) {
-          this.scheduleRender(false);
-          this.animFrame = requestAnimationFrame(tick);
-        } else {
-          this.isAnimating = false; this.animFrame = null;
-          this.scheduleRender(true); this.persistState();
-        }
-      };
-      this.animFrame = requestAnimationFrame(tick);
-    }
-
-    applyZoom(nextZoom) {
-      const maxZ = this.state.viewMode === "3d" ? 80.0 : 32.0;
-      this.state.zoom = Math.min(Math.max(nextZoom, 0.65), maxZ);
-      this.isZooming = true;
-      clearTimeout(this.zoomSettleTimer);
-      this.zoomSettleTimer = setTimeout(() => {
-        this.isZooming = false;
-        this.scheduleRender(true);
-        this.persistState();
-      }, 75);
-      this.scheduleRender(true);
-      this.schedulePersistState();
-    }
+    bindCanvasEvents() { this.interactionHelper?.bindCanvasEvents(); }
+    bindGlobalEvents() { this.interactionHelper?.bindGlobalEvents(); }
+    startInertia() { this.interactionHelper?.startInertia(); }
+    animateTo(targetLat, targetLon, targetZoom) { this.interactionHelper?.animateTo(targetLat, targetLon, targetZoom); }
+    applyZoom(nextZoom) { this.interactionHelper?.applyZoom(nextZoom); }
 
     normalizeLon(lon) { return ((lon + 180) % 360 + 360) % 360 - 180; }
 
@@ -785,12 +604,12 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-10: JSDoc ve IIFE modul tanimi.
-   - Satir 12-60: constructor ve t; 9 dilli i18n, HiDPI olcek, rAF birlestirme, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
-   - Satir 62-145: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme, Demo Modu panellerini ve 9 dil gecisini yonetir.
-   - Satir 147-295: applyGuardedSetting, performFactoryReset, applyDemoScenario ve veri/rota/UI yenileme yardimcilari.
-   - Satir 297-415: renderBottomRight, updateTelemetryBar, requestTilesForView ve drawMap; yerellestirilmis telemetri ve HiDPI 2D/3D cizim.
-   - Satir 417-595: bindCanvasEvents, bindGlobalEvents, startInertia, animateTo ve applyZoom; yalnizca pickMode aktifken hedef secen guvenli tiklama ve 80x 3D zoom.
-   - Satir 597-776: pixelToGeo, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
+   - Satir 1-16: JSDoc ve IIFE modul tanimi.
+   - Satir 17-62: constructor ve t; 9 dilli i18n, HiDPI olcek, MarsMapInteractionHelper, Rust Backend/WASM istemcisi ve 10s FPS koruma sistemini kurar.
+   - Satir 63-167: initUiPanels, init, getLocalizedCraters, changeLanguage ve scheduleRender; Ayarlar, Uydular, Rota Inceleme, Demo Modu panellerini ve 9 dil gecisini yonetir.
+   - Satir 168-286: applyGuardedSetting, performFactoryReset, switchToGlobalRouteScope, applyDemoScenario ve rota/tehlike demeti yardimcilari.
+   - Satir 287-429: renderUi, renderBottomRight, updateTelemetryBar, requestTilesForView ve drawMap; yerellestirilmis telemetri ve HiDPI 2D/3D cizim.
+   - Satir 431-457: MarsMapInteractionHelper delegasyonlari (bindCanvasEvents, bindGlobalEvents, animateTo, applyZoom), resizeCanvas ve pixelToGeo.
+   - Satir 458-603: handlePresetEndpointChange, togglePickMode, Rust Backend/WASM senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
    ========================================================================== */
 

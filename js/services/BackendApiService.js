@@ -14,6 +14,7 @@
       this.wasmLoaded = false;
       this.wasmFindPath = null;
       this.wasmInitPromise = null;
+      this.gridHelper = ns.MolaAStarGridHelper ? new ns.MolaAStarGridHelper() : null;
     }
 
     /** Derlenmis Rust WebAssembly modulunu (./js/wasm/backend.js -> backend_bg.wasm) yukler */
@@ -316,191 +317,41 @@
       }
     }
 
-    /** (±180 boylam atlamali) en kisa boylam farkini ve normalize boylami doner */
+    /** (±180 boylam atlamali) normalize boylami ve en kisa boylam farkini MolaAStarGridHelper uzerinden doner */
     wrapLon(lon) {
-      return ((((lon + 180) % 360) + 360) % 360) - 180;
+      return this.gridHelper ? this.gridHelper.wrapLon(lon) : ((((Number(lon) || 0) + 180) % 360) + 360) % 360 - 180;
+    }
+
+    /** Iki boylam arasindaki (-180, 180] en kisa acisal farki hesaplar */
+    shortestDeltaLon(fromLon, toLon) {
+      return this.gridHelper ? this.gridHelper.shortestDeltaLon(fromLon, toLon) : ((((Number(toLon) - Number(fromLon)) + 540) % 360) + 360) % 360 - 180;
     }
 
     /** Kure yuzeyinde kosinus duzeltmeli yaklasik acisal mesafe (derece) */
     sphericalAngleDeg(lat1, lon1, lat2, lon2) {
-      let dLon = lon2 - lon1;
-      if (dLon > 180) dLon -= 360;
-      else if (dLon < -180) dLon += 360;
+      if (this.gridHelper) return this.gridHelper.sphericalAngleDeg(lat1, lon1, lat2, lon2);
       const cosMid = Math.cos(((lat1 + lat2) * 0.5 * Math.PI) / 180);
-      return Math.hypot(lat2 - lat1, dLon * Math.max(0.15, cosMid));
+      return Math.hypot(lat2 - lat1, this.shortestDeltaLon(lon1, lon2) * Math.max(0.15, cosMid));
     }
 
-    /** (x, y) Rust izgara hucresini antimeridyen-guvenli koridor (lat, lon) koordinatina donusturur */
     gridCellToGeo(x, y, width, height, orig, dest, lateralFactor = 0.38) {
-      const denomU = Math.max(1, (width - 1) + (height - 1));
-      const denomV = Math.max(1, width - 1);
-      const u = (x + y) / denomU;
-      const v = (x - y) / denomV;
-      const dLat = dest.lat - orig.lat;
-      let dLon = dest.lon - orig.lon;
-      if (dLon > 180) dLon -= 360;
-      else if (dLon < -180) dLon += 360;
-
-      const perpLat = -dLon * lateralFactor;
-      const perpLon = dLat * lateralFactor;
-      const lat = Math.max(-89.8, Math.min(89.8, orig.lat + dLat * u + perpLat * v));
-      const lon = this.wrapLon(orig.lon + dLon * u + perpLon * v);
-      return { lat, lon, u, v };
+      if (!this.gridHelper) throw new Error("MolaAStarGridHelper yuklenmedi");
+      return this.gridHelper.gridCellToGeo(x, y, width, height, orig, dest, lateralFactor);
     }
 
-    /** Verilen (lat, lon) koridorunda gercek NASA MOLA DEM yukseklik ve egim izgarasini ornekler */
     sampleMolaCorridor(orig, dest, width, height, lateralFactor = 0.38) {
-      const total = width * height;
-      const elevMeters = new Float32Array(total);
-      const slopeDegs = new Float32Array(total);
-      const lats = new Float32Array(total);
-      const lons = new Float32Array(total);
-      const topo = ns.marsTopo || null;
-      const hasTele = topo && typeof topo.getSurfaceTelemetry === "function";
-      const hasElev = topo && typeof topo.getElevationMeters === "function";
-      let minElevM = Infinity;
-      let maxElevM = -Infinity;
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const idx = y * width + x;
-          const { lat, lon } = this.gridCellToGeo(x, y, width, height, orig, dest, lateralFactor);
-          const tele = hasTele
-            ? topo.getSurfaceTelemetry(lat, lon)
-            : { elevM: hasElev ? topo.getElevationMeters(lat, lon) : 0, slopeDeg: 2.0 };
-          elevMeters[idx] = tele.elevM;
-          slopeDegs[idx] = tele.slopeDeg;
-          lats[idx] = lat;
-          lons[idx] = lon;
-          if (tele.elevM < minElevM) minElevM = tele.elevM;
-          if (tele.elevM > maxElevM) maxElevM = tele.elevM;
-        }
-      }
-
-      if (!Number.isFinite(minElevM)) { minElevM = 0; maxElevM = 0; }
-      return { elevMeters, slopeDegs, lats, lons, minElevM, maxElevM };
+      if (!this.gridHelper) throw new Error("MolaAStarGridHelper yuklenmedi");
+      return this.gridHelper.sampleMolaCorridor(orig, dest, width, height, lateralFactor);
     }
 
-    /** Gercek MOLA verisi + aktif tehlikelerden Rust `find_rover_path` i32 izgarasi uretir (-999 = engel) */
     buildMolaRustGrid(corridor, width, height, payload, opts = {}) {
-      const { hazardScale = 1.0, stepScale = 1.0, enforceCliffs = true, smoothNeighbors = false } = opts;
-      const flat = new Int32Array(width * height);
-      const acidZones = (payload.factors?.acidRain?.enabled && payload.factors?.acidRain?.zones) || [];
-      const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
-      const radZones = (payload.factors?.radiation?.enabled && payload.factors?.radiation?.zones) || [];
-      const activeZones = [...acidZones, ...stormZones, ...radZones];
-
-      const elevSpan = Math.max(300, corridor.maxElevM - corridor.minElevM);
-      const stepMeters = Math.max(160, (elevSpan / ((width + height) * 0.55)) * stepScale);
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const idx = y * width + x;
-          const isEndpoint = (x === 0 && y === 0) || (x === width - 1 && y === height - 1);
-          const lat = corridor.lats[idx];
-          const lon = corridor.lons[idx];
-
-          let blocked = false;
-          if (!isEndpoint && hazardScale > 0) {
-            for (const z of activeZones) {
-              const dist = this.sphericalAngleDeg(lat, lon, z.lat, z.lon);
-              if (dist < (z.radiusDeg || 6) * 0.65 * hazardScale) {
-                blocked = true;
-                break;
-              }
-            }
-            // Krater icinde asiri dik krater duvarlarini (>25 deg, Prameters.md) gecilmez say
-            if (!blocked && enforceCliffs && corridor.slopeDegs[idx] > 25.0) {
-              blocked = true;
-            }
-          }
-
-          flat[idx] = blocked
-            ? -999
-            : Math.round((corridor.elevMeters[idx] - corridor.minElevM) / stepMeters);
-        }
-      }
-
-      // Yalnizca asiri dik ucurumlar tum koridoru tikadiysa komsu delta <= 2 garantili gercek MOLA yumusatma
-      if (smoothNeighbors) {
-        const clamped = new Int32Array(flat);
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const idx = y * width + x;
-            if (clamped[idx] === -999 || (x === 0 && y === 0)) continue;
-            const ref = x > 0 && clamped[idx - 1] !== -999
-              ? clamped[idx - 1]
-              : (y > 0 && clamped[idx - width] !== -999 ? clamped[idx - width] : clamped[idx]);
-            const diff = clamped[idx] - ref;
-            if (Math.abs(diff) > 2) clamped[idx] = ref + (diff > 0 ? 2 : -2);
-          }
-        }
-        return clamped;
-      }
-
-      return flat;
+      if (!this.gridHelper) throw new Error("MolaAStarGridHelper yuklenmedi");
+      return this.gridHelper.buildMolaRustGrid(corridor, width, height, payload, opts);
     }
 
-    /** Rust lib.rs ile birebir kuralli (|Δz|<=3, -999 engel, +5/+2/1 maliyet) yerel JS A* yedegi (file:// icin) */
     solvePathLocalAStar(flat, w, h, beginOxy) {
-      const total = w * h;
-      const gScore = new Int32Array(total).fill(1e9);
-      const cameFrom = new Int32Array(total).fill(-1);
-      const closed = new Uint8Array(total);
-      gScore[0] = 0;
-      const open = [0];
-      const goalIdx = total - 1;
-      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-
-      while (open.length > 0) {
-        let bestPos = 0;
-        let bestF = gScore[open[0]] + ((w - 1 - (open[0] % w)) + (h - 1 - ((open[0] / w) | 0)));
-        for (let i = 1; i < open.length; i++) {
-          const idx = open[i];
-          const f = gScore[idx] + ((w - 1 - (idx % w)) + (h - 1 - ((idx / w) | 0)));
-          if (f < bestF) { bestF = f; bestPos = i; }
-        }
-        const cur = open.splice(bestPos, 1)[0];
-        if (cur === goalIdx) {
-          const path = [];
-          let c = cur;
-          while (c !== -1) {
-            path.push({ x: c % w, y: (c / w) | 0, z: flat[c] });
-            c = cameFrom[c];
-          }
-          path.reverse();
-          return {
-            success: true,
-            cost: gScore[goalIdx],
-            distance: path.length,
-            avaible_oxy: beginOxy - path.length * 25,
-            steps_count: path.length,
-            path
-          };
-        }
-        closed[cur] = 1;
-        const cx = cur % w;
-        const cy = (cur / w) | 0;
-        const cz = flat[cur];
-        for (const [dx, dy] of dirs) {
-          const nx = cx + dx;
-          const ny = cy + dy;
-          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-          const nIdx = ny * w + nx;
-          if (closed[nIdx]) continue;
-          const nz = flat[nIdx];
-          if (nz === -999 || Math.abs(nz - cz) > 3) continue;
-          const dz = nz - cz;
-          const stepCost = dz > 0 ? 1 + dz * 5 : (dz < 0 ? 1 + Math.abs(dz) * 2 : 1);
-          const tentative = gScore[cur] + stepCost;
-          if (tentative < gScore[nIdx]) {
-            cameFrom[nIdx] = cur;
-            gScore[nIdx] = tentative;
-            if (!open.includes(nIdx)) open.push(nIdx);
-          }
-        }
-      }
-      return { success: false };
+      if (!this.gridHelper) return { success: false };
+      return this.gridHelper.solvePathLocalAStar(flat, w, h, beginOxy);
     }
 
     /**
@@ -675,12 +526,11 @@
     }
 
     haversineMarsKm(lat1, lon1, lat2, lon2) {
+      if (this.gridHelper) return this.gridHelper.haversineMarsKm(lat1, lon1, lat2, lon2);
       const toRad = Math.PI / 180;
       const dLat = (lat2 - lat1) * toRad;
       const dLon = this.shortestDeltaLon(lon1, lon2) * toRad;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2;
       return 2 * 3389.5 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
     }
 
@@ -780,9 +630,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-47: Sinif baslangici ve ensureWasmLoaded (js/wasm/backend_bg.wasm v4.2 yukleyicisi).
-   - Satir 49-118: normalizeBaseUrl, resolveInitialUrl ve testConnection (8-argumanli Rust WASM ping + HTTP saglik kontrolu).
-   - Satir 120-204: buildRouteRequestPayload; gercek MOLA rakim/egim, tehlike faktorleri ve PLSS O2 verisini paketler.
-   - Satir 206-339: wrapLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor ve buildMolaRustGrid (gercek NASA MOLA + tehlike izgarasi).
-   - Satir 341-529: computeViaRustWasm, convertWasmPathToRoute ve normalizeRouteResponse; Rust find_rover_path A* ciktisini Mars rotasi ve O2 adimlarina cevirir.
+   - Satir 1-50: Sinif baslangici, MolaAStarGridHelper baglantisi ve ensureWasmLoaded (js/wasm/backend_bg.wasm v4.2 yukleyicisi).
+   - Satir 52-164: normalizeBaseUrl, resolveInitialUrl, testConnection ve pingHttpHealth (Rust WASM ping + HTTP saglik kontrolu).
+   - Satir 165-319: buildRouteRequestPayload, requestStepRoute ve fetchHttpRoute; MOLA rakim/egim, tehlike faktorleri ve PLSS O2 verisini paketler ve yonlendirir.
+   - Satir 321-359: MolaAStarGridHelper delegasyonlari (wrapLon, shortestDeltaLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid, solvePathLocalAStar).
+   - Satir 361-629: computeViaRustWasm, convertWasmPathToRoute, haversineMarsKm, fetchHazards ve normalizeRouteResponse/normalizeHazards.
    ========================================================================== */
