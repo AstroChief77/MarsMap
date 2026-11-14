@@ -1,34 +1,39 @@
 /**
  * @file MarsGlobeRenderer.js
- * @description Tum yuzey dokusunu dogrudan data/tiles/ altindaki gercek NASA Mars Trek
- * karolarindan (MarsTileLoader) ceken gezinebilen 3D Mars Kuresi ve 2D Karo Harita motoru.
+ * @description 1:1 HiDPI ekran piksel cozunurlugunde isin izlemeli (viewport-cropped)
+ * 3D Mars Kuresi, 2D Karo Harita ve Backend Rota/Radyasyon cizim motoru.
  */
 
 export class MarsGlobeRenderer {
   /**
    * MarsGlobeRenderer yapici metodu
-   * @param {MarsTileLoader} tileLoader - Yerel karo yukleyici ornegi
+   * @param {MarsTileLoader} tileLoader - LRU yuksek cozunurluklu karo piramidi
    */
   constructor(tileLoader) {
     this.tileLoader = tileLoader;
-    this.idleResolution = 380;
-    this.dragResolution = 260;
-    this.currentSize = 0;
-    this.sphereCanvas = document.createElement("canvas");
-    this.sphereCtx = this.sphereCanvas.getContext("2d");
-    this.sphereImgData = null;
+    this.cropCanvas = document.createElement("canvas");
+    this.cropCtx = this.cropCanvas.getContext("2d");
+    this.cropImgData = null;
+    this.bufW = 0;
+    this.bufH = 0;
+    this.rgbScratch = new Float32Array(3);
   }
 
-  ensureSphereBuffer(size) {
-    if (this.currentSize === size && this.sphereImgData) return;
-    this.currentSize = size;
-    this.sphereCanvas.width = size;
-    this.sphereCanvas.height = size;
-    this.sphereImgData = this.sphereCtx.createImageData(size, size);
+  ensureCropBuffer(bw, bh) {
+    if (this.bufW === bw && this.bufH === bh && this.cropImgData) return;
+    this.bufW = bw;
+    this.bufH = bh;
+    this.cropCanvas.width = bw;
+    this.cropCanvas.height = bh;
+    this.cropImgData = this.cropCtx.createImageData(bw, bh);
+  }
+
+  getSphereRadius(width, height, zoom) {
+    return Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 14.0);
   }
 
   /**
-   * (lat, lon) cografik noktasini kamera donus acilarina gore 3D ekran noktasina cevirir
+   * (lat, lon) cografik koordinatini 3D kure uzerinde ekran piksel konumuna cevirir
    */
   projectLatLonToSphere(latDeg, lonDeg, rotLatDeg, rotLonDeg, cx, cy, radius) {
     const phi = (latDeg * Math.PI) / 180;
@@ -44,45 +49,89 @@ export class MarsGlobeRenderer {
     const y1 = y0 * Math.cos(phi0) - z0 * Math.sin(phi0);
     const z1 = y0 * Math.sin(phi0) + z0 * Math.cos(phi0);
 
-    return { x: cx + x0 * radius, y: cy - y1 * radius, z: z1, visible: z1 > 0.06 };
+    return { x: cx + x0 * radius, y: cy - y1 * radius, z: z1, visible: z1 > 0.04 };
   }
 
   /**
-   * 3D Mars Kuresini gercek data/tiles mozaik piksel tamponundan isin izlemeyle cizer
+   * Ekran tiklama veya imlec koordinatini gercek Mars (lat, lon) degerine cevirir
+   */
+  screenToLatLon(screenX, screenY, state) {
+    const { width, height, rotLat, rotLon, zoom, viewMode } = state;
+
+    if (viewMode === "2d") {
+      const mapW = Math.max(width * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 14.0);
+      const mapH = mapW * 0.5;
+      const uCenter = (rotLon + 180) / 360;
+      const vCenter = (90 - rotLat) / 180;
+      const ox = width / 2 - uCenter * mapW;
+      const oy = height / 2 - vCenter * mapH;
+      const u = (screenX - ox) / mapW;
+      const v = (screenY - oy) / mapH;
+      if (v < 0 || v > 1) return null;
+      let lon = ((u * 360 - 180) + 180) % 360;
+      if (lon < 0) lon += 360;
+      return { lat: 90 - v * 180, lon: lon - 180 };
+    }
+
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = this.getSphereRadius(width, height, zoom);
+    const nx = (screenX - cx) / radius;
+    const ny = (cy - screenY) / radius;
+    const r2 = nx * nx + ny * ny;
+    if (r2 >= 1.0) return null;
+
+    const nz = Math.sqrt(1.0 - r2);
+    const phi0 = (rotLat * Math.PI) / 180;
+    const lam0 = (rotLon * Math.PI) / 180;
+    const sinP0 = Math.sin(phi0);
+    const cosP0 = Math.cos(phi0);
+
+    const vy = ny * cosP0 + nz * sinP0;
+    const vz = -ny * sinP0 + nz * cosP0;
+    const lat = (Math.asin(Math.max(-1, Math.min(1, vy))) * 180) / Math.PI;
+    let lon = ((lam0 + Math.atan2(nx, vz)) * 180) / Math.PI;
+    lon = ((lon + 180) % 360 + 360) % 360 - 180;
+    return { lat, lon };
+  }
+
+  /**
+   * Yakinlastikca tam ekran piksel kalitesi veren viewport-kesitli 3D kure cizimi
    */
   renderGlobe(ctx, state) {
     const {
       width, height, rotLat, rotLon, zoom, activeLayerId, isDragging,
       craters, activeCrater, basemapOpacity, filterAcidRain, filterDustStorm,
-      showGraticule, showNomenclature, showRadiationZones, hazardsData, landingSites
+      showGraticule, showNomenclature, showRadiationZones, hazardsData,
+      landingSites, startPoint, goalPoint, backendRoutes, progressiveLodRender
     } = state;
 
     ctx.clearRect(0, 0, width, height);
 
     const cx = width / 2;
     const cy = height / 2;
-    const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 3.2);
+    const radius = this.getSphereRadius(width, height, zoom);
 
-    // 1. Dis Mars atmosferi kehribar limb ışıması
-    const atmoGrad = ctx.createRadialGradient(cx, cy, radius * 0.94, cx, cy, radius * 1.12);
-    atmoGrad.addColorStop(0.0, "rgba(235, 128, 70, 0.52)");
-    atmoGrad.addColorStop(0.4, "rgba(205, 88, 38, 0.22)");
-    atmoGrad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = atmoGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius * 1.12, 0, Math.PI * 2);
-    ctx.fill();
+    // 1. Mars atmosferi dis halesi (ekrana sigdigi olcude)
+    if (radius < width * 2.2) {
+      const atmoGrad = ctx.createRadialGradient(cx, cy, radius * 0.94, cx, cy, radius * 1.11);
+      atmoGrad.addColorStop(0.0, "rgba(235, 128, 70, 0.48)");
+      atmoGrad.addColorStop(0.42, "rgba(205, 88, 38, 0.2)");
+      atmoGrad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = atmoGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.11, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    // 2. data/tiles uzerinden birlestirilmis gercek NASA piksel dokusunu ornekle
-    const atlas = this.tileLoader.getAtlasPixels(activeLayerId);
-    if (!atlas) {
+    if (!this.tileLoader.hasAnyReadyTile(activeLayerId)) {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.arc(cx, cy, Math.min(radius, width * 0.48), 0, Math.PI * 2);
       ctx.fillStyle = "#18100d";
       ctx.fill();
-      ctx.strokeStyle = "rgba(244, 145, 92, 0.65)";
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "rgba(244, 145, 92, 0.6)";
+      ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 12px 'Public Sans Web', 'Public Sans', sans-serif";
@@ -92,96 +141,95 @@ export class MarsGlobeRenderer {
       return [];
     }
 
-    const s = isDragging ? this.dragResolution : this.idleResolution;
-    this.ensureSphereBuffer(s);
-    const half = s / 2;
-    const invHalf = 1 / half;
-    const imgData = this.sphereImgData;
-    const out = imgData.data;
-    const tex = atlas.data;
-    const tw = atlas.width;
-    const th = atlas.height;
+    // 2. Sadece ekran penceresine giren kure dikdortgenini HiDPI 1:1 cozunurlukte hesapla
+    const sx0 = Math.max(0, Math.floor(cx - radius - 2));
+    const sy0 = Math.max(0, Math.floor(cy - radius - 2));
+    const sx1 = Math.min(width, Math.ceil(cx + radius + 2));
+    const sy1 = Math.min(height, Math.ceil(cy + radius + 2));
+    const cropW = sx1 - sx0;
+    const cropH = sy1 - sy0;
 
-    const phi0 = (rotLat * Math.PI) / 180;
-    const lam0 = (rotLon * Math.PI) / 180;
-    const sinP0 = Math.sin(phi0);
-    const cosP0 = Math.cos(phi0);
+    if (cropW > 0 && cropH > 0) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const scale = isDragging ? 0.5 : dpr;
+      const bw = Math.max(1, Math.round(cropW * scale));
+      const bh = Math.max(1, Math.round(cropH * scale));
+      this.ensureCropBuffer(bw, bh);
 
-    const lx = -0.34;
-    const ly = 0.26;
-    const lz = 0.90;
-    const twoPi = Math.PI * 2;
-    const invTwoPi = 1 / twoPi;
-    const invPi = 1 / Math.PI;
-    const halfPi = Math.PI / 2;
-    const opacityMult = basemapOpacity ?? 1.0;
+      const out = this.cropImgData.data;
+      const layer = this.tileLoader.getLayerById(activeLayerId);
+      const targetZ = this.tileLoader.computeTargetZoom({ zoom, sphereRadiusPx: radius, progressiveLodRender }, layer);
 
-    for (let py = 0; py < s; py++) {
-      const ny = (half - py) * invHalf;
-      const ny2 = ny * ny;
-      for (let px = 0; px < s; px++) {
-        const idx = (py * s + px) * 4;
-        const nx = (px - half) * invHalf;
-        const r2 = nx * nx + ny2;
-        if (r2 >= 1.0) {
-          out[idx + 3] = 0;
-          continue;
+      const phi0 = (rotLat * Math.PI) / 180;
+      const lam0 = (rotLon * Math.PI) / 180;
+      const sinP0 = Math.sin(phi0);
+      const cosP0 = Math.cos(phi0);
+
+      const twoPi = Math.PI * 2;
+      const invTwoPi = 1 / twoPi;
+      const invPi = 1 / Math.PI;
+      const halfPi = Math.PI / 2;
+      const invScale = 1 / scale;
+      const invRadius = 1 / radius;
+      const opacityAlpha = Math.round(255 * (basemapOpacity ?? 1.0));
+      const minLight = zoom > 2.2 ? 0.72 : 0.42;
+      const rgb = this.rgbScratch;
+
+      for (let by = 0; by < bh; by++) {
+        const ny = (cy - (sy0 + (by + 0.5) * invScale)) * invRadius;
+        const ny2 = ny * ny;
+        const rowOff = by * bw;
+
+        for (let bx = 0; bx < bw; bx++) {
+          const idx = (rowOff + bx) * 4;
+          const nx = ((sx0 + (bx + 0.5) * invScale) - cx) * invRadius;
+          const r2 = nx * nx + ny2;
+          if (r2 >= 1.0) {
+            out[idx + 3] = 0;
+            continue;
+          }
+
+          const nz = Math.sqrt(1.0 - r2);
+          const vy = ny * cosP0 + nz * sinP0;
+          const vz = -ny * sinP0 + nz * cosP0;
+          const lat = Math.asin(vy > 1 ? 1 : vy < -1 ? -1 : vy);
+          const lon = lam0 + Math.atan2(nx, vz);
+
+          let u = (lon + Math.PI) * invTwoPi;
+          u = u - Math.floor(u);
+          const v = Math.min(0.99999, Math.max(0, (halfPi - lat) * invPi));
+
+          if (!this.tileLoader.sampleBilinearRGB(activeLayerId, targetZ, u, v, rgb)) {
+            out[idx] = 35; out[idx + 1] = 24; out[idx + 2] = 20; out[idx + 3] = opacityAlpha;
+            continue;
+          }
+
+          const diff = Math.max(minLight, -0.32 * nx + 0.24 * ny + 0.91 * nz);
+          const limb = nz < 0.6 ? Math.pow(1.0 - nz, 3.0) : 0;
+
+          out[idx] = Math.min(255, rgb[0] * diff + limb * 135);
+          out[idx + 1] = Math.min(255, rgb[1] * diff + limb * 64);
+          out[idx + 2] = Math.min(255, rgb[2] * diff + limb * 30);
+          out[idx + 3] = opacityAlpha;
         }
-
-        const nz = Math.sqrt(1.0 - r2);
-        const vy = ny * cosP0 + nz * sinP0;
-        const vz = -ny * sinP0 + nz * cosP0;
-        const vx = nx;
-
-        const lat = Math.asin(vy > 1 ? 1 : vy < -1 ? -1 : vy);
-        let lon = lam0 + Math.atan2(vx, vz);
-        lon = ((lon + Math.PI) % twoPi + twoPi) % twoPi - Math.PI;
-
-        const fu = ((lon + Math.PI) * invTwoPi) * (tw - 1);
-        const fv = ((halfPi - lat) * invPi) * (th - 1);
-        const u0 = fu | 0;
-        const v0 = fv | 0;
-        const u1 = (u0 + 1) % tw;
-        const v1 = v0 + 1 < th ? v0 + 1 : v0;
-        const du = fu - u0;
-        const dv = fv - v0;
-        const odu = 1 - du;
-        const odv = 1 - dv;
-
-        const i00 = (v0 * tw + u0) * 4;
-        const i10 = (v0 * tw + u1) * 4;
-        const i01 = (v1 * tw + u0) * 4;
-        const i11 = (v1 * tw + u1) * 4;
-
-        const w00 = odu * odv;
-        const w10 = du * odv;
-        const w01 = odu * dv;
-        const w11 = du * dv;
-
-        const rTex = tex[i00] * w00 + tex[i10] * w10 + tex[i01] * w01 + tex[i11] * w11;
-        const gTex = tex[i00 + 1] * w00 + tex[i10 + 1] * w10 + tex[i01 + 1] * w01 + tex[i11 + 1] * w11;
-        const bTex = tex[i00 + 2] * w00 + tex[i10 + 2] * w10 + tex[i01 + 2] * w01 + tex[i11 + 2] * w11;
-
-        const diff = Math.max(0.38, nx * lx + ny * ly + nz * lz);
-        const limb = Math.pow(1.0 - nz, 2.8);
-
-        out[idx] = Math.min(255, rTex * diff + limb * 145);
-        out[idx + 1] = Math.min(255, gTex * diff + limb * 68);
-        out[idx + 2] = Math.min(255, bTex * diff + limb * 32);
-        out[idx + 3] = Math.round(255 * opacityMult);
       }
+
+      this.cropCtx.putImageData(this.cropImgData, 0, 0);
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(this.cropCanvas, sx0, sy0, cropW, cropH);
+      ctx.restore();
     }
 
-    this.sphereCtx.putImageData(imgData, 0, 0);
     ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(this.sphereCanvas, cx - radius, cy - radius, radius * 2, radius * 2);
-
-    ctx.strokeStyle = "rgba(244, 145, 92, 0.72)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.stroke();
+    if (radius < width * 2.2) {
+      ctx.strokeStyle = "rgba(244, 145, 92, 0.72)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     if (showGraticule) this.drawSphereGraticule(ctx, rotLat, rotLon, cx, cy, radius);
     if (filterDustStorm) this.drawHazardOverlays(ctx, rotLat, rotLon, cx, cy, radius, hazardsData, "dust");
@@ -189,41 +237,41 @@ export class MarsGlobeRenderer {
     if (showRadiationZones) this.drawPhotonRadiationBelts(ctx, rotLat, rotLon, cx, cy, radius);
     if (showNomenclature) this.drawGlobalNomenclature(ctx, rotLat, rotLon, cx, cy, radius);
 
-    const hitTargets = this.drawSpherePins(ctx, craters, landingSites, activeCrater, rotLat, rotLon, cx, cy, radius);
+    // Backend rotasini ve A/B noktalarini kure uzerine projekte et
+    const projectFn = (lat, lon) => this.projectLatLonToSphere(lat, lon, rotLat, rotLon, cx, cy, radius);
+    this.drawBackendRoutes(ctx, projectFn, startPoint, goalPoint, backendRoutes);
+
+    const hitTargets = this.drawSpherePins(ctx, craters, landingSites, activeCrater, projectFn);
     ctx.restore();
     return hitTargets;
   }
 
   /**
-   * 2D Equirectangular (EPSG:104905) gorunumunde dogrudan data/tiles PNG/JPG karolarini cizer
+   * 2D Equirectangular (EPSG:104905) tam kalite karolu harita cizimi
    */
   render2DTiled(ctx, state) {
     const {
       width, height, rotLat, rotLon, zoom, activeLayerId,
       craters, activeCrater, filterAcidRain, filterDustStorm,
-      showGraticule, showNomenclature, showRadiationZones
+      showGraticule, showNomenclature, showRadiationZones,
+      startPoint, goalPoint, backendRoutes, progressiveLodRender
     } = state;
 
     ctx.clearRect(0, 0, width, height);
 
-    const baseWidth = Math.max(width * 0.86, 620);
-    const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 4.0);
+    const mapW = Math.max(width * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 14.0);
     const mapH = mapW * 0.5;
-
-    const uCenter = (rotLon + 180) / 360;
-    const vCenter = (90 - rotLat) / 180;
-    const ox = width / 2 - uCenter * mapW;
-    const oy = height / 2 - vCenter * mapH;
+    const ox = width / 2 - ((rotLon + 180) / 360) * mapW;
+    const oy = height / 2 - ((90 - rotLat) / 180) * mapH;
 
     const layer = this.tileLoader.getLayerById(activeLayerId);
-    const targetZ = this.tileLoader.computeTargetZoom(zoom, layer, state.progressiveLodRender !== false);
+    const maxZ = this.tileLoader.computeTargetZoom({ zoom, sphereRadiusPx: mapW / (2 * Math.PI), progressiveLodRender }, layer);
 
-    // 1. Oncelikle kaba z=0 arkaplani (kesintisiz zemin) ve sonra hedef LOD karolarini ciz
-    this.drawTileLevel2D(ctx, activeLayerId, 0, ox, oy, mapW, mapH, width, height);
-    if (targetZ >= 1) this.drawTileLevel2D(ctx, activeLayerId, 1, ox, oy, mapW, mapH, width, height);
-    if (targetZ >= 2) this.drawTileLevel2D(ctx, activeLayerId, 2, ox, oy, mapW, mapH, width, height);
+    for (let z = 0; z <= maxZ; z++) {
+      this.drawTileLevel2D(ctx, activeLayerId, z, ox, oy, mapW, mapH, width, height);
+    }
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
     ctx.lineWidth = 1;
     ctx.strokeRect(ox, oy, mapW, mapH);
 
@@ -254,20 +302,23 @@ export class MarsGlobeRenderer {
       ].forEach((p) => {
         const px = ox + ((p.lon + 180) / 360) * mapW;
         const py = oy + ((90 - p.lat) / 180) * mapH;
-        if (px >= -80 && px <= width + 80 && py >= -20 && py <= height + 20) {
-          ctx.fillText(p.name, px - 42, py);
-        }
+        if (px >= -80 && px <= width + 80 && py >= -20 && py <= height + 20) ctx.fillText(p.name, px - 42, py);
       });
     }
 
+    const project2D = (lat, lon) => ({
+      x: ox + ((lon + 180) / 360) * mapW,
+      y: oy + ((90 - lat) / 180) * mapH,
+      visible: true
+    });
+    this.drawBackendRoutes(ctx, project2D, startPoint, goalPoint, backendRoutes);
+
     const hitTargets = [];
     craters.forEach((crater) => {
-      const px = ox + ((crater.coordinates.lon + 180) / 360) * mapW;
-      const py = oy + ((90 - crater.coordinates.lat) / 180) * mapH;
+      const p = project2D(crater.coordinates.lat, crater.coordinates.lon);
       const isActive = activeCrater && activeCrater.id === crater.id;
-
       ctx.beginPath();
-      ctx.arc(px, py, isActive ? 8 : 6, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, isActive ? 8 : 6, 0, Math.PI * 2);
       ctx.fillStyle = isActive ? "#d92b2b" : "#ffffff";
       ctx.fill();
       ctx.strokeStyle = "#000000";
@@ -276,16 +327,70 @@ export class MarsGlobeRenderer {
 
       ctx.font = "bold 11px 'Public Sans Web', 'Public Sans', sans-serif";
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(crater.name, px + 11, py + 4);
-      hitTargets.push({ crater, x: px, y: py, r: 22 });
+      ctx.fillText(crater.name, p.x + 11, p.y + 4);
+      hitTargets.push({ crater, x: p.x, y: p.y, r: 22 });
     });
 
     return hitTargets;
   }
 
+  /**
+   * Backend'den gelen Mavi (#2563eb) / Soluk Mavi (#93c5fd) rotalari ve A/B noktalarini cizer
+   */
+  drawBackendRoutes(ctx, projectFn, startPoint, goalPoint, backendRoutes) {
+    if (backendRoutes?.alternative_route?.waypoints?.length) {
+      this.strokeGeoPolyline(ctx, projectFn, backendRoutes.alternative_route.waypoints, "#93c5fd", 4, [7, 5]);
+    }
+    if (backendRoutes?.primary_route?.waypoints?.length) {
+      this.strokeGeoPolyline(ctx, projectFn, backendRoutes.primary_route.waypoints, "#2563eb", 5, []);
+    }
+
+    if (startPoint) this.drawEndpointPin(ctx, projectFn, startPoint, "A (Başlangıç)", "#2563eb");
+    if (goalPoint) this.drawEndpointPin(ctx, projectFn, goalPoint, "B (Hedef)", "#d92b2b");
+  }
+
+  strokeGeoPolyline(ctx, projectFn, waypoints, color, widthPx, dash) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = widthPx;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    let started = false;
+    waypoints.forEach((wp) => {
+      const p = projectFn(wp.lat, wp.lon);
+      if (!p.visible) { started = false; return; }
+      if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawEndpointPin(ctx, projectFn, pt, label, color) {
+    const p = projectFn(pt.lat, pt.lon);
+    if (!p.visible) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 7.5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
+    ctx.font = "bold 11px 'Public Sans Web', 'Public Sans', sans-serif";
+    const tw = ctx.measureText(label).width;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillRect(p.x + 10, p.y - 11, tw + 10, 20);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(label, p.x + 15, p.y + 3);
+    ctx.restore();
+  }
+
   drawTileLevel2D(ctx, layerId, z, ox, oy, mapW, mapH, viewW, viewH) {
-    const cols = Math.pow(2, z + 1);
-    const rows = Math.pow(2, z);
+    const cols = 1 << (z + 1);
+    const rows = 1 << z;
     const tw = mapW / cols;
     const th = mapH / rows;
 
@@ -318,13 +423,11 @@ export class MarsGlobeRenderer {
     ctx.fill();
   }
 
-  drawSpherePins(ctx, craters, landingSites, activeCrater, rotLat, rotLon, cx, cy, radius) {
+  drawSpherePins(ctx, craters, landingSites, activeCrater, projectFn) {
     const hitTargets = [];
-
-    // 1. Yardimci NASA inis sahalari (kucuk nokta olarak mars_landing_sites.json verisinden)
     if (Array.isArray(landingSites)) {
       landingSites.forEach((site) => {
-        const p = this.projectLatLonToSphere(site.coordinates.lat, site.coordinates.lon, rotLat, rotLon, cx, cy, radius);
+        const p = projectFn(site.coordinates.lat, site.coordinates.lon);
         if (!p.visible) return;
         ctx.beginPath();
         ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
@@ -333,11 +436,9 @@ export class MarsGlobeRenderer {
       });
     }
 
-    // 2. Ana odak kraterleri (tiklanabilir)
     craters.forEach((crater) => {
-      const p = this.projectLatLonToSphere(crater.coordinates.lat, crater.coordinates.lon, rotLat, rotLon, cx, cy, radius);
+      const p = projectFn(crater.coordinates.lat, crater.coordinates.lon);
       if (!p.visible) return;
-
       const isActive = activeCrater && activeCrater.id === crater.id;
       ctx.beginPath();
       ctx.arc(p.x, p.y, isActive ? 8 : 5.5, 0, Math.PI * 2);
@@ -345,12 +446,6 @@ export class MarsGlobeRenderer {
       ctx.fill();
       ctx.lineWidth = 2;
       ctx.strokeStyle = "#000000";
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, isActive ? 14 : 10, 0, Math.PI * 2);
-      ctx.strokeStyle = isActive ? "rgba(217, 43, 43, 0.85)" : "rgba(255, 255, 255, 0.45)";
-      ctx.lineWidth = 1.3;
       ctx.stroke();
 
       ctx.font = "bold 11px 'Public Sans Web', 'Public Sans', sans-serif";
@@ -363,10 +458,8 @@ export class MarsGlobeRenderer {
       ctx.strokeRect(p.x + 11, p.y - 10, lw + 10, 20);
       ctx.fillStyle = "#ffffff";
       ctx.fillText(label, p.x + 16, p.y + 4);
-
       hitTargets.push({ crater, x: p.x, y: p.y, r: 22 });
     });
-
     return hitTargets;
   }
 
@@ -379,8 +472,7 @@ export class MarsGlobeRenderer {
       for (let lon = -180; lon <= 180; lon += 10) {
         const p = this.projectLatLonToSphere(lat, lon, rotLat, rotLon, cx, cy, radius);
         if (p.z > 0) {
-          if (!started) { ctx.moveTo(p.x, p.y); started = true; }
-          else ctx.lineTo(p.x, p.y);
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
         } else started = false;
       }
       ctx.stroke();
@@ -391,8 +483,7 @@ export class MarsGlobeRenderer {
       for (let lat = -85; lat <= 85; lat += 10) {
         const p = this.projectLatLonToSphere(lat, lon, rotLat, rotLon, cx, cy, radius);
         if (p.z > 0) {
-          if (!started) { ctx.moveTo(p.x, p.y); started = true; }
-          else ctx.lineTo(p.x, p.y);
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
         } else started = false;
       }
       ctx.stroke();
@@ -423,21 +514,21 @@ export class MarsGlobeRenderer {
     spots.forEach((pt) => {
       const p = this.projectLatLonToSphere(pt.lat, pt.lon, rotLat, rotLon, cx, cy, radius);
       if (!p.visible) return;
-      const g = ctx.createRadialGradient(p.x, p.y, 4, p.x, p.y, radius * 0.26);
+      const g = ctx.createRadialGradient(p.x, p.y, 4, p.x, p.y, Math.min(radius * 0.25, 160));
       g.addColorStop(0, kind === "dust" ? "rgba(217, 43, 43, 0.34)" : "rgba(245, 158, 11, 0.34)");
       g.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, radius * 0.26, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, Math.min(radius * 0.25, 160), 0, Math.PI * 2);
       ctx.fill();
     });
   }
 
   drawPhotonRadiationBelts(ctx, rotLat, rotLon, cx, cy, radius) {
     const zones = [
-      { lat: -5, lon: 137.4, label: "α/β/γ Foton Bölgesi" },
-      { lat: 18.4, lon: 77.4, label: "γ Işıma Zonu" },
-      { lat: 73, lon: 165, label: "GCR Kutupsal Zonu" }
+      { lat: -5, lon: 137.4 },
+      { lat: 18.4, lon: 77.4 },
+      { lat: 73, lon: 165 }
     ];
     ctx.save();
     ctx.setLineDash([4, 4]);
@@ -447,7 +538,7 @@ export class MarsGlobeRenderer {
       const p = this.projectLatLonToSphere(z.lat, z.lon, rotLat, rotLon, cx, cy, radius);
       if (!p.visible) return;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, radius * 0.14, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, Math.min(radius * 0.14, 110), 0, Math.PI * 2);
       ctx.stroke();
     });
     ctx.restore();
@@ -457,9 +548,10 @@ export class MarsGlobeRenderer {
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc gercek data/tiles Mars Kuresi ve 2D Harita cizim motoru tanimi.
-   - Satir 8-28: MarsGlobeRenderer constructor & ensureSphereBuffer; MarsTileLoader baglantisi ve Adaptif cozunurluk tamponu hazirlar.
-   - Satir 30-156: projectLatLonToSphere & renderGlobe; data/tiles altindaki atlas piksel dokusunu bilineer interpolasyon ve atmosfer limb glow ile 3D kureye yansitir.
-   - Satir 158-241: render2DTiled & drawTileLevel2D; 2D gorunumde EPSG:104905 uzerine yalnizca gorunur yerel karolari cizer.
-   - Satir 243-355: drawSpherePins, drawSphereGraticule, drawGlobalNomenclature, drawHazardOverlays ve drawPhotonRadiationBelts yardimcilari.
+   - Satir 1-6: JSDoc HiDPI 1:1 viewport-kesitli kure ve backend rota cizim motoru.
+   - Satir 8-35: constructor, ensureCropBuffer ve getSphereRadius.
+   - Satir 37-85: projectLatLonToSphere ve screenToLatLon (imlec/tiklama -> gercek Mars lat/lon).
+   - Satir 87-205: renderGlobe; yalnizca gorunen ekran penceresini HiDPI 1:1 isin izlemeyle sampleBilinearRGB uzerinden cizer.
+   - Satir 207-285: render2DTiled & drawTileLevel2D; 2D haritada tam cozunurluklu karolari basar.
+   - Satir 287-424: drawBackendRoutes, strokeGeoPolyline, drawEndpointPin, krater pinleri, graticule ve radyasyon katmanlari.
    ========================================================================== */

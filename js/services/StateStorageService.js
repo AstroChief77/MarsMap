@@ -1,8 +1,8 @@
 /**
  * @file StateStorageService.js
- * @description Uygulama ayarlarini saklayan ve Factory Reset standartlarini yoneten servis.
- * Factory ayarlari: Olcege bagli (yakinlastikca gorunur karo) LOD render, Litre / km-m / Saat
- * birimleri ve Alfa/Beta/Gama + Foton Bombardıman alanlarini icerir.
+ * @description Uygulama ayarlarini, Factory Reset standartlarini ve Backend URL tercihini yoneten servis.
+ * Factory ayarlari: Olcege bagli tam kalite tile LOD, Litre / km-m / Saat parametreleri ve
+ * Alfa/Beta/Gama radyasyon alanlarini icerir.
  */
 
 export class StateStorageService {
@@ -10,22 +10,22 @@ export class StateStorageService {
    * StateStorageService yapici metodu
    */
   constructor() {
-    this.storageKey = "astrochief_mars_globe_v24";
+    this.storageKey = "astrochief_mars_globe_v25";
   }
 
   /**
    * ZORUNLU FACTORY AYARLARI SABLONU
-   * @returns {Object} Varsayilan fabrika harita ayarlari
+   * @returns {Object} Fabrika cikisi harita ve backend istemci ayarlari
    */
   getFactoryDefaults() {
     return {
       activeLayerId: "mars-viking-mdim21",
       activeCraterIndex: 0,
-      viewMode: "3d",             // '3d' Gezinebilen Kure | '2d' Duz Karolu Harita
+      viewMode: "3d",             // '3d' Tam Kalite Kure | '2d' Equirectangular Harita
       filterAcidRain: true,
       filterDustStorm: true,
-      progressiveLodRender: true, // Yakinlastikca gorunur karolari data/tiles'dan yukle
-      showRadiationZones: true,   // Alfa, Beta, Gama ve Foton alanlari
+      progressiveLodRender: true, // Yakinlastikca tam ekran pikselinde ust zoom (z=0..7)
+      showRadiationZones: true,   // Alfa, Beta, Gama ve Foton Bombardiman alanlari
       showNomenclature: true,
       showGraticule: false,
       showStarfield: true,
@@ -33,30 +33,24 @@ export class StateStorageService {
       rotLat: -4.59,
       rotLon: 137.44,
       zoom: 1.08,
+      backendApiUrl: "",
       oxygenReserveLiters: 420,
       waterReserveLiters: 24.0
     };
   }
 
-  /**
-   * Kayitli ayarlari yukler, yoksa Factory varsayilanlarini doner
-   */
   loadState() {
     const defaults = this.getFactoryDefaults();
     try {
       const raw = window.localStorage.getItem(this.storageKey);
       if (!raw) return defaults;
-      const parsed = JSON.parse(raw);
-      return { ...defaults, ...parsed };
+      return { ...defaults, ...JSON.parse(raw) };
     } catch (err) {
       console.warn("[StateStorageService] Ayar okunamadi:", err.message);
       return defaults;
     }
   }
 
-  /**
-   * Guncel ayarlari localStorage uzerine kaydeder
-   */
   saveState(stateSnapshot) {
     try {
       window.localStorage.setItem(this.storageKey, JSON.stringify(stateSnapshot));
@@ -66,7 +60,7 @@ export class StateStorageService {
   }
 
   /**
-   * FACTORY RESET: Tum ayarlari sifirlar ve Factory varsayilanlarini geri yukler
+   * FACTORY RESET: Tum ayarlari ve backend adresini fabrika degerlerine dondurur
    */
   factoryReset() {
     try {
@@ -81,8 +75,8 @@ export class StateStorageService {
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc Factory ayarlari ve kalicilik servisi tanimi.
-   - Satir 8-14: constructor; v2.4 yerel depo anahtarini tanimlar.
-   - Satir 16-39: getFactoryDefaults; yerel karo katmani, LOD render, radyasyon ve birim standartlarini dondurur.
-   - Satir 41-72: loadState, saveState ve factoryReset metodlari.
+   - Satir 1-6: JSDoc Factory ayarlari ve v2.5 depo servisi tanimi.
+   - Satir 8-14: constructor; localStorage anahtarini ayarlar.
+   - Satir 16-40: getFactoryDefaults; olcekli tam kalite LOD, Litre/km/Saat/Alfa-Beta-Gama ve backendApiUrl varsayilanlarini dondurur.
+   - Satir 42-69: loadState, saveState ve factoryReset metodlari.
    ========================================================================== */
