@@ -1,7 +1,7 @@
 /**
  * @file AppConfig.js
  * @description AstroChief Mars Navigator icin zorunlu Factory Reset varsayilanlarini ve sabitleri tanimlayan sinif.
- * Kurallar: Default harita 2D baslar, yaklastikca LOD render yapilir, parametreler Litre / km-m / Saat / Alfa-Beta-Gama olur.
+ * Kurallar: Default harita 3D baslar, yaklastikca LOD render yapilir, parametreler Litre / km-m / Saat / Alfa-Beta-Gama olur.
  */
 
 (function (ns) {
@@ -11,8 +11,9 @@
      * Sistem performans koruma ve fabrika ayar sablonunu olusturur
      */
     constructor() {
-      this.storageKey = "astrochief_mars_navigator_v3";
+      this.storageKey = "astrochief_mars_navigator_v3_1";
       this.fpsMinLimit = 10;
+      this.fpsGuardWindowMs = 10000;    // KURAL: Ayar degistirildikten sonra 10 saniye < 10 FPS kalirsa geri al
       this.challengeUrl = "https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/";
     }
 
@@ -22,12 +23,27 @@
      */
     getFactoryDefaults() {
       return {
-        viewMode: "2d",                 // KURAL: Harita varsayilan olarak 2D baslar
+        viewMode: "3d",                 // KURAL: Harita varsayilan olarak 3D baslar
         activeLayerId: "mars-viking-mdim21",
         activeCraterId: "gale-crater",
         routeScope: "crater",           // 'crater' (Krater ici EVA) veya 'global' (Inis sahasi arasi)
         globalOriginId: "curiosity-gale",
         globalTargetId: "perseverance-jezero",
+        customOrigin: {
+          id: "curiosity-gale",
+          name: "Curiosity (Gale Krateri)",
+          lat: -4.5895,
+          lon: 137.4417
+        },
+        customDestination: {
+          id: "perseverance-jezero",
+          name: "Perseverance (Jezero)",
+          lat: 18.4447,
+          lon: 77.4508
+        },
+        useCustomCoordinates: false,
+        backendApiUrl: "",              // Rust backend adresi (or: http://127.0.0.1:8080)
+        activeStepRouteTab: "primary",
         filterAcidRain: true,
         acidIntensity: "orta",          // 'hafif' | 'orta' | 'siddetli'
         filterDustStorm: true,
@@ -77,7 +93,7 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc fabrika ayar sablonu ve kurallar aciklamasi.
-   - Satir 7-15: AppConfig constructor; yerel depo anahtari, FPS >= 10 esigi ve yarisma URL'sini tanimlar.
-   - Satir 17-48: getFactoryDefaults; default 2D mod, olcekli LOD, Litre/km-m/Saat/Alfa-Beta-Gama standartlarini doner.
-   - Satir 50-67: getIntensityTable; asit yagmuru ve kum firtinasi siddetlerinin (Hafif/Orta/Siddetli) rota ve hiz carpanlarini doner.
+   - Satir 7-18: AppConfig constructor; yerel depo anahtari, FPS >= 10 (10 saniye pencere) esigi ve yarisma URL'sini tanimlar.
+   - Satir 20-66: getFactoryDefaults; default 3D mod, ozel baslangic/varis koordinatlari, Rust backend URL, olcekli LOD ve Litre/km/Saat standartlarini doner.
+   - Satir 68-86: getIntensityTable; asit yagmuru ve kum firtinasi siddetlerinin (Hafif/Orta/Siddetli) rota ve hiz carpanlarini doner.
    ========================================================================== */

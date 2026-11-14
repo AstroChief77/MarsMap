@@ -32,7 +32,7 @@
     /**
      * Sol ust Ayarlar + Factory Reset + Hedef Seridini DOM'a cizer
      */
-    render(state, craters) {
+    render(state, craters, backendStatus = "") {
       if (!this.mountEl) return;
 
       const craterButtons = craters.map((c) => {
@@ -56,7 +56,7 @@
               <span class="reset-glyph">↺</span>
               <span>
                 <span class="reset-title">Factory Reset</span>
-                <span class="reset-sub">2D Varsayılan, Ölçekli LOD ve Birimleri Sıfırla</span>
+                <span class="reset-sub">3D Varsayılan, Ölçekli LOD ve Birimleri Sıfırla</span>
               </span>
             </button>
 
@@ -97,7 +97,26 @@
               <input type="checkbox" data-setting-key="highQualityGlobeRay" data-setting-label="Yüksek Detay 3D Tarama" ${state.highQualityGlobeRay ? "checked" : ""} />
             </label>
 
-            <div class="setting-fps-note">FPS &lt; 10 Koruma Aktif: Ayar FPS'i 10 altına düşürürse otomatik geri alınır.</div>
+            <div class="setting-fps-note">FPS &lt; 10 (10s) Koruma Aktif: Ayar 10 sn boyunca FPS'i 10 altina dusururse geri alinir.</div>
+
+            <div class="settings-sep"></div>
+
+            <div class="backend-config-box">
+              <div class="backend-config-title">RUST BACKEND ROTA MOTORU</div>
+              <input
+                type="url"
+                class="backend-url-input"
+                id="inp-backend-url"
+                value="${(state.backendApiUrl || "").replace(/"/g, "&quot;")}"
+                placeholder="http://127.0.0.1:8080"
+                aria-label="Rust Backend URL"
+              />
+              <div class="backend-btn-row">
+                <button type="button" class="backend-mini-btn" id="btn-backend-save">Kaydet</button>
+                <button type="button" class="backend-mini-btn ghost" id="btn-backend-test">Test Et</button>
+              </div>
+              <div class="backend-status-line" id="backend-status-line">${backendStatus || (state.backendApiUrl ? "Hazir (Backend URL kayitli)" : "URL bos: Yerel yedek rota motoru aktif")}</div>
+            </div>
           </div>
         </div>
 
@@ -146,6 +165,16 @@
       this.mountEl.querySelector("#btn-open-mission-modal")?.addEventListener("click", () => {
         this.handlers.onOpenInfoModal?.();
       });
+
+      this.mountEl.querySelector("#btn-backend-save")?.addEventListener("click", () => {
+        const val = this.mountEl.querySelector("#inp-backend-url")?.value || "";
+        this.handlers.onBackendUrlSave?.(val);
+      });
+
+      this.mountEl.querySelector("#btn-backend-test")?.addEventListener("click", () => {
+        const val = this.mountEl.querySelector("#inp-backend-url")?.value || "";
+        this.handlers.onBackendUrlTest?.(val);
+      });
     }
   }
 
@@ -157,6 +186,6 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc sol ust Ayarlar ve Factory Reset menu bileseni tanimi.
    - Satir 7-27: constructor, toggleOpen ve close; acilir menunun acik/kapali durumunu yonetir.
-   - Satir 29-111: render; 1. secenekte Factory Reset butonu, Factory birim standartlari, FPS korumali anahtarlar ve ust krater seridini cizer.
-   - Satir 113-147: bindEvents; ayar tiklamalarini FPS koruma denetleyicisine baglar.
+   - Satir 29-128: render; 1. secenekte Factory Reset butonu, Factory birim standartlari, 10sn FPS korumali anahtarlar ve Rust Backend URL kutusunu cizer.
+   - Satir 130-177: bindEvents; ayar tiklamalarini, hedef secimlerini ve Rust backend URL kaydet/test dugmelerini baglar.
    ========================================================================== */

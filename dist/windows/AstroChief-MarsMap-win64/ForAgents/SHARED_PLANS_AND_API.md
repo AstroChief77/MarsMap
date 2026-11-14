@@ -4,14 +4,21 @@ Bu doküman, projeye katılacak diğer AI ajanlarının (Backend Pathfinding, Ve
 
 ## 1. Ortak Mimari ve Bağlantı Sözleşmeleri
 
-### A. `RoutePlannerService` Çıktı Şeması (Backend Ajanı Entegrasyon Noktası)
-İleride `js/services/RoutePlannerService.js` içindeki hesaplamaya harici bir sunucu (ör. A* / Dijkstra DEM maliyeti hesaplayan Python/Rust backend) bağlanacaksa dönüş nesnesi şu şemayı korumalıdır:
+### A. Rust Backend Step-by-Step Rota ve Tehlike Sözleşmesi (`v3.1.0`)
+Frontend (`js/services/BackendApiService.js`), kullanıcı haritadan veya panelden **Konum (`origin`: A)** ve **Varış (`destination`: B)** seçtiğinde tüm aktif etkenleri (`acidRain`, `dustStorm`, `radiation`, `terrain`, `astronaut`) `POST /api/v1/route` ile Rust backend'e iletir (`GET /api/v1/hazards` opsiyonel olarak tehlike katmanlarını günceller). Tam kontrat için `BACKEND_API.md` dosyasına bakın:
 
 ```json
 {
   "scope": "crater | global",
+  "engine": "rust-astar-v1",
   "primaryBlue": {
-    "points": [{ "lat": -4.59, "lon": 137.44 }],
+    "steps": [
+      {
+        "step": 1, "lat": -4.59, "lon": 137.44,
+        "elevM": -4400, "slopeDeg": 2.1, "distKm": 0.0, "durationHours": 0.0,
+        "instruction": "Başlangıç doğrulandı", "hazardWarning": null
+      }
+    ],
     "totalKm": 12.4,
     "totalMeters": 12400,
     "totalHours": 4.2,
@@ -22,7 +29,7 @@ Bu doküman, projeye katılacak diğer AI ajanlarının (Backend Pathfinding, Ve
     "comment": "// Mavi Yol: En güvenli & kısa rota — ..."
   },
   "secondaryPaleBlue": {
-    "points": [{ "lat": -4.59, "lon": 137.44 }],
+    "steps": [],
     "totalKm": 16.8,
     "totalMeters": 16800,
     "totalHours": 5.0,
@@ -31,14 +38,15 @@ Bu doküman, projeye katılacak diğer AI ajanlarının (Backend Pathfinding, Ve
     "waterLiters": 10.8,
     "colorHex": "#93c5fd",
     "comment": "// Soluk Mavi: Fırtına/asit dışı güvenli uzun yay — ..."
-  }
+  },
+  "hazards": { "acidZones": [], "stormZones": [], "radiationZones": [] }
 }
 ```
 
-### B. `AppConfig` Ayar Anahtarları ve FPS < 10 Koruması
-Tüm ayar değişiklikleri **mutlaka** `MarsNavigatorController.applyGuardedSetting(key, value, label)` üzerinden geçirilmelidir; doğrudan `this.state[key] = ...` yazılmamalıdır ki FPS 10 altına düşerse `FpsGuardService` ayarı geri alabilsin.
+### B. `AppConfig` Ayar Anahtarları ve 10 Saniyelik FPS < 10 Koruması
+Tüm ayar değişiklikleri **mutlaka** `MarsNavigatorController.applyGuardedSetting(key, value, label)` üzerinden geçirilmelidir; ayar değiştirildikten sonra **10 saniye (`10000 ms`) boyunca FPS 10'un altına düşerse** `FpsGuardService` değişikliği otomatik geri alır.
 
-- `viewMode`: `"2d"` (Factory default) | `"3d"`
+- `viewMode`: `"3d"` (Factory default) | `"2d"`
 - `filterAcidRain`: `boolean`, `acidIntensity`: `"hafif" | "orta" | "siddetli"`
 - `filterDustStorm`: `boolean`, `stormIntensity`: `"hafif" | "orta" | "siddetli"`
 - `progressiveLodRender`: `boolean` (Factory default `true`)

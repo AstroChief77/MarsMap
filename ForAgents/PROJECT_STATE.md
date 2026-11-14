@@ -5,7 +5,7 @@ Bu belge, `ForAgents/` klasörü altındaki ortak yapay zekâ ajan iletişim dok
 ## 1. Yapılan Yeniden Yazım (From Scratch Architecture — v3.0.0)
 Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rota hesaplaması devre dışı bırakılmıştı, dış ağ (Google Fonts / Unsplash) çağrıları vardı ve sol alt "Uydular" paneli fotoğraf arka planlı kompakt yapıda değildi. v3.0.0 ile proje **`readme.md` kurallarının tamamına uyacak şekilde baştan yazıldı**:
 
-- **Varsayılan 2D Başlangıç (`AppConfig.getFactoryDefaults`)**: `viewMode: "2d"` olarak başlar.
+- **Varsayılan 3D Başlangıç (`AppConfig.getFactoryDefaults`)**: `viewMode: "3d"` olarak başlar.
 - **Merkez Tam Ekran Mars Haritası (`index.html`, `Map2DRenderer.js`, `Map3DRenderer.js`)**: Yıldızlı siyah uzay (`StarfieldRenderer.js`) üstünde `./data/tiles/` karo piramidinden gerçek NASA Mars Trek yüzey karolarını çizer.
 - **Çevrimdışı `res/` Paketi (`css/fonts.css`, `res/fonts/`, `res/images/`)**:
   - `Public Sans Web` (`400, 600, 700, 800, 900`, latin + latin-ext `.woff2`) yerel `res/fonts/` içine indirildi.

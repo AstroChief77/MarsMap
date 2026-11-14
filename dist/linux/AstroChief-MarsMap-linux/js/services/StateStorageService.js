@@ -18,7 +18,7 @@
     }
 
     /**
-     * Fabrika varsayilan ayar kopyasini dondurur (Default 2D harita + LOD + birimler)
+     * Fabrika varsayilan ayar kopyasini dondurur (Default 3D harita + LOD + birimler)
      * @returns {Object} Fabrika ayarlari nesnesi
      */
     getFactoryDefaults() {
@@ -76,7 +76,7 @@
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc kalicilik ve Factory Reset servisi aciklamasi.
    - Satir 8-17: constructor; AppConfig uzerinden v3 depo anahtarini alir.
-   - Satir 19-24: getFactoryDefaults; default 2D gorunum ve fabrika birimlerini saglar.
+   - Satir 19-24: getFactoryDefaults; default 3D gorunum ve fabrika birimlerini saglar.
    - Satir 26-39: loadState; localStorage icinden ayar yukler veya fabrika durumunu doner.
    - Satir 41-50: saveState; degisen harita ve filtre ayarlarini diske yazar.
    - Satir 52-63: factoryReset; depo kaydini siler ve fabrika standartlarina doner.

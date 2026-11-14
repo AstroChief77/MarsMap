@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# AstroChief MarsMap - Linux Test Paketi Başlatıcısı (launch-linux.sh)
+# AstroChief MarsMap - Linux Test Paketi BaÅŸlatÄ±cÄ±sÄ± (launch-linux.sh)
 # ==============================================================================
 set -e
 
@@ -50,11 +50,11 @@ else
 fi
 
 # ==============================================================================
-# DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+# DOSYA SATIR VE Ä°ÅLEV AÃ‡IKLAMALARI (SatÄ±r SatÄ±r Ne Ä°ÅŸe YaradÄ±ÄŸÄ±):
 # ------------------------------------------------------------------------------
-# - Satır 1-5: POSIX Bash başlığı ve hata durumunda güvenli çıkış ayarı.
-# - Satır 7-15: Uygulama dizinini, hedef portu (3080) ve --no-browser bayrağını ayarlar.
-# - Satır 19-21: Masaüstü oturumu varsa varsayılan tarayıcıyı açar.
-# - Satır 23-41: Python3 ile .js/.woff2/.woff/.json MIME tiplerini garantileyen yerel HTTP sunucusunu başlatır.
-# - Satır 42-49: Python2, PHP veya BusyBox yedek başlatıcı seçenekleri.
+# - SatÄ±r 1-5: POSIX Bash baÅŸlÄ±ÄŸÄ± ve hata durumunda gÃ¼venli Ã§Ä±kÄ±ÅŸ ayarÄ±.
+# - SatÄ±r 7-15: Uygulama dizinini, hedef portu (3080) ve --no-browser bayraÄŸÄ±nÄ± ayarlar.
+# - SatÄ±r 19-21: MasaÃ¼stÃ¼ oturumu varsa varsayÄ±lan tarayÄ±cÄ±yÄ± aÃ§ar.
+# - SatÄ±r 23-41: Python3 ile .js/.woff2/.woff/.json MIME tiplerini garantileyen yerel HTTP sunucusunu baÅŸlatÄ±r.
+# - SatÄ±r 42-49: Python2, PHP veya BusyBox yedek baÅŸlatÄ±cÄ± seÃ§enekleri.
 # ==============================================================================

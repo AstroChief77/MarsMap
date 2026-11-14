@@ -41,7 +41,8 @@
       const {
         width, height, rotLat, rotLon, zoom, activeLayerId, isDragging,
         craters, landingSites, activeCrater, hazardBundle, computedRoutes,
-        showGraticule, showNomenclature, showRouteComments, highQualityGlobeRay
+        showGraticule, showNomenclature, showRouteComments, highQualityGlobeRay,
+        routeScope, customOrigin, customDestination
       } = state;
 
       ctx.clearRect(0, 0, width, height);
@@ -100,6 +101,9 @@
       }
 
       const hitTargets = this.overlays.drawMarkers(ctx, project3D, craters, landingSites, activeCrater?.id);
+      if (routeScope === "global" || (computedRoutes && computedRoutes.scope === "global")) {
+        this.overlays.drawCustomEndpoints(ctx, project3D, customOrigin, customDestination);
+      }
       ctx.restore();
       return hitTargets;
     }

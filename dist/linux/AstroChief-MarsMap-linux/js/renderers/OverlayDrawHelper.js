@@ -163,6 +163,57 @@
 
       return hitTargets;
     }
+
+    /**
+     * Kullanici tarafindan secilen Mevcut Konum (A) ve Varis Noktasi (B) isaretcilerini cizer
+     */
+    drawCustomEndpoints(ctx, projFn, origin, destination) {
+      const drawEndpoint = (pt, tag, bgHex, borderHex) => {
+        if (!pt || pt.lat === undefined || pt.lon === undefined) return;
+        const p = projFn(pt.lat, pt.lon);
+        if (!p || !p.visible) return;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 13, 0, Math.PI * 2);
+        ctx.strokeStyle = borderHex;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+        ctx.fillStyle = bgHex;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+
+        ctx.font = "900 10px 'Public Sans Web', sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(tag, p.x, p.y + 0.5);
+
+        const caption = `${tag}: ${(pt.name || `${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°`).slice(0, 22)}`;
+        ctx.font = "800 10px 'Public Sans Web', sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+        const tw = ctx.measureText(caption).width;
+        ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+        ctx.fillRect(p.x + 14, p.y - 22, tw + 10, 17);
+        ctx.strokeStyle = bgHex;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(p.x + 14, p.y - 22, tw + 10, 17);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(caption, p.x + 19, p.y - 10);
+        ctx.restore();
+      };
+
+      drawEndpoint(origin, "A", "#2563eb", "rgba(37, 99, 235, 0.85)");
+      drawEndpoint(destination, "B", "#d92b2b", "rgba(217, 43, 43, 0.9)");
+    }
   }
 
   ns.OverlayDrawHelper = OverlayDrawHelper;
@@ -175,5 +226,6 @@
    - Satir 7-26: projectToSphere; enlem/boylam koordinatlarini 3D kure ekran noktasina cevirir.
    - Satir 28-61: draw2DHazardCircle; radyal gradyan, kesikli sinir halkasi ve etiket kutusu cizer.
    - Satir 63-105: drawGlobalHazards; Asit Yagmuru, Kum Firtinasi ve Alfa/Beta/Gama Foton kusaklarini aktif siddetle cizer.
-   - Satir 107-155: drawMarkers; NASA inis sahalari ve tiklanabilir odak krater pinlerini cizer.
+   - Satir 107-165: drawMarkers; NASA inis sahalari ve tiklanabilir odak krater pinlerini cizer.
+   - Satir 167-212: drawCustomEndpoints; haritada secilen Mevcut Konum (A) ve Varis (B) noktalarini cizer.
    ========================================================================== */
