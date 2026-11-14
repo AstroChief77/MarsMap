@@ -91,8 +91,6 @@
         },
         onChangeGlobalEndpoints: (key, siteId) => this.handlePresetEndpointChange(key, siteId),
         onTogglePickMode: (mode) => this.togglePickMode(mode),
-        onEnterGlobalPicker: () => this.switchToGlobalRouteScope(),
-        onApplyCustomCoords: (oLat, oLon, dLat, dLon) => this.applyCustomCoordinates(oLat, oLon, dLat, dLon),
         onChangeStepTab: (tab) => {
           this.state.activeStepRouteTab = tab === "secondary" ? "secondary" : "primary";
           this.persistState();
@@ -217,13 +215,20 @@
       this.pickMode = null;
       if (this.canvas) this.canvas.style.cursor = "";
       this.state.activeCraterId = crater.id;
-      this.state.routeScope = "crater";
+      this.state.routeScope = "global";
+      if (crater.id !== "gale-crater") {
+        this.state.customDestination = {
+          id: crater.id,
+          name: crater.name,
+          lat: crater.coordinates.lat,
+          lon: crater.coordinates.lon
+        };
+        this.state.useCustomCoordinates = true;
+      }
       this.backendRoutes = null;
-      const wps = this.getActiveWaypoints();
-      this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       this.persistState();
-      this.renderUi();
-      this.animateTo(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.state.zoom, 1.95));
+      this.refreshAll();
+      this.animateTo(crater.coordinates.lat, crater.coordinates.lon, Math.max(this.state.zoom, 1.25));
       if (this.state.backendApiUrl) {
         this.scheduleBackendRouteFetch(120);
       }
@@ -595,30 +600,10 @@
       if (this.canvas) {
         this.canvas.style.cursor = this.pickMode ? "crosshair" : "";
       }
-      if (this.pickMode === "origin") {
-        this.showToast("Harita üzerinde Konum (A) noktasına tıklayın.");
-      } else if (this.pickMode === "destination") {
-        this.showToast("Harita üzerinde Varış (B) noktasına tıklayın.");
+      if (this.pickMode === "destination") {
+        this.showToast("Harita üzerinde gitmek istediğiniz Hedef Konuma tıklayın.");
       }
       this.renderUi();
-    }
-
-    applyCustomCoordinates(oLat, oLon, dLat, dLon) {
-      if ([oLat, oLon, dLat, dLon].some((n) => Number.isNaN(n))) {
-        this.showToast("Lütfen geçerli sayısal enlem ve boylam girin.", true);
-        return;
-      }
-      this.pickMode = null;
-      if (this.canvas) this.canvas.style.cursor = "";
-      this.state.customOrigin = this.routePlanner.geo.makeEndpointPoint("manual-origin", "Konum", oLat, oLon);
-      this.state.customDestination = this.routePlanner.geo.makeEndpointPoint("manual-dest", "Varış", dLat, dLon);
-      this.state.useCustomCoordinates = true;
-      this.state.routeScope = "global";
-      this.backendRoutes = null;
-      this.persistState();
-      this.refreshAll();
-      if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(10);
-      else this.showToast("Koordinatlar yerel rota motoruyla step-by-step hesaplandı.");
     }
 
     async handleBackendUrlSave(rawUrl) {

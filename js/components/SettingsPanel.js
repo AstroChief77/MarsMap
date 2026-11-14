@@ -36,8 +36,8 @@
       if (!this.mountEl) return;
 
       const craterButtons = craters.map((c) => {
-        const short = c.id === "gale-crater" ? "★ Gale" : (c.id === "jezero-crater" ? "Jezero" : "Korolev");
-        const active = state.routeScope === "crater" && state.activeCraterId === c.id;
+        const short = c.id === "gale-crater" ? "📍 Konumumuz (Gale)" : (c.id === "jezero-crater" ? "🎯 Jezero" : "🎯 Korolev");
+        const active = state.activeCraterId === c.id;
         return `<button class="nav-target-btn ${active ? "active" : ""}" data-crater-nav="${c.id}">${short}</button>`;
       }).join("");
 

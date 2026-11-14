@@ -196,7 +196,9 @@
         ctx.textBaseline = "middle";
         ctx.fillText(tag, p.x, p.y + 0.5);
 
-        const caption = `${tag}: ${(pt.name || `${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°`).slice(0, 22)}`;
+        const caption = tag === "A"
+          ? `📍 Konumumuz (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`
+          : `🎯 Hedef (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
         ctx.font = "800 10px 'Public Sans Web', sans-serif";
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
