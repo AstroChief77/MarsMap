@@ -162,13 +162,6 @@
       }
 
       ctx.save();
-      if (limbVisible) {
-        ctx.strokeStyle = "rgba(244, 145, 92, 0.55)";
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.arc(cx, sphereCy, radius, 0, Math.PI * 2);
-        ctx.stroke();
-      }
 
       // 2. Vektor katmanlari icin Google Earth tipi tam kuresel 3D projeksiyon fonksiyonu
       const pxPerDeg = radius / 57.2958;
