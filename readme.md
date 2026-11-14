@@ -18,9 +18,9 @@ Atahan: Kaptan,Başkan,Lider,Diktatör
 
 Akif:Lead Developer
 
-Rıfat:Coder
+Rıfat:Coder 10.0.16.121
 
-Ömer:Coder
+Ömer:Coder 10.0.16.122
 
 Mustafa:Coder
 
