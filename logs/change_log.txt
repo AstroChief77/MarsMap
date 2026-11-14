@@ -33,3 +33,5 @@
 [2026-11-14 11:12:08] [GIT] origin/main uzaktaki yeni değişiklikler (Bilgilendirme ve yeni yarışma kuralları) rebase ile yerel dala çekildi ve başarıyla birleştirildi.
 [2026-11-14 11:12:20] [GIT] Son yedek ve günlük dosyaları commitlendi.
 [2026-11-14 11:12:25] [GIT] origin/main dalına nihai push işlemi başlatıldı.
+[2026-11-14 11:14:23] [CREATE] serve.ps1 oluşturuldu (PowerShell dahili HttpListener yerel web sunucusu).
+[2026-11-14 11:14:29] [CREATE] preview.bat oluşturuldu (Kullanıcının tek tıkla tarayıcıda localhost:3000 açabilmesi için başlatıcı).
