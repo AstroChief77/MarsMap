@@ -196,3 +196,10 @@
 [2026-11-14 15:22:00] [UPDATE] readme.md (d1e2869) geregi BackendApiService, css/inspector.css, RouteInspectorPanel ve MarsNavigatorController uzerine sag ustte 5 saniyede bir guncellenen backend gecikme (ms) gostergesi eklendi.
 [2026-11-14 15:36:00] [UPDATE] Kullanici istegiyle arayuz sadelestirildi: AppConfig (v3_2, varsayilan global mod), RouteInspectorPanel (sabit Bulundugumuz Konum + tekli Hedef Konum secici ve Haritadan Hedef Sec butonu), OverlayDrawHelper (📍 Konumumuz ve 🎯 Hedef etiketleri), SettingsPanel ve MarsNavigatorController guncellendi.
 [2026-11-14 15:53:00] [UPDATE] Tarayici onbellek sorunu icin index.html betiklerine ?v=3.2 surum parametresi ve tools/WinLauncher.cs icine Cache-Control: no-store basligi eklendi.
+
+[2026-11-14 16:04] Saf Rust Backend İstek/Yanıt Akışı ve Ultra Basit Rota Paneli (v3.3)
+- Yedek Klasörü: backups/snapshot_20261114_pure_backend/
+- js/models/AppConfig.js: storageKey "astrochief_mars_navigator_v3_3" olarak güncellendi, varsayılan backendApiUrl "http://127.0.0.1:8080" yapıldı.
+- js/components/MarsNavigatorController.js: Backend'den yanıt gelmeden sahte/yerel Mavi ve Soluk Mavi rota veya tehlike dairesi çizilmesi tamamen kaldırıldı (computeActiveRoutes yalnızca this.backendRoutes döner; getActiveHazardBundle yalnızca this.backendHazards geldiğinde tehlike bölgelerini döner). Haritaya tıklanınca doğrudan Hedef Konum seçilip POST /api/v1/route isteği gönderilir.
+- js/components/RouteInspectorPanel.js: Sağ üst panel sadeleştirildi; sabit "📍 Konumumuz: Gale (-4.59°, 137.44°)", "🎯 Hedef Konum", "🚀 Rotayı Hesapla (Backend'e Gönder)" butonu ve backend yanıtı gelene kadar gönderilen gerçek JSON istek paketinin (origin, destination, factors) canlı önizlemesi gösterilir.
+- index.html: Tarayıcı önbellek kırıcı ?v=3.3 sürümüne yükseltildi.

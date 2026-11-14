@@ -50,7 +50,8 @@
       this.backendHazards = null;
       this.backendLatencyMs = null;
       this.backendLoading = false;
-      this.backendStatusText = "";
+      this.backendStatusText = "Backend bekleniyor (istek hazır)";
+      this.lastRequestPayload = null;
       this.pickMode = null;
       this.requestSeq = 0;
       this.routeDebounceTimer = null;
@@ -91,6 +92,7 @@
         },
         onChangeGlobalEndpoints: (key, siteId) => this.handlePresetEndpointChange(key, siteId),
         onTogglePickMode: (mode) => this.togglePickMode(mode),
+        onSendBackendRoute: () => this.fetchBackendRouteNow(true),
         onChangeStepTab: (tab) => {
           this.state.activeStepRouteTab = tab === "secondary" ? "secondary" : "primary";
           this.persistState();
@@ -245,43 +247,46 @@
 
     getActiveHazardBundle() {
       const base = this.hazardService.getGlobalHazardZones(this.state);
-      if (!this.backendHazards) return base;
+      if (!this.backendHazards) {
+        return {
+          ...base,
+          acidZones: [],
+          stormZones: [],
+          radiationZones: []
+        };
+      }
       return {
         ...base,
-        acidZones: (this.state.filterAcidRain && Array.isArray(this.backendHazards.acidZones) && this.backendHazards.acidZones.length > 0)
+        acidZones: (this.state.filterAcidRain && Array.isArray(this.backendHazards.acidZones))
           ? this.backendHazards.acidZones
-          : base.acidZones,
-        stormZones: (this.state.filterDustStorm && Array.isArray(this.backendHazards.stormZones) && this.backendHazards.stormZones.length > 0)
+          : [],
+        stormZones: (this.state.filterDustStorm && Array.isArray(this.backendHazards.stormZones))
           ? this.backendHazards.stormZones
-          : base.stormZones,
-        radiationZones: (this.state.showRadiationZones && Array.isArray(this.backendHazards.radiationZones) && this.backendHazards.radiationZones.length > 0)
+          : [],
+        radiationZones: (this.state.showRadiationZones && Array.isArray(this.backendHazards.radiationZones))
           ? this.backendHazards.radiationZones
-          : base.radiationZones
+          : []
       };
     }
 
     computeActiveRoutes() {
-      if (this.backendRoutes && this.backendRoutes.scope === this.state.routeScope) {
-        return this.backendRoutes;
-      }
+      return this.backendRoutes;
+    }
 
-      const activeCrater = this.getActiveCrater();
-      const wps = this.getActiveWaypoints();
-      const hazardBundle = this.getActiveHazardBundle();
-      const opts = {
-        filterAcidRain: this.state.filterAcidRain,
-        acidIntensity: this.state.acidIntensity,
-        filterDustStorm: this.state.filterDustStorm,
-        stormIntensity: this.state.stormIntensity,
-        showRadiationZones: this.state.showRadiationZones,
-        hazardBundle
-      };
-
-      if (this.state.routeScope === "global") {
-        const { origin, destination } = this.getActiveEndpoints();
-        return this.routePlanner.computeRoutesBetweenCoords(origin, destination, opts);
-      }
-      return this.routePlanner.computeCraterRoutes(activeCrater, wps, opts);
+    buildCurrentRequestPayload(origin, destination, activeCrater) {
+      if (!this.backendApi) return null;
+      const baseHazards = this.hazardService.getGlobalHazardZones(this.state);
+      const craterRadZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
+      return this.backendApi.buildRouteRequestPayload({
+        scope: this.state.routeScope,
+        origin,
+        destination,
+        state: this.state,
+        activeCrater,
+        hazardBundle: this.backendHazards || baseHazards,
+        craterRadZones,
+        planner: this.routePlanner
+      });
     }
 
     refreshAll() {
@@ -295,8 +300,11 @@
       const activeCrater = this.getActiveCrater();
       const wps = this.getActiveWaypoints();
       const routes = this.computeActiveRoutes();
-      const radZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
+      const radZones = (this.backendHazards && Array.isArray(this.backendHazards.radiationZones))
+        ? this.backendHazards.radiationZones
+        : [];
       const { origin, destination } = this.getActiveEndpoints();
+      const reqPayload = this.lastRequestPayload || this.buildCurrentRequestPayload(origin, destination, activeCrater);
 
       this.settingsPanel.render(this.state, CRATERS_DATA, this.backendStatusText);
       this.satellitesPanel.render(this.state, this.tileLoader.getLayers());
@@ -308,7 +316,9 @@
           activeDestination: destination,
           pickMode: this.pickMode,
           backendLoading: this.backendLoading,
-          backendLatencyMs: this.backendLatencyMs
+          backendLatencyMs: this.backendLatencyMs,
+          backendStatusText: this.backendStatusText,
+          lastRequestPayload: reqPayload
         }
       );
     }
@@ -453,35 +463,32 @@
         const cx = (e.clientX - rect.left) * scaleX;
         const cy = (e.clientY - rect.top) * scaleY;
 
-        if (this.pickMode) {
-          const geo = this.pixelToGeo(cx, cy);
-          if (!geo.insideMap) {
-            this.showToast("Lütfen Mars yüzeyi üzerinde bir koordinata tıklayın.", true);
-            return;
-          }
-          const mode = this.pickMode;
-          this.pickMode = null;
-          this.canvas.style.cursor = "";
-          const pt = this.routePlanner.geo.makeEndpointPoint(
-            mode === "origin" ? "picked-origin" : "picked-dest",
-            mode === "origin" ? "Konum" : "Varış",
-            geo.lat,
-            geo.lon
-          );
-          if (mode === "origin") this.state.customOrigin = pt;
-          else this.state.customDestination = pt;
-          this.state.useCustomCoordinates = true;
-          this.state.routeScope = "global";
-          this.backendRoutes = null;
-          this.persistState();
-          this.refreshAll();
-          this.showToast(`${mode === "origin" ? "Konum (A)" : "Varış (B)"}: ${geo.lat.toFixed(2)}°, ${geo.lon.toFixed(2)}°`);
-          if (this.state.backendApiUrl) this.scheduleBackendRouteFetch(30);
+        const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
+        if (hit && !this.pickMode) {
+          this.flyToCraterById(hit.crater.id);
           return;
         }
 
-        const hit = this.hitTargets.find((t) => Math.hypot(cx - t.x, cy - t.y) <= t.r);
-        if (hit) this.flyToCraterById(hit.crater.id);
+        const geo = this.pixelToGeo(cx, cy);
+        if (!geo.insideMap) {
+          if (this.pickMode) this.showToast("Lütfen Mars yüzeyi üzerinde bir koordinata tıklayın.", true);
+          return;
+        }
+        this.pickMode = null;
+        this.canvas.style.cursor = "";
+        this.state.customDestination = this.routePlanner.geo.makeEndpointPoint(
+          "picked-dest",
+          "Seçilen Hedef",
+          geo.lat,
+          geo.lon
+        );
+        this.state.useCustomCoordinates = true;
+        this.state.routeScope = "global";
+        this.backendRoutes = null;
+        this.persistState();
+        this.refreshAll();
+        this.showToast(`🎯 Hedef Seçildi: ${geo.lat.toFixed(2)}°, ${geo.lon.toFixed(2)}° — Backend'e istek gönderiliyor...`);
+        this.scheduleBackendRouteFetch(20);
       });
     }
 
@@ -681,41 +688,37 @@
       }, delayMs);
     }
 
-    async fetchBackendRouteNow() {
-      if (!this.backendApi || !this.state.backendApiUrl) return;
+    async fetchBackendRouteNow(isManual = false) {
+      if (!this.backendApi) return;
+      const baseUrl = this.state.backendApiUrl || "http://127.0.0.1:8080";
       const seq = ++this.requestSeq;
       this.backendLoading = true;
-      this.renderUi();
 
       const activeCrater = this.getActiveCrater();
       const { origin, destination } = this.getActiveEndpoints();
-      const hazardBundle = this.getActiveHazardBundle();
-      const craterRadZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
-      const payload = this.backendApi.buildRouteRequestPayload({
-        scope: this.state.routeScope,
-        origin,
-        destination,
-        state: this.state,
-        activeCrater,
-        hazardBundle,
-        craterRadZones,
-        planner: this.routePlanner
-      });
+      const payload = this.buildCurrentRequestPayload(origin, destination, activeCrater);
+      this.lastRequestPayload = payload;
+      this.renderUi();
 
       try {
-        const res = await this.backendApi.requestStepRoute(this.state.backendApiUrl, payload, this.routePlanner);
+        const res = await this.backendApi.requestStepRoute(baseUrl, payload, this.routePlanner);
         if (seq !== this.requestSeq) return;
         this.backendRoutes = res;
         this.backendLatencyMs = typeof res.latencyMs === "number" ? res.latencyMs : this.backendLatencyMs;
         if (res.hazards) {
           this.backendHazards = res.hazards;
         }
-        this.backendStatusText = `Bağlı (${res.engine})`;
+        this.backendStatusText = `🦀 Backend yanıtladı (${res.latencyMs || 0} ms)`;
+        this.updateLatencyBadges();
       } catch (err) {
         if (seq !== this.requestSeq) return;
         this.backendRoutes = null;
         this.backendLatencyMs = null;
-        this.backendStatusText = `Yedek mod: ${err.message}`;
+        this.backendStatusText = `İstek hazır (${baseUrl}/api/v1/route) — Rust Backend yanıtı bekleniyor`;
+        this.updateLatencyBadges();
+        if (isManual) {
+          this.showToast(`İstek ${baseUrl}/api/v1/route adresine gönderildi (Backend henüz yanıt vermedi).`, true);
+        }
       } finally {
         if (seq === this.requestSeq) {
           this.backendLoading = false;

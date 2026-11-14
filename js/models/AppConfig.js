@@ -11,7 +11,7 @@
      * Sistem performans koruma ve fabrika ayar sablonunu olusturur
      */
     constructor() {
-      this.storageKey = "astrochief_mars_navigator_v3_2";
+      this.storageKey = "astrochief_mars_navigator_v3_3";
       this.fpsMinLimit = 10;
       this.fpsGuardWindowMs = 10000;    // KURAL: Ayar degistirildikten sonra 10 saniye < 10 FPS kalirsa geri al
       this.challengeUrl = "https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/";
@@ -42,7 +42,7 @@
           lon: 77.4508
         },
         useCustomCoordinates: false,
-        backendApiUrl: "",              // Rust backend adresi (or: http://127.0.0.1:8080)
+        backendApiUrl: "http://127.0.0.1:8080", // Varsayilan Rust backend adresi
         activeStepRouteTab: "primary",
         filterAcidRain: true,
         acidIntensity: "orta",          // 'hafif' | 'orta' | 'siddetli'
