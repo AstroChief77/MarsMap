@@ -127,10 +127,15 @@
     }
 
     buildLocalTileUrl(layer, z, y, x) {
-      return layer.local_template
+      const url = layer.local_template
         .replace("{z}", String(z))
         .replace("{y}", String(y))
         .replace("{x}", String(x));
+      // HTTP/HTTPS ortaminda Cloudflare/tarayici negatif 404 onbellegini asmak icin surum eki kullan
+      if (typeof window !== "undefined" && window.location && window.location.protocol !== "file:") {
+        return url.includes("?") ? `${url}&v=4.3` : `${url}?v=4.3`;
+      }
+      return url;
     }
 
     buildRemoteTileUrl(layer, z, y, x) {

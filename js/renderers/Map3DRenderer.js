@@ -356,7 +356,7 @@
         let rSurf = 1.0, u = 0, v = 0, vy = 0, topoSample = null;
         let x1 = 0, y1 = 0, z1 = 1;
         const B = pivotZ * cosP;
-        const passes = (!fastMode && elevGrid && (baseR2 > 0.78 || camPitch > 8)) ? 2 : 1;
+        const passes = elevGrid ? 2 : 1;
 
         for (let it = 0; it < passes; it++) {
           const C = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * sinP - rSurf * rSurf;

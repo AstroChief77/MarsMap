@@ -32,15 +32,17 @@ fn main() {
     let start_y = 0;
     let goal_x = 19;
     let goal_y = 19;
+    let begin_oxy: i32 = 420; // Prameters.md / AppConfig.js varsayilan PLSS O2 rezervi (L STP)
 
     println!("==================================================");
     println!("🪐 AstroChief Rust A* Path Finder (Direct Call)");
     println!("Harita Boyutu: {}x{}", width, height);
     println!("Baslangic: ({}, {})", start_x, start_y);
     println!("Hedef:     ({}, {})", goal_x, goal_y);
+    println!("Baslangic O2: {} L", begin_oxy);
     println!("==================================================");
 
-    let json_result = find_rover_path(&flat_grid, width, height, start_x, start_y, goal_x, goal_y, 420);
+    let json_result = find_rover_path(&flat_grid, width, height, start_x, start_y, goal_x, goal_y, begin_oxy);
     println!("Rust Ciktisi (JSON):");
     println!("{}", json_result);
 

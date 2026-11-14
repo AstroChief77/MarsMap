@@ -423,19 +423,37 @@
       const rScale = 1.0 + dr;
 
       const cosPhi = Math.cos(phi);
-      const east = cosPhi * Math.sin(dLam);
+      const x0 = cosPhi * Math.sin(dLam);
       const y0 = Math.sin(phi);
       const z0 = cosPhi * Math.cos(dLam);
 
+      // 1. Odak enlemine (phi0) göre birim küre koordinatı: (east, north, up)
+      const east = x0;
       const north = y0 * basis.cosP0 - z0 * basis.sinP0;
       const up = y0 * basis.sinP0 + z0 * basis.cosP0;
-      const x1 = east * basis.cosYaw - north * basis.sinYaw;
-      const y1 = east * basis.sinYaw + north * basis.cosYaw;
-      const pivotZ = Math.max(0, Math.min(1, (clampedZoom - 1.1) / 1.1));
-      const dz0 = up * rScale - pivotZ;
-      const screenX = x1 * rScale;
-      const screenY = y1 * rScale * basis.cosPitch + dz0 * basis.sinPitch;
-      const depthZ = -y1 * rScale * basis.sinPitch + dz0 * basis.cosPitch + pivotZ;
+
+      // 2. Pusula bakış yönü (camYaw) dönüşü (merkez noktası sabit)
+      const yawRad = ((camYawDeg || 0) * Math.PI) / 180;
+      const cosY = Math.cos(yawRad);
+      const sinY = Math.sin(yawRad);
+      const x1 = east * cosY - north * sinY;
+      const y1 = east * sinY + north * cosY;
+      const z1 = up;
+
+      // 3. Google Earth tipi 3D kamera egimi (camPitch): Map3DRenderer.js ile birebir ayni pivotZ formulu
+      const pitchRad = (Math.max(0, Math.min(72, camPitchDeg || 0)) * Math.PI) / 180;
+      const cosP = Math.cos(pitchRad);
+      const sinP = Math.sin(pitchRad);
+      const pivotZ = Math.max(0, Math.min(1, (zoom - 1.1) / 1.1));
+
+      const px = x1 * rScale;
+      const py = y1 * rScale;
+      const pz = z1 * rScale;
+      const dz0 = pz - pivotZ;
+
+      const screenX = px;
+      const screenY = py * cosP + dz0 * sinP;
+      const depthZ = -py * sinP + dz0 * cosP + pivotZ;
 
       return {
         x: cx + screenX * radius,
@@ -447,57 +465,59 @@
     }
 
     /**
-     * Ekran pikselinden (px, py) 3D topografik Mars yuzeyine ters isin atarak
-     * gercek (lat, lon, elevM, slopeDeg) koordinatini bulur.
+     * Ekran pikselinden (px, py) Map3DRenderer.js ile birebir ayni pivotZ isin izleme
+     * denklemiyle gercek (lat, lon, elevM, slopeDeg) koordinatini bulur.
      */
     screenToElevatedMars3D(px, py, width, height, rotLatDeg, rotLonDeg, zoom = 1, camPitchDeg = 0, camYawDeg = 0, reliefScale = 1.0) {
-      const basis = this.buildCameraBasis(rotLatDeg, rotLonDeg, camPitchDeg, camYawDeg);
+      const cx = width / 2;
+      const cy = height / 2;
       const clampedZoom = Math.min(Math.max(zoom, 0.55), 80.0);
-      const cx = width * 0.5;
-      const cy = height * 0.5;
       const radius = Math.min(width, height) * 0.41 * clampedZoom;
 
-      const nx = (px - cx) / radius;
-      const ny = (cy - py) / radius;
+      const pitchRad = (Math.max(0, Math.min(72, camPitchDeg || 0)) * Math.PI) / 180;
+      const yawRad = ((camYawDeg || 0) * Math.PI) / 180;
+      const cosP = Math.cos(pitchRad);
+      const sinP = Math.sin(pitchRad);
       const pivotZ = Math.max(0, Math.min(1, (clampedZoom - 1.1) / 1.1));
-      const nySphere = ny + pivotZ * basis.sinPitch;
 
-      const radFactor = reliefScale > 0 ? this.getRadialScaleFactor(clampedZoom, camPitchDeg, reliefScale) : 0;
-      const rMaxLimb = 1.0 + 21500 * radFactor;
-      if (nx * nx + nySphere * nySphere > rMaxLimb * rMaxLimb) {
-        return { lat: 0, lon: 0, elevM: 0, slopeDeg: 0, insideMap: false };
-      }
+      const sx = (px - cx) / radius;
+      const sy = (cy - py) / radius;
 
-      const B = pivotZ * basis.cosPitch;
-      let rSurf = 1.0;
+      const cosY = Math.cos(yawRad);
+      const sinY = Math.sin(yawRad);
+      const phi0 = (rotLatDeg * Math.PI) / 180;
+      const lam0 = (rotLonDeg * Math.PI) / 180;
+      const sinP0 = Math.sin(phi0);
+      const cosP0 = Math.cos(phi0);
+
+      const radFactor = this.getRadialScaleFactor(clampedZoom, camPitchDeg, reliefScale);
+      let rScale = 1.0;
       let hitLat = rotLatDeg;
       let hitLon = rotLonDeg;
       let hitInside = false;
+      const B = pivotZ * cosP;
 
       for (let iter = 0; iter < 3; iter++) {
-        const C = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * basis.sinPitch - rSurf * rSurf;
+        const C = sx * sx + sy * sy + pivotZ * pivotZ + 2 * pivotZ * sy * sinP - rScale * rScale;
         const disc = B * B - C;
-        if (disc < 0) {
-          hitInside = false;
-          break;
-        }
+        if (disc < 0) break;
         const zRot = -B + Math.sqrt(disc);
-        const py3 = ny * basis.cosPitch - zRot * basis.sinPitch;
-        const pz3 = pivotZ + ny * basis.sinPitch + zRot * basis.cosPitch;
-        const x1 = nx / rSurf;
-        const y1 = py3 / rSurf;
-        const z1 = pz3 / rSurf;
+        const py3 = sy * cosP - zRot * sinP;
+        const pz3 = pivotZ + sy * sinP + zRot * cosP;
 
-        const east = x1 * basis.cosYaw + y1 * basis.sinYaw;
-        const north = -x1 * basis.sinYaw + y1 * basis.cosYaw;
-        const y0 = north * basis.cosP0 + z1 * basis.sinP0;
-        const z0 = -north * basis.sinP0 + z1 * basis.cosP0;
+        const x1 = sx / rScale;
+        const y1 = py3 / rScale;
+        const z1 = pz3 / rScale;
+        const east = x1 * cosY + y1 * sinY;
+        const north = -x1 * sinY + y1 * cosY;
+        const y0 = north * cosP0 + z1 * sinP0;
+        const z0 = -north * sinP0 + z1 * cosP0;
         const phi = Math.asin(Math.max(-1, Math.min(1, y0)));
-        const lambda = basis.lam0 + Math.atan2(east, z0);
+        const lambda = lam0 + Math.atan2(east, z0);
 
         hitLat = Math.max(-85, Math.min(85, (phi * 180) / Math.PI));
         hitLon = (((lambda * 180) / Math.PI + 180) % 360 + 360) % 360 - 180;
-        rSurf = 1.0 + (reliefScale > 0 ? this.getElevationMeters(hitLat, hitLon) * radFactor : 0);
+        rScale = 1.0 + this.getElevationMeters(hitLat, hitLon) * radFactor;
         hitInside = true;
       }
 

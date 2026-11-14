@@ -23,8 +23,10 @@
 
       this.wasmInitPromise = (async () => {
         try {
-          const wasmUrl = new URL("./js/wasm/backend.js", window.location.href).href;
-          const wasmBinaryUrl = new URL("./js/wasm/backend_bg.wasm", window.location.href).href;
+          const bust = (typeof window !== "undefined" && window.location && window.location.protocol !== "file:") ? "?v=4.3" : "";
+          const baseHref = (typeof document !== "undefined" && document.baseURI) ? document.baseURI : window.location.href;
+          const wasmUrl = new URL(`./js/wasm/backend.js${bust}`, baseHref).href;
+          const wasmBinaryUrl = new URL(`./js/wasm/backend_bg.wasm${bust}`, baseHref).href;
           const mod = await import(wasmUrl);
           await mod.default(wasmBinaryUrl);
           if (typeof mod.find_rover_path === "function") {
@@ -108,8 +110,10 @@
       const t0 = performance.now();
       const wasmOk = await this.ensureWasmLoaded();
       if (wasmOk && this.wasmFindPath) {
+        // Canli ping testi: 2x2 mini MOLA grid ve varsayilan PLSS O2 ile Rust WASM cagri gecikmesini olc
         const mini = new Int32Array([0, 1, 1, 2]);
-        this.wasmFindPath(mini, 2, 2, 0, 0, 1, 1);
+        const pingOxy = Math.round(Number(this.config?.getDefaults?.().oxygenReserveLiters || 420));
+        this.wasmFindPath(mini, 2, 2, 0, 0, 1, 1, pingOxy);
         const latencyMs = Math.max(1, Math.round(performance.now() - t0));
         return {
           ok: true,
@@ -156,28 +160,45 @@
       }
     }
 
-    /** Tum cevresel etkenleri (radyasyon, asit, firtina, egim, astronot) ve 20x20 Rust gridini hazirlar */
+    /** Tum cevresel etkenleri (radyasyon, asit, firtina, gercek MOLA egimi, astronot O2) ve 24x24 Rust gridini hazirlar */
     buildRouteRequestPayload({ scope, origin, destination, state, activeCrater, hazardBundle, craterRadZones, planner }) {
       const acidSpec = (hazardBundle && hazardBundle.acidSpec) || {};
       const stormSpec = (hazardBundle && hazardBundle.stormSpec) || {};
       const radZones = (hazardBundle && hazardBundle.radiationZones) || [];
+      const topo = ns.marsTopo || null;
+      const origLat = Number(Number(origin.lat || 0).toFixed(4));
+      const origLon = Number(Number(origin.lon || 0).toFixed(4));
+      const destLat = Number(Number(destination.lat || 0).toFixed(4));
+      const destLon = Number(Number(destination.lon || 0).toFixed(4));
+      const origTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(origLat, origLon) : { elevM: 0, slopeDeg: 0 };
+      const destTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(destLat, destLon) : { elevM: 0, slopeDeg: 0 };
+      const beginOxy = Math.max(0, Math.round(Number(state.oxygenReserveLiters || 420)));
+      const gridSize = 24;
+
       return {
         scope: scope || "global",
         origin: {
           id: origin.id || "custom-origin",
           name: origin.name || "Konumumuz (A)",
-          lat: Number(Number(origin.lat || 0).toFixed(4)),
-          lon: Number(Number(origin.lon || 0).toFixed(4))
+          lat: origLat,
+          lon: origLon,
+          elevM: origTele.elevM,
+          slopeDeg: origTele.slopeDeg
         },
         destination: {
           id: destination.id || "custom-destination",
           name: destination.name || "Hedef Konum (B)",
-          lat: Number(Number(destination.lat || 0).toFixed(4)),
-          lon: Number(Number(destination.lon || 0).toFixed(4))
+          lat: destLat,
+          lon: destLon,
+          elevM: destTele.elevM,
+          slopeDeg: destTele.slopeDeg
         },
         rustWasmCall: {
-          fn: "find_rover_path(grid_flat, 20, 20, 0, 0, 19, 19)",
-          module: "js/wasm/backend_bg.wasm"
+          fn: `find_rover_path(grid_flat, ${gridSize}, ${gridSize}, 0, 0, ${gridSize - 1}, ${gridSize - 1}, ${beginOxy})`,
+          module: "js/wasm/backend_bg.wasm",
+          dataFeed: "NASA MOLA DEM (1024x512) + Aktif Tehlikeler + PLSS O2",
+          gridSize,
+          beginOxy
         },
         factors: {
           acidRain: {
@@ -212,13 +233,16 @@
             }))
           },
           terrain: {
+            source: "NASA MOLA DEM (MarsTopographyService)",
             planetRadiusKm: 3389.5,
             craterId: activeCrater ? activeCrater.id : "gale-crater",
             maxSlopeDiff: 3,
+            maxSafeRoverSlopeDeg: 25,
             obstacleCode: -999
           },
           astronaut: {
-            oxygenReserveLiters: Number(state.oxygenReserveLiters || 420),
+            oxygenReserveLiters: beginOxy,
+            o2NominalLPerMin: 0.80,
             waterReserveLiters: Number(state.waterReserveLiters || 24),
             roverSpeedKmH: planner ? planner.roverSpeedKmH : 14.5
           }
@@ -292,133 +316,236 @@
       }
     }
 
+    /** (±180 boylam atlamali) en kisa boylam farkini ve normalize boylami doner */
     wrapLon(lon) {
-      return (((Number(lon) || 0) + 180) % 360 + 360) % 360 - 180;
+      return ((((lon + 180) % 360) + 360) % 360) - 180;
     }
 
-    shortestDeltaLon(fromLon, toLon) {
-      return (((Number(toLon) - Number(fromLon)) + 540) % 360 + 360) % 360 - 180;
+    /** Kure yuzeyinde kosinus duzeltmeli yaklasik acisal mesafe (derece) */
+    sphericalAngleDeg(lat1, lon1, lat2, lon2) {
+      let dLon = lon2 - lon1;
+      if (dLon > 180) dLon -= 360;
+      else if (dLon < -180) dLon += 360;
+      const cosMid = Math.cos(((lat1 + lat2) * 0.5 * Math.PI) / 180);
+      return Math.hypot(lat2 - lat1, dLon * Math.max(0.15, cosMid));
     }
 
-    /** file:// ortaminda WASM import engellenirse Rust lib.rs ile birebir ayni A* kurallarini calistiran yedek cozucu */
-    solveGridAStarFallback(flat, width, height, sx, sy, gx, gy) {
-      const getZ = (x, y) => (x >= 0 && x < width && y >= 0 && y < height) ? flat[y * width + x] : -999;
-      if (getZ(sx, sy) === -999 || getZ(gx, gy) === -999) return { success: false, path: [] };
-      const keyOf = (x, y) => y * width + x;
-      const gScore = new Map([[keyOf(sx, sy), 0]]);
-      const cameFrom = new Map();
-      const open = [{ x: sx, y: sy, z: getZ(sx, sy), g: 0, f: Math.abs(gx - sx) + Math.abs(gy - sy) }];
-      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    /** (x, y) Rust izgara hucresini antimeridyen-guvenli koridor (lat, lon) koordinatina donusturur */
+    gridCellToGeo(x, y, width, height, orig, dest, lateralFactor = 0.38) {
+      const denomU = Math.max(1, (width - 1) + (height - 1));
+      const denomV = Math.max(1, width - 1);
+      const u = (x + y) / denomU;
+      const v = (x - y) / denomV;
+      const dLat = dest.lat - orig.lat;
+      let dLon = dest.lon - orig.lon;
+      if (dLon > 180) dLon -= 360;
+      else if (dLon < -180) dLon += 360;
 
-      while (open.length > 0) {
-        open.sort((a, b) => a.f - b.f);
-        const cur = open.shift();
-        if (cur.x === gx && cur.y === gy) {
-          const path = [];
-          let k = keyOf(gx, gy);
-          let node = cur;
-          while (node) {
-            path.unshift({ x: node.x, y: node.y, z: node.z });
-            node = cameFrom.get(k);
-            if (node) k = keyOf(node.x, node.y);
-          }
-          return { success: true, cost: cur.g, steps_count: path.length, path };
-        }
-        for (const [dx, dy] of dirs) {
-          const nx = cur.x + dx, ny = cur.y + dy;
-          const nz = getZ(nx, ny);
-          if (nz === -999) continue;
-          const diff = nz - cur.z;
-          if (Math.abs(diff) > 3) continue;
-          const stepCost = diff > 0 ? 1 + diff * 5 : (diff < 0 ? 1 + Math.abs(diff) * 2 : 1);
-          const tentG = cur.g + stepCost;
-          const nk = keyOf(nx, ny);
-          if (tentG < (gScore.get(nk) ?? 1e9)) {
-            gScore.set(nk, tentG);
-            cameFrom.set(nk, cur);
-            open.push({ x: nx, y: ny, z: nz, g: tentG, f: tentG + Math.abs(gx - nx) + Math.abs(gy - ny) });
-          }
+      const perpLat = -dLon * lateralFactor;
+      const perpLon = dLat * lateralFactor;
+      const lat = Math.max(-89.8, Math.min(89.8, orig.lat + dLat * u + perpLat * v));
+      const lon = this.wrapLon(orig.lon + dLon * u + perpLon * v);
+      return { lat, lon, u, v };
+    }
+
+    /** Verilen (lat, lon) koridorunda gercek NASA MOLA DEM yukseklik ve egim izgarasini ornekler */
+    sampleMolaCorridor(orig, dest, width, height, lateralFactor = 0.38) {
+      const total = width * height;
+      const elevMeters = new Float32Array(total);
+      const slopeDegs = new Float32Array(total);
+      const lats = new Float32Array(total);
+      const lons = new Float32Array(total);
+      const topo = ns.marsTopo || null;
+      const hasTele = topo && typeof topo.getSurfaceTelemetry === "function";
+      const hasElev = topo && typeof topo.getElevationMeters === "function";
+      let minElevM = Infinity;
+      let maxElevM = -Infinity;
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          const { lat, lon } = this.gridCellToGeo(x, y, width, height, orig, dest, lateralFactor);
+          const tele = hasTele
+            ? topo.getSurfaceTelemetry(lat, lon)
+            : { elevM: hasElev ? topo.getElevationMeters(lat, lon) : 0, slopeDeg: 2.0 };
+          elevMeters[idx] = tele.elevM;
+          slopeDegs[idx] = tele.slopeDeg;
+          lats[idx] = lat;
+          lons[idx] = lon;
+          if (tele.elevM < minElevM) minElevM = tele.elevM;
+          if (tele.elevM > maxElevM) maxElevM = tele.elevM;
         }
       }
-      return { success: false, path: [] };
+
+      if (!Number.isFinite(minElevM)) { minElevM = 0; maxElevM = 0; }
+      return { elevMeters, slopeDegs, lats, lons, minElevM, maxElevM };
     }
 
-    /**
-     * Mustafa dalindaki derlenmis Rust `find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y)`
-     * WebAssembly fonksiyonunu cagirir ve ciktisini antimeridyen + MOLA topografyasiyla Mars koordinatlarina donusturur.
-     */
-    computeViaRustWasm(payload, planner) {
-      const t0 = performance.now();
-      const width = 20;
-      const height = 20;
-      const orig = payload.origin;
-      const dest = payload.destination;
-      const dLat = dest.lat - orig.lat;
-      const dLon = this.shortestDeltaLon(orig.lon, dest.lon);
-      const perpLat = -dLon * 0.38;
-      const perpLon = dLat * 0.38;
-      const topo = ns.marsTopo || null;
+    /** Gercek MOLA verisi + aktif tehlikelerden Rust `find_rover_path` i32 izgarasi uretir (-999 = engel) */
+    buildMolaRustGrid(corridor, width, height, payload, opts = {}) {
+      const { hazardScale = 1.0, stepScale = 1.0, enforceCliffs = true, smoothNeighbors = false } = opts;
+      const flat = new Int32Array(width * height);
+      const acidZones = (payload.factors?.acidRain?.enabled && payload.factors?.acidRain?.zones) || [];
+      const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
+      const radZones = (payload.factors?.radiation?.enabled && payload.factors?.radiation?.zones) || [];
+      const activeZones = [...acidZones, ...stormZones, ...radZones];
 
-      const buildGrid = (obstacleRadiusScale) => {
-        const flat = new Int32Array(width * height);
-        const acidZones = (payload.factors?.acidRain?.enabled && payload.factors?.acidRain?.zones) || [];
-        const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
-        const radZones = (payload.factors?.radiation?.enabled && payload.factors?.radiation?.zones) || [];
+      const elevSpan = Math.max(300, corridor.maxElevM - corridor.minElevM);
+      const stepMeters = Math.max(160, (elevSpan / ((width + height) * 0.55)) * stepScale);
 
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          const isEndpoint = (x === 0 && y === 0) || (x === width - 1 && y === height - 1);
+          const lat = corridor.lats[idx];
+          const lon = corridor.lons[idx];
+
+          let blocked = false;
+          if (!isEndpoint && hazardScale > 0) {
+            for (const z of activeZones) {
+              const dist = this.sphericalAngleDeg(lat, lon, z.lat, z.lon);
+              if (dist < (z.radiusDeg || 6) * 0.65 * hazardScale) {
+                blocked = true;
+                break;
+              }
+            }
+            // Krater icinde asiri dik krater duvarlarini (>25 deg, Prameters.md) gecilmez say
+            if (!blocked && enforceCliffs && corridor.slopeDegs[idx] > 25.0) {
+              blocked = true;
+            }
+          }
+
+          flat[idx] = blocked
+            ? -999
+            : Math.round((corridor.elevMeters[idx] - corridor.minElevM) / stepMeters);
+        }
+      }
+
+      // Yalnizca asiri dik ucurumlar tum koridoru tikadiysa komsu delta <= 2 garantili gercek MOLA yumusatma
+      if (smoothNeighbors) {
+        const clamped = new Int32Array(flat);
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
             const idx = y * width + x;
-            const isEndpoint = (x === 0 && y === 0) || (x === width - 1 && y === height - 1);
-            const u = (x + y) / ((width - 1) + (height - 1));
-            const v = (x - y) / (width - 1);
-            const lat = Math.max(-85, Math.min(85, orig.lat + dLat * u + perpLat * v));
-            const lon = this.wrapLon(orig.lon + dLon * u + perpLon * v);
-
-            let blocked = false;
-            if (!isEndpoint && obstacleRadiusScale > 0) {
-              const cosLat = Math.max(0.25, Math.cos((lat * Math.PI) / 180));
-              for (const z of [...acidZones, ...stormZones, ...radZones]) {
-                const dzLon = this.shortestDeltaLon(z.lon, lon) * cosLat;
-                const distDeg = Math.hypot(lat - z.lat, dzLon);
-                if (distDeg < (z.radiusDeg || 6) * 0.45 * obstacleRadiusScale) {
-                  blocked = true;
-                  break;
-                }
-              }
-            }
-
-            if (blocked) {
-              flat[idx] = -999;
-            } else if (topo) {
-              // Gercek NASA MOLA topografyasini (-8200m..+21229m) Rust A* egim sinirina (0..10) olcekle
-              const elevM = topo.getElevationMeters(lat, lon);
-              const norm = Math.round(((elevM + 8200) / 29429) * 10);
-              flat[idx] = Math.max(0, Math.min(10, norm));
-            } else {
-              const wave = Math.sin((x * 0.35) + (orig.lat * 0.05)) * 2.2 + Math.cos((y * 0.35) + (dest.lon * 0.05)) * 2.2;
-              flat[idx] = Math.max(0, Math.min(10, Math.round(5 + wave)));
-            }
+            if (clamped[idx] === -999 || (x === 0 && y === 0)) continue;
+            const ref = x > 0 && clamped[idx - 1] !== -999
+              ? clamped[idx - 1]
+              : (y > 0 && clamped[idx - width] !== -999 ? clamped[idx - width] : clamped[idx]);
+            const diff = clamped[idx] - ref;
+            if (Math.abs(diff) > 2) clamped[idx] = ref + (diff > 0 ? 2 : -2);
           }
         }
-        return flat;
-      };
+        return clamped;
+      }
 
-      const runSolver = (flatGrid) => {
-        if (this.wasmFindPath) {
-          return JSON.parse(this.wasmFindPath(flatGrid, width, height, 0, 0, width - 1, height - 1));
+      return flat;
+    }
+
+    /** Rust lib.rs ile birebir kuralli (|Δz|<=3, -999 engel, +5/+2/1 maliyet) yerel JS A* yedegi (file:// icin) */
+    solvePathLocalAStar(flat, w, h, beginOxy) {
+      const total = w * h;
+      const gScore = new Int32Array(total).fill(1e9);
+      const cameFrom = new Int32Array(total).fill(-1);
+      const closed = new Uint8Array(total);
+      gScore[0] = 0;
+      const open = [0];
+      const goalIdx = total - 1;
+      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+      while (open.length > 0) {
+        let bestPos = 0;
+        let bestF = gScore[open[0]] + ((w - 1 - (open[0] % w)) + (h - 1 - ((open[0] / w) | 0)));
+        for (let i = 1; i < open.length; i++) {
+          const idx = open[i];
+          const f = gScore[idx] + ((w - 1 - (idx % w)) + (h - 1 - ((idx / w) | 0)));
+          if (f < bestF) { bestF = f; bestPos = i; }
         }
-        return this.solveGridAStarFallback(flatGrid, width, height, 0, 0, width - 1, height - 1);
-      };
+        const cur = open.splice(bestPos, 1)[0];
+        if (cur === goalIdx) {
+          const path = [];
+          let c = cur;
+          while (c !== -1) {
+            path.push({ x: c % w, y: (c / w) | 0, z: flat[c] });
+            c = cameFrom[c];
+          }
+          path.reverse();
+          return {
+            success: true,
+            cost: gScore[goalIdx],
+            distance: path.length,
+            avaible_oxy: beginOxy - path.length * 25,
+            steps_count: path.length,
+            path
+          };
+        }
+        closed[cur] = 1;
+        const cx = cur % w;
+        const cy = (cur / w) | 0;
+        const cz = flat[cur];
+        for (const [dx, dy] of dirs) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+          const nIdx = ny * w + nx;
+          if (closed[nIdx]) continue;
+          const nz = flat[nIdx];
+          if (nz === -999 || Math.abs(nz - cz) > 3) continue;
+          const dz = nz - cz;
+          const stepCost = dz > 0 ? 1 + dz * 5 : (dz < 0 ? 1 + Math.abs(dz) * 2 : 1);
+          const tentative = gScore[cur] + stepCost;
+          if (tentative < gScore[nIdx]) {
+            cameFrom[nIdx] = cur;
+            gScore[nIdx] = tentative;
+            if (!open.includes(nIdx)) open.push(nIdx);
+          }
+        }
+      }
+      return { success: false };
+    }
 
-      // Asamali engel yaricapi gevsetmesi: tehlike cekirdeklerini tamamen silmeden en guvenli gecisi bulur
-      let parsedPrimary = { success: false, path: [] };
-      for (const scale of [1.0, 0.72, 0.45, 0.22, 0.0]) {
-        parsedPrimary = runSolver(buildGrid(scale));
-        if (parsedPrimary && parsedPrimary.success) break;
+    /**
+     * Gercek MOLA topoğrafyasi, aktif tehlike bolgeleri ve baslangic O2 miktarini derlenmis Rust
+     * `find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y, begin_oxy)` WASM'e besler.
+     */
+    computeViaRustWasm(payload, planner) {
+      const t0 = performance.now();
+      const width = Number(payload.rustWasmCall?.gridSize || 24);
+      const height = width;
+      const orig = payload.origin;
+      const dest = payload.destination;
+      const beginOxy = Math.max(0, Math.round(Number(payload.factors?.astronaut?.oxygenReserveLiters ?? 420)));
+      const lateralFactor = 0.38;
+      const useWasm = typeof this.wasmFindPath === "function";
+
+      const runSolver = (grid) => useWasm
+        ? JSON.parse(this.wasmFindPath(grid, width, height, 0, 0, width - 1, height - 1, beginOxy))
+        : this.solvePathLocalAStar(grid, width, height, beginOxy);
+
+      const corridor = this.sampleMolaCorridor(orig, dest, width, height, lateralFactor);
+
+      // Asama 1: Tam MOLA + tam tehlike ve >25 deg ucurum engellemesi
+      let flatGrid = this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 1.0, stepScale: 1.0, enforceCliffs: true });
+      let parsedPrimary = runSolver(flatGrid);
+
+      // Asama 2: Tum yollar tikandiysa tehlike cekirdegini daralt ve egim adimini genislet
+      if (!parsedPrimary.success) {
+        flatGrid = this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 0.55, stepScale: 1.45, enforceCliffs: false });
+        parsedPrimary = runSolver(flatGrid);
+      }
+
+      // Asama 3: Halen tikaliysa garantili gecilebilir gercek MOLA profiliyle tamamla
+      if (!parsedPrimary.success) {
+        flatGrid = this.buildMolaRustGrid(corridor, width, height, payload, { hazardScale: 0.0, stepScale: 1.85, enforceCliffs: false, smoothNeighbors: true });
+        parsedPrimary = runSolver(flatGrid);
       }
 
       const latencyMs = Math.max(1, Math.round(performance.now() - t0));
-      const primaryBlue = this.convertWasmPathToRoute(parsedPrimary, orig, dest, "#2563eb", "Mavi Yol (Rust WASM A*)", planner, payload, 0.38);
+      const engineLabel = useWasm ? "Rust WASM (find_rover_path · MOLA DEM)" : "Yerlesik A* (MOLA DEM · file://)";
+      const primaryBlue = this.convertWasmPathToRoute(
+        parsedPrimary, orig, dest, "#2563eb",
+        useWasm ? "Mavi Yol (Rust WASM A* · MOLA DEM)" : "Mavi Yol (Yerlesik A* · MOLA DEM)",
+        planner, payload, lateralFactor, width, height, corridor
+      );
 
       const hazards = {
         acidZones: payload.factors?.acidRain?.zones || [],
@@ -429,7 +556,7 @@
       return {
         scope: payload.scope || "global",
         source: "rust-backend",
-        engine: this.wasmFindPath ? "Rust WASM (find_rover_path)" : "Local A* Fallback",
+        engine: engineLabel,
         latencyMs,
         rustRawOutput: parsedPrimary,
         origin: orig,
@@ -440,37 +567,36 @@
       };
     }
 
-    /** Rust `find_rover_path` ciktisindaki `path: [{x,y,z}]` dizisini Mars koordinatlarina ve step-by-step adimlara cevirir */
-    convertWasmPathToRoute(rustRes, orig, dest, colorHex, label, planner, payload, lateralFactor = 0.38) {
+    /** Rust `find_rover_path` ciktisini gercek Mars MOLA yuksekligi, tehlike uyarisi ve O2 metrikleriyle adimlara donusturur */
+    convertWasmPathToRoute(rustRes, orig, dest, colorHex, label, planner, payload, lateralFactor = 0.38, gridW = 24, gridH = 24, corridor = null) {
       const path = Array.isArray(rustRes.path) && rustRes.path.length > 0
         ? rustRes.path
-        : [{ x: 0, y: 0, z: 0 }, { x: 19, y: 19, z: 0 }];
-
-      const dLat = dest.lat - orig.lat;
-      const dLon = this.shortestDeltaLon(orig.lon, dest.lon);
-      const perpLat = -dLon * lateralFactor;
-      const perpLon = dLat * lateralFactor;
+        : [{ x: 0, y: 0, z: 0 }, { x: gridW - 1, y: gridH - 1, z: 0 }];
       const topo = ns.marsTopo || null;
+      const hasTele = topo && typeof topo.getSurfaceTelemetry === "function";
 
       const points = path.map((p, idx) => {
         if (idx === 0) return { lat: orig.lat, lon: orig.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
         if (idx === path.length - 1) return { lat: dest.lat, lon: dest.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
-        const u = (p.x + p.y) / 38;
-        const v = (p.x - p.y) / 19;
-        const rawLat = Math.max(-85, Math.min(85, orig.lat + dLat * u + perpLat * v));
-        const rawLon = this.wrapLon(orig.lon + dLon * u + perpLon * v);
+        const geo = this.gridCellToGeo(p.x, p.y, gridW, gridH, orig, dest, lateralFactor);
         return {
-          lat: Number(rawLat.toFixed(4)),
-          lon: Number(rawLon.toFixed(4)),
+          lat: Number(geo.lat.toFixed(4)),
+          lon: Number(geo.lon.toFixed(4)),
           elevLevel: p.z,
           gridX: p.x,
           gridY: p.y
         };
       });
 
+      const acidZones = (payload.factors?.acidRain?.enabled && payload.factors?.acidRain?.zones) || [];
+      const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
+      const radZones = (payload.factors?.radiation?.enabled && payload.factors?.radiation?.zones) || [];
       const speedMult = (payload.factors?.acidRain?.speedMultiplier || 1) * (payload.factors?.dustStorm?.speedMultiplier || 1);
-      const roverSpeed = Math.max(4.5, (payload.factors?.astronaut?.roverSpeedKmH || 14.5) * speedMult);
+      const baseRoverSpeed = payload.factors?.astronaut?.roverSpeedKmH || 14.5;
+      const beginOxy = Number(payload.factors?.astronaut?.oxygenReserveLiters ?? 420);
+
       let totalKm = 0;
+      let totalHours = 0;
       const steps = [];
 
       for (let i = 0; i < points.length; i++) {
@@ -478,17 +604,34 @@
         const prev = i > 0 ? points[i - 1] : cur;
         const segKm = i === 0 ? 0 : this.haversineMarsKm(prev.lat, prev.lon, cur.lat, cur.lon);
         totalKm += segKm;
-        const dz = i === 0 ? 0 : (cur.elevLevel - prev.elevLevel);
-        const telem = topo ? topo.getSurfaceTelemetry(cur.lat, cur.lon) : null;
-        const slopeDeg = telem ? telem.slopeDeg : Number(Math.min(22, Math.abs(dz) * 2.8 + 1.1).toFixed(1));
-        const elevM = telem ? telem.elevM : Math.round(-2400 + cur.elevLevel * 185);
-        const segHours = segKm / roverSpeed;
 
-        let instruction = `Rust A* Hücre (${cur.gridX}, ${cur.gridY}) → ${segKm.toFixed(1)} km ilerle`;
-        if (i === 0) {
-          instruction = `Başlangıç (${orig.name}): Rust A* Hücre (0, 0)`;
-        } else if (i === points.length - 1) {
-          instruction = `Hedefe Varış (${dest.name}): Rust A* Hücre (${cur.gridX}, ${cur.gridY})`;
+        const tele = hasTele
+          ? topo.getSurfaceTelemetry(cur.lat, cur.lon)
+          : { elevM: Math.round(-2400 + cur.elevLevel * 185), slopeDeg: 2.0 };
+        const elevM = tele.elevM;
+        const slopeDeg = Number((tele.slopeDeg || 0).toFixed(1));
+        const dz = i === 0 ? 0 : (cur.elevLevel - prev.elevLevel);
+
+        // Prameters.md denklem 5.2: v_etkin = v_duz * max(0.40, 1 - slope/46) * k_asit * k_firtina
+        const slopeFactor = Math.max(0.40, 1 - slopeDeg / 46);
+        const effSpeed = Math.max(3.5, baseRoverSpeed * slopeFactor * speedMult);
+        const segHours = segKm / effSpeed;
+        totalHours += segHours;
+
+        let instruction = `Rust A* (${cur.gridX}, ${cur.gridY}) · ${elevM} m → ${segKm.toFixed(1)} km`;
+        if (i === 0) instruction = `Başlangıç (${orig.name}): MOLA ${elevM} m · (${cur.gridX}, ${cur.gridY})`;
+        else if (i === points.length - 1) instruction = `Hedefe Varış (${dest.name}): MOLA ${elevM} m · (${cur.gridX}, ${cur.gridY})`;
+
+        let hazardWarning = null;
+        if (slopeDeg >= 15.0 || Math.abs(dz) >= 2) {
+          hazardWarning = `MOLA Eğim ${slopeDeg}° (Δz=${dz > 0 ? "+" + dz : dz}, Rust +${dz > 0 ? dz * 5 : Math.abs(dz) * 2})`;
+        } else {
+          for (const z of [...acidZones, ...stormZones, ...radZones]) {
+            if (this.sphericalAngleDeg(cur.lat, cur.lon, z.lat, z.lon) < (z.radiusDeg || 6) * 1.15) {
+              hazardWarning = `Tehlike Sınırı: ${z.name}`;
+              break;
+            }
+          }
         }
 
         steps.push({
@@ -500,29 +643,34 @@
           distKm: Number(segKm.toFixed(2)),
           durationHours: Number(segHours.toFixed(2)),
           instruction,
-          hazardWarning: Math.abs(dz) >= 2 ? `Eğim farkı Δz=${dz} (Rust A* maliyet +${dz > 0 ? dz * 5 : Math.abs(dz) * 2})` : null
+          hazardWarning
         });
       }
 
-      const totalHours = Math.max(0.2, totalKm / roverSpeed);
+      totalHours = Math.max(0.15, totalHours);
       const formattedDuration = planner && typeof planner.formatHours === "function"
         ? planner.formatHours(totalHours)
         : `${totalHours.toFixed(1)} saat`;
+      const o2Liters = Math.round(totalHours * 48);
+      const waterLiters = Number((totalHours * 2.15).toFixed(1));
 
       return {
         points,
         steps,
         rustCost: rustRes.cost || 0,
+        rustDistanceSteps: rustRes.distance || path.length,
+        rustAvaibleOxy: typeof rustRes.avaible_oxy === "number" ? rustRes.avaible_oxy : (beginOxy - o2Liters),
         rustStepsCount: rustRes.steps_count || steps.length,
+        molaRangeM: corridor ? { min: Math.round(corridor.minElevM), max: Math.round(corridor.maxElevM) } : null,
         totalKm: Number(totalKm.toFixed(2)),
         totalMeters: Math.round(totalKm * 1000),
         totalHours: Number(totalHours.toFixed(2)),
         formattedDuration,
-        o2Liters: Math.round(totalHours * 48),
-        waterLiters: Number((totalHours * 2.15).toFixed(1)),
+        o2Liters,
+        waterLiters,
         colorHex,
         label,
-        comment: `// ${label}: ${rustRes.steps_count || steps.length} adım (Maliyet: ${rustRes.cost || 0}) — ${formattedDuration} (${Math.round(totalKm)} km)`
+        comment: `// ${label}: ${rustRes.steps_count || steps.length} adım (Maliyet: ${rustRes.cost || 0}, MOLA ${corridor ? Math.round(corridor.minElevM) + ".." + Math.round(corridor.maxElevM) + "m" : "DEM"}) — ${formattedDuration}`
       };
     }
 
@@ -632,9 +780,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-46: Sinif baslangici ve ensureWasmLoaded (Mustafa dalindan derlenen js/wasm/backend_bg.wasm yukleyicisi).
-   - Satir 48-115: normalizeBaseUrl, resolveInitialUrl ve testConnection (Rust WASM canli ping + HTTP saglik kontrolu).
-   - Satir 117-187: buildRouteRequestPayload; koordinatlar, tehlike faktorleri ve Rust WASM cagri bilgisini paketler.
-   - Satir 189-302: requestStepRoute ve computeViaRustWasm; Rust find_rover_path A* fonksiyonunu cagirir.
-   - Satir 304-430: convertWasmPathToRoute ve normalizeRouteResponse; Rust path[] dizisini Mars koordinatlarina cevirir.
+   - Satir 1-47: Sinif baslangici ve ensureWasmLoaded (js/wasm/backend_bg.wasm v4.2 yukleyicisi).
+   - Satir 49-118: normalizeBaseUrl, resolveInitialUrl ve testConnection (8-argumanli Rust WASM ping + HTTP saglik kontrolu).
+   - Satir 120-204: buildRouteRequestPayload; gercek MOLA rakim/egim, tehlike faktorleri ve PLSS O2 verisini paketler.
+   - Satir 206-339: wrapLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor ve buildMolaRustGrid (gercek NASA MOLA + tehlike izgarasi).
+   - Satir 341-529: computeViaRustWasm, convertWasmPathToRoute ve normalizeRouteResponse; Rust find_rover_path A* ciktisini Mars rotasi ve O2 adimlarina cevirir.
    ========================================================================== */
