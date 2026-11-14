@@ -1,7 +1,7 @@
 /**
  * @file DemoScenarioService.js
- * @description NASA Space Apps 2026 juri sunumu icin rehberli demo senaryolarini,
- * rota uzerinde animasyonlu Rover/EVA Astronot simulasyonunu ve canli O2/rakim telemetrisini yonetir.
+ * @description NASA Space Apps 2026 rehberli ortak sefer simulasyonu ve animasyonlu
+ * Rover+Ekip / Rover+Yaya EVA hareket servisi (on-gorev parametre kapisi ile korunur).
  */
 
 (function (ns) {
@@ -15,12 +15,13 @@
     constructor(adapter) {
       this.adapter = adapter;
       this.geo = ns.RouteGeometryHelper ? new ns.RouteGeometryHelper() : null;
+      this.budget = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
       this.active = false;
       this.collapsed = false;
       this.playing = false;
       this.autoTour = true;
       this.scenarioIdx = 0;
-      this.vehicle = "rover";
+      this.expeditionMode = "rover-crew";
       this.speedMult = 1;
       this.progress = 0;
       this.pulsePhase = 0;
@@ -31,14 +32,14 @@
       this.scenarios = this.buildScenarios();
     }
 
-    /** Hazir juri sunum senaryolarini dondurur */
+    /** Hazir ortak sefer senaryolarini dondurur (Rover ve Insan daima birlikte ilerler) */
     buildScenarios() {
       return [
         {
           id: "gale-jezero-nominal",
           titleKey: "demoScen1Title",
           cueKey: "demoScen1Cue",
-          vehicle: "rover",
+          expeditionMode: "rover-crew",
           autoSeconds: 13,
           cycleDurationSec: 11,
           camera: { lat: 6.5, lon: 108.0, zoom: 1.22, pitch: 28 },
@@ -63,7 +64,7 @@
           id: "severe-storm-detour",
           titleKey: "demoScen2Title",
           cueKey: "demoScen2Cue",
-          vehicle: "rover",
+          expeditionMode: "rover-crew",
           autoSeconds: 13,
           cycleDurationSec: 12,
           camera: { lat: 6.0, lon: 68.0, zoom: 1.08, pitch: 32 },
@@ -88,7 +89,7 @@
           id: "gale-mola-eva",
           titleKey: "demoScen3Title",
           cueKey: "demoScen3Cue",
-          vehicle: "astronaut",
+          expeditionMode: "joint-eva-escort",
           autoSeconds: 13,
           cycleDurationSec: 10,
           camera: { lat: -0.2, lon: 136.5, zoom: 3.4, pitch: 46 },
@@ -113,7 +114,7 @@
           id: "hybrid-2d-tiles",
           titleKey: "demoScen4Title",
           cueKey: "demoScen4Cue",
-          vehicle: "rover",
+          expeditionMode: "rover-crew",
           autoSeconds: 12,
           cycleDurationSec: 10,
           camera: { lat: 10.0, lon: 108.0, zoom: 1.85, pitch: 28 },
@@ -141,16 +142,42 @@
       return ns.i18n ? ns.i18n.t(key, vars) : key;
     }
 
+    checkGate(openPanel = true) {
+      if (this.adapter.ensureMissionParamsReady && !this.adapter.ensureMissionParamsReady(openPanel)) {
+        return false;
+      }
+      return true;
+    }
+
     toggleDemo() {
       if (this.active) this.stopDemo();
-      else this.startDemo();
+      else this.startDemo(0);
     }
 
     startDemo(idx = 0) {
+      if (!this.checkGate(true)) return false;
       this.active = true;
       this.collapsed = false;
+      this.autoTour = true;
       this.selectScenario(idx, true);
       this.adapter.showToast?.(this.t("demoToastStarted"));
+      return true;
+    }
+
+    /** Kullanicinin sectigi aktif rota ve girdigi parametrelerle ortak Rover+Insan yolculugunu baslatir */
+    startCurrentRoute() {
+      if (!this.checkGate(true)) return false;
+      const st = this.adapter.getState?.() || {};
+      this.expeditionMode = this.budget ? this.budget.normalizeModeId(st.expeditionMode) : "rover-crew";
+      this.active = true;
+      this.collapsed = false;
+      this.autoTour = false;
+      this.progress = 0;
+      this.playing = true;
+      this.startLoop();
+      this.adapter.renderDemoBar?.();
+      this.adapter.scheduleRender?.(false);
+      return true;
     }
 
     stopDemo() {
@@ -163,6 +190,7 @@
     resetSilent() {
       this.active = false;
       this.playing = false;
+      this.progress = 0;
       this.stopLoop();
       clearTimeout(this.autoAdvanceTimer);
     }
@@ -184,19 +212,32 @@
       this.adapter.renderDemoBar?.();
     }
 
+    setExpeditionMode(kind) {
+      const next = this.budget
+        ? this.budget.normalizeModeId(kind)
+        : ((kind === "joint-eva-escort" || kind === "astronaut" || kind === "eva") ? "joint-eva-escort" : "rover-crew");
+      this.expeditionMode = next;
+      if (this.adapter.onChangeExpeditionMode) {
+        this.adapter.onChangeExpeditionMode(next);
+      } else {
+        this.adapter.renderDemoBar?.();
+        this.adapter.scheduleRender?.(false);
+      }
+    }
+
     setVehicle(kind) {
-      this.vehicle = kind === "astronaut" ? "astronaut" : "rover";
-      this.adapter.renderDemoBar?.();
-      this.adapter.scheduleRender?.(false);
+      this.setExpeditionMode(kind);
     }
 
     setProgress(p) {
+      if (!this.checkGate(true)) return;
       this.progress = Math.max(0, Math.min(1, Number(p) || 0));
       this.adapter.renderDemoBar?.();
       this.adapter.scheduleRender?.(false);
     }
 
     togglePlay() {
+      if (!this.checkGate(true)) return;
       if (!this.active) this.active = true;
       if (this.progress >= 0.999) this.progress = 0;
       this.playing = !this.playing;
@@ -207,6 +248,7 @@
     }
 
     restart() {
+      if (!this.checkGate(true)) return;
       this.progress = 0;
       this.playing = true;
       this.startLoop();
@@ -224,10 +266,11 @@
     }
 
     selectScenario(idx, autoPlay = true) {
+      if (!this.checkGate(true)) return false;
       const safeIdx = Math.max(0, Math.min(this.scenarios.length - 1, Number(idx) || 0));
       this.scenarioIdx = safeIdx;
       const scen = this.scenarios[safeIdx];
-      this.vehicle = scen.vehicle || "rover";
+      this.expeditionMode = this.budget ? this.budget.normalizeModeId(scen.expeditionMode) : "rover-crew";
       this.progress = 0;
       this.playing = Boolean(autoPlay);
 
@@ -236,6 +279,7 @@
       else this.stopLoop();
       this.scheduleAutoAdvance();
       this.adapter.renderDemoBar?.();
+      return true;
     }
 
     scheduleAutoAdvance() {
@@ -251,10 +295,11 @@
     }
 
     startLoop() {
-      if (this.rafId) return;
+      if (this.rafId || !this.checkGate(false)) return;
       this.lastTickMs = performance.now();
       const tick = (now) => {
-        if (!this.active || !this.playing) {
+        if (!this.active || !this.playing || !this.checkGate(false)) {
+          this.playing = false;
           this.rafId = null;
           return;
         }
@@ -326,31 +371,45 @@
       return { lat: last.lat, lon: last.lon, segIdx: points.length - 2, segT: 1, headingRad: 0 };
     }
 
-    /** Harita cizimi ve Demo HUD icin canli arac konum + telemetri yukunu dondurur */
+    /** Harita cizimi ve HUD icin canli ortak Rover+Insan telemetri yukunu dondurur */
     getRenderPayload() {
       if (!this.active) return null;
       const routes = this.adapter.getRoutes?.();
       const pri = routes?.primaryBlue;
       const pts = pri?.points;
       const state = this.adapter.getState?.() || {};
-      const o2Max = Number(state.oxygenReserveLiters || 420);
-      const speedKmH = this.vehicle === "astronaut" ? 3.6 : 14.5;
-      const o2RateLPerMin = this.vehicle === "astronaut" ? 1.01 : 0.55;
+      const prof = this.budget
+        ? this.budget.getModeProfile(this.expeditionMode)
+        : { defaultSpeedKmH: 14.5, baseO2LPerMin: 0.55, basePowerKw: 8.8 };
+
+      const o2Start = Number(state.oxygenReserveLiters || 0);
+      const o2CapL = Math.max(420, Number(state.oxygenTankCapacityL || 420), o2Start);
+      const energyStart = Number(state.energyReserveKwh || 0);
+      const energyCapKwh = Math.max(75, Number(state.energyTankCapacityKwh || 75), energyStart);
+      const speedKmH = Number(pri?.avgSpeedKmH || state.targetSpeedKmH || prof.defaultSpeedKmH);
 
       if (!Array.isArray(pts) || pts.length < 2) {
         return {
-          active: true, ready: false, playing: this.playing, vehicle: this.vehicle,
+          active: true, ready: false, playing: this.playing, expeditionMode: this.expeditionMode,
           progress: this.progress, progressPct: Math.round(this.progress * 100),
-          traveledKm: 0, totalKm: 0, elevM: 0, remainingO2L: o2Max, speedKmH, pulsePhase: this.pulsePhase
+          traveledKm: 0, totalKm: 0, elapsedMin: 0, elevM: 0,
+          remainingO2L: Math.round(o2Start), o2Max: o2CapL, o2Pct: o2CapL > 0 ? Math.round((o2Start / o2CapL) * 100) : 0,
+          remainingEnergyKwh: Number(energyStart.toFixed(1)), energyPct: energyCapKwh > 0 ? Math.round((energyStart / energyCapKwh) * 100) : 0,
+          speedKmH, pulsePhase: this.pulsePhase
         };
       }
 
       const pos = this.samplePointAtProgress(pts, this.progress);
       const totalKm = Number(pri.totalKm || 0);
       const traveledKm = totalKm * this.progress;
-      const elapsedMin = (traveledKm / Math.max(0.5, speedKmH)) * 60;
-      const usedO2 = elapsedMin * o2RateLPerMin;
-      const remainingO2L = Math.max(0, Math.round(o2Max - usedO2));
+      const totalMinutes = Number(pri.totalMinutes || ((totalKm / Math.max(0.5, speedKmH)) * 60));
+      const elapsedMin = Math.round(totalMinutes * this.progress);
+      const usedO2Total = Number(pri.o2Liters || (totalMinutes * prof.baseO2LPerMin));
+      const remainingO2L = Math.max(0, Math.round(o2Start - usedO2Total * this.progress));
+      const o2Pct = o2CapL > 0 ? Number(((remainingO2L / o2CapL) * 100).toFixed(1)) : 0;
+      const usedEnergyTotal = Number(pri.energyUsedKwh || ((totalMinutes / 60) * prof.basePowerKw));
+      const remainingEnergyKwh = Number(Math.max(0, energyStart - usedEnergyTotal * this.progress).toFixed(1));
+      const energyPct = energyCapKwh > 0 ? Number(((remainingEnergyKwh / energyCapKwh) * 100).toFixed(1)) : 0;
       const topo = ns.marsTopo;
       const elevM = (pos && topo && topo.getElevationMeters) ? Math.round(topo.getElevationMeters(pos.lat, pos.lon)) : 0;
 
@@ -358,7 +417,7 @@
         active: true,
         ready: Boolean(pos),
         playing: this.playing,
-        vehicle: this.vehicle,
+        expeditionMode: this.expeditionMode,
         progress: this.progress,
         progressPct: Math.round(this.progress * 100),
         lat: pos ? pos.lat : 0,
@@ -368,9 +427,13 @@
         pulsePhase: this.pulsePhase,
         traveledKm: Number(traveledKm.toFixed(1)),
         totalKm: Number(totalKm.toFixed(1)),
+        elapsedMin,
         elevM,
         remainingO2L,
-        o2Max,
+        o2Max: o2CapL,
+        o2Pct,
+        remainingEnergyKwh,
+        energyPct,
         speedKmH
       };
     }
@@ -383,14 +446,14 @@
         autoTour: this.autoTour,
         scenarioIdx: this.scenarioIdx,
         scenarios: this.scenarios,
-        vehicle: this.vehicle,
+        expeditionMode: this.expeditionMode,
         speedMult: this.speedMult,
         progress: this.progress,
         telemetry: this.getRenderPayload()
       };
     }
 
-    /** Kontrolcubuk + servisi tek adimda baglar (MarsNavigatorController <800 satir kurali icin) */
+    /** Kontrol cubugu + servisi tek adimda baglar (MarsNavigatorController <800 satir kurali icin) */
     static attach(mountEl, adapter) {
       let bar = null;
       const service = new DemoScenarioService({
@@ -404,7 +467,7 @@
           onToggleAutoTour: () => service.toggleAutoTour(), onTogglePlay: () => service.togglePlay(),
           onRestart: () => service.restart(), onPrev: () => service.prevScenario(),
           onNext: () => service.nextScenario(), onSelectScenario: (i) => service.selectScenario(i, true),
-          onSetSpeed: (s) => service.setSpeed(s), onSetVehicle: (v) => service.setVehicle(v),
+          onSetSpeed: (s) => service.setSpeed(s), onSetVehicle: (v) => service.setExpeditionMode(v),
           onScrub: (p) => service.setProgress(p)
         });
       }
@@ -418,10 +481,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc rehberli demo modu ve animasyonlu rover/astronot servis tanimi.
-   - Satir 14-31: constructor; senaryolar, oynatma durumu ve rAF dongu referanslarini kurar.
-   - Satir 33-122: buildScenarios; 4 adet juri sunum senaryosunu (Gale->Jezero, Siddetli Firtina, Gale 3D MOLA, 2D Karo) tanimlar.
-   - Satir 124-224: toggleDemo, startDemo, stopDemo, selectScenario, togglePlay, setSpeed ve autoTour zamanlayici metodlari.
-   - Satir 226-260: startLoop ve stopLoop; animasyon karesi (rAF) boyunca arac ilerlemesini gunceller.
-   - Satir 262-336: samplePointAtProgress, getRenderPayload ve getUiState; gercek Mars mesafesiyle konum, MOLA rakim ve kalan O2 hesaplar.
+   - Satir 1-5: JSDoc birlesik Rover+Insan simulasyon ve parametre kapi servisi tanimi.
+   - Satir 15-34: constructor; MissionBudgetHelper baglantisi, ortak sefer modu ve rAF dongu degiskenlerini kurar.
+   - Satir 36-139: buildScenarios; Rover+Ekip ve Rover+Yaya EVA ortak senaryolarini tanimlar (ayrik mod yoktur).
+   - Satir 141-250: checkGate, startDemo, startCurrentRoute, setExpeditionMode ve senaryo gecisleri; parametre kapisi acilmadan yolculugu baslatmaz.
+   - Satir 252-298: startLoop ve stopLoop; her karede kapi dogrulamali animasyon ilerlemesi saglar.
+   - Satir 300-414: samplePointAtProgress, getRenderPayload, getUiState ve attach; dk/km-h/%O2-L/kWh canli telemetri yukunu uretir.
    ========================================================================== */

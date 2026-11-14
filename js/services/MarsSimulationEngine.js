@@ -1,7 +1,7 @@
 /**
  * @file MarsSimulationEngine.js
  * @description Prameters.md ve NASA standartlarina dayali gercekci Mars hayatta kalma simulasyon motoru.
- * Insan (EVA), Basincli Rover (SEV) ve Otonom Bilim Roveri icin gercek MOLA rakim/egim ve aktif
+ * Ortak Rover + Ekip (SEV) ve Rover + Yaya EVA sefer profilleri icin gercek MOLA rakim/egim ve aktif
  * asit yagmuru, kum firtinasi (tau) ile alfa/beta/gama radyasyon uzerinden O2, su, enerji, CO2 ve doz simule eder.
  */
 
@@ -11,51 +11,41 @@
   class MarsSimulationEngine {
     constructor() {
       this.geo = ns.RouteGeometryHelper ? new ns.RouteGeometryHelper() : null;
-      this.profiles = {
-        rover: {
-          id: "rover",
-          label: "Basınçlı Rover (SEV)",
+      this.budget = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
+      this.profiles = this.budget ? this.budget.profiles : {
+        "rover-crew": {
+          id: "rover-crew",
+          badge: "ROVER+EKİP",
           defaultSpeedKmH: 14.5,
           minSpeedKmH: 4.0,
           maxSpeedKmH: 19.0,
           baseO2LPerMin: 0.55,
           slopeO2Gain: 0.032,
           baseWaterLPerMin: 0.015,
-          defaultEnergyKwh: 65.0,
+          defaultO2L: 420,
+          defaultWaterL: 24.0,
+          defaultEnergyKwh: 75.0,
           basePowerKw: 8.8,
           slopePowerGainKw: 0.55,
           maxSlopeDeg: 25.0,
           co2Ratio: 0.85
         },
-        eva: {
-          id: "eva",
-          label: "İnsan (EVA Giysisi)",
+        "joint-eva-escort": {
+          id: "joint-eva-escort",
+          badge: "ROVER+EVA",
           defaultSpeedKmH: 3.6,
           minSpeedKmH: 1.8,
           maxSpeedKmH: 5.4,
-          baseO2LPerMin: 0.85,
+          baseO2LPerMin: 1.01,
           slopeO2Gain: 0.095,
           baseWaterLPerMin: 0.021,
-          defaultEnergyKwh: 1.5,
-          basePowerKw: 0.085,
-          slopePowerGainKw: 0.0045,
-          maxSlopeDeg: 28.0,
+          defaultO2L: 420,
+          defaultWaterL: 24.0,
+          defaultEnergyKwh: 75.0,
+          basePowerKw: 2.85,
+          slopePowerGainKw: 0.22,
+          maxSlopeDeg: 26.0,
           co2Ratio: 0.88
-        },
-        robot: {
-          id: "robot",
-          label: "Bilim Roveri (Perseverance)",
-          defaultSpeedKmH: 0.15,
-          minSpeedKmH: 0.06,
-          maxSpeedKmH: 0.30,
-          baseO2LPerMin: 0.0,
-          slopeO2Gain: 0.0,
-          baseWaterLPerMin: 0.0,
-          defaultEnergyKwh: 2.2,
-          basePowerKw: 0.24,
-          slopePowerGainKw: 0.015,
-          maxSlopeDeg: 30.0,
-          co2Ratio: 0.0
         }
       };
 
@@ -64,42 +54,98 @@
       this.summary = this.createEmptySummary();
     }
 
-    getProfile(vehicleType) {
-      return this.profiles[vehicleType] || this.profiles.rover;
+    normalizeMode(rawMode) {
+      if (this.budget) return this.budget.normalizeModeId(rawMode);
+      const m = String(rawMode || "").toLowerCase();
+      return (m === "joint-eva-escort" || m === "eva" || m === "astronaut") ? "joint-eva-escort" : "rover-crew";
+    }
+
+    getProfile(rawMode) {
+      const mode = this.normalizeMode(rawMode);
+      const prof = this.profiles[mode] || this.profiles["rover-crew"];
+      const label = mode === "joint-eva-escort" ? "Rover + Yaya EVA (Birlikte Keşif)" : "Rover + Ekip (Birlikte Seyir)";
+      return { ...prof, label };
+    }
+
+    validateParams(params = {}) {
+      if (this.budget) return this.budget.validateMissionParams(params);
+      const mode = this.normalizeMode(params.expeditionMode || params.vehicleType || params.vehicle);
+      const prof = this.getProfile(mode);
+      const o2L = Number(params.initialO2L ?? params.oxygenReserveLiters);
+      const energyKwh = Number(params.initialEnergyKwh ?? params.energyReserveKwh);
+      const waterL = Number(params.initialWaterL ?? params.waterReserveLiters);
+      const speedKmH = Number(params.targetSpeedKmH);
+      const missingKeys = [];
+      if (!(o2L > 0)) missingKeys.push("o2");
+      if (!(energyKwh > 0)) missingKeys.push("energy");
+      if (!(waterL > 0)) missingKeys.push("water");
+      if (!(speedKmH > 0)) missingKeys.push("speed");
+      return {
+        valid: missingKeys.length === 0,
+        missingKeys,
+        mode,
+        profile: prof,
+        normalized: {
+          o2L: o2L > 0 ? o2L : 0,
+          o2CapL: Math.max(420, o2L || 0),
+          startO2Pct: o2L > 0 ? Number(((o2L / Math.max(420, o2L)) * 100).toFixed(1)) : 0,
+          energyKwh: energyKwh > 0 ? energyKwh : 0,
+          energyCapKwh: Math.max(75, energyKwh || 0),
+          startEnergyPct: energyKwh > 0 ? Number(((energyKwh / Math.max(75, energyKwh)) * 100).toFixed(1)) : 0,
+          waterL: waterL > 0 ? waterL : 0,
+          speedKmH: speedKmH > 0 ? speedKmH : prof.defaultSpeedKmH
+        }
+      };
     }
 
     createEmptySummary() {
       return {
+        expeditionMode: "rover-crew",
+        paramsValid: false,
         totalKm: 0,
         totalHours: 0,
-        finalO2L: 420,
-        finalWaterL: 24,
-        finalEnergyKwh: 65,
+        totalMinutes: 0,
+        avgSpeedKmH: 0,
+        speedMPerMin: 0,
+        startO2L: 0,
+        startO2Pct: 0,
+        finalO2L: 0,
+        finalO2Pct: 0,
+        finalWaterL: 0,
+        startEnergyKwh: 0,
+        startEnergyPct: 0,
+        finalEnergyKwh: 0,
+        finalEnergyPct: 0,
         totalRadMsv: 0,
         maxSlopeDeg: 0,
         minElevM: 0,
         maxElevM: 0,
         walkbackBreach: false,
+        batteryBreach: false,
         depletedO2: false,
         depletedEnergy: false
       };
     }
 
-    /** Rota noktalarini esit adimlarla ornekleyip tum fizik/yasam-destek zaman serisini uretir */
+    /** Zorunlu O2/Enerji/Su parametrelerini dogrular ve MOLA rakim/egim + tehlikeler uzerinden ortak Rover+Insan zaman serisini uretir */
     buildTimeline(route, params, hazardBundle) {
       this.samples = [];
       this.events = [];
+      const check = this.validateParams(params);
       const pts = route?.primaryBlue?.points;
-      if (!Array.isArray(pts) || pts.length < 2) {
+      if (!check.valid || !Array.isArray(pts) || pts.length < 2) {
         this.summary = this.createEmptySummary();
-        return { samples: [], events: [], summary: this.summary };
+        return { samples: [], events: [], summary: this.summary, gateBlocked: !check.valid, missingKeys: check.missingKeys };
       }
 
-      const prof = this.getProfile(params.vehicleType);
-      const initO2 = Math.max(0, Number(params.initialO2L ?? 420));
-      const initWater = Math.max(0, Number(params.initialWaterL ?? 24));
-      const initEnergy = Math.max(0.1, Number(params.initialEnergyKwh ?? prof.defaultEnergyKwh));
-      const baseSpeed = Math.max(0.05, Number(params.targetSpeedKmH ?? prof.defaultSpeedKmH));
+      const prof = this.getProfile(check.mode);
+      const norm = check.normalized;
+      const initO2 = norm.o2L;
+      const o2CapL = norm.o2CapL;
+      const initWater = norm.waterL;
+      const initEnergy = norm.energyKwh;
+      const energyCapKwh = norm.energyCapKwh;
+      const baseSpeed = Math.max(0.5, norm.speedKmH);
       const leakO2LPerMin = params.o2LeakActive ? 1.20 : 0.0;
 
       const densePts = this.densifyPolyline(pts, 120);
@@ -131,7 +177,7 @@
         progress: 0,
         hours: 0,
         level: "info",
-        text: `Görev başlatıldı: ${prof.label} · ${initO2.toFixed(0)} L O₂ · ${initEnergy.toFixed(1)} kWh`
+        text: `Ortak Sefer Başladı: ${prof.label} · ${initO2.toFixed(0)} L O₂ (%${norm.startO2Pct}) · ${initEnergy.toFixed(1)} kWh (%${norm.startEnergyPct}) · ${initWater.toFixed(1)} L Su`
       });
 
       for (let i = 0; i < densePts.length; i++) {
@@ -153,28 +199,24 @@
         const inStorm = this.isInsideAny(pt.lat, pt.lon, stormZones);
         const inRad = this.isInsideAny(pt.lat, pt.lon, radZones);
 
-        const slopeSpeedFactor = Math.max(0.45, 1.0 - slopeDeg / 45.0);
+        const slopeSpeedFactor = Math.max(0.40, 1.0 - slopeDeg / 46.0);
         let envSpeedFactor = 1.0;
         if (inAcid) envSpeedFactor *= acidMult;
         if (inStorm) envSpeedFactor *= stormMult;
         if (params.stormSurgeActive) envSpeedFactor *= 0.62;
 
-        const effSpeedKmH = Math.max(0.03, baseSpeed * slopeSpeedFactor * envSpeedFactor);
+        const effSpeedKmH = Math.max(0.5, baseSpeed * slopeSpeedFactor * envSpeedFactor);
         const segHours = segKm / effSpeedKmH;
         const segMin = segHours * 60.0;
         cumHours += segHours;
 
         const o2SlopeFactor = 1.0 + slopeDeg * prof.slopeO2Gain;
-        const o2StormPenalty = (inStorm || params.stormSurgeActive) && prof.baseO2LPerMin > 0 ? 1.18 : 1.0;
-        const o2RateLPerMin = prof.baseO2LPerMin > 0
-          ? Math.min(4.0, prof.baseO2LPerMin * o2SlopeFactor * o2StormPenalty) + leakO2LPerMin
-          : 0;
+        const o2StormPenalty = (inStorm || params.stormSurgeActive) ? 1.18 : 1.0;
+        const o2RateLPerMin = Math.min(4.0, prof.baseO2LPerMin * o2SlopeFactor * o2StormPenalty) + leakO2LPerMin;
         const waterRateLPerMin = prof.baseWaterLPerMin * (1.0 + slopeDeg * 0.015);
         const co2RateLPerMin = Math.max(0, (o2RateLPerMin - leakO2LPerMin) * prof.co2Ratio);
 
-        // MMRTG 110W surekli sagladigi icin robotik rover net cekimi cok dusuktur
-        const rtgSupplyKw = prof.id === "robot" ? 0.11 : 0.0;
-        const powerKw = Math.max(0.05, prof.basePowerKw + slopeDeg * prof.slopePowerGainKw + (inStorm ? prof.basePowerKw * 0.14 : 0) - rtgSupplyKw);
+        const powerKw = Math.max(0.15, prof.basePowerKw + slopeDeg * prof.slopePowerGainKw + (inStorm ? prof.basePowerKw * 0.14 : 0));
         const radRateUSvPerMin = 0.44 + (inRad ? 3.8 : 0) + (inStorm ? 0.25 : 0);
 
         remO2 = Math.max(0, remO2 - o2RateLPerMin * segMin);
@@ -184,8 +226,8 @@
         cumRadMsv += (radRateUSvPerMin * segMin) / 1000.0;
 
         const pRatio = i / (densePts.length - 1);
-        const o2Pct = initO2 > 0 ? (remO2 / initO2) * 100 : 100;
-        const energyPct = initEnergy > 0 ? (remEnergy / initEnergy) * 100 : 100;
+        const o2Pct = o2CapL > 0 ? (remO2 / o2CapL) * 100 : 0;
+        const energyPct = energyCapKwh > 0 ? (remEnergy / energyCapKwh) * 100 : 0;
 
         if (!steepWarnLogged && slopeDeg >= 12.0) {
           steepWarnLogged = true;
@@ -197,19 +239,19 @@
         }
         if (!stormWarnLogged && (inStorm || params.stormSurgeActive)) {
           stormWarnLogged = true;
-          this.events.push({ progress: pRatio, hours: cumHours, level: "warn", text: `Toz fırtınası koridoru: hız ${effSpeedKmH.toFixed(1)} km/sa seviyesine düşürüldü.` });
+          this.events.push({ progress: pRatio, hours: cumHours, level: "warn", text: `Toz fırtınası koridoru: ortak hız ${effSpeedKmH.toFixed(1)} km/sa seviyesine düşürüldü.` });
         }
-        if (!walkbackLogged && initO2 > 0 && o2Pct <= 20 && prof.baseO2LPerMin > 0) {
+        if (!walkbackLogged && o2Pct < 20) {
           walkbackLogged = true;
           this.events.push({ progress: pRatio, hours: cumHours, level: "danger", text: `KRİTİK: O₂ rezervi %20 Walkback sınırının altına düştü (${remO2.toFixed(0)} L)!` });
         }
-        if (!o2EmptyLogged && remO2 <= 0.1 && prof.baseO2LPerMin > 0) {
+        if (!o2EmptyLogged && remO2 <= 0.1) {
           o2EmptyLogged = true;
           this.events.push({ progress: pRatio, hours: cumHours, level: "danger", text: `O₂ TÜKENDİ (${cumKm.toFixed(1)} km noktasında ikmal zorunlu)!` });
         }
-        if (!battLowLogged && energyPct <= 15) {
+        if (!battLowLogged && energyPct < 35) {
           battLowLogged = true;
-          this.events.push({ progress: pRatio, hours: cumHours, level: "danger", text: `Batarya rezervi %15 altına indi (${remEnergy.toFixed(2)} kWh).` });
+          this.events.push({ progress: pRatio, hours: cumHours, level: "danger", text: `Batarya rezervi %35 Walkback eşiğinin altına indi (${remEnergy.toFixed(1)} kWh).` });
         }
 
         this.samples.push({
@@ -218,15 +260,16 @@
           lon: pt.lon,
           km: Number(cumKm.toFixed(2)),
           hours: Number(cumHours.toFixed(3)),
+          minutes: Math.round(cumHours * 60),
           elevM,
           slopeDeg,
           speedKmH: Number(effSpeedKmH.toFixed(2)),
-          speedMPerMin: Number(((effSpeedKmH * 1000) / 60).toFixed(1)),
+          speedMPerMin: Math.round((effSpeedKmH * 1000) / 60),
           remO2L: Number(remO2.toFixed(1)),
           o2Pct: Number(o2Pct.toFixed(1)),
           o2RateLPerMin: Number(o2RateLPerMin.toFixed(2)),
           remWaterL: Number(remWater.toFixed(2)),
-          waterPct: Number((initWater > 0 ? (remWater / initWater) * 100 : 100).toFixed(1)),
+          waterPct: Number((initWater > 0 ? (remWater / initWater) * 100 : 0).toFixed(1)),
           waterRateMlPerMin: Number((waterRateLPerMin * 1000).toFixed(1)),
           remEnergyKwh: Number(remEnergy.toFixed(2)),
           energyPct: Number(energyPct.toFixed(1)),
@@ -242,29 +285,43 @@
       }
 
       const last = this.samples[this.samples.length - 1];
+      const totalMinutes = Math.max(1, Math.round(last.hours * 60));
+      const avgSpeedKmH = Number((last.hours > 0 ? last.km / last.hours : baseSpeed).toFixed(1));
       this.events.push({
         progress: 1,
         hours: last.hours,
-        level: (o2EmptyLogged || battLowLogged) ? "danger" : "ok",
-        text: `Simülasyon tamamlandı: ${last.km.toFixed(1)} km · Kalan O₂ ${last.remO2L.toFixed(0)} L · Doz ${last.cumRadMsv.toFixed(2)} mSv`
+        level: (o2EmptyLogged || battLowLogged || walkbackLogged) ? "danger" : "ok",
+        text: `Varış (${totalMinutes} dk): ${last.km.toFixed(1)} km · Kalan O₂ ${last.remO2L.toFixed(0)} L (%${last.o2Pct}) · Enerji ${last.remEnergyKwh.toFixed(1)} kWh (%${last.energyPct})`
       });
 
       this.summary = {
+        expeditionMode: check.mode,
+        paramsValid: true,
         totalKm: last.km,
         totalHours: last.hours,
+        totalMinutes,
+        avgSpeedKmH,
+        speedMPerMin: Math.round((avgSpeedKmH * 1000) / 60),
+        startO2L: Math.round(initO2),
+        startO2Pct: norm.startO2Pct,
         finalO2L: last.remO2L,
+        finalO2Pct: last.o2Pct,
         finalWaterL: last.remWaterL,
+        startEnergyKwh: Number(initEnergy.toFixed(1)),
+        startEnergyPct: norm.startEnergyPct,
         finalEnergyKwh: last.remEnergyKwh,
+        finalEnergyPct: last.energyPct,
         totalRadMsv: last.cumRadMsv,
         maxSlopeDeg: maxSlope,
         minElevM: Number.isFinite(minElev) ? minElev : 0,
         maxElevM: Number.isFinite(maxElev) ? maxElev : 0,
-        walkbackBreach: walkbackLogged,
+        walkbackBreach: walkbackLogged || last.o2Pct < 20,
+        batteryBreach: battLowLogged || last.energyPct < 35,
         depletedO2: o2EmptyLogged,
         depletedEnergy: remEnergy <= 0.05
       };
 
-      return { samples: this.samples, events: this.events, summary: this.summary };
+      return { samples: this.samples, events: this.events, summary: this.summary, gateBlocked: false };
     }
 
     /** Rota cizgisini istenen ornek sayisina haversine oranli cogaltir */

@@ -122,10 +122,17 @@
         c.state.useCustomCoordinates = true;
         c.state.routeScope = "global";
         c.backendRoutes = null;
-        c.persistState();
-        c.refreshAll();
-        c.showToast(c.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
-        c.scheduleBackendRouteFetch(20);
+        if (c.hasValidMissionParams?.() && c.state.missionParamsConfirmed) {
+          c.persistState();
+          c.refreshAll();
+          c.showToast(c.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
+          c.scheduleBackendRouteFetch(20);
+        } else {
+          c.state.inspectorOpen = true;
+          c.persistState();
+          c.refreshAll();
+          c.showToast(`${c.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) })} — ${c.t("demoGateBlockedToast")}`, true);
+        }
       });
     }
 
@@ -276,7 +283,7 @@
    --------------------------------------------------------------------------
    - Satir 1-17: JSDoc, IIFE modul tanimi ve MarsMapInteractionHelper yapici metodu.
    - Satir 19-36: bindAll ve cancelAll; tum olay dinleyicilerini kurar ve aktif hareket/zamanlayicilari iptal eder.
-   - Satir 38-130: bindCanvasEvents; 2D/3D surukleme (computePanStep), orbit, imlec odakli tekerlek zoom ve pick tiklamalari.
-   - Satir 132-172: bindGlobalEvents; mouseup atalet baslatma, WASD/ok/R/F/C klavye gezinme ve dis tiklama kapama.
-   - Satir 174-269: startInertia, animateTo ve applyZoom; yumusak kubik kamera gecisleri ve imlece odakli yakinlastirma.
+   - Satir 38-137: bindCanvasEvents; 2D/3D surukleme (computePanStep), orbit, imlec odakli tekerlek zoom ve kapi korumali pick tiklamalari.
+   - Satir 139-179: bindGlobalEvents; mouseup atalet baslatma, WASD/ok/R/F/C klavye gezinme ve dis tiklama kapama.
+   - Satir 181-276: startInertia, animateTo ve applyZoom; yumusak kubik kamera gecisleri ve imlece odakli yakinlastirma.
    ========================================================================== */

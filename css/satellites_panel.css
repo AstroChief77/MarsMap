@@ -156,8 +156,8 @@
   background-color: #14161a;
   background-size: cover;
   background-position: center;
-  border: 2.5px solid var(--ink-black);
-  color: var(--bg-white);
+  border: 2px solid rgba(255, 255, 255, 0.26);
+  color: #ffffff;
   text-align: start;
   cursor: pointer;
   user-select: none;
@@ -366,9 +366,9 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc Uydular paneli ve fotograf arkaplanli secenek kurallari.
-   - Satir 8-53: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
-   - Satir 55-116: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
-   - Satir 118-210: Tum gorsel kartlari (.sat-photo-card) icin hover/focus vurgusu, RTL uyumlu aktif rozet ve kapali gri filtre stilleri.
-   - Satir 212-308: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari, salt durum rozeti (.sat-switch pointer-events: none) ve kapaliyken tiklamayi karta geciren siddet butonlari.
-   - Satir 310-337: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
+   - Satir 8-78: Sol alt .sat-trigger-btn ("Uydular") butonu ve canli durum rozeti.
+   - Satir 80-142: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode) ve ust baslik/kapatma dugmesi.
+   - Satir 144-236: Tum gorsel kartlari (.sat-photo-card) icin koyu tema kontrastli beyaz tipografi, hover/focus vurgusu, RTL uyumlu aktif rozet ve kapali gri filtre stilleri.
+   - Satir 238-334: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ arkaplan fotograflari ve siddet butonlari.
+   - Satir 336-363: Uydu karo katmani secim dugmeleri (Viking, MOLA, THEMIS, Jeoloji).
    ========================================================================== */

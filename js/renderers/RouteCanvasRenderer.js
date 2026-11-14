@@ -173,7 +173,7 @@
     }
 
     /**
-     * Demo modunda Mavi rota uzerinde katedilen parlak izi, animasyonlu Rover/Astronot isaretcisini ve canli telemetri etiketini cizer
+     * Ortak seferde Mavi rota uzerinde katedilen parlak izi, birlikte ilerleyen Rover+Insan isaretcisini ve canli telemetri etiketini cizer
      */
     drawDemoSimulation(ctx, projFn, routes, demoSim, viewW, viewH, maxJumpPx = 240) {
       if (!demoSim || !demoSim.active || !demoSim.ready) return;
@@ -194,55 +194,90 @@
       if (!p || !p.visible || p.x < -60 || p.x > viewW + 60 || p.y < -60 || p.y > viewH + 60) return;
 
       const pulse = 0.5 + 0.5 * Math.sin(demoSim.pulsePhase || 0);
-      const ringR = 13 + pulse * 9;
-      const isAstro = demoSim.vehicle === "astronaut";
+      const ringR = 16 + pulse * 9;
+      const mode = demoSim.expeditionMode || (demoSim.vehicle === "astronaut" ? "joint-eva-escort" : "rover-crew");
+      const isEscort = mode === "joint-eva-escort";
 
       ctx.save();
       ctx.beginPath();
       ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(217, 43, 43, ${(0.82 - pulse * 0.52).toFixed(2)})`;
+      ctx.strokeStyle = isEscort
+        ? `rgba(56, 189, 248, ${(0.82 - pulse * 0.52).toFixed(2)})`
+        : `rgba(224, 62, 45, ${(0.82 - pulse * 0.52).toFixed(2)})`;
       ctx.lineWidth = 2.4;
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 11.5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, isEscort ? 15.5 : 13.5, 0, Math.PI * 2);
       ctx.fillStyle = "#0d0f12";
       ctx.fill();
       ctx.lineWidth = 2.5;
-      ctx.strokeStyle = isAstro ? "#ffffff" : "#d92b2b";
+      ctx.strokeStyle = isEscort ? "#38bdf8" : "#e03e2d";
       ctx.stroke();
 
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.4;
-      if (isAstro) {
+      if (isEscort) {
+        // Rover + Yaya EVA: sol tarafta eslikci basincli rover, altin guvenlik halati ve sag tarafta yuruyen astronot
+        ctx.strokeStyle = "#facc15";
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
-        ctx.arc(p.x, p.y - 2.2, 3.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#38bdf8";
-        ctx.fillRect(p.x - 2.2, p.y - 3.3, 4.4, 2.0);
-        ctx.strokeStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.moveTo(p.x - 3.4, p.y + 5.6);
-        ctx.lineTo(p.x - 2.2, p.y + 1.5);
-        ctx.lineTo(p.x + 2.2, p.y + 1.5);
-        ctx.lineTo(p.x + 3.4, p.y + 5.6);
+        ctx.moveTo(p.x - 4.0, p.y + 1.0);
+        ctx.lineTo(p.x + 4.5, p.y + 1.0);
         ctx.stroke();
-      } else {
-        ctx.fillRect(p.x - 5.5, p.y - 2.0, 11.0, 4.5);
-        ctx.fillStyle = "#d92b2b";
-        ctx.fillRect(p.x - 2.0, p.y - 5.5, 2.2, 3.5);
+
+        // Mini Eslikci Basincli Rover
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fillRect(p.x - 11.2, p.y - 2.6, 8.2, 4.4);
         ctx.fillStyle = "#38bdf8";
-        ctx.fillRect(p.x - 1.5, p.y - 6.2, 4.5, 1.8);
+        ctx.fillRect(p.x - 6.0, p.y - 4.2, 3.0, 1.8);
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.arc(p.x - 4.0, p.y + 4.2, 2.0, 0, Math.PI * 2);
-        ctx.arc(p.x + 4.0, p.y + 4.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x - 9.4, p.y + 3.2, 1.5, 0, Math.PI * 2);
+        ctx.arc(p.x - 4.8, p.y + 3.2, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eslikteki Yaya EVA Astronotu
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(p.x + 7.2, p.y - 3.6, 3.0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(p.x + 5.5, p.y - 4.5, 3.4, 1.6);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x + 4.6, p.y + 4.8);
+        ctx.lineTo(p.x + 6.4, p.y - 0.5);
+        ctx.lineTo(p.x + 8.0, p.y - 0.5);
+        ctx.lineTo(p.x + 9.8, p.y + 4.8);
+        ctx.stroke();
+      } else {
+        // Rover + Ekip: Genis Basincli Rover kabini icinde yan yana gorunen 2 astronot kaski ve tekerlekler
+        ctx.fillStyle = "#f1f5f9";
+        ctx.fillRect(p.x - 8.2, p.y - 1.5, 16.4, 5.2);
+        ctx.fillStyle = "#e03e2d";
+        ctx.fillRect(p.x - 6.2, p.y - 5.2, 1.8, 3.7);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(p.x - 4.2, p.y - 5.6, 10.2, 3.8);
+        // Kabin icindeki ekip kasklari
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(p.x - 1.2, p.y - 3.7, 1.5, 0, Math.PI * 2);
+        ctx.arc(p.x + 3.0, p.y - 3.7, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        // 3 cift rover tekerlegi
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(p.x - 5.5, p.y + 5.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y + 5.2, 2.0, 0, Math.PI * 2);
+        ctx.arc(p.x + 5.5, p.y + 5.2, 2.0, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      const tag = `${isAstro ? "EVA" : "ROVER"} ${demoSim.progressPct}% · ${demoSim.traveledKm.toFixed(1)} km · ${demoSim.remainingO2L}L O₂`;
-      this.drawRouteCommentBox(ctx, p.x, p.y - 28, tag, "#d92b2b", viewW, viewH);
+      const tagPrefix = isEscort ? "ROVER+EVA" : "ROVER+EKİP";
+      const o2PctTxt = Number.isFinite(demoSim.o2Pct) ? ` (%${Math.round(demoSim.o2Pct)})` : "";
+      const energyTxt = Number.isFinite(demoSim.remainingEnergyKwh) ? ` · ${demoSim.remainingEnergyKwh.toFixed(1)}kWh` : "";
+      const tag = `${tagPrefix} ${demoSim.progressPct}% · ${demoSim.traveledKm.toFixed(1)} km · ${demoSim.remainingO2L}L${o2PctTxt}${energyTxt}`;
+      this.drawRouteCommentBox(ctx, p.x, p.y - 30, tag, isEscort ? "#38bdf8" : "#e03e2d", viewW, viewH);
       ctx.restore();
     }
   }
@@ -254,10 +289,10 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc Mavi ve Soluk Mavi rota ile harita ustu yol yorumu cizim sinifi.
-   - Satir 11-33: drawRouteCommentBox; haritada yollarin uzerine sure/mesafe/guvenlik yorumu cizer.
-   - Satir 38-67: drawGlobalDualRoutes; kuresel haritada Soluk Mavi uzun ve Mavi kisa guvenli yollari, isaret cizgilerini ve yorum kutularini cizer.
-   - Satir 72-82: drawLeaderLine; rota egrisi ile yol yorumu kutusu arasini ince kesikli cizgiyle baglar.
-   - Satir 87-115: strokeGeoPath; cografik rota noktalarini antimeridyen sicramalarini atlayarak cizer ve ekran noktalarini doner.
-   - Satir 107-173: drawCraterEvaRoutes; krater icindeki Mavi EVA rotalari, cakismasiz yorum kutulari ve koyu haleli durak etiketlerini cizer.
-   - Satir 175-248: drawDemoSimulation; juri demo modunda Mavi rota uzerindeki parlak izi, animasyonlu Rover/EVA Astronot isaretcisini ve canli telemetri etiketini cizer.
+   - Satir 13-35: drawRouteCommentBox; haritada yollarin uzerine sure/mesafe/guvenlik yorumu cizer.
+   - Satir 40-53: drawGlobalDualRoutes; kuresel haritada Mavi guvenli yolu ve yorum kutusunu cizer.
+   - Satir 58-68: drawLeaderLine; rota egrisi ile yol yorumu kutusu arasini ince kesikli cizgiyle baglar.
+   - Satir 73-104: strokeGeoPath; cografik rota noktalarini antimeridyen sicramalarini atlayarak cizer ve ekran noktalarini doner.
+   - Satir 109-173: drawCraterEvaRoutes; krater icindeki Mavi EVA rotalari, yorum kutusu ve koyu haleli durak etiketlerini cizer.
+   - Satir 178-282: drawDemoSimulation; Mavi rota uzerindeRover+Ekip (kabin ici murettebat) veya Rover+Yaya EVA (eslikci+halat+astronot) ortak isaretcisini ve canli %O2/kWh etiketini cizer.
    ========================================================================== */

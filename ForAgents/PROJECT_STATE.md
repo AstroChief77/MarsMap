@@ -109,3 +109,12 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - `computeViaRustWasm` üzerinde `fallbackStage` (`1|2|3`) ve dik eğim esnetme uyarıları (`fallbackWarning`) görünür hale getirildi.
 - **GitHub `Mustafa` Dalı (`ornek_json.json` & `ornek_json/`)**:
   - `origin/Mustafa` dalına gerçek `48×48` MOLA DEM verisinden üretilen tam istek örneği (`ornek_json.json`), yakın krater kaçınma senaryosu, yanıt şeması ve geliştirici rehberi eklendi.
+
+## 13. Birleşik Rover + İnsan Seferi, Bilim Sekmesinin Kaldırılması & Zorunlu Parametre Kapısı (`v4.4.0`)
+- **Birleşik Sefer Modları (`MissionBudgetHelper.js`, `MarsSimulationEngine.js`, `RouteCanvasRenderer.js`, `RoutePlannerService.js`)**:
+  - Ayrık Rover-yalnız / İnsan-yalnız / Otonom Robot seyahat modları tamamen kaldırıldı; insan ve rover her zaman birlikte ilerler (`rover-crew`: *Rover + Ekip* `14.5 km/sa`, `joint-eva-escort`: *Rover + Yaya EVA* `3.6 km/sa`).
+  - `🤖 Bilim` sekmesi ve `robotic-perseverance` senaryosu `demo/index.html` ve tüm UI modüllerinden kaldırıldı; 4. senaryo `🛰 Jezero 2D Delta Geçişi` (`jezero-delta-2d`) ile değiştirildi.
+- **Zorunlu Ön-Görev Parametre Kapısı (`AppConfig.js`, `RouteInspectorPanel.js`, `MarsNavigatorController.js`, `DemoScenarioService.js`, `DemoStudioController.js`)**:
+  - Başlangıç `O₂ (L)`, `Enerji (kWh)` ve `Su (L)` değerleri varsayılan `null`/boş başlar; pozitif değerler girilmeden rota hesaplama, senaryo/oynatma başlatma ve zaman kaydırma engellenir.
+  - Varış özetleri dakika/saat, hız (`km/sa` + `m/dk`), başlangıç `% + L` → varış `L + %` oksijen/enerji bütçesi, su rezervi ve `< %20` O₂ Walkback / `< %35` Batarya uyarılarını gösterir; `#insp-latency-pill-card` ile Sol 2031 durak kartı ve koyu kozmik tema kontrast düzeltmeleri (`v4.6`) tamamlandı.
+

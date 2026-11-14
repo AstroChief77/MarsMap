@@ -15,6 +15,7 @@
       this.wasmFindPath = null;
       this.wasmInitPromise = null;
       this.gridHelper = ns.MolaAStarGridHelper ? new ns.MolaAStarGridHelper() : null;
+      this.budget = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
     }
 
     /** Derlenmis Rust WebAssembly modulunu (./js/wasm/backend.js -> backend_bg.wasm) yukler */
@@ -24,7 +25,7 @@
 
       this.wasmInitPromise = (async () => {
         try {
-          const bust = (typeof window !== "undefined" && window.location && window.location.protocol !== "file:") ? "?v=4.3" : "";
+          const bust = (typeof window !== "undefined" && window.location && window.location.protocol !== "file:") ? "?v=4.6" : "";
           const baseHref = (typeof document !== "undefined" && document.baseURI) ? document.baseURI : window.location.href;
           const wasmUrl = new URL(`./js/wasm/backend.js${bust}`, baseHref).href;
           const wasmBinaryUrl = new URL(`./js/wasm/backend_bg.wasm${bust}`, baseHref).href;
@@ -111,9 +112,9 @@
       const t0 = performance.now();
       const wasmOk = await this.ensureWasmLoaded();
       if (wasmOk && this.wasmFindPath) {
-        // Canli ping testi: 2x2 mini MOLA grid ve varsayilan PLSS O2 ile Rust WASM cagri gecikmesini olc
+        // Canli ping testi: 2x2 mini MOLA grid ve referans PLSS O2 ile Rust WASM cagri gecikmesini olc
         const mini = new Int32Array([0, 1, 1, 2]);
-        const pingOxy = Math.round(Number(this.config?.getDefaults?.().oxygenReserveLiters || 420));
+        const pingOxy = Math.round(Number(this.config?.getFactoryDefaults?.().oxygenTankCapacityL || 420));
         this.wasmFindPath(mini, 2, 2, 0, 0, 1, 1, pingOxy);
         const latencyMs = Math.max(1, Math.round(performance.now() - t0));
         return {
@@ -173,10 +174,26 @@
       const destLon = Number(Number(destination.lon || 0).toFixed(4));
       const origTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(origLat, origLon) : { elevM: 0, slopeDeg: 0, gx: 0, gy: 0 };
       const destTele = topo && typeof topo.getSurfaceTelemetry === "function" ? topo.getSurfaceTelemetry(destLat, destLon) : { elevM: 0, slopeDeg: 0, gx: 0, gy: 0 };
-      const beginOxy = Math.max(0, Math.round(Number(state.oxygenReserveLiters || 420)));
+
+      const check = this.budget ? this.budget.validateMissionParams(state) : null;
+      const modeId = check ? check.mode : "rover-crew";
+      const beginOxy = Math.max(0, Math.round(check ? check.normalized.o2L : Number(state.oxygenReserveLiters || 0)));
+      const waterL = check ? check.normalized.waterL : Number(state.waterReserveLiters || 0);
+      const energyKwh = check ? check.normalized.energyKwh : Number(state.energyReserveKwh || state.initialEnergyKwh || 0);
+      const userSpeed = check ? check.normalized.speedKmH : Number(state.targetSpeedKmH || (planner ? planner.roverSpeedKmH : 14.5));
       const gridSize = 48;
 
       const factors = {
+        expedition: {
+          expeditionMode: modeId,
+          roverPlusHumanTogether: true,
+          targetSpeedKmH: userSpeed,
+          oxygenReserveLiters: beginOxy,
+          oxygenTankCapacityL: check ? check.normalized.o2CapL : Number(state.oxygenTankCapacityL || 420),
+          energyReserveKwh: energyKwh,
+          energyTankCapacityKwh: check ? check.normalized.energyCapKwh : Number(state.energyTankCapacityKwh || 75),
+          waterReserveLiters: waterL
+        },
         acidRain: {
           enabled: Boolean(state.filterAcidRain),
           intensity: state.acidIntensity || "orta",
@@ -239,7 +256,7 @@
           o2Peak10MinLPerMin: 2.52,
           o2MaxLPerMin: 4.00,
           o2LitersPerHour: 48.0,
-          waterReserveLiters: Number(state.waterReserveLiters || 24),
+          waterReserveLiters: waterL,
           waterNominalLPerMin: 0.015,
           waterLitersPerHour: 2.15,
           evaSpeedKmH: 3.6,
@@ -247,13 +264,12 @@
           evaLongWalkKmH: 2.7
         },
         vehicleAndPhysics: {
-          vehicleType: "pressurized-rover",
+          vehicleType: modeId,
           roverNominalSpeedKmH: 10.0,
-          roverSpeedKmH: planner ? planner.roverSpeedKmH : 14.5,
-          roverSpeedMPerMin: 241.7,
+          roverSpeedKmH: userSpeed,
+          roverSpeedMPerMin: Number(((userSpeed * 1000) / 60).toFixed(1)),
           roverMaxSafeSpeedKmH: 19.0,
-          roboticReferenceSpeedKmH: 0.152,
-          roverBatteryKwh: 75.0,
+          roverBatteryKwh: energyKwh || 75.0,
           roverWalkbackBatteryRatio: 0.35,
           roverPropulsionWhPerMin: 166.7,
           roverHotelLoadWhPerMin: 30.0,
@@ -536,9 +552,10 @@
       const acidZones = (payload.factors?.acidRain?.enabled && payload.factors?.acidRain?.zones) || [];
       const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
       const radZones = (payload.factors?.radiation?.enabled && payload.factors?.radiation?.zones) || [];
+      const exp = payload.factors?.expedition || {};
       const speedMult = (payload.factors?.acidRain?.speedMultiplier || 1) * (payload.factors?.dustStorm?.speedMultiplier || 1);
-      const baseRoverSpeed = payload.factors?.astronaut?.roverSpeedKmH || 14.5;
-      const beginOxy = Number(payload.factors?.astronaut?.oxygenReserveLiters ?? 420);
+      const baseRoverSpeed = Number(exp.targetSpeedKmH || payload.factors?.vehicleAndPhysics?.roverSpeedKmH || 14.5);
+      const beginOxy = Number(exp.oxygenReserveLiters ?? payload.factors?.astronaut?.oxygenReserveLiters ?? 0);
 
       let totalKm = 0;
       let totalHours = 0;
@@ -557,9 +574,8 @@
         const slopeDeg = Number((tele.slopeDeg || 0).toFixed(1));
         const dz = i === 0 ? 0 : (cur.elevLevel - prev.elevLevel);
 
-        // Prameters.md denklem 5.2: v_etkin = v_duz * max(0.40, 1 - slope/46) * k_asit * k_firtina
         const slopeFactor = Math.max(0.40, 1 - slopeDeg / 46);
-        const effSpeed = Math.max(3.5, baseRoverSpeed * slopeFactor * speedMult);
+        const effSpeed = Math.max(0.5, baseRoverSpeed * slopeFactor * speedMult);
         const segHours = segKm / effSpeed;
         totalHours += segHours;
 
@@ -592,30 +608,53 @@
         });
       }
 
-      totalHours = Math.max(0.15, totalHours);
-      const formattedDuration = planner && typeof planner.formatHours === "function"
-        ? planner.formatHours(totalHours)
-        : `${totalHours.toFixed(1)} saat`;
-      const o2Liters = Math.round(totalHours * 48);
-      const waterLiters = Number((totalHours * 2.15).toFixed(1));
-
+      const budget = this.computeRouteBudgetFromPayload(totalKm, totalHours, steps, payload, planner);
       return {
+        ...budget,
         points,
         steps,
         rustCost: rustRes.cost || 0,
         rustDistanceSteps: rustRes.distance || path.length,
-        rustAvaibleOxy: typeof rustRes.avaible_oxy === "number" ? rustRes.avaible_oxy : (beginOxy - o2Liters),
+        rustAvaibleOxy: typeof rustRes.avaible_oxy === "number" ? rustRes.avaible_oxy : (beginOxy - budget.o2Liters),
         rustStepsCount: rustRes.steps_count || steps.length,
         molaRangeM: corridor ? { min: Math.round(corridor.minElevM), max: Math.round(corridor.maxElevM) } : null,
-        totalKm: Number(totalKm.toFixed(2)),
-        totalMeters: Math.round(totalKm * 1000),
-        totalHours: Number(totalHours.toFixed(2)),
-        formattedDuration,
-        o2Liters,
-        waterLiters,
         colorHex,
         label,
-        comment: `// ${label}: ${rustRes.steps_count || steps.length} adım (Maliyet: ${rustRes.cost || 0}, MOLA ${corridor ? Math.round(corridor.minElevM) + ".." + Math.round(corridor.maxElevM) + "m" : "DEM"}) — ${formattedDuration}`
+        comment: `// ${label}: ${rustRes.steps_count || steps.length} adım (Maliyet: ${rustRes.cost || 0}, MOLA ${corridor ? Math.round(corridor.minElevM) + ".." + Math.round(corridor.maxElevM) + "m" : "DEM"}) — ${budget.formattedDuration}`
+      };
+    }
+
+    computeRouteBudgetFromPayload(totalKm, fallbackHours, steps, payload, planner) {
+      if (this.budget) {
+        const exp = payload?.factors?.expedition || {};
+        return this.budget.computeRouteBudget({
+          totalKm,
+          steps,
+          acidEnabled: Boolean(payload?.factors?.acidRain?.enabled),
+          stormEnabled: Boolean(payload?.factors?.dustStorm?.enabled),
+          acidSpeedMult: Number(payload?.factors?.acidRain?.speedMultiplier || 0.78),
+          stormSpeedMult: Number(payload?.factors?.dustStorm?.speedMultiplier || 0.70),
+          params: {
+            expeditionMode: exp.expeditionMode || payload?.factors?.vehicleAndPhysics?.vehicleType || "rover-crew",
+            targetSpeedKmH: exp.targetSpeedKmH || payload?.factors?.vehicleAndPhysics?.roverSpeedKmH || 14.5,
+            oxygenReserveLiters: exp.oxygenReserveLiters ?? payload?.factors?.astronaut?.oxygenReserveLiters ?? 0,
+            oxygenTankCapacityL: exp.oxygenTankCapacityL || 420,
+            energyReserveKwh: exp.energyReserveKwh ?? payload?.factors?.vehicleAndPhysics?.roverBatteryKwh ?? 0,
+            energyTankCapacityKwh: exp.energyTankCapacityKwh || 75,
+            waterReserveLiters: exp.waterReserveLiters ?? payload?.factors?.astronaut?.waterReserveLiters ?? 0
+          },
+          formatHoursFn: planner?.formatHours ? (h) => planner.formatHours(h) : null
+        });
+      }
+      const h = Math.max(0.15, fallbackHours || 0);
+      return {
+        totalKm: Number(totalKm.toFixed(2)),
+        totalMeters: Math.round(totalKm * 1000),
+        totalHours: Number(h.toFixed(2)),
+        totalMinutes: Math.max(1, Math.round(h * 60)),
+        formattedDuration: planner?.formatHours ? planner.formatHours(h) : `${h.toFixed(1)} saat`,
+        o2Liters: Math.round(h * 48),
+        waterLiters: Number((h * 2.15).toFixed(1))
       };
     }
 
@@ -688,23 +727,14 @@
 
       const totalKm = Number(r.totalKm !== undefined ? r.totalKm : (r.total_km || 0));
       const totalHours = Number(r.totalHours !== undefined ? r.totalHours : (r.total_hours || 0));
-      const formattedDuration = r.formattedDuration || r.formatted_duration ||
-        (planner && typeof planner.formatHours === "function"
-          ? planner.formatHours(totalHours)
-          : `${totalHours.toFixed(1)} saat`);
-
+      const budget = this.computeRouteBudgetFromPayload(totalKm, totalHours, steps, payload, planner);
       return {
+        ...budget,
         points: rawPts,
         steps,
-        totalKm: Number(totalKm.toFixed(2)),
-        totalMeters: Math.round(totalKm * 1000),
-        totalHours: Number(totalHours.toFixed(2)),
-        formattedDuration,
-        o2Liters: Math.round(r.o2Liters !== undefined ? r.o2Liters : (r.o2_liters || totalHours * 48)),
-        waterLiters: Number((r.waterLiters !== undefined ? r.waterLiters : (r.water_liters || totalHours * 2.15)).toFixed(1)),
         colorHex: r.colorHex || r.color_hex || defaultColor,
         label: r.label || defaultLabel,
-        comment: r.comment || `// ${defaultLabel} — ${formattedDuration} (${Math.round(totalKm)} km)`
+        comment: r.comment || `// ${defaultLabel} — ${budget.formattedDuration} (${Math.round(budget.totalKm)} km)`
       };
     }
 
@@ -724,9 +754,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-50: Sinif baslangici, MolaAStarGridHelper baglantisi ve ensureWasmLoaded (js/wasm/backend_bg.wasm v4.2 yukleyicisi).
+   - Satir 1-50: Sinif baslangici, MolaAStarGridHelper/MissionBudgetHelper baglantilari ve ensureWasmLoaded.
    - Satir 52-164: normalizeBaseUrl, resolveInitialUrl, testConnection ve pingHttpHealth (Rust WASM ping + HTTP saglik kontrolu).
-   - Satir 165-396: buildRouteRequestPayload, requestStepRoute ve fetchHttpRoute; 48x48 MOLA DEM/egim matrisi, krater katalogu, Prameters.md fizigi ve tehlike faktorlerini paketler.
-   - Satir 398-433: MolaAStarGridHelper delegasyonlari (wrapLon, shortestDeltaLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid, solvePathLocalAStar).
-   - Satir 435-720: computeViaRustWasm (Asama 1-3 fallback uyarili), convertWasmPathToRoute, haversineMarsKm, fetchHazards ve normalizeRouteResponse/normalizeHazards.
+   - Satir 165-412: buildRouteRequestPayload (birlesik Rover+Insan sefer faktorleri), requestStepRoute ve fetchHttpRoute.
+   - Satir 414-449: MolaAStarGridHelper delegasyonlari (wrapLon, shortestDeltaLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid, solvePathLocalAStar).
+   - Satir 451-764: computeViaRustWasm, convertWasmPathToRoute, computeRouteBudgetFromPayload, fetchHazards ve normalizeRouteResponse.
    ========================================================================== */

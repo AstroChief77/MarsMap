@@ -36,7 +36,8 @@
   gap: 10px;
   padding: 0 14px;
   background: var(--bg-white);
-  border-bottom: 2px solid var(--ink-black);
+  border-bottom: 1.5px solid var(--line-light);
+  backdrop-filter: blur(14px);
   z-index: 20;
 }
 
@@ -60,11 +61,11 @@
 }
 
 .sim-route-pill {
-  background: var(--ink-black);
-  color: var(--bg-white);
+  background: var(--mars-red);
+  color: #ffffff;
   font-size: 10.5px;
   font-weight: 900;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: var(--r-pill);
 }
 
@@ -84,24 +85,30 @@
 }
 
 .sim-btn:hover {
-  border-color: var(--ink-black);
+  border-color: var(--mars-red);
 }
 
 .sim-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--route-blue);
+  color: #ffffff;
+  border-color: var(--route-blue);
 }
 
 .sim-btn.red {
   background: var(--mars-red);
-  color: var(--bg-white);
+  color: #ffffff;
   border-color: var(--mars-red-dark);
 }
 
 .sim-btn.red.active {
-  background: var(--ink-black);
+  background: rgba(10, 14, 22, 0.95);
+  color: #ffffff;
   border-color: var(--mars-red);
+}
+
+.sim-btn-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .sim-pill-badge {
@@ -111,6 +118,7 @@
   padding: 4px 9px;
   font-size: 11px;
   font-weight: 800;
+  color: var(--ink-black);
 }
 
 .sim-workspace {
@@ -136,8 +144,10 @@
   position: absolute;
   top: 12px;
   bottom: 72px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 2px solid var(--ink-black);
+  background: var(--bg-white);
+  color: var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(16px);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   padding: 10px 12px;
@@ -150,12 +160,12 @@
 
 .sim-left-card {
   left: 12px;
-  width: 300px;
+  width: 306px;
 }
 
 .sim-right-card {
   right: 12px;
-  width: 336px;
+  width: 342px;
 }
 
 .sim-sec-title {
@@ -169,25 +179,30 @@
 
 .sim-veh-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
 }
 
 .sim-veh-btn {
-  padding: 6px 4px;
+  padding: 7px 6px;
   border-radius: 6px;
   border: 1.5px solid var(--line-light);
   background: var(--bg-offwhite);
+  color: var(--ink-black);
   font-size: 10.5px;
   font-weight: 800;
   text-align: center;
   cursor: pointer;
 }
 
+.sim-veh-btn:hover {
+  border-color: var(--mars-red);
+}
+
 .sim-veh-btn.active {
-  background: var(--ink-black);
-  color: var(--bg-white);
-  border-color: var(--ink-black);
+  background: var(--mars-red);
+  color: #ffffff;
+  border-color: var(--mars-red);
 }
 
 .sim-field-row {
@@ -197,23 +212,63 @@
 }
 
 .sim-field {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   font-size: 10.5px;
   font-weight: 800;
   color: var(--ink-dark);
 }
 
+.sim-cap-pct {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  font-size: 9.5px;
+  font-weight: 900;
+  color: var(--route-pale-blue);
+}
+
 .sim-field input,
-.sim-field select {
+.sim-field select,
+#sim-layer-sel {
   width: 100%;
   padding: 5px 7px;
   border: 1.5px solid var(--line-light);
   border-radius: 6px;
-  background: var(--bg-white);
-  font-size: 11.5px;
-  font-weight: 700;
+  background: rgba(10, 14, 22, 0.92);
+  color: #f1f5f9;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sim-field input:focus,
+.sim-field select:focus,
+#sim-layer-sel:focus {
+  outline: none;
+  border-color: var(--route-blue);
+}
+
+.sim-input-missing {
+  border-color: var(--mars-red) !important;
+  box-shadow: 0 0 0 2px rgba(224, 62, 45, 0.35);
+  background: rgba(127, 29, 29, 0.28) !important;
+}
+
+.sim-param-alert {
+  background: var(--mars-red-tint);
+  border: 1px solid var(--mars-red);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fecaca;
+  line-height: 1.35;
+}
+
+.sim-param-alert.hidden {
+  display: none;
 }
 
 .sim-haz-row {
@@ -224,23 +279,79 @@
   font-size: 11px;
   font-weight: 700;
   background: var(--bg-offwhite);
-  padding: 4px 7px;
+  padding: 5px 7px;
   border-radius: 6px;
+  border: 1px solid var(--line-light);
+}
+
+.sim-haz-row label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.sim-haz-row input[type="checkbox"] {
+  accent-color: var(--mars-red);
+  cursor: pointer;
 }
 
 .sim-haz-row select {
-  padding: 2px 5px;
+  padding: 3px 6px;
   border-radius: 4px;
   border: 1px solid var(--line-light);
   font-size: 10.5px;
   font-weight: 800;
-  background: var(--bg-white);
+  background: rgba(10, 14, 22, 0.92);
+  color: #f1f5f9;
 }
 
 .sim-inject-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+}
+
+.sim-arrival-box {
+  background: var(--bg-offwhite);
+  border: 1px solid var(--line-light);
+  border-left: 3px solid var(--route-blue);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 10.5px;
+  color: var(--ink-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.35;
+}
+
+.sim-arr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.sim-arr-row span {
+  color: var(--ink-muted);
+}
+
+.sim-arr-row strong {
+  color: var(--ink-black);
+  font-weight: 800;
+  text-align: right;
+}
+
+.sim-arr-warn {
+  margin-top: 2px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(185, 28, 28, 0.26);
+  border: 1px solid var(--mars-red);
+  color: #fecaca;
+  font-weight: 900;
+  font-size: 10px;
 }
 
 .sim-kpi-grid {
@@ -349,16 +460,16 @@
 }
 
 .sim-log-item.warn {
-  color: #b45309;
+  color: #fbbf24;
 }
 
 .sim-log-item.danger {
-  color: var(--mars-red-dark);
+  color: #f87171;
   font-weight: 900;
 }
 
 .sim-log-item.ok {
-  color: #15803d;
+  color: #4ade80;
   font-weight: 800;
 }
 
@@ -369,7 +480,8 @@
   transform: translateX(-50%);
   width: min(740px, calc(100vw - 24px));
   background: var(--bg-white);
-  border: 2px solid var(--ink-black);
+  border: 1.5px solid var(--line-light);
+  backdrop-filter: blur(16px);
   border-radius: var(--r-pill);
   box-shadow: var(--shadow-card);
   padding: 7px 14px;
@@ -391,16 +503,17 @@
 }
 
 @media (max-width: 1080px) {
-  .sim-left-card { width: 260px; }
-  .sim-right-card { width: 280px; }
+  .sim-left-card { width: 266px; }
+  .sim-right-card { width: 288px; }
   .sim-preset-row { display: none; }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc /demo simulasyon studyosu CSS tanimlari.
-   - Satir 7-105: Uzay tuvali, ust arac cubugu, hazir senaryo dugmeleri ve 2D/3D seciciler.
-   - Satir 107-235: Sol parametre giris karti ve sag telemetri/ilerleme cubugu stilleri.
-   - Satir 237-325: Canli O2/Su/Batarya cubuklari, chart tuvali, olay gunlugu ve alt oynatma cubugu.
+   - Satir 1-5: JSDoc /demo ortak sefer ve hayatta kalma studyosu CSS tanimlari.
+   - Satir 7-120: Uzay tuvali, ust arac cubugu, 4 senaryo, kapi kilit rozetleri ve 2D/3D seciciler.
+   - Satir 122-286: Koyu kozmik cam sol/sag kartlar, 2 sutunlu Rover+Insan mod gridi ve zorunlu O2/Su/Enerji girdi uyarilari.
+   - Satir 288-460: Varis ozeti (.sim-arrival-box), canli O2/Su/Batarya cubuklari, chart tuvali ve aydinlik olay gunlugu renkleri.
+   - Satir 462-490: Alt zaman/hiz oynatma cubugu ve duyarli ekran kurallari.
    ========================================================================== */
