@@ -305,3 +305,5 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 - js/components/RouteInspectorPanel.js & js/renderers/RouteCanvasRenderer.js:
   * Sag ust Rota Planlayici panelinden "Soluk Mavi (Güvenli Uzun)" karti ve sekme degistirici (step-tabs) kaldirildi.
   * 2D ve 3D harita uzerinden kesikli soluk mavi alternatif cizgi ve yorum kutusu kaldirilarak yalnizca tekil Mavi Yol (#2563eb) birakildi.
+
+[2026-11-14 21:42] v4.0 - Daire/GUI sekilleri kaldirildi; Asit Yagmuru (Mavi), Kum Firtinasi (Kizil-Altin) ve Radyasyon (Mor) 3D kure yuzeyine piksel bazli yapiskan, dusuk saydamlikli organik Isi Haritasi (Heatmap) olarak OverlayDrawHelper, Map3DRenderer, Map3DFallbackRenderer ve Map2DRenderer uzerine islendi.
