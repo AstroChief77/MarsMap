@@ -118,7 +118,7 @@
      */
     screenToMarsCoords2D(px, py, width, height, rotLat, rotLon, zoom) {
       const baseWidth = Math.max(width * 0.86, 620);
-      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 4.5);
+      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 12.0);
       const mapH = mapW * 0.5;
       const vCenter = (90 - rotLat) / 180;
       const oy = height / 2 - vCenter * mapH;
@@ -137,7 +137,7 @@
     screenToMarsCoords3D(px, py, width, height, rotLat, rotLon, zoom) {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 3.2);
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 10.0);
       const nx = (px - cx) / radius;
       const ny = (cy - py) / radius;
       const rSq = nx * nx + ny * ny;
