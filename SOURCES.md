@@ -1,35 +1,42 @@
-# AstroChief - Kullanılan Kaynaklar ve API'ler
+# AstroChief - Kullanılan Kaynaklar ve İndirilen Veri Setleri
 
-Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, veri setleri ve referanslar listelenmektedir.
+Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, veri setleri ve yerel olarak depolanan veri dosyaları listelenmektedir.
 
 ## NASA Yasal Uyarı Metni (Disclaimer)
-NASA does not endorse any non-U.S. Government entity and is not responsible for information contained on non-U.S. Government websites. For non-U.S. Government websites, participants must comply with any data use parameters of that specific website.
+> NASA does not endorse any non-U.S. Government entity and is not responsible for information contained on non-U.S. Government websites. For non-U.S. Government websites, participants must comply with any data use parameters of that specific website.
 
 ---
 
-## NASA Veri & Kaynak Listesi
+## İndirilen ve Yapılandırılan Veri Setleri
 
 1. **Jet Propulsion Laboratory’s (JPL) Mars Trek**
-   - **URL:** https://trek.nasa.gov/mars/
-   - **Açıklama:** NASA'nın Mars keşfi için web tabanlı portalı. Çeşitli iniş alanlarında NASA tarafından toplanan verileri sergiler.
+   - **Resmi URL:** https://trek.nasa.gov/mars/
+   - **İndirilen Veri Dosyaları:**
+     * `data/datasets/mars_landing_sites.json` (Tüm başarılı Mars iniş sahaları koordinat, irtifa ve görev verisi)
+     * `data/datasets/jpl_mars_trek_layers.json` (WMTS/XYZ karo servisleri, MOLA DEM, THEMIS IR ve sabitler)
    - **Kullanım Alanı:** Mars yüzeyi etkileşimli haritalandırma, iniş bölgeleri koordinatları ve topoğrafik incelemeler.
 
 2. **USGS-NASA Planetary Geologic Mapping Program**
-   - **URL:** https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars
-   - **Açıklama:** Yüksek kaliteli standartlaştırılmış Mars jeolojik haritası.
-   - **Kullanım Alanı:** Mars yüzeyinin jeolojik katmanları, mineral dağılımı ve krater yapıları.
+   - **Resmi URL:** https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars
+   - **İndirilen Veri Dosyası:**
+     * `data/datasets/usgs_mars_geology.json` (Noachian, Hesperian, Amazonian birimleri, sürülebilirlik endeksi, asidik sülfat zonları)
+   - **Kullanım Alanı:** Mars yüzeyinin jeolojik katmanları, mineral dağılımı, zemin batma riski ve kimyasal aşınma analizleri.
 
-3. **Curiosity's Proposed Path Up Mount Sharp (Route Map Visual)**
-   - **URL:** https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/
-   - **Açıklama:** Mars'ta Mount Sharp'ın alt kısımlarına tırmanan Curiosity gezgininin önerilen rotasını gösteren animasyon ve rota görseli.
-   - **Kullanım Alanı:** Gezici (rover) keşif rota planlaması ve irtifa/bölge analizi.
+3. **Curiosity Rover Route Map: Lower Mount Sharp (Visual & Waypoints)**
+   - **Resmi URL:** https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/
+   - **İndirilen Veri Dosyası:**
+     * `data/datasets/curiosity_mount_sharp_route.json` (Bradbury Landing'den Gediz Vallis'e tırmanış istasyonları, eğimler, tehlike düzeyleri)
+   - **Kullanım Alanı:** Gezici (rover) keşif rota planlaması, tırmanış açısı ve aşınma hesaplamaları.
 
-4. **NASA Worldview**
-   - **URL:** https://worldview.earthdata.nasa.gov/
-   - **Açıklama:** Uydu perspektifinden dinamik gezegenin geçmişini ve günümüzünü görsel olarak keşfetme aracı (NASA Earthdata).
-   - **Kullanım Alanı:** Uydu görüntüleri, karşılaştırmalı gezegen atmosferi ve gözlem verileri.
+4. **NASA Worldview & Mars Atmospheric Observations**
+   - **Resmi URL:** https://worldview.earthdata.nasa.gov/
+   - **İndirilen Veri Dosyası:**
+     * `data/datasets/nasa_worldview_and_hazards.json` (Toz fırtınası koridorları, asidik sis/gaz riskleri, rüzgar şiddetleri ve güvenli koridorlar)
+   - **Kullanım Alanı:** Fırtına ve çevresel tehlikelere göre dinamik rota optimizasyonu.
 
-5. **Mars Perseverance Raw Images Gallery**
-   - **URL:** https://mars.nasa.gov/mars2020/multimedia/raw-images/
-   - **Açıklama:** Perseverance gezgininin Mars yüzeyindeki yolculuğu boyunca çektiği 1 milyondan fazla ham görsel galerisi.
-   - **Kullanım Alanı:** Yüzey fotoğrafları, kamera ham verileri ve görsel teyit.
+5. **Mars Perseverance Raw Images Gallery (NASA Mars 2020)**
+   - **Resmi URL:** https://mars.nasa.gov/mars2020/multimedia/raw-images/
+   - **İndirilen Veri Dosyası:**
+     * `data/datasets/perseverance_raw_images.json` (Jezero Krateri'nden canlı ham görsel metadataları, kameralar, sol ve optik bağlantılar)
+     * `data/datasets/images/perseverance_supercam_sol2031.jpg` (Örnek yüksek çözünürlüklü ham yüzey fotoğrafı)
+   - **Kullanım Alanı:** Yüzey fotoğrafları, kamera ham verileri ve optik teyit.
