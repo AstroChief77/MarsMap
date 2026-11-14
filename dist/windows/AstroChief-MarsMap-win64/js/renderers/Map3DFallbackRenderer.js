@@ -21,7 +21,7 @@
      * file:// protokolunde tarayici getImageData kilidi varsa hazir z=0..targetZ karolariyla
      * kuresel afin projeksiyonlu ve dikissiz 3D dokuyu dogrudan drawImage uzerinden cizer
      */
-    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1) {
+    drawFallbackShadedSphere(ctx, cx, cy, radius, rotLat = 0, rotLon = 0, activeLayerId = "", viewW = 1440, viewH = 900, targetZ = 2, isInteracting = false, zoom = 1, camPitch = 0, camYaw = 0, reliefScale = 1, heatmap = null) {
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius * 1.05, 0, Math.PI * 2);
@@ -169,6 +169,18 @@
                     break;
                   }
                 }
+              }
+              if (heatmap && heatmap.hasData && heatmap.canvas) {
+                const hw = heatmap.width, hh = heatmap.height;
+                ctx.save();
+                ctx.transform(
+                  mXu / hw, mYu / hw,
+                  mXv / hh, mYv / hh,
+                  px - mXu * u00 - mXv * p00.v,
+                  py - mYu * u00 - mYv * p00.v
+                );
+                ctx.drawImage(heatmap.canvas, 0, 0);
+                ctx.restore();
               }
               ctx.restore();
             }
