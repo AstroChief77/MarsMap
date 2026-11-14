@@ -38,3 +38,11 @@ export function initSync(module: { module: SyncInitInput } | SyncInitInput): Ini
  * @returns {Promise<InitOutput>}
  */
 export default function __wbg_init (module_or_path?: { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>): Promise<InitOutput>;
+
+/* ==========================================================================
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+   --------------------------------------------------------------------------
+   - Satir 1-7: find_rover_path (8 argumanli Rust WASM A* yol bulucu) TypeScript imzasi.
+   - Satir 9-20: InitInput / InitOutput ve WASM bellek arayuzleri.
+   - Satir 22-40: initSync ve __wbg_init WebAssembly baslatma imzalari.
+   ========================================================================== */

@@ -322,9 +322,9 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 
 
 [2026-11-14] Backend Veri Besleme & Rust WASM Guncellemesi (v4.2):
-- backend/src/main.rs (Satir 31-48): ind_rover_path 8. argumani olan egin_oxy: i32 = 420 eklendi; cargo run ve cargo test --release derleme hatasi giderildi.
-- backend/src/lib.rs -> js/wasm/backend.js & backend_bg.wasm: wasm-pack build --target web --out-dir ../js/wasm -- --features wasm ile 8 argumanli (egin_oxy, distance, vaible_oxy) release WASM yeniden derlendi.
-- js/services/BackendApiService.js (Satir 1-639): Sahte Math.sin dalga yuksekligi ve sabit (x===5,10,14) engel kodlari kaldirildi; MarsTopographyService gercek NASA MOLA DEM rakim/egimi, aktif asit/firtina/radyasyon engelleri, >25 derece krater/ucurum siniri ve eginOxy (PLSS O2) degerleri Rust WASM A* izgarasina baglandi.
+- backend/src/main.rs (Satir 31-48): find_rover_path 8. argumani olan begin_oxy: i32 = 420 eklendi; cargo run ve cargo test --release derleme hatasi giderildi.
+- backend/src/lib.rs -> js/wasm/backend.js & backend_bg.wasm: wasm-pack build --target web --out-dir ../js/wasm -- --features wasm ile 8 argumanli (begin_oxy, distance, avaible_oxy) release WASM yeniden derlendi.
+- js/services/BackendApiService.js (Satir 1-639): Sahte Math.sin dalga yuksekligi ve sabit (x===5,10,14) engel kodlari kaldirildi; MarsTopographyService gercek NASA MOLA DEM rakim/egimi, aktif asit/firtina/radyasyon engelleri, >25 derece krater/ucurum siniri ve beginOxy (PLSS O2) degerleri Rust WASM A* izgarasina baglandi.
 - js/services/MarsTileLoader.js (Satir 124-136) & index.html: HTTP/HTTPS ortaminda karo URL'lerine ?v=4.2 eklendi (Cloudflare 404 negatif onbellek temizligi) ve tum modul surumleri ?v=4.2 yapildi.
 - readme.md Kurali: readme.md degistirilmedi.
 
@@ -364,4 +364,18 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 [2026-11-14T23:26:45+03:00] fix(demo): /demo 404 Sunucu, Ag & Dagitim Kapsama Duzeltmesi:
 - tools/WinLauncher.cs (Satir 288-292) & serve.ps1 (Satir 265-269): IsAllowedWebPath beyaz listesine demo/ alt yolu eklendi.
 - .github/workflows/deploy-mars-web.yml (Satir 116-135) & tools/server/deploy_web_sync.sh (Satir 71-133): Canli web rsync/git-log/chown listelerine demo/ eklendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T00:15:00+03:00] chore(cleanup): Kapsamli Kod, CI/Manifest, UTF-8 ve Git Deposu Temizligi (v4.3.1):
+- Yedek Klasoru: backups/snapshot_20261115_cleanup/
+- Git Temizligi & .gitignore (Satir 1-14): Yarida kalan .git/rebase-merge durumu git rebase --quit ile temizlendi; dist/, backups/, logs/autodeploy_lan.*, logs/server_*.log, backend/target/ ve z=3+ uretilen karolar .gitignore icine alindi; izlenen dist/ ve backups/ kayitlari diskteki dosyalar korunarak Git indeksinden (git rm -r --cached) cikarildi.
+- js/services/MolaAStarGridHelper.js (Yeni Dosya, Satir 1-221) & js/services/BackendApiService.js (Satir 1-638):
+  * BackendApiService icindeki eksik shortestDeltaLon yontemi eklendi ve solvePathLocalAStar yedek O2 alaninda (avaible_oxy) baslangic oksijen rezervi korundu.
+  * wrapLon, shortestDeltaLon, sphericalAngleDeg, haversineMarsKm, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid ve solvePathLocalAStar ayri MolaAStarGridHelper sinifina tasinarak BackendApiService 638 satira indirildi ve satir sonu aciklamalari guncellendi.
+- js/components/MarsMapInteractionHelper.js (Yeni Dosya, Satir 1-271) & js/components/MarsNavigatorController.js (Satir 1-615):
+  * Canvas/global fare-tekerlek-dokunma, atalet (startInertia), kamera animasyonu (animateTo) ve yakinlastirma (applyZoom) mantigi MarsMapInteractionHelper sinifina bolunerek MarsNavigatorController 615 satira indirildi ve satir sonu aciklamalari guncellendi.
+- index.html (Satir 1-101) & demo/index.html (Satir 1-209):
+  * index.html icindeki UTF-8/CP1254 mojibake bozulmalari temizlendi, baslik "AstroChief | Mars Navigator v4.3" olarak guncellendi, MolaAStarGridHelper.js?v=4.3 ve MarsMapInteractionHelper.js?v=4.3 betik siralamasina eklendi ve satir sonu aciklamalari guncellendi.
+- data/tiles/manifest.json (Satir 1-478): Depoda gercekte izlenen 465 karo dosyasiyla (120 + 120 + 105 + 120) 1:1 senkronize edilerek GitHub Actions validate-web karo eksikligi engeli kaldirildi.
+- js/wasm/backend.js (Satir 207), js/wasm/backend.d.ts (Satir 1-48), js/wasm/backend_bg.wasm.d.ts (Satir 1-14) & logs/change_log.txt: TypeScript .d.ts dosyalarina DOSYA SATIR VE ISLEV ACIKLAMALARI sonu eklendi; backend.js ve change_log.txt icindeki kontrol karakteri bozulmalari (find_rover_path, begin_oxy, avaible_oxy, beginOxy) duzeltildi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
