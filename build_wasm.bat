@@ -23,3 +23,11 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 pause
+
+:: ==========================================================================
+:: DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
+:: --------------------------------------------------------------------------
+:: - Satir 1-11: Windows toplu is betigi basligi ve backend klasorune gecis.
+:: - Satir 13-14: wasm32-unknown-unknown hedefinin eklenmesi ve wasm-pack derlemesi.
+:: - Satir 16-25: Hata kodu kontrolu ve kullaniciya sonuc mesajinin gosterilmesi.
+:: ==========================================================================

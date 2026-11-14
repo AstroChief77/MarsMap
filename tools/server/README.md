@@ -15,7 +15,7 @@ Bu otomasyon, GitHub `main` dalına **web ile ilgili bir değişiklik** (`index.
 
 ### İsteğe Bağlı: 1 Saniyelik Anlık GitHub Webhook Tetiklemesi
 ```bash
-sudo bash tools/server/install_autodeploy.sh --web-root /var/www/mars --webhook-secret "GUCLU_RASTGELE_ANAHTAR"
+sudo MARS_WEBHOOK_SECRET="GUCLU_RASTGELE_ANAHTAR" bash tools/server/install_autodeploy.sh --web-root /var/www/mars
 ```
 Ardından GitHub **Settings -> Webhooks -> Add webhook**:
 - **Payload URL:** `https://mars.kubitron.com/api/github_webhook.php`
@@ -30,8 +30,8 @@ Ardından GitHub **Settings -> Webhooks -> Add webhook**:
 GitHub deposunda **Settings -> Secrets and variables -> Actions** altına aşağıdaki secret'ları eklerseniz **sunucuya Deploy Key bile eklemeden** her push'ta GitHub Actions doğrudan `mars.kubitron.com`'a deploy eder:
 
 * **SSH + `rsync` Modu:**
-  * `DEPLOY_HOST`: `93.177.102.37` (doğrudan VPS IP'si)
-  * `DEPLOY_USER`: `root`
+  * `DEPLOY_HOST`: `<SUNUCU_IP_VEYA_DOMAIN>` (ör. `mars.kubitron.com`)
+  * `DEPLOY_USER`: `deploy` (veya yetkili SSH kullanıcısı)
   * `DEPLOY_PORT`: `22`
   * `DEPLOY_PATH`: `/var/www/mars`
   * `DEPLOY_SSH_KEY`: Sunucuda `~/.ssh/authorized_keys` içine yetkili private SSH anahtarı

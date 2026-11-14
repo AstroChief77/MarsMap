@@ -21,23 +21,26 @@ if [ "$NO_BROWSER" != "--no-browser" ] && command -v xdg-open >/dev/null 2>&1; t
 fi
 
 if command -v python3 >/dev/null 2>&1; then
-  exec python3 -c "
-import functools, http.server, socketserver
+  exec python3 -c '
+import functools, http.server, socketserver, sys
+port = int(sys.argv[1])
+app_dir = sys.argv[2]
 class AstroHandler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {
         **http.server.SimpleHTTPRequestHandler.extensions_map,
-        '.js': 'application/javascript; charset=utf-8',
-        '.mjs': 'application/javascript; charset=utf-8',
-        '.css': 'text/css; charset=utf-8',
-        '.json': 'application/json; charset=utf-8',
-        '.woff2': 'font/woff2',
-        '.woff': 'font/woff',
-        '.svg': 'image/svg+xml'
+        ".js": "application/javascript; charset=utf-8",
+        ".mjs": "application/javascript; charset=utf-8",
+        ".css": "text/css; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+        ".wasm": "application/wasm",
+        ".woff2": "font/woff2",
+        ".woff": "font/woff",
+        ".svg": "image/svg+xml"
     }
 socketserver.TCPServer.allow_reuse_address = True
-with socketserver.ThreadingTCPServer(('127.0.0.1', int('$PORT')), functools.partial(AstroHandler, directory='$APP_DIR')) as httpd:
+with socketserver.ThreadingTCPServer(("127.0.0.1", port), functools.partial(AstroHandler, directory=app_dir)) as httpd:
     httpd.serve_forever()
-"
+' "$PORT" "$APP_DIR"
 elif command -v python >/dev/null 2>&1; then
   exec python -m SimpleHTTPServer "$PORT"
 elif command -v php >/dev/null 2>&1; then
@@ -55,6 +58,6 @@ fi
 # - Satır 1-5: POSIX Bash başlığı ve hata durumunda güvenli çıkış ayarı.
 # - Satır 7-15: Uygulama dizinini, hedef portu (3080) ve --no-browser bayrağını ayarlar.
 # - Satır 19-21: Masaüstü oturumu varsa varsayılan tarayıcıyı açar.
-# - Satır 23-41: Python3 ile .js/.woff2/.woff/.json MIME tiplerini garantileyen yerel HTTP sunucusunu başlatır.
-# - Satır 42-49: Python2, PHP veya BusyBox yedek başlatıcı seçenekleri.
+# - Satır 23-44: Python3 ile sys.argv üzerinden güvenli argüman aktararak .wasm/.js/.woff2/.json MIME tipli yerel HTTP sunucusunu başlatır.
+# - Satır 45-53: Python2, PHP veya BusyBox yedek başlatıcı seçenekleri.
 # ==============================================================================

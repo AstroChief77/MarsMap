@@ -127,7 +127,8 @@
         this.ensureCropBuffer(bw, bh);
 
         const decodedVer = this.tileLoader.getDecodedVersion ? this.tileLoader.getDecodedVersion() : 0;
-        const rayKey = `${activeLayerId}|${targetZ}|${bw}x${bh}|${sx0},${sy0}|${rotLat.toFixed(4)}|${rotLon.toFixed(4)}|${clampedZoom.toFixed(4)}|${pitch.toFixed(2)}|${yaw.toFixed(2)}|${reliefScale}|${fastMode ? 1 : 0}|${decodedVer}`;
+        const exactAll = Boolean(highQualityGlobeRay) && !fastMode;
+        const rayKey = `${activeLayerId}|${targetZ}|${bw}x${bh}|${sx0},${sy0}|${rotLat.toFixed(4)}|${rotLon.toFixed(4)}|${clampedZoom.toFixed(4)}|${pitch.toFixed(2)}|${yaw.toFixed(2)}|${reliefScale}|${fastMode ? 1 : 0}|${exactAll ? 1 : 0}|${decodedVer}`;
 
         if (rayKey === this.lastRayKey && this.lastRayOk) {
           ctx.save();
@@ -138,7 +139,7 @@
         } else {
           const ok = this.raycastSphereCrop(
             activeLayerId, targetZ, bw, bh, sx0, sy0, cx, cy, radius,
-            scale, rotLat, rotLon, clampedZoom, false, pitch, yaw, reliefScale, fastMode
+            scale, rotLat, rotLon, clampedZoom, exactAll, pitch, yaw, reliefScale, fastMode
           );
           if (ok) {
             this.cropCtx.putImageData(this.cropImgData, 0, 0);
@@ -154,7 +155,7 @@
 
       if (!renderedRay) {
         this.drawFallbackShadedSphere(
-          ctx, cx, cy, radius, rotLat, rotLon, activeLayerId,
+          ctx, cx, sphereCy, radius, rotLat, rotLon, activeLayerId,
           width, height, targetZ, fastMode, clampedZoom, pitch, yaw, reliefScale
         );
       }
@@ -274,7 +275,7 @@
       const resolveTilePixels = (rec) => {
         if (rec.pixels) return rec.pixels;
         if (rec.tainted) return null;
-        if (rec.z <= 2 || (!fastMode && rec.z <= 3)) return this.tileLoader.extractTilePixels(rec);
+        if (rec.z <= 2) return this.tileLoader.extractTilePixels(rec);
         this.tileLoader.enqueueDecode?.(rec, true);
         return null;
       };
@@ -375,7 +376,8 @@
           diff = Math.max(0.22, Math.min(1.42, diff + slopeLight));
         }
 
-        return { hit: true, r2: finalRhoSq, nx, ny, vy, u, v, diff, limb };
+        // r2 = merkeze normalize uzaklik karesi (eski finalRhoSq anlami: 1 - nz^2); tanimsiz degisken ReferenceError'i giderildi
+        return { hit: true, r2: 1 - nzNorm * nzNorm, nx, ny, vy, u, v, diff, limb };
       };
 
       const renderPixelExact = (bx, by, pIdx) => {
@@ -562,7 +564,8 @@
       ctx.fillStyle = "#ffffff";
       ctx.font = "800 12px 'Public Sans Web', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Mars 3D dokusu ./data/tiles/ dizininden yükleniyor...", cx, cy);
+      const loadingMsg = ns.i18n ? ns.i18n.t("loadingGlobeText") : "Mars 3D dokusu ./data/tiles/ dizininden yükleniyor...";
+      ctx.fillText(loadingMsg, cx, cy);
       ctx.restore();
     }
 

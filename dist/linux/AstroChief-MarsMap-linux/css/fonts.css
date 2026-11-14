@@ -103,6 +103,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1+: Public Sans Web yerel font ailesini (400-900, latin & latin-ext)
-     internet baglantisi gerektirmeden ../res/fonts/ altindan yukleyen @font-face tanimlari.
+   - Satir 1-21: Public Sans Web 400 (Regular) latin-ext ve latin yerel @font-face tanimlari.
+   - Satir 23-41: Public Sans Web 600 (SemiBold) latin-ext ve latin yerel @font-face tanimlari.
+   - Satir 43-61: Public Sans Web 700 (Bold) latin-ext ve latin yerel @font-face tanimlari.
+   - Satir 63-81: Public Sans Web 800 (ExtraBold) latin-ext ve latin yerel @font-face tanimlari.
+   - Satir 83-101: Public Sans Web 900 (Black) latin-ext ve latin yerel @font-face tanimlari.
    ========================================================================== */

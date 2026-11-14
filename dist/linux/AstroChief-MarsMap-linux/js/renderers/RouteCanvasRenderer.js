@@ -45,8 +45,8 @@
 
       if (showComments && priPts.length > 0) {
         const pAnchor = priPts[Math.floor(priPts.length * 0.25)];
-        const pBoxX = Math.min(viewW - 430, pAnchor.x + 35);
-        const pBoxY = pAnchor.y - 84;
+        const pBoxX = Math.max(24, Math.min(Math.max(24, viewW - 430), pAnchor.x + 35));
+        const pBoxY = Math.max(20, pAnchor.y - 84);
         this.drawLeaderLine(ctx, pAnchor.x, pAnchor.y, pBoxX, pBoxY, "#2563eb");
         this.drawRouteCommentBox(ctx, pBoxX, pBoxY, pri.comment, "#2563eb", viewW, viewH);
       }
@@ -109,6 +109,10 @@
     drawCraterEvaRoutes(ctx, cx, cy, localZoom, routes, waypoints, selectedWp, showComments, viewW, viewH, showWpLabels = true) {
       if (!routes || !routes.primaryBlue) return;
       const pri = routes.primaryBlue;
+      const baseLat = routes.origin?.lat || 0;
+      const baseLon = routes.origin?.lon || 0;
+      const toRelX = (pt) => (typeof pt.relX === "number" ? pt.relX : ((pt.lon || 0) - baseLon) * 18);
+      const toRelY = (pt) => (typeof pt.relY === "number" ? pt.relY : -((pt.lat || 0) - baseLat) * 18);
 
       ctx.save();
 
@@ -117,19 +121,19 @@
       ctx.lineWidth = 4.6;
       ctx.beginPath();
       pri.points.forEach((pt, idx) => {
-        const sx = cx + pt.relX * localZoom;
-        const sy = cy + pt.relY * localZoom;
+        const sx = cx + toRelX(pt) * localZoom;
+        const sy = cy + toRelY(pt) * localZoom;
         if (idx === 0) ctx.moveTo(sx, sy);
         else ctx.lineTo(sx, sy);
       });
       ctx.stroke();
 
-      if (showComments) {
+      if (showComments && pri.points.length > 0) {
         const pMid = pri.points[Math.min(pri.points.length - 1, Math.floor(pri.points.length * 0.5))];
-        const pAx = cx + pMid.relX * localZoom;
-        const pAy = cy + pMid.relY * localZoom;
-        const pBoxX = pAx + (showWpLabels ? 20 : 10);
-        const pBoxY = pAy - (showWpLabels ? 118 : 44);
+        const pAx = cx + toRelX(pMid) * localZoom;
+        const pAy = cy + toRelY(pMid) * localZoom;
+        const pBoxX = Math.max(24, Math.min(Math.max(24, viewW - 430), pAx + (showWpLabels ? 20 : 10)));
+        const pBoxY = Math.max(20, pAy - (showWpLabels ? 118 : 44));
 
         this.drawLeaderLine(ctx, pAx, pAy, pBoxX, pBoxY, "#2563eb");
         this.drawRouteCommentBox(ctx, pBoxX, pBoxY, pri.comment, "#2563eb", viewW, viewH);

@@ -11,7 +11,7 @@
      * Sistem performans koruma ve fabrika ayar sablonunu olusturur
      */
     constructor() {
-      this.storageKey = "astrochief_mars_navigator_v3_3";
+      this.storageKey = "astrochief_mars_navigator_v3_9";
       this.fpsMinLimit = 10;
       this.fpsGuardWindowMs = 10000;    // KURAL: Ayar degistirildikten sonra 10 saniye < 10 FPS kalirsa geri al
       this.challengeUrl = "https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/";
@@ -23,7 +23,7 @@
      */
     getFactoryDefaults() {
       return {
-        lang: "tr",                     // Varsayilan dil: Turkce (10 dil destekli)
+        lang: "tr",                     // Varsayilan dil: Turkce (9 dil destekli)
         viewMode: "3d",                 // KURAL: Harita varsayilan olarak 3D baslar
         activeLayerId: "mars-viking-mdim21",
         activeCraterId: "gale-crater",
@@ -56,6 +56,10 @@
         showGraticule: false,
         showStarfield: true,
         highQualityGlobeRay: false,     // Agir 3D ornekleme (FPS testine duyarli)
+        enable3DTerrain: true,
+        topoReliefScale: 1.0,
+        camPitch: 28,
+        camYaw: 0,
         rotLat: -4.59,
         rotLon: 137.44,
         zoom: 1.05,

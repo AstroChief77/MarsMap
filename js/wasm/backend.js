@@ -16,13 +16,19 @@
 export function find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y) {
     let deferred8_0;
     let deferred8_1;
+    const val2 = Math.trunc(+width);
+    const val3 = Math.trunc(+height);
+    const val4 = Math.trunc(+start_x);
+    const val5 = Math.trunc(+start_y);
+    const val6 = Math.trunc(+goal_x);
+    const val7 = Math.trunc(+goal_y);
+    if (!grid_flat || !Number.isFinite(val2) || !Number.isFinite(val3) || val2 <= 0 || val3 <= 0 || val2 > 16384 || val3 > 16384 || val2 * val3 > grid_flat.length) {
+        return JSON.stringify({ status: "no_path", message: "Gecersiz harita boyutu veya dizi uzunlugu." });
+    }
+    if (!Number.isFinite(val4) || !Number.isFinite(val5) || !Number.isFinite(val6) || !Number.isFinite(val7) || val4 < 0 || val5 < 0 || val6 < 0 || val7 < 0 || val4 >= val2 || val5 >= val3 || val6 >= val2 || val7 >= val3) {
+        return JSON.stringify({ status: "no_path", message: "Baslangic veya hedef koordinati harita disinda." });
+    }
     try {
-        const val2 = +width;
-        const val3 = +height;
-        const val4 = +start_x;
-        const val5 = +start_y;
-        const val6 = +goal_x;
-        const val7 = +goal_y;
         const ptr0 = passArray32ToWasm0(grid_flat, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.find_rover_path(ptr0, len0, val2, val3, val4, val5, val6, val7);
@@ -30,7 +36,9 @@ export function find_rover_path(grid_flat, width, height, start_x, start_y, goal
         deferred8_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);
     } finally {
-        wasm.__wbindgen_free(deferred8_0, deferred8_1, 1);
+        if (deferred8_0 !== undefined) {
+            wasm.__wbindgen_free(deferred8_0, deferred8_1, 1);
+        }
     }
 }
 function __wbg_get_imports() {

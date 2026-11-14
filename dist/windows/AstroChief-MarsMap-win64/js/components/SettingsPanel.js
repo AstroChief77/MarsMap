@@ -30,39 +30,51 @@
     }
 
     /**
-     * Sol ust Ayarlar + Factory Reset + 10 Dil Secici + Hedef Seridini DOM'a cizer
+     * Sol ust Ayarlar + Factory Reset + 9 Dil Secici + Hedef Seridini DOM'a cizer
      */
     render(state, craters, backendStatus = "") {
       if (!this.mountEl) return;
       const i18n = ns.i18n;
       const t = (k, v) => (i18n ? i18n.t(k, v) : k);
+      const esc = (s) => (i18n && i18n.escapeHtml ? i18n.escapeHtml(s) : String(s ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"));
       const langs = i18n ? i18n.getSupportedLanguages() : [];
       const currentLang = state.lang || (i18n ? i18n.getLang() : "tr");
       const dirAttr = (i18n && i18n.isRtl()) ? 'dir="rtl"' : 'dir="ltr"';
 
+      const prevDropdown = this.mountEl.querySelector("#settings-dropdown");
+      const prevScrollTop = prevDropdown ? prevDropdown.scrollTop : 0;
+      const activeEl = typeof document !== "undefined" ? document.activeElement : null;
+      const wasInputFocused = Boolean(activeEl && activeEl.id === "inp-backend-url");
+      const draftInputVal = wasInputFocused ? activeEl.value : (state.backendApiUrl || "");
+      const selStart = wasInputFocused ? activeEl.selectionStart : null;
+      const selEnd = wasInputFocused ? activeEl.selectionEnd : null;
+
       const craterButtons = craters.map((c) => {
-        const short = c.id === "gale-crater" ? `📍 ${t("originWord")} (Gale)` : (c.id === "jezero-crater" ? "🎯 Jezero" : "🎯 Korolev");
+        const short = c.id === "gale-crater" ? `📍 ${esc(t("originWord"))} (Gale)` : (c.id === "jezero-crater" ? "🎯 Jezero" : "🎯 Korolev");
         const active = state.activeCraterId === c.id;
-        return `<button class="nav-target-btn ${active ? "active" : ""}" data-crater-nav="${c.id}">${short}</button>`;
+        return `<button class="nav-target-btn ${active ? "active" : ""}" data-crater-nav="${esc(c.id)}">${short}</button>`;
       }).join("");
 
       const langChipsHtml = langs.map((l) => `
         <button type="button"
                 class="lang-chip-btn ${l.code === currentLang ? "active" : ""}"
-                data-lang-code="${l.code}"
-                title="${l.label}">
-          <span class="lang-chip-badge">${l.badge}</span>
-          <span class="lang-chip-name">${l.label}</span>
+                data-lang-code="${esc(l.code)}"
+                title="${esc(l.label)}">
+          <span class="lang-chip-badge">${esc(l.badge)}</span>
+          <span class="lang-chip-name">${esc(l.label)}</span>
         </button>
       `).join("");
 
       const langSelectOptions = langs.map((l) => `
-        <option value="${l.code}" ${l.code === currentLang ? "selected" : ""}>🌐 ${l.badge} · ${l.label}</option>
+        <option value="${esc(l.code)}" ${l.code === currentLang ? "selected" : ""}>🌐 ${esc(l.badge)} · ${esc(l.label)}</option>
       `).join("");
+
+      const statusText = backendStatus || (state.backendApiUrl ? t("backendReady") : t("backendFallbackActive"));
 
       this.mountEl.innerHTML = `
         <div class="settings-anchor" id="settings-anchor">
-          <button class="icon-square-btn ${this.isOpen ? "active" : ""}" id="btn-settings" title="${t("settingsTooltip")}" aria-label="${t("settingsAria")}">
+          <button class="icon-square-btn ${this.isOpen ? "active" : ""}" id="btn-settings" title="${esc(t("settingsTooltip"))}" aria-label="${esc(t("settingsAria"))}">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3"></circle>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.77 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -74,16 +86,16 @@
             <button class="btn-factory-reset" id="btn-factory-reset" role="menuitem">
               <span class="reset-glyph">↺</span>
               <span>
-                <span class="reset-title">${t("factoryResetTitle")}</span>
-                <span class="reset-sub">${t("factoryResetSub")}</span>
+                <span class="reset-title">${esc(t("factoryResetTitle"))}</span>
+                <span class="reset-sub">${esc(t("factoryResetSub"))}</span>
               </span>
             </button>
 
             <div class="settings-sep"></div>
 
             <div class="lang-config-box">
-              <div class="factory-spec-title">${t("languageSectionTitle")}</div>
-              <div class="lang-chip-grid" role="group" aria-label="${t("languageLabel")}">
+              <div class="factory-spec-title">${esc(t("languageSectionTitle"))}</div>
+              <div class="lang-chip-grid" role="group" aria-label="${esc(t("languageLabel"))}">
                 ${langChipsHtml}
               </div>
             </div>
@@ -91,74 +103,86 @@
             <div class="settings-sep"></div>
 
             <div class="factory-spec-box">
-              <div class="factory-spec-title">${t("factorySpecTitle")}</div>
-              <div class="factory-spec-row"><span>${t("specRenderScale")}</span><strong>${t("specRenderScaleVal")}</strong></div>
-              <div class="factory-spec-row"><span>${t("specVolumeReserve")}</span><strong>${t("specVolumeReserveVal", { o2: state.oxygenReserveLiters, water: state.waterReserveLiters })}</strong></div>
-              <div class="factory-spec-row"><span>${t("specDistDuration")}</span><strong>${t("specDistDurationVal")}</strong></div>
-              <div class="factory-spec-row"><span>${t("specRadiation")}</span><strong>${t("specRadiationVal")}</strong></div>
+              <div class="factory-spec-title">${esc(t("factorySpecTitle"))}</div>
+              <div class="factory-spec-row"><span>${esc(t("specRenderScale"))}</span><strong>${esc(t("specRenderScaleVal"))}</strong></div>
+              <div class="factory-spec-row"><span>${esc(t("specVolumeReserve"))}</span><strong>${esc(t("specVolumeReserveVal", { o2: state.oxygenReserveLiters, water: state.waterReserveLiters }))}</strong></div>
+              <div class="factory-spec-row"><span>${esc(t("specDistDuration"))}</span><strong>${esc(t("specDistDurationVal"))}</strong></div>
+              <div class="factory-spec-row"><span>${esc(t("specRadiation"))}</span><strong>${esc(t("specRadiationVal"))}</strong></div>
             </div>
 
             <div class="settings-sep"></div>
 
             <label class="setting-toggle-item">
-              <span>${t("toggleLod")}</span>
-              <input type="checkbox" data-setting-key="progressiveLodRender" data-setting-label="${t("toggleLod")}" ${state.progressiveLodRender ? "checked" : ""} />
+              <span>${esc(t("toggleLod"))}</span>
+              <input type="checkbox" data-setting-key="progressiveLodRender" data-setting-label="${esc(t("toggleLod"))}" ${state.progressiveLodRender ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>${t("toggleRouteComments")}</span>
-              <input type="checkbox" data-setting-key="showRouteComments" data-setting-label="${t("toggleRouteComments")}" ${state.showRouteComments ? "checked" : ""} />
+              <span>${esc(t("toggleRouteComments"))}</span>
+              <input type="checkbox" data-setting-key="showRouteComments" data-setting-label="${esc(t("toggleRouteComments"))}" ${state.showRouteComments ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>${t("toggleNomenclature")}</span>
-              <input type="checkbox" data-setting-key="showNomenclature" data-setting-label="${t("toggleNomenclature")}" ${state.showNomenclature ? "checked" : ""} />
+              <span>${esc(t("toggleNomenclature"))}</span>
+              <input type="checkbox" data-setting-key="showNomenclature" data-setting-label="${esc(t("toggleNomenclature"))}" ${state.showNomenclature ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>${t("toggleGraticule")}</span>
-              <input type="checkbox" data-setting-key="showGraticule" data-setting-label="${t("toggleGraticule")}" ${state.showGraticule ? "checked" : ""} />
+              <span>${esc(t("toggleGraticule"))}</span>
+              <input type="checkbox" data-setting-key="showGraticule" data-setting-label="${esc(t("toggleGraticule"))}" ${state.showGraticule ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>${t("toggleStarfield")}</span>
-              <input type="checkbox" data-setting-key="showStarfield" data-setting-label="${t("toggleStarfield")}" ${state.showStarfield ? "checked" : ""} />
+              <span>${esc(t("toggleStarfield"))}</span>
+              <input type="checkbox" data-setting-key="showStarfield" data-setting-label="${esc(t("toggleStarfield"))}" ${state.showStarfield ? "checked" : ""} />
             </label>
             <label class="setting-toggle-item">
-              <span>${t("toggleHqGlobe")}</span>
-              <input type="checkbox" data-setting-key="highQualityGlobeRay" data-setting-label="${t("toggleHqGlobe")}" ${state.highQualityGlobeRay ? "checked" : ""} />
+              <span>${esc(t("toggleHqGlobe"))}</span>
+              <input type="checkbox" data-setting-key="highQualityGlobeRay" data-setting-label="${esc(t("toggleHqGlobe"))}" ${state.highQualityGlobeRay ? "checked" : ""} />
             </label>
 
-            <div class="setting-fps-note">${t("fpsNote")}</div>
+            <div class="setting-fps-note">${esc(t("fpsNote"))}</div>
 
             <div class="settings-sep"></div>
 
             <div class="backend-config-box">
-              <div class="backend-config-title">${t("backendTitle")}</div>
+              <div class="backend-config-title">${esc(t("backendTitle"))}</div>
               <input
                 type="url"
                 class="backend-url-input"
                 id="inp-backend-url"
-                value="${(state.backendApiUrl || "").replace(/"/g, "&quot;")}"
+                value="${esc(draftInputVal)}"
                 placeholder="http://127.0.0.1:8080"
                 aria-label="Rust Backend URL"
                 dir="ltr"
               />
               <div class="backend-btn-row">
-                <button type="button" class="backend-mini-btn" id="btn-backend-save">${t("backendSave")}</button>
-                <button type="button" class="backend-mini-btn ghost" id="btn-backend-test">${t("backendTest")}</button>
+                <button type="button" class="backend-mini-btn" id="btn-backend-save">${esc(t("backendSave"))}</button>
+                <button type="button" class="backend-mini-btn ghost" id="btn-backend-test">${esc(t("backendTest"))}</button>
               </div>
-              <div class="backend-status-line" id="backend-status-line">${backendStatus || (state.backendApiUrl ? t("backendReady") : t("backendFallbackActive"))}</div>
+              <div class="backend-status-line" id="backend-status-line">${esc(statusText)}</div>
             </div>
           </div>
         </div>
 
-        <nav class="top-nav-pill" aria-label="${t("navGlobalRoute")}">
+        <nav class="top-nav-pill" aria-label="${esc(t("navGlobalRoute"))}">
           <span class="brand-tag">ASTRO<span>CHIEF</span></span>
-          <button class="nav-target-btn ${state.routeScope === "global" ? "active" : ""}" id="btn-scope-global">${t("navGlobalRoute")}</button>
+          <button class="nav-target-btn ${state.routeScope === "global" ? "active" : ""}" id="btn-scope-global">${esc(t("navGlobalRoute"))}</button>
           ${craterButtons}
-          <button class="nav-info-btn" id="btn-open-mission-modal" title="${t("navInfoTitle")}">${t("navInfo")}</button>
-          <select class="nav-lang-select" id="sel-top-lang" aria-label="${t("languageLabel")}" title="${t("languageLabel")}">
+          <button class="nav-info-btn" id="btn-open-mission-modal" title="${esc(t("navInfoTitle"))}">${esc(t("navInfo"))}</button>
+          <select class="nav-lang-select" id="sel-top-lang" aria-label="${esc(t("languageLabel"))}" title="${esc(t("languageLabel"))}">
             ${langSelectOptions}
           </select>
         </nav>
       `;
+
+      const nextDropdown = this.mountEl.querySelector("#settings-dropdown");
+      if (nextDropdown && prevScrollTop > 0) nextDropdown.scrollTop = prevScrollTop;
+      if (wasInputFocused) {
+        const nextInp = this.mountEl.querySelector("#inp-backend-url");
+        if (nextInp) {
+          nextInp.focus();
+          try {
+            if (typeof selStart === "number" && typeof selEnd === "number") nextInp.setSelectionRange(selStart, selEnd);
+          } catch (_e) {}
+        }
+      }
 
       this.bindEvents();
     }
@@ -227,8 +251,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset ve 10 dil secici bileseni tanimi.
-   - Satir 7-30: constructor, toggleOpen ve close; acilir menunun durumunu yonetir.
-   - Satir 32-160: render; 1. secenekte Factory Reset butonu, 10 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve ust dil secim kutusunu cizer.
-   - Satir 162-222: bindEvents; dil degisimi, ayar tiklamalari, hedef secimleri ve Rust backend dugmelerini baglar.
+   - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset ve 9 dil secici bileseni tanimi.
+   - Satir 7-31: constructor, toggleOpen ve close; acilir menunun durumunu yonetir.
+   - Satir 33-195: render; 1. secenekte Factory Reset butonu, 9 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve ust dil secim kutusunu cizer.
+   - Satir 197-246: bindEvents; dil degisimi, ayar tiklamalari, hedef secimleri ve Rust backend dugmelerini baglar.
    ========================================================================== */

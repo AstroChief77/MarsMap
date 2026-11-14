@@ -233,7 +233,7 @@
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
         const tw = ctx.measureText(caption).width;
-        ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+        ctx.fillStyle = "rgba(13, 15, 18, 0.92)";
         ctx.fillRect(p.x + 14, p.y - 22, tw + 10, 17);
         ctx.strokeStyle = bgHex;
         ctx.lineWidth = 1.2;

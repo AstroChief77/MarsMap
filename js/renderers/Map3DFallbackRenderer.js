@@ -58,6 +58,11 @@
           const maxZ = Math.max(0, targetZ | 0);
           const topCols = 1 << (maxZ + 1), topRows = 1 << maxZ;
 
+          const pitchRad = (Math.max(0, Math.min(72, camPitch || 0)) * Math.PI) / 180;
+          const yawRad = ((camYaw || 0) * Math.PI) / 180;
+          const cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+          const cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+
           const uvAt = (sx, sy) => {
             if (ns.marsTopo) {
               const hit = ns.marsTopo.screenToElevatedMars3D(sx, sy, viewW, viewH, rotLat, rotLon, zoom, camPitch, camYaw, reliefScale);
@@ -71,9 +76,13 @@
             let r2 = nx * nx + ny * ny;
             if (r2 > 0.996) { const sc = 0.998 / Math.sqrt(r2); nx *= sc; ny *= sc; r2 = nx * nx + ny * ny; }
             const nz = Math.sqrt(Math.max(0, 1 - r2));
-            const vy = Math.max(-1, Math.min(1, ny * cosP0 + nz * sinP0));
-            const vz = -ny * sinP0 + nz * cosP0;
-            const lat = Math.asin(vy), lon = lam0 + Math.atan2(nx, vz);
+            const py3 = ny * cosP - nz * sinP;
+            const pz3 = ny * sinP + nz * cosP;
+            const east = nx * cosY + py3 * sinY;
+            const north = -nx * sinY + py3 * cosY;
+            const vy = Math.max(-1, Math.min(1, north * cosP0 + pz3 * sinP0));
+            const vz = -north * sinP0 + pz3 * cosP0;
+            const lat = Math.asin(vy), lon = lam0 + Math.atan2(east, vz);
             let u = (lon + Math.PI) * invTwoPi; u -= Math.floor(u);
             const v = Math.max(0, Math.min(0.9999, (halfPi - lat) * invPi));
             return { u, v };

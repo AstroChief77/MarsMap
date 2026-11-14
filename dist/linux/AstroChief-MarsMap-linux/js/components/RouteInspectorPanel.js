@@ -1,7 +1,7 @@
 /**
  * @file RouteInspectorPanel.js
- * @description Sag ustte yer alan sadelestirilmis Rota Planlayici:
- * Sabit Bulundugumuz Konum -> Secilen Hedef Konum ve Rust Backend istek/yanit paneli (10 dil destekli).
+ * @description Sag ustte yer alan Rota Planlayici:
+ * Bulundugumuz Konum -> Secilen Hedef Konum, Litre/km-m/Saat/Alfa-Beta-Gama Foton telemetrisi ve Rust Backend istek/yanit paneli (9 dil destekli).
  */
 
 (function (ns) {
@@ -16,7 +16,12 @@
       if (!this.mountEl) return;
       const i18n = ns.i18n;
       const t = (k, v) => (i18n ? i18n.t(k, v) : k);
+      const esc = (s) => (i18n && i18n.escapeHtml ? i18n.escapeHtml(s) : String(s ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"));
       const dirAttr = (i18n && i18n.isRtl()) ? 'dir="rtl"' : 'dir="ltr"';
+
+      const prevStepList = this.mountEl.querySelector(".step-list");
+      const prevStepScroll = prevStepList ? prevStepList.scrollTop : 0;
 
       const pri = computedRoutes?.primaryBlue || null;
       const activeOrigin = uiMeta.activeOrigin || state.customOrigin || { name: t("originWord"), lat: -4.59, lon: 137.44 };
@@ -35,23 +40,49 @@
       const targetOptions = (landingSites || [])
         .filter((s) => s.id !== "curiosity-gale")
         .map((s) => `
-          <option value="${s.id}" ${(!state.useCustomCoordinates && s.id === state.globalTargetId) ? "selected" : ""}>
-            ${s.name} (${s.latitude.toFixed(1)}°, ${s.longitude.toFixed(1)}°)
+          <option value="${esc(s.id)}" ${(!state.useCustomCoordinates && s.id === state.globalTargetId) ? "selected" : ""}>
+            ${esc(s.name)} (${Number(s.latitude).toFixed(1)}°, ${Number(s.longitude).toFixed(1)}°)
           </option>
         `).join("");
 
-      const routeBadge = pri ? `${pri.formattedDuration} · ${pri.totalKm.toFixed(0)} km` : t("routeReady");
+      const routeBadge = pri ? `${esc(pri.formattedDuration)} · ${pri.totalKm.toFixed(0)} km` : esc(t("routeReady"));
       const stepRowsHtml = ((pri && pri.steps) || []).map((s) => `
-        <div class="step-row" data-step-lat="${s.lat}" data-step-lon="${s.lon}" title="${t("stepFocusTitle")}">
+        <div class="step-row" data-step-lat="${Number(s.lat)}" data-step-lon="${Number(s.lon)}" title="${esc(t("stepFocusTitle"))}">
           <div class="step-row-top">
-            <span>#${s.step} · ${s.instruction}</span>
+            <span>#${Number(s.step)} · ${esc(s.instruction)}</span>
           </div>
           <div class="step-row-meta">
-            ${Number(s.lat).toFixed(2)}°, ${Number(s.lon).toFixed(2)}° · ${s.elevM} m · ${t("slopeWord")} ${s.slopeDeg}° · ${s.distKm} km
+            ${Number(s.lat).toFixed(2)}°, ${Number(s.lon).toFixed(2)}° · ${Number(s.elevM)} m · ${esc(t("slopeWord"))} ${Number(s.slopeDeg)}° · ${Number(s.distKm)} km
           </div>
-          ${s.hazardWarning ? `<div class="step-row-warn">⚠ ${s.hazardWarning}</div>` : ""}
+          ${s.hazardWarning ? `<div class="step-row-warn">⚠ ${esc(s.hazardWarning)}</div>` : ""}
         </div>
       `).join("");
+
+      const o2Max = Number(state.oxygenReserveLiters || 420);
+      const waterMax = Number(state.waterReserveLiters || 24);
+      const o2Over = pri ? pri.o2Liters > o2Max : false;
+      const waterOver = pri ? pri.waterLiters > waterMax : false;
+      const totalMeters = pri ? (pri.totalMeters || Math.round(pri.totalKm * 1000)) : 0;
+
+      const radZone = (Array.isArray(radZones) && radZones[0]) || null;
+      const radSummaryHtml = radZone ? `
+        <div style="font-size:10px;background:var(--bg-white);border:1px solid var(--line-light);border-radius:4px;padding:4px 6px;color:var(--ink-dark);">
+          ☢ <strong>${esc(radZone.name || t("photonRadiation"))}:</strong>
+          ${esc(radZone.alphaLevel || "0.14 μSv/s (α)")} · ${esc(radZone.betaLevel || "1.65 mSv/h (β)")} · ${esc(radZone.gammaLevel || "0.82 mSv/h (γ)")}
+          ${radZone.photonFlux ? ` · ⚡ ${esc(radZone.photonFlux)}` : ""}
+        </div>
+      ` : "";
+
+      const wpChipsHtml = Array.isArray(waypoints) && waypoints.length > 0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
+          ${waypoints.slice(0, 4).map((w) => `
+            <button type="button" data-wp-id="${esc(w.id)}"
+                    style="font-size:9.5px;padding:2px 6px;border-radius:4px;border:1px solid ${selectedWp && selectedWp.id === w.id ? "var(--mars-red)" : "var(--line-light)"};background:${selectedWp && selectedWp.id === w.id ? "rgba(217,43,43,0.1)" : "var(--bg-white)"};color:var(--ink-black);cursor:pointer;font-weight:700;">
+              ${esc(w.name)} (${Number(w.elev || 0)}m)
+            </button>
+          `).join("")}
+        </div>
+      ` : "";
 
       const endpointUrl = `${state.backendApiUrl || "http://127.0.0.1:8080"}/api/v1/route`;
       const reqPreviewObj = uiMeta.lastRequestPayload
@@ -61,8 +92,8 @@
             factors: uiMeta.lastRequestPayload.factors
           }
         : {
-            origin: { name: activeOrigin.name, lat: Number(activeOrigin.lat.toFixed(4)), lon: Number(activeOrigin.lon.toFixed(4)) },
-            destination: { name: activeDest.name, lat: Number(activeDest.lat.toFixed(4)), lon: Number(activeDest.lon.toFixed(4)) },
+            origin: { name: activeOrigin.name, lat: Number(Number(activeOrigin.lat).toFixed(4)), lon: Number(Number(activeOrigin.lon).toFixed(4)) },
+            destination: { name: activeDest.name, lat: Number(Number(activeDest.lat).toFixed(4)), lon: Number(Number(activeDest.lon).toFixed(4)) },
             factors: {
               acidRain: { enabled: state.filterAcidRain, intensity: state.acidIntensity },
               dustStorm: { enabled: state.filterDustStorm, intensity: state.stormIntensity },
@@ -72,53 +103,56 @@
 
       this.mountEl.innerHTML = `
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
-          <span>${t("inspToggleBtn")}</span>
+          <span>${esc(t("inspToggleBtn"))}</span>
           <span style="color:var(--mars-red);">${routeBadge}</span>
-          <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill" title="${t("latTitle")}">${latencyLabel}</span>
+          <span class="insp-latency-pill ${latencyClass}" id="insp-latency-pill" title="${esc(t("latTitle"))}">${esc(latencyLabel)}</span>
           <span>${state.inspectorOpen ? "▴" : "▾"}</span>
         </button>
 
-        <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${t("inspToggleBtn")}" ${dirAttr}>
+        <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${esc(t("inspToggleBtn"))}" ${dirAttr}>
           <div class="insp-head">
             <div>
-              <span class="insp-badge">${t("scopeGlobalBadge")}</span>
-              <div class="insp-title">${t("originWord")} → ${t("destWord")}</div>
+              <span class="insp-badge">${esc(t("scopeGlobalBadge"))}</span>
+              <div class="insp-title">${esc(t("originWord"))} → ${esc(t("destWord"))}</div>
             </div>
-            <span class="insp-source-pill ${hasBackendResponse ? "rust" : ""}">${sourceLabel}</span>
+            <span class="insp-source-pill ${hasBackendResponse ? "rust" : ""}" id="insp-latency-pill-card">${esc(sourceLabel)}</span>
           </div>
 
           <div class="insp-coord-box">
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;background:var(--bg-white);padding:6px 8px;border-radius:5px;border:1px solid var(--line-light);">
-              <span>📍 <strong>${t("originPresetLabel")}:</strong></span>
-              <span style="font-weight:800;color:var(--route-blue);">Gale (${Number(activeOrigin.lat).toFixed(2)}°, ${Number(activeOrigin.lon).toFixed(2)}°)</span>
+              <span>📍 <strong>${esc(t("originPresetLabel"))}:</strong></span>
+              <span style="font-weight:800;color:var(--route-blue);">${esc(activeOrigin.name || "Gale")} (${Number(activeOrigin.lat).toFixed(2)}°, ${Number(activeOrigin.lon).toFixed(2)}°)</span>
             </div>
 
             <div class="insp-select-wrap">
-              <label for="sel-target">🎯 ${t("targetPresetLabel")} (${Number(activeDest.lat).toFixed(2)}°, ${Number(activeDest.lon).toFixed(2)}°)</label>
+              <label for="sel-target">🎯 ${esc(t("targetPresetLabel"))} (${Number(activeDest.lat).toFixed(2)}°, ${Number(activeDest.lon).toFixed(2)}°)</label>
               <select class="insp-select" id="sel-target">
-                ${state.useCustomCoordinates ? `<option value="__custom__" selected>${t("destWord")} (${Number(activeDest.lat).toFixed(2)}°, ${Number(activeDest.lon).toFixed(2)}°)</option>` : ""}
+                ${state.useCustomCoordinates ? `<option value="__custom__" selected>${esc(activeDest.name || t("destWord"))} (${Number(activeDest.lat).toFixed(2)}°, ${Number(activeDest.lon).toFixed(2)}°)</option>` : ""}
                 ${targetOptions}
               </select>
             </div>
 
             <button type="button" class="insp-pick-btn ${pickingDest ? "active" : ""}" id="btn-pick-destination" style="width:100%;padding:6px 10px;font-size:11.5px;">
-              ${pickingDest ? t("pickDestActive") : t("pickDestBtn")}
+              ${esc(pickingDest ? t("pickDestActive") : t("pickDestBtn"))}
             </button>
 
             <button type="button" class="insp-calc-btn" id="btn-send-backend-route">
-              ${backendLoading ? t("srcRustComputing") : `🚀 ${t("calcRouteBtn")}`}
+              ${esc(backendLoading ? t("srcRustComputing") : `🚀 ${t("calcRouteBtn")}`)}
             </button>
           </div>
 
           ${hasBackendResponse ? `
             <div class="route-card primary">
               <div class="route-card-top">
-                <span style="color:var(--route-blue);">${t("blueRouteTitle")}</span>
-                <span class="route-duration-pill">${pri.formattedDuration}</span>
+                <span style="color:var(--route-blue);">${esc(t("blueRouteTitle"))}</span>
+                <span class="route-duration-pill">${esc(pri.formattedDuration)}</span>
               </div>
-              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km · ${pri.o2Liters} L O₂ · ${pri.waterLiters} L ${t("waterUnit")}</div>
-              <div class="route-comment-line">${pri.comment}</div>
+              <div class="route-metrics-line">${pri.totalKm.toFixed(1)} km (${totalMeters} m) · ${pri.o2Liters}/${o2Max} L O₂ · ${pri.waterLiters}/${waterMax} L ${esc(t("waterUnit"))}</div>
+              ${(o2Over || waterOver) ? `<div style="font-size:10px;font-weight:800;color:var(--mars-red);">⚠ Rezerv Asimi: ${o2Over ? `O₂ +${pri.o2Liters - o2Max}L ` : ""}${waterOver ? `Su +${(pri.waterLiters - waterMax).toFixed(1)}L` : ""} ikmal gerekli</div>` : ""}
+              <div class="route-comment-line">${esc(pri.comment)}</div>
             </div>
+            ${radSummaryHtml}
+            ${wpChipsHtml}
 
             ${stepRowsHtml ? `
               <div class="step-panel">
@@ -129,18 +163,21 @@
           ` : `
             <div class="step-panel" style="gap:4px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:10.5px;font-weight:900;color:var(--ink-black);">${t("backendTitle")}</span>
+                <span style="font-size:10.5px;font-weight:900;color:var(--ink-black);">${esc(t("backendTitle"))}</span>
                 <span style="font-size:9.5px;font-weight:800;color:var(--mars-red);">POST /api/v1/route</span>
               </div>
               <div style="font-size:10.5px;color:var(--ink-muted);">
-                ${uiMeta.backendStatusText || t("backendReady")}
+                ${esc(uiMeta.backendStatusText || t("backendReady"))}
               </div>
-              <div style="font-size:9.5px;font-weight:700;color:var(--ink-dark);word-break:break-all;" dir="ltr">${endpointUrl}</div>
-              <pre id="backend-request-preview" dir="ltr" style="margin:2px 0 0;padding:6px;background:var(--bg-white);border:1px solid var(--line-light);border-radius:4px;font-size:9.5px;max-height:130px;overflow:auto;color:var(--ink-black);">${JSON.stringify(reqPreviewObj, null, 2)}</pre>
+              <div style="font-size:9.5px;font-weight:700;color:var(--ink-dark);word-break:break-all;" dir="ltr">${esc(endpointUrl)}</div>
+              <pre id="backend-request-preview" dir="ltr" style="margin:2px 0 0;padding:6px;background:var(--bg-white);border:1px solid var(--line-light);border-radius:4px;font-size:9.5px;max-height:130px;overflow:auto;color:var(--ink-black);">${esc(JSON.stringify(reqPreviewObj, null, 2))}</pre>
             </div>
           `}
         </aside>
       `;
+
+      const nextStepList = this.mountEl.querySelector(".step-list");
+      if (nextStepList && prevStepScroll > 0) nextStepList.scrollTop = prevStepScroll;
 
       this.bindEvents(state);
     }
@@ -161,6 +198,12 @@
 
       this.mountEl.querySelector("#btn-send-backend-route")?.addEventListener("click", () => {
         this.handlers.onSendBackendRoute?.();
+      });
+
+      this.mountEl.querySelectorAll("[data-wp-id]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          this.handlers.onSelectWaypoint?.(btn.getAttribute("data-wp-id"));
+        });
       });
 
       this.mountEl.querySelectorAll("[data-step-tab]").forEach((btn) => {
@@ -187,8 +230,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sadelestirilmis sag ust Rota Planlayici (Konumumuz -> Hedef ve Backend istek/yanit) tanimi (10 dil destekli).
+   - Satir 1-5: JSDoc sag ust Rota Planlayici, O2/Su rezerv ve radyasyon denetimi tanimi (9 dil destekli).
    - Satir 7-14: constructor; baglanti elemani ve geri cagirilari saklar.
-   - Satir 15-172: render; Konumumuz gostergesini, Hedef secimini, Backend istek gonderme butonunu ve yanit geldiginde adimlari cizer.
-   - Satir 174-212: bindEvents; hedef secimi, haritadan hedef tiklama, backend istek gonderme ve adim odaklama dugmelerini baglar.
+   - Satir 16-188: render; dinamik Konumumuz, Hedef secimi, Mavi/Soluk Mavi rota metrikleri, O2/Su rezerv kontrolu, Alfa/Beta/Gama + Foton paneli ve EVA duraklarini cizer.
+   - Satir 190-225: bindEvents; hedef secimi, haritadan hedef tiklama, backend istek gonderme, EVA durak ve adim odaklama dugmelerini baglar.
    ========================================================================== */
