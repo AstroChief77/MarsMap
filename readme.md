@@ -30,7 +30,7 @@ AstroChief
 
 -Kullanılan kaynaklar ve apiler not edilmeli.
 
--Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli ve hem Windows hem Linux için derlenmeli(test edebilmek için), derleme aracı yaz her seferinde kendin derleme.
+-Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli ve eğer işletim sistemi ne ise ona göre ya Linuxa yada Windowsa derlenmeli(test edebilmek için), derleme aracı yaz her seferinde kendin derleme.
 
 # Tasarım Kuralları
 
