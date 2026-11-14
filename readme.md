@@ -28,9 +28,11 @@ AstroChief
 
 -Kullanılan kaynaklar ve apiler not edilmeli
 
--Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli(test edebilmek için).
+-Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli ve hem Windows hem Linux için derlenmeli(test edebilmek için).
 
 # Tasarım Kuralları
+
+-Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeniği olmalıdır.
 
 -Orta alanda harita olmak zorunda.
 
