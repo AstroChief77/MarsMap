@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
 # @file deploy_web_sync.sh
 # @description GitHub main dalindaki web degisikliklerini mars.kubitron.com web dizinine
-# storage/ (chat.db) ve uploads/ verilerini koruyarak atomik sekilde senkronize eder.
+# storage/ (chat.db), uploads/ ve .well-known/ verilerini koruyarak senkronize eder.
 
 set -euo pipefail
 
 [ -f /etc/default/mars-autodeploy ] && source /etc/default/mars-autodeploy
 
-REPO_URL="${MARS_REPO_URL:-https://github.com/AstroChief77/MarsMap.git}"
+DEPLOY_KEY_FILE="${MARS_DEPLOY_KEY:-/etc/mars-autodeploy/github_deploy_key}"
+TOKEN_FILE="${MARS_TOKEN_FILE:-/etc/mars-autodeploy/github.token}"
+
+if [ -n "${MARS_REPO_URL:-}" ]; then
+  REPO_URL="$MARS_REPO_URL"
+elif [ -f "$DEPLOY_KEY_FILE" ]; then
+  REPO_URL="git@github.com:AstroChief77/MarsMap.git"
+else
+  REPO_URL="https://github.com/AstroChief77/MarsMap.git"
+fi
+
 BRANCH="${MARS_BRANCH:-main}"
 STAGE_DIR="${MARS_STAGE_DIR:-/opt/marsmap-repo}"
 WEB_ROOT="${MARS_WEB_ROOT:-/var/www/mars}"
+WEB_OWNER="${MARS_WEB_OWNER:-}"
 LOCK_FILE="${MARS_LOCK_FILE:-/run/lock/mars-web-sync.lock}"
 LOG_FILE="${MARS_LOG_FILE:-/var/log/mars-autodeploy.log}"
 
@@ -26,17 +37,36 @@ if ! flock -n 9; then
   exit 0
 fi
 
-# 1. Stage git reposunu hazirla veya guncelle
+# 1. Ozel (private) GitHub deposu icin SSH Deploy Key veya HTTPS Token ayari
+GIT_EXTRA_ARGS=()
+if [ -f "$DEPLOY_KEY_FILE" ]; then
+  export GIT_SSH_COMMAND="ssh -i ${DEPLOY_KEY_FILE} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+fi
+if [ -f "$TOKEN_FILE" ] && [[ "$REPO_URL" == https://github.com/* ]]; then
+  GH_TOKEN="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+  if [ -n "$GH_TOKEN" ]; then
+    AUTH_B64="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
+    GIT_EXTRA_ARGS+=(-c "http.extraheader=Authorization: Basic ${AUTH_B64}")
+  fi
+fi
+
+# 2. Stage git reposunu hazirla veya guncelle
 if [ ! -d "$STAGE_DIR/.git" ]; then
   log "[INIT] $REPO_URL ($BRANCH) ilk klonlaniyor -> $STAGE_DIR"
   rm -rf "$STAGE_DIR"
-  git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$STAGE_DIR"
+  if ! git "${GIT_EXTRA_ARGS[@]}" clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$STAGE_DIR" 2>>"$LOG_FILE"; then
+    log "[ERROR] GitHub clone basarisiz! Ozel depo ise Deploy Key (${DEPLOY_KEY_FILE}.pub) GitHub'a eklenmemis olabilir."
+    exit 1
+  fi
 else
-  git -C "$STAGE_DIR" fetch --depth 1 origin "$BRANCH" --quiet
+  if ! git "${GIT_EXTRA_ARGS[@]}" -C "$STAGE_DIR" fetch --depth 1 origin "$BRANCH" --quiet 2>>"$LOG_FILE"; then
+    log "[ERROR] GitHub fetch basarisiz ($REPO_URL)."
+    exit 1
+  fi
   git -C "$STAGE_DIR" reset --hard "origin/$BRANCH" --quiet
 fi
 
-# 2. Yalnizca web dosyalarinin son commit SHA'sini kontrol et (gereksiz deploy'u onle)
+# 3. Yalnizca web dosyalarinin son commit SHA'sini kontrol et (gereksiz deploy'u onle)
 LATEST_WEB_SHA="$(git -C "$STAGE_DIR" log -n 1 --pretty=format:%H -- \
   index.html version.json SOURCES.md BACKEND_API.md api chat css js data)"
 CURRENT_WEB_SHA=""
@@ -49,7 +79,7 @@ fi
 
 log "[SYNC] Yeni web degisikligi algilandi: ${CURRENT_WEB_SHA:-none} -> $LATEST_WEB_SHA"
 
-# 3. Canliya basmadan once PHP/JSON/Boyut saglik kontrolu
+# 4. Canliya basmadan once PHP/JSON saglik kontrolu
 if command -v php >/dev/null 2>&1; then
   for pf in "$STAGE_DIR"/api/*.php; do
     [ -f "$pf" ] && php -l "$pf" >/dev/null
@@ -57,11 +87,15 @@ if command -v php >/dev/null 2>&1; then
 fi
 
 if command -v python3 >/dev/null 2>&1; then
-  python3 -c "import json; json.load(open('$STAGE_DIR/version.json')); json.load(open('$STAGE_DIR/data/tiles/manifest.json'))"
+  python3 -c "import json; json.load(open('$STAGE_DIR/version.json')); json.load(open('$STAGE_DIR/data/tiles/manifest.json')); json.load(open('$STAGE_DIR/data/datasets/jpl_mars_trek_layers.json'))"
 fi
 
-# 4. Canli storage/ ve uploads/ verilerine dokunmadan yalnizca web dosyalarini senkronize et
+# 5. Canli storage/, uploads/, .well-known/ verilerine dokunmadan yalnizca web dosyalarini senkronize et
 rsync -avz --delete \
+  --filter='P storage/***' \
+  --filter='P uploads/***' \
+  --filter='P .well-known/***' \
+  --filter='P .deployed_web_sha' \
   --include='index.html' \
   --include='version.json' \
   --include='SOURCES.md' \
@@ -73,12 +107,20 @@ rsync -avz --delete \
   --include='data/***' \
   --exclude='storage/***' \
   --exclude='uploads/***' \
+  --exclude='.well-known/***' \
+  --exclude='.deployed_web_sha' \
   --exclude='backups/***' \
   --exclude='dist/***' \
   --exclude='*' \
   "$STAGE_DIR/" "$WEB_ROOT/" >/dev/null
 
-# 5. Izinleri koru ve Nginx / PHP-FPM durumunu dogrula
+# 6. Dizin sahipliklerini ve Nginx / PHP-FPM durumunu koru
+if [ -n "$WEB_OWNER" ] && id "${WEB_OWNER%%:*}" >/dev/null 2>&1; then
+  for p in index.html version.json SOURCES.md BACKEND_API.md api chat css js data; do
+    [ -e "$WEB_ROOT/$p" ] && chown -R "$WEB_OWNER" "$WEB_ROOT/$p" || true
+  done
+fi
+
 mkdir -p "$WEB_ROOT/storage" "$WEB_ROOT/uploads"
 chown -R www-data:www-data "$WEB_ROOT/storage" "$WEB_ROOT/uploads" || true
 chmod 770 "$WEB_ROOT/storage" || true
@@ -99,8 +141,8 @@ log "[OK] mars.kubitron.com web icerigi guncellendi (SHA: ${LATEST_WEB_SHA:0:8})
 # ==============================================================================
 # DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
 # ------------------------------------------------------------------------------
-# - Satir 1-24: Ortam yapilandirmasi (/etc/default/mars-autodeploy) ve flock eszamanlilik kilidi.
-# - Satir 26-44: GitHub main dalindan yalnizca web dosyalarindaki commit degisimini (SHA) denetler.
-# - Satir 46-57: Canli oncesi PHP lint ve version.json / manifest.json dogrulamasi.
-# - Satir 59-88: storage/ ve uploads/ klasorlerini koruyarak rsync ile web dosyalarini mars.kubitron.com'a basar ve Nginx'i yeniler.
+# - Satir 1-38: Ortam degiskenleri, Deploy Key / HTTPS token tanimi ve flock eszamanlilik kilidi.
+# - Satir 40-72: Ozel GitHub main dalindan yalnizca web commit degisimini (SHA) denetler.
+# - Satir 74-92: Canli oncesi PHP lint ve JSON dogrulamasi.
+# - Satir 94-137: storage/, uploads/ ve .well-known/ dizinlerini koruyarak rsync + Nginx yenileme yapar.
 # ==============================================================================

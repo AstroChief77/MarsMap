@@ -103,6 +103,10 @@ jobs:
 
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_deploy -p ${DEPLOY_PORT} -o StrictHostKeyChecking=accept-new" \
+            --filter='P storage/***' \
+            --filter='P uploads/***' \
+            --filter='P .well-known/***' \
+            --filter='P .deployed_web_sha' \
             --include='index.html' \
             --include='version.json' \
             --include='SOURCES.md' \
@@ -114,18 +118,21 @@ jobs:
             --include='data/***' \
             --exclude='storage/***' \
             --exclude='uploads/***' \
+            --exclude='.well-known/***' \
+            --exclude='.deployed_web_sha' \
             --exclude='*' \
             ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
-          ssh -i ~/.ssh/id_deploy -p "$DEPLOY_PORT" "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'EOF'
+          ssh -i ~/.ssh/id_deploy -p "$DEPLOY_PORT" "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s -- "$DEPLOY_PATH" "${{ github.sha }}" <<'EOF'
             set -e
-            TARGET="${DEPLOY_PATH:-/var/www/mars}"
+            TARGET="${1:-/var/www/mars}"
+            SHA="${2:-}"
             [ -d "$TARGET/storage" ] || mkdir -p "$TARGET/storage"
             [ -d "$TARGET/uploads" ] || mkdir -p "$TARGET/uploads"
             chown -R www-data:www-data "$TARGET/storage" "$TARGET/uploads" || true
             chmod 770 "$TARGET/storage" || true
             chmod 775 "$TARGET/uploads" || true
-            echo "${{ github.sha }}" > "$TARGET/.deployed_web_sha"
+            [ -n "$SHA" ] && echo "$SHA" > "$TARGET/.deployed_web_sha"
             if command -v nginx >/dev/null 2>&1; then
               nginx -t && systemctl reload nginx || true
             fi
