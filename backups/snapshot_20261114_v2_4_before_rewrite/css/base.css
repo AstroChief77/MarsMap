@@ -1,0 +1,68 @@
+/**
+ * @file base.css
+ * @description Zifiri siyah yıldızlı uzay zemini, tam ekran kilitli görünüm ve Public Sans Web bold kuralları.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-family-mars);
+  font-weight: var(--font-weight-base);
+  font-size: 16px;
+  background-color: var(--space-black);
+  color: var(--ink-black);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+#starfield-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #000000;
+}
+
+#app-content-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-mars);
+  font-weight: var(--font-weight-black);
+}
+
+p, span, label, a, button, li, strong {
+  font-family: var(--font-family-mars);
+  font-weight: var(--font-weight-base);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* ==========================================================================
+   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   --------------------------------------------------------------------------
+   - Satır 1-4: JSDoc temel CSS tanımı.
+   - Satır 6-26: html ve body; tam ekran kaydırmasız siyah uzay ve Public Sans Web bold sıfırlaması.
+   - Satır 28-43: #starfield-canvas ve #app-content-wrapper yerleşim katmanları.
+   - Satır 45-60: Zorunlu Public Sans Web bold tipografi ve düğme sıfırlama kuralları.
+   ========================================================================== */

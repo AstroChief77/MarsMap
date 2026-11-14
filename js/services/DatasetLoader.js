@@ -1,83 +1,77 @@
 /**
  * @file DatasetLoader.js
- * @description data/datasets/ altindaki NASA ve USGS JSON veri setlerini yukleyen servis sinifi.
+ * @description data/datasets/ altindaki NASA ve USGS JSON veri setlerini onbellekle yukleyen servis sinifi.
  */
 
-export class DatasetLoader {
-  /**
-   * DatasetLoader yapici metodu
-   */
-  constructor() {
-    this.cache = new Map();
-  }
-
-  /**
-   * Belirtilen yerel JSON veri setini okur ve onbellege alir
-   * @param {string} path - JSON dosyasinin goreceli yolu
-   * @returns {Promise<Object|null>} Yuklenen JSON nesnesi
-   */
-  async loadJson(path) {
-    if (this.cache.has(path)) {
-      return this.cache.get(path);
+(function (ns) {
+  "use strict";
+  class DatasetLoader {
+    /**
+     * DatasetLoader yapici metodu
+     */
+    constructor() {
+      this.cache = new Map();
     }
 
-    try {
-      const response = await fetch(path);
-      if (!response.ok) {
-        throw new Error(`HTTP hata kodu: ${response.status}`);
+    /**
+     * Yerel JSON dosyasini fetch ile okur ve Map onbellegine alir
+     * @param {string} path - JSON dosyasinin goreceli yolu
+     * @returns {Promise<Object|null>} Yuklenen JSON verisi
+     */
+    async loadJson(path) {
+      if (this.cache.has(path)) {
+        return this.cache.get(path);
       }
-      const data = await response.json();
-      this.cache.set(path, data);
-      return data;
-    } catch (error) {
-      console.warn(`[DatasetLoader] ${path} yuklenemedi:`, error.message);
-      return null;
+      const offline = ns.OFFLINE_DATASETS?.[path] || null;
+      if (typeof window !== "undefined" && window.location.protocol === "file:" && offline) {
+        this.cache.set(path, offline);
+        return offline;
+      }
+      try {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        this.cache.set(path, json);
+        return json;
+      } catch (err) {
+        if (offline) {
+          this.cache.set(path, offline);
+          return offline;
+        }
+        console.warn(`[DatasetLoader] ${path} okunamadi:`, err.message);
+        return null;
+      }
+    }
+
+    async getTileLayersCatalog() {
+      return this.loadJson("./data/datasets/jpl_mars_trek_layers.json");
+    }
+
+    async getLandingSites() {
+      return this.loadJson("./data/datasets/mars_landing_sites.json");
+    }
+
+    async getEnvironmentalHazards() {
+      return this.loadJson("./data/datasets/nasa_worldview_and_hazards.json");
+    }
+
+    async getGeologyData() {
+      return this.loadJson("./data/datasets/usgs_mars_geology.json");
+    }
+
+    async getCuriosityRoute() {
+      return this.loadJson("./data/datasets/curiosity_mount_sharp_route.json");
     }
   }
 
-  /**
-   * JPL Mars Trek yerel karo (tile) katman katalogunu yukler
-   * @returns {Promise<Object|null>} Karo katman listesi ve Mars sabitleri
-   */
-  async getTileLayersCatalog() {
-    return await this.loadJson("./data/datasets/jpl_mars_trek_layers.json");
-  }
-
-  /**
-   * NASA Mars inis sahalari veri setini getirir
-   * @returns {Promise<Object|null>} Inis sahalari JSON nesnesi
-   */
-  async getLandingSites() {
-    return await this.loadJson("./data/datasets/mars_landing_sites.json");
-  }
-
-  /**
-   * Cevresel tehlike (toz firtinasi ve asidik risk bolgeleri) verilerini doner
-   * @returns {Promise<Object|null>} Tehlike verileri
-   */
-  async getEnvironmentalHazards() {
-    return await this.loadJson("./data/datasets/nasa_worldview_and_hazards.json");
-  }
-
-  /**
-   * Perseverance ham gorsel veri setinden ornek kareleri getirir
-   * @param {number} limit - Dondurulecek maksimum kayit sayisi
-   * @returns {Promise<Array>} Gorsel metadata dizisi
-   */
-  async getPerseveranceSampleImages(limit = 3) {
-    const data = await this.loadJson("./data/datasets/perseverance_raw_images.json");
-    if (!data || !Array.isArray(data.images)) {
-      return [];
-    }
-    return data.images.slice(0, limit);
-  }
-}
+  ns.DatasetLoader = DatasetLoader;
+})(window.AstroChief = window.AstroChief || {});
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-4: JSDoc yerel veri seti okuyucu servis tanimi.
-   - Satir 6-12: DatasetLoader constructor; tekrarli istekleri onlemek icin Map onbellegi baslatir.
-   - Satir 14-36: loadJson; fetch API ile data/ altindaki JSON dosyalarini asenkron yukler.
-   - Satir 38-58: getTileLayersCatalog, getLandingSites, getEnvironmentalHazards ve getPerseveranceSampleImages metodlari.
+   - Satir 1-4: JSDoc yerel NASA/USGS JSON veri okuyucu tanimi.
+   - Satir 6-12: constructor; tekrar eden istekleri engellemek icin Map onbellegi kurar.
+   - Satir 14-31: loadJson; belirtilen veri setini asenkron okur ve saklar.
+   - Satir 33-51: getTileLayersCatalog, getLandingSites, getEnvironmentalHazards, getGeologyData ve getCuriosityRoute metodlari.
    ========================================================================== */

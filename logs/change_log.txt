@@ -120,3 +120,36 @@
 [2026-11-14 12:32:33] [CREATE/UPDATE] js/components/MarsGlobeViewer.js olusturuldu; SettingsMenu.js (1. secenek Factory Reset) ve navbar olmayan tam ekran gezinebilen kureye baglandi (pathfind backend'e birakildi).
 [2026-11-14 12:33:22] [UPDATE] index.html, js/app.js, css/base.css, css/globe_viewer.css, css/style.css ve version.json (v2.4.0) guncellendi.
 [2026-11-14 12:36:25] [UPDATE] tools/build_tool.ps1 güncellendi (Açık çalışan MarsMap-win64.exe kilitliyken web ve data/tiles dosyalarının masaüstüne hatasız güncellenmesi sağlandı).
+[2026-11-14 13:05:00] [BACKUP] backups/snapshot_20261114_v2_4_before_rewrite/ dizinine sıfırdan yazım öncesi tam proje yedeği alındı.
+[2026-11-14 13:06:10] [CREATE] res/fonts/ dizini oluşturuldu; Google Fonts yerine tamamen çevrimdışı 10 adet PublicSans-{400..900}-{latin,latin-ext}.woff2 yerel font dosyası kaydedildi.
+[2026-11-14 13:06:30] [CREATE] css/fonts.css oluşturuldu (@font-face ile 'Public Sans Web', sans-serif ailesi yerel res/fonts/ altından tanımlandı).
+[2026-11-14 13:08:40] [CREATE] res/images/ dizinine 2D yörünge (sat_2d_view.jpg), 3D küre (sat_3d_view.jpg), asit yağmuru (acid_rain_region.jpg), kum fırtınası (dust_storm_region.jpg), foton/radyasyon (radiation_region.jpg) bölge fotoğrafları ve perseverance_supercam_sol2031.jpg yerleştirildi.
+[2026-11-14 13:10:00] [UPDATE] data/teamData.js ve data/craterWaypointsData.js güncellendi (harici Unsplash/NASA internet resim linkleri yerel rozet ve ./res/images/ yoluna geçirildi).
+[2026-11-14 13:12:00] [REWRITE] css/variables.css, css/base.css, css/controls.css, css/satellites_panel.css, css/inspector.css ve css/style.css %60 Beyaz / %30 Siyah / %10 Kırmızı tema ve Public Sans Web ile sıfırdan yazıldı.
+[2026-11-14 13:15:00] [REWRITE] js/models/ (AppConfig.js, TeamMember.js, ResourceItem.js) OOP modelleri sıfırdan yazıldı (varsayılan 2D harita, Litre/km-m/Saat ve Asit/Fırtına şiddet katsayıları).
+[2026-11-14 13:18:00] [REWRITE] js/services/ (StateStorageService.js, FpsGuardService.js, DatasetLoader.js, MarsTileLoader.js, HazardFieldService.js, RouteGeometryHelper.js, RoutePlannerService.js) sıfırdan yazıldı (Progressive LOD, FPS < 10 ayar geri alma koruması, Mavi/Soluk Mavi çift rota ve yol yorumları).
+[2026-11-14 13:21:00] [REWRITE] js/renderers/ (StarfieldRenderer.js, OverlayDrawHelper.js, RouteCanvasRenderer.js, Map2DRenderer.js, Map3DRenderer.js) sıfırdan yazıldı.
+[2026-11-14 13:24:00] [REWRITE] js/components/ (SettingsPanel.js, SatellitesPanel.js, RouteInspectorPanel.js, MissionInfoModal.js, MarsNavigatorController.js), js/app.js ve index.html sıfırdan yazıldı.
+[2026-11-14 14:22:20] [BACKUP] backups/snapshot_20261114_v3_pre_build/ dizinine derleme öncesi son düzenleme yedeği alındı.
+[2026-11-14 14:23:05] [UPDATE] js/renderers/Map2DRenderer.js ve RouteCanvasRenderer.js güncellendi (rotLon merkezli yatay wrap projeksiyonu, yüksek zoom segment koruması ve krater yol yorum hizalaması).
+[2026-11-14 14:23:15] [UPDATE] version.json v3.0.0 sürümüne yükseltildi; SOURCES.md yerel res/ font ve fotoğraf arşivleri ile güncellendi.
+[2026-11-14 14:23:50] [UPDATE] tools/WinLauncher.cs, serve.ps1, tools/launch-linux.sh (.woff2/.woff MIME tipleri) ve tools/build_tool.ps1 (res/ & ForAgents/ kopyalama) güncellendi.
+[2026-11-14 14:24:30] [CREATE] tools/build.py ve build.sh oluşturuldu (OS otomatik algılama, <800 satır & alt yorum & CDN yasağı denetimi ve Linux .tar.gz + Masaüstü dağıtımı).
+[2026-11-14 14:24:35] [CREATE] ForAgents/PROJECT_STATE.md ve ForAgents/SHARED_PLANS_AND_API.md ortak AI ajan belgeleri oluşturuldu.
+[2026-11-14 14:28:30] [BACKUP] backups/snapshot_20261114_v3_pre_polish/ dizinine görsel & rota kalibrasyonu öncesi yedek alındı.
+[2026-11-14 14:29:15] [UPDATE] HazardFieldService.js, RouteGeometryHelper.js ve RoutePlannerService.js güncellendi (yumuşak uç eğrisi, Mavi < Soluk Mavi süre/mesafe tutarlılığı ve çakışmasız koridor koordinatları).
+[2026-11-14 14:29:40] [UPDATE] Map2DRenderer.js, RouteCanvasRenderer.js, css/satellites_panel.css ve css/inspector.css güncellendi (Uydular fotoğraf görünürlüğü artırıldı, uzak ölçek durak yazısı sadeleştirildi, zoom çakışması giderildi).
+[2026-11-14 14:40:10] [BACKUP] backups/snapshot_20261114_v3_pre_final_polish/ dizinine son Uydular ve etiket kalibrasyonu öncesi 7 dosya yedeklendi.
+[2026-11-14 14:41:00] [UPDATE] css/satellites_panel.css ve js/components/SatellitesPanel.js güncellendi (display:none -> visibility/opacity geçişi ve #14161a kart tabanı ile 5 yerel Mars fotoğrafının açılışta anında dekode edilmesi sağlandı).
+[2026-11-14 14:41:25] [UPDATE] js/services/HazardFieldService.js, Map2DRenderer.js, Map3DRenderer.js ve RouteCanvasRenderer.js güncellendi (Syrtis/Kutupsal Gama/Hellas etiketleri kraterlerden ayrıştırıldı, rota yorumları noktalı işaret çizgisiyle açık alana alındı ve krater durak etiketlerine koyu okunabilirlik halesi eklendi).
+[2026-11-14 14:42:00] [BUILD] ./build.sh ile kural denetimi (<800 satır, alt yorumlar, sıfır CDN, readme değişmemiş) tamamlandı ve masaüstü (/home/antigravity/Desktop/AstroChief-MarsMap) paketi güncellendi.
+[2026-11-14 14:44:00] [BACKUP] backups/snapshot_20261114_v3_pre_final_polish_v2/ dizinine rota yorum/durak ofset ayarı öncesi yedek alındı.
+[2026-11-14 14:44:20] [UPDATE] js/renderers/RouteCanvasRenderer.js güncellendi (küresel Mavi rota yorumu t=0.25 kuzey açığına alındı, krater içi doğu durakları ve Mavi EVA yorumu üst/sol açık alana taşındı).
+[2026-11-14 14:45:00] [VERIFY] Headless Chromium E2E testleri (2D/3D, Uydular 5 fotoğraf dekode, şiddetli hava rota artışı, FPS < 10 koruma, Settings Factory Reset, Progressive LOD z=2, %0 dış CDN isteği) doğrulandı.
+[2026-11-14 14:46:10] [BACKUP] backups/snapshot_20261114_v3_pre_final_polish_v3/ yedeği alındı.
+[2026-11-14 14:46:25] [UPDATE] js/renderers/RouteCanvasRenderer.js güncellendi (küresel Mavi rota yorumu pBoxY=-84 ile Jezero pini üstündeki açık alana alındı).
+[2026-11-14 14:47:00] [BUILD/VERIFY] Son ./build.sh masaüstü dağıtımı ve headless Chromium E2E görsel doğrulaması tamamlandı.
+[2026-11-14 15:10:00] [BACKUP] backups/snapshot_20261114_v3_pre_win_dual/ dizinine Windows file:// doğrudan açılış dönüşümü öncesi tam kod yedeği alındı.
+[2026-11-14 15:12:00] [CREATE] data/offlineDatasets.js oluşturuldu (data/datasets/*.json dosyalarının file:// çift tıklama ortamı için çevrimdışı IIFE kopyaları).
+[2026-11-14 15:14:00] [UPDATE] Tüm JS modülleri (data/*, js/models/*, js/services/*, js/renderers/*, js/components/*, js/app.js) window.AstroChief ad alanına ve index.html sıralı <script defer> yapısına geçirildi.
+[2026-11-14 15:15:30] [UPDATE] DatasetLoader.js, MarsTileLoader.js, Map3DRenderer.js (getImageData kısıtında gerçek karo şeritli 3D küre yedeği) ve tools/build.py (--target all ile Windows win64 klasörü/ZIP + Linux paketi) güncellendi.

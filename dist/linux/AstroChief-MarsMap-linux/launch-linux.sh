@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# AstroChief MarsMap - Linux Test Paketi BaÅŸlatÄ±cÄ±sÄ± (launch-linux.sh)
+# AstroChief MarsMap - Linux Test Paketi Başlatıcısı (launch-linux.sh)
 # ==============================================================================
 set -e
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PORT="${ASTROCHIEF_PORT:-3080}"
+NO_BROWSER="${1:-}"
 
 echo "========================================================"
 echo " [AstroChief] Linux Yerel Test Sunucusu Baslatiliyor..."
@@ -15,12 +16,28 @@ echo "========================================================"
 
 cd "$APP_DIR"
 
-if command -v xdg-open >/dev/null 2>&1; then
+if [ "$NO_BROWSER" != "--no-browser" ] && command -v xdg-open >/dev/null 2>&1; then
   (sleep 1 && xdg-open "http://127.0.0.1:$PORT/" >/dev/null 2>&1) &
 fi
 
 if command -v python3 >/dev/null 2>&1; then
-  exec python3 -m http.server "$PORT" --bind 127.0.0.1
+  exec python3 -c "
+import functools, http.server, socketserver
+class AstroHandler(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        '.js': 'application/javascript; charset=utf-8',
+        '.mjs': 'application/javascript; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
+        '.woff2': 'font/woff2',
+        '.woff': 'font/woff',
+        '.svg': 'image/svg+xml'
+    }
+socketserver.TCPServer.allow_reuse_address = True
+with socketserver.ThreadingTCPServer(('127.0.0.1', int('$PORT')), functools.partial(AstroHandler, directory='$APP_DIR')) as httpd:
+    httpd.serve_forever()
+"
 elif command -v python >/dev/null 2>&1; then
   exec python -m SimpleHTTPServer "$PORT"
 elif command -v php >/dev/null 2>&1; then
@@ -33,10 +50,11 @@ else
 fi
 
 # ==============================================================================
-# DOSYA SATIR VE Ä°ÅLEV AÃ‡IKLAMALARI (SatÄ±r SatÄ±r Ne Ä°ÅŸe YaradÄ±ÄŸÄ±):
+# DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 # ------------------------------------------------------------------------------
-# - SatÄ±r 1-5: POSIX Bash baÅŸlÄ±ÄŸÄ± ve hata durumunda gÃ¼venli Ã§Ä±kÄ±ÅŸ ayarÄ±.
-# - SatÄ±r 7-14: Uygulama dizinini ve hedef portu (3080) tespit edip bilgi yazdÄ±rÄ±r.
-# - SatÄ±r 16-20: MasaÃ¼stÃ¼ ortamÄ± varsa varsayÄ±lan Linux tarayÄ±cÄ±sÄ±nÄ± aÃ§ar.
-# - SatÄ±r 22-32: Sistemde mevcut python3, python, php veya busybox Ã¼zerinden ES6 uyumlu yerel sunucuyu baÅŸlatÄ±r.
+# - Satır 1-5: POSIX Bash başlığı ve hata durumunda güvenli çıkış ayarı.
+# - Satır 7-15: Uygulama dizinini, hedef portu (3080) ve --no-browser bayrağını ayarlar.
+# - Satır 19-21: Masaüstü oturumu varsa varsayılan tarayıcıyı açar.
+# - Satır 23-41: Python3 ile .js/.woff2/.woff/.json MIME tiplerini garantileyen yerel HTTP sunucusunu başlatır.
+# - Satır 42-49: Python2, PHP veya BusyBox yedek başlatıcı seçenekleri.
 # ==============================================================================

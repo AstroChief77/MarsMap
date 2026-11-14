@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   AstroChief yerel önizleme HTTP sunucusu (PowerShell dahili HttpListener).
 .DESCRIPTION
@@ -27,7 +27,9 @@ try {
         ".png"  = "image/png"
         ".jpg"  = "image/jpeg"
         ".svg"  = "image/svg+xml"
-        ".ico"  = "image/x-icon"
+        ".ico"   = "image/x-icon"
+        ".woff2" = "font/woff2"
+        ".woff"  = "font/woff"
     }
 
     while ($listener.IsListening) {
@@ -70,15 +72,9 @@ finally {
 DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------
 - Satır 1-7: PowerShell komut dosyası dokümantasyonu.
-- Satır 9-12: Port numarası (3000), dinleyici URL'i ve System.Net.HttpListener nesnesinin oluşturulması.
-- Satır 14-20: Sunucuyu başlatma, konsola renkli bilgi mesajı yazdırma ve tarayıcıyı otomatik açma (Start-Process).
-- Satır 22-31: MIME type tablosu (HTML, CSS, JS ES6 modülleri, JSON ve görsel formatları).
-- Satır 33: Gelen istekleri sonsuz döngüde dinleme (while listener is listening).
-- Satır 34-36: İstek ve yanıt nesnelerini alma (GetContext).
-- Satır 38-43: İstek yapılan URL yolunu yerel dosya sistemindeki yola dönüştürme (varsayılan: index.html).
-- Satır 45-53: Dosya mevcutsa doğru Content-Type ve bayt dizisi ile 200 yanıtı gönderme.
-- Satır 54-61: Dosya yoksa UTF-8 formatında 404 hata mesajı döndürme.
-- Satır 62: Yanıt akışını kapatma (Close).
-- Satır 65-68: finally bloğu; sunucu durdurulduğunda portu serbest bırakma (Stop/Close).
+- Satır 9-20: Port (3000), HttpListener başlatma ve tarayıcıyı açma.
+- Satır 22-33: MIME type tablosu (HTML, CSS, JS ES6, JSON, görseller ve yerel .woff/.woff2 fontlar).
+- Satır 35-65: İstek dinleme, kök dizinden güvenli okuma ve 200/404 yanıtları.
+- Satır 66-69: finally bloğu; portu temiz kapatma.
 ==========================================================================
 #>

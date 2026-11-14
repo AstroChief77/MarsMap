@@ -1,51 +1,50 @@
 /**
  * @file variables.css
- * @description Kurumsal Google Maps tarzı %60 Beyaz, %30 Siyah, %10 Kırmızı tema ve Public Sans Web bold değişkenleri.
+ * @description %60 Beyaz, %30 Siyah, %10 Kirmizi kurumsal tema degiskenleri ve "Public Sans Web" font ailesi.
  */
 
 :root {
-  /* %60 Beyaz Kurumsal Yüzeyler */
-  --surface-white: #ffffff;
-  --surface-offwhite: #f8f9fa;
-  --surface-subtle: #f1f3f5;
+  /* %60 Beyaz Ana Yüzeyler */
+  --bg-white: #ffffff;
+  --bg-offwhite: #f8f9fa;
+  --bg-soft: #f1f3f5;
 
-  /* %30 Siyah Uzay Zemini ve Yüksek Kontrast Tipografi */
+  /* %30 Siyah Uzay Zemini, Yazılar ve Çerçeveler */
   --space-black: #000000;
-  --ink-black: #111317;
-  --ink-dark: #374151;
-  --ink-muted: #6b7280;
+  --ink-black: #0d0f12;
+  --ink-dark: #262b33;
+  --ink-muted: #5b6370;
 
-  /* %10 NASA / Mars Kırmızısı Kurumsal Vurgu */
+  /* %10 NASA / Mars Kırmızısı Vurgular */
   --mars-red: #d92b2b;
-  --mars-red-dark: #b91c1c;
-  --mars-red-soft: rgba(217, 43, 43, 0.08);
+  --mars-red-dark: #b41e1e;
+  --mars-red-tint: rgba(217, 43, 43, 0.10);
 
-  /* İnce Hairline Kenarlıklar ve Kurumsal Gölgeler */
-  --border-hairline: #e5e7eb;
-  --border-medium: #d1d5db;
-  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-popover: 0 6px 24px rgba(0, 0, 0, 0.22);
-  --shadow-section: 0 12px 32px rgba(0, 0, 0, 0.55);
+  /* Güvenli Rota Renk Standartları */
+  --route-blue: #2563eb;
+  --route-pale-blue: #93c5fd;
 
-  /* KURAL: Public Sans Web, sans-serif ve Bold Standartı */
-  --font-family-mars: 'Public Sans Web', 'Public Sans', system-ui, -apple-system, sans-serif;
-  --font-weight-base: 700;
-  --font-weight-heavy: 800;
-  --font-weight-black: 900;
+  /* Çizgi ve Gölgeler */
+  --line-light: #e4e7ec;
+  --line-dark: #1f242c;
+  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.32);
+  --shadow-btn: 0 4px 14px rgba(0, 0, 0, 0.28);
 
-  /* Ölçüler */
-  --header-height: 60px;
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --max-width-container: 1280px;
+  /* ZORUNLU FONT AİLESİ: Public Sans Web, sans-serif */
+  --font-main: 'Public Sans Web', sans-serif;
+
+  /* Yuvarlaklık ve Boşluklar */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-pill: 999px;
 }
 
 /* ==========================================================================
-   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc kurumsal tasarım değişkenleri tanımı.
-   - Satır 6-22: %60 Beyaz, %30 Siyah, %10 Kırmızı kurumsal renk paleti ve sade saç teli kenarlıklar.
-   - Satır 24-28: Zorunlu Public Sans Web bold tipografi değişkenleri.
-   - Satır 30-35: Header yüksekliği (60px), yumuşak köşe yarıçapları ve maksimum sayfa genişliği.
+   - Satir 1-4: JSDoc tema degiskenleri tanimi.
+   - Satir 6-22: %60 beyaz yuzey, %30 siyah yazi/uzay, %10 kirmizi vurgu renk tokenlari.
+   - Satir 24-26: Haritada en guvenli kisa yol (Mavi) ve uzun guvenli yol (Soluk Mavi) renk sabitleri.
+   - Satir 28-35: Kenarliklar, golgeler ve zorunlu 'Public Sans Web', sans-serif font ailesi degiskeni.
    ========================================================================== */

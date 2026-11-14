@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # AstroChief - Otomatik Windows & Linux Derleme ve Masaustu Dagitim Araci
 # Kullanim: powershell -ExecutionPolicy Bypass -File .\tools\build_tool.ps1
 # ==============================================================================
@@ -27,7 +27,7 @@ Write-Host " [AstroChief Build Tool] Surum v$Version Derleniyor..." -ForegroundC
 Write-Host "==================================================================" -ForegroundColor Cyan
 
 # 1. Modul satir siniri dogrulamasi (Ana kod dosyasi disinda < 800 satir kurali)
-$CodeFiles = Get-ChildItem -Path (Join-Path $RootDir "js"), (Join-Path $RootDir "css"), (Join-Path $RootDir "data") -Recurse -File -Include *.js,*.css
+$CodeFiles = Get-ChildItem -Path (Join-Path $RootDir "js"), (Join-Path $RootDir "css"), (Join-Path $RootDir "data"), (Join-Path $RootDir "tools") -Recurse -File -Include *.js,*.css,*.ps1,*.cs,*.py,*.sh
 foreach ($cf in $CodeFiles) {
     $lc = (Get-Content $cf.FullName).Count
     if ($lc -gt 800) {
@@ -43,7 +43,7 @@ if (Test-Path $DistRoot) {
 New-Item -ItemType Directory -Path $WinStage -Force | Out-Null
 New-Item -ItemType Directory -Path $LinStage -Force | Out-Null
 
-# Ortak uygulama dosyalarini sahneleme yardimci fonksiyonu
+# Ortak uygulama dosyalarini sahneleme yardimci fonksiyonu (res ve ForAgents dahil)
 function Copy-RuntimeBundle {
     param([string]$TargetFolder)
     $Files = @("index.html", "SOURCES.md", "LICENSE", "version.json", "serve.ps1", "preview.bat")
@@ -51,11 +51,13 @@ function Copy-RuntimeBundle {
         $src = Join-Path $RootDir $f
         if (Test-Path $src) { Copy-Item -Path $src -Destination $TargetFolder -Force }
     }
-    foreach ($dir in @("css", "js", "data")) {
+    foreach ($dir in @("css", "js", "data", "res", "ForAgents")) {
         $srcDir = Join-Path $RootDir $dir
-        $dstDir = Join-Path $TargetFolder $dir
-        New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
-        Copy-Item -Path (Join-Path $srcDir "*") -Destination $dstDir -Recurse -Force
+        if (Test-Path $srcDir) {
+            $dstDir = Join-Path $TargetFolder $dir
+            New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+            Copy-Item -Path (Join-Path $srcDir "*") -Destination $dstDir -Recurse -Force
+        }
     }
 }
 
@@ -121,7 +123,7 @@ if (-not $SkipDesktopDeploy) {
         New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     }
 
-    # Masaustune guncel web/data/tiles + paketleri kopyala (calisan EXE kilitliyse atla)
+    # Masaustune guncel web/data/res + paketleri kopyala (calisan EXE kilitliyse atla)
     Get-ChildItem -Path $WinStage | ForEach-Object {
         $dst = Join-Path $TargetDir $_.Name
         if ($_.PSIsContainer) {
@@ -148,11 +150,11 @@ if (-not $SkipDesktopDeploy) {
 ================================================================================
 DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------------
-- Satır 1-19: Parametreler, proje sürüm dosyası (version.json) okuma ve çıktı klasör yolları.
-- Satır 24-31: Tüm JS/CSS modüllerinin < 800 satır kuralına uyduğunu otomatik doğrular.
-- Satır 33-53: Temiz dist alt dizinleri oluşturur ve ortak runtime dosyalarını kopyalayan Copy-RuntimeBundle yardımcısını tanımlar.
-- Satır 55-71: Windows hedefi için .NET csc.exe ile MarsMap-win64.exe dosyasını derler ve ZIP arşivi üretir.
-- Satır 73-96: Linux hedefi için LF (\n) satır sonlu launch-linux.sh ve SHA256SUMS üretir, tar.exe ile .tar.gz paketi oluşturur.
-- Satır 98-120: Güncel derlenmiş sürümü Windows Masaüstündeki AstroChief-MarsMap klasörüne yükler.
+- Satır 1-27: Parametreler, proje sürüm dosyası (version.json) okuma ve çıktı klasör yolları.
+- Satır 29-37: Tüm JS/CSS/araç modüllerinin < 800 satır kuralına uyduğunu doğrular.
+- Satır 39-63: Temiz dist dizinleri oluşturur; Copy-RuntimeBundle ile css, js, data, res ve ForAgents kopyalar.
+- Satır 65-85: Windows hedefi için .NET csc.exe ile MarsMap-win64.exe dosyasını derler ve ZIP arşivi üretir.
+- Satır 87-112: Linux hedefi için LF (\n) satır sonlu launch-linux.sh ve SHA256SUMS üretir, .tar.gz paketi oluşturur.
+- Satır 114-149: Güncel derlenmiş sürümü Windows Masaüstündeki AstroChief-MarsMap klasörüne yükler.
 ================================================================================
 #>

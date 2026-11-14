@@ -1,205 +1,236 @@
 /**
  * @file RoutePlannerService.js
- * @description Asit yağmuru, kum fırtınası ve Alfa/Beta/Gama foton bombardımanı risklerini hesaplayarak:
- * 1) Mavi (En güvenli ve en kısa yol)
- * 2) Soluk Mavi (Güvenli fakat daha uzun alternatif çevre yolu)
- * rotalarını kilometre/metre, saat ve litre (O2 + soğutma suyu) cinsinden hesaplayan sınıf.
+ * @description Asit yagmuru, kum firtinasi (siddetleriyle) ve Alfa/Beta/Gama foton bolgelerini hesaplayarak:
+ * 1) Mavi (#2563eb): En guvenli ve en kisa yol
+ * 2) Soluk Mavi (#93c5fd): Yine guvenli ama daha uzun alternatif yol
+ * rotalarini kilometre/metre, saat ve Litre (O2 + Su) cinsinden hesaplayan sinif.
+ * Her rota uzerinde gosterilecek yol yorumlarini ("yollarda yorum satiri") uretir.
  */
 
-export class RoutePlannerService {
-  /**
-   * RoutePlannerService yapıcı metodu
-   */
-  constructor() {
-    // Fabrika referans sabitleri (Saat, Kilometre, Litre)
-    this.baseWalkSpeedKmH = 3.6;   // Basınçlı uzay giysisiyle standart düz zemin hızı (km/saat)
-    this.pixelToKmFactor = 0.085;  // Krater içi piksel koordinat ölçek çarpanı (km)
-    this.o2ConsumptionLPerHour = 48.0;    // Astronot oksijen tüketim hızı (Litre / saat)
-    this.waterCoolingLPerHour = 2.15;    // Giysi termal soğutma suyu tüketimi (Litre / saat)
-  }
+(function (ns) {
+  "use strict";
+  const { AppConfig, HazardFieldService, RouteGeometryHelper } = ns;
 
-  /**
-   * Krater için Radyasyon (Alfa, Beta, Gama) ve Foton Bombardıman Alanlarını döner
-   * @param {string} craterId - Aktif krater kimliği
-   * @returns {Array} Foton ve parçacık ışıma bölgesi tanımları
-   */
-  getRadiationAndPhotonZones(craterId) {
-    if (craterId === "jezero-crater") {
-      return [
-        {
-          id: "rad-jz-1",
-          name: "Foton Bombardıman Alanı // Kuzey Delta",
-          relX: 18,
-          relY: -55,
-          radius: 54,
-          alphaLevel: "0.08 μSv/s (Alfa α)",
-          betaLevel: "1.42 mSv/h (Beta β)",
-          gammaLevel: "0.64 mSv/h (Gama γ)",
-          photonFlux: "4.8x10^6 MeV/cm²·s"
+  class RoutePlannerService {
+    /**
+     * RoutePlannerService yapici metodu
+     */
+    constructor(config = new AppConfig(), hazardService = null) {
+      this.config = config;
+      this.hazardService = hazardService || new HazardFieldService(config);
+      this.geo = new RouteGeometryHelper();
+
+      // Fabrika birim sabitleri (Saat, Kilometre/Metre, Litre)
+      this.evaSpeedKmH = 3.6;           // Astronot EVA yuruyus hizi (km/saat)
+      this.roverSpeedKmH = 14.5;        // Pressurized Rover gezici ortalama hizi (km/saat)
+      this.pixelToKmFactor = 0.085;     // Krater ici piksel -> km donusum carpani
+      this.o2LitersPerHour = 48.0;      // Saatlik O2 tuketimi (Litre)
+      this.waterLitersPerHour = 2.15;   // Saatlik sogutma suyu tuketimi (Litre)
+    }
+
+    /**
+     * Saati "X saat Y dk" biciminde okunur metne donusturur
+     */
+    formatHours(totalHours) {
+      const h = Math.floor(totalHours);
+      const m = Math.round((totalHours - h) * 60);
+      if (h >= 24) {
+        const sols = Math.floor(h / 24);
+        const remH = h % 24;
+        return `${totalHours.toFixed(1)} saat (~${sols} Sol ${remH} sa)`;
+      }
+      return `${h} saat ${m} dk`;
+    }
+
+    /**
+     * Secili krater icindeki EVA duraklari icin Mavi (Kisa Guvenli) ve Soluk Mavi (Uzun Guvenli) rotalari hesaplar
+     */
+    computeCraterRoutes(crater, waypoints, options = {}) {
+      if (!waypoints || waypoints.length < 2) {
+        return { primaryBlue: null, secondaryPaleBlue: null };
+      }
+
+      const intensityTable = this.config.getIntensityTable();
+      const acidSpec = intensityTable.acid[options.acidIntensity || "orta"];
+      const stormSpec = intensityTable.storm[options.stormIntensity || "orta"];
+
+      // YOL YORUMU 1 (MAVI): En kisa guvenli koridor; asit ve firtina noktalari cevresinde minimum guvenli sapma uygular.
+      const primaryPoints = waypoints.map((wp, idx) => {
+        let rx = wp.relX;
+        let ry = wp.relY;
+        if (options.filterDustStorm && wp.stormRisk) {
+          rx += 15 * stormSpec.detourScale;
+          ry -= 17 * stormSpec.detourScale;
         }
-      ];
-    }
-    if (craterId === "korolev-crater") {
-      return [
-        {
-          id: "rad-kr-1",
-          name: "Gama & Foton Bombardıman Kuşağı",
-          relX: -48,
-          relY: 42,
-          radius: 58,
-          alphaLevel: "0.04 μSv/s (Alfa α)",
-          betaLevel: "2.10 mSv/h (Beta β)",
-          gammaLevel: "0.95 mSv/h (Gama γ)",
-          photonFlux: "6.2x10^6 MeV/cm²·s"
+        if (options.filterAcidRain && wp.acidRisk) {
+          rx -= 11 * acidSpec.detourScale;
+          ry -= 13 * acidSpec.detourScale;
         }
-      ];
-    }
-    return [
-      {
-        id: "rad-gl-1",
-        name: "Foton Bombardıman Alanı // Merkezi Eyer",
-        relX: 8,
-        relY: -58,
-        radius: 52,
-        alphaLevel: "0.14 μSv/s (Alfa α — Toz İnhalasyon Riski)",
-        betaLevel: "1.65 mSv/h (Beta β — Güneş Elektron Akısı)",
-        gammaLevel: "0.82 mSv/h (Gama γ — Kozmik Foton)",
-        photonFlux: "5.4x10^6 MeV/cm²·s"
-      }
-    ];
-  }
+        return { ...wp, relX: rx, relY: ry, stepIdx: idx };
+      });
 
-  /**
-   * İki koordinat noktası arasındaki eğim ve tehlike cezalı yolculuk süresini hesaplar
-   * @param {Object} p1 - Başlangıç noktası {relX, relY, slope}
-   * @param {Object} p2 - Hedef noktası {relX, relY, slope}
-   * @param {Object} options - Aktif filtreler (filterAcidRain, filterDustStorm)
-   * @returns {Object} Segment mesafesi (km, metre) ve süresi (saat)
-   */
-  computeSegmentMetrics(p1, p2, options = {}) {
-    // 1. Öklid mesafesini kilometre ve metre cinsine çevir
-    const distPx = Math.hypot(p2.relX - p1.relX, p2.relY - p1.relY);
-    const distanceKm = distPx * this.pixelToKmFactor;
-    const distanceM = distanceKm * 1000;
-
-    // 2. Eğim cezası: Yüksek eğimli Mount Sharp yamaçları astronot hızını düşürür
-    const avgSlope = ((p1.slope || 4) + (p2.slope || 4)) / 2;
-    const slopePenalty = Math.max(0.42, 1.0 - (avgSlope / 42));
-
-    // 3. Atmosfer ve radyasyon cezaları: Asit sisi & toz kasırgası ilerleme hızını yavaşlatır
-    let weatherFactor = 1.0;
-    if (options.filterAcidRain && (p1.acidRisk || p2.acidRisk)) {
-      weatherFactor *= 0.82; // Asit sülfat sisi vizör ve korozyon kontrolü gecikmesi (%18 yavaşlama)
-    }
-    if (options.filterDustStorm && (p1.stormRisk || p2.stormRisk)) {
-      weatherFactor *= 0.72; // Kum kasırgası rüzgar direnci (%28 yavaşlama)
-    }
-
-    // 4. Etkin yürüyüş hızı ve saat cinsinden varış süresi hesabı: Süre = Yol / Etkin Hız
-    const effectiveSpeedKmH = this.baseWalkSpeedKmH * slopePenalty * weatherFactor;
-    const durationHours = distanceKm / effectiveSpeedKmH;
-
-    return { distanceKm, distanceM, durationHours, effectiveSpeedKmH };
-  }
-
-  /**
-   * Mavi (En Güvenli ve Kısa Yol) ile Soluk Mavi (Güvenli Fakat Daha Uzun Çevre Yolu) hesaplar
-   * @param {Object} crater - Aktif krater nesnesi
-   * @param {Array} waypoints - Krater EVA istasyon listesi
-   * @param {Object} options - Filtre ve tüketim parametreleri
-   * @returns {Object} İki rotanın geometri, süre (saat), mesafe (km/m) ve kaynak (Litre) sonuçları
-   */
-  computeRoutes(crater, waypoints, options = {}) {
-    if (!waypoints || waypoints.length < 2) {
-      return { primaryBlue: null, secondaryPaleBlue: null };
-    }
-
-    // --- ROTA 1: MAVİ YOL (En Güvenli ve En Kısa Ana EVA Rotası) ---
-    // Yöntem: Fırtına veya yoğun foton bombardımanı içeren noktalarda minimum güvenli sapma (+16 px) uygular,
-    // ancak en kısa toplam kilometre ve saat süresini hedefler.
-    const primaryPoints = waypoints.map((wp, idx) => {
-      let detourX = wp.relX;
-      let detourY = wp.relY;
-      // Eğer fırtına filtresi aktif ve nokta fırtına riskli ise 18px güvenli kuzey-yan geçiş uygula
-      if (options.filterDustStorm && wp.stormRisk) {
-        detourX += 14;
-        detourY -= 16;
-      }
-      // Eğer asit filtresi aktif ve nokta asit riskli ise 12px rüzgar üstü kenar düzeltmesi ekle
-      if (options.filterAcidRain && wp.acidRisk) {
-        detourX -= 10;
-        detourY -= 12;
-      }
-      return { ...wp, relX: detourX, relY: detourY, stepIdx: idx };
-    });
-
-    // --- ROTA 2: SOLUK MAVİ YOL (Yine Güvenli Ama Daha Uzun Çevreleyici Yedek Yol) ---
-    // Yöntem: Tüm tehlike merkezlerinin (Asit Sisi, Kum Kasırgası, Foton Bombardıman Alanı ve >15° eğimler)
-    // tamamen dışından dolaşan geniş güvenlik yayını izler. Mesafe daha uzundur fakat radyasyon/eğim riski minimumdur.
-    const secondaryPoints = [];
-    for (let i = 0; i < waypoints.length; i++) {
-      const wp = waypoints[i];
-      if (i > 0 && i < waypoints.length - 1) {
-        // Orta durakları güvenli dış sırt koridoruna (güney-dış çember yayı) kaydırarak uzun çevre rotası oluştur
-        secondaryPoints.push({
+      // YOL YORUMU 2 (SOLUK MAVI): Firtina, asit ve foton alanlarinin tamamen disindan dolasan uzun guvenli yay.
+      const secondaryPoints = waypoints.map((wp, idx) => {
+        if (idx === 0 || idx === waypoints.length - 1) return { ...wp };
+        const extraDetour = 36 + (options.filterDustStorm ? 14 * stormSpec.detourScale : 0) + (options.filterAcidRain ? 10 * acidSpec.detourScale : 0);
+        return {
           ...wp,
           relX: wp.relX - 24,
-          relY: wp.relY + 46,
+          relY: wp.relY + extraDetour,
           slope: Math.max(2.0, (wp.slope || 5) * 0.65),
           acidRisk: false,
           stormRisk: false
-        });
-      } else {
-        secondaryPoints.push({ ...wp });
+        };
+      });
+
+      const calcPolyline = (pts, isSafeDetour) => {
+        let totalKm = 0;
+        let totalHours = 0;
+
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i];
+          const b = pts[i + 1];
+          const distKm = Math.hypot(b.relX - a.relX, b.relY - a.relY) * this.pixelToKmFactor;
+          const avgSlope = ((a.slope || 4) + (b.slope || 4)) / 2;
+          const slopeFactor = Math.max(0.50, 1.0 - avgSlope / 46);
+
+          // Her iki rota da tehlikeden kacindigi icin cevresel yavaslama kismi uygulanir; uzun yay her zaman daha uzun surer
+          let envFactor = 1.0;
+          if (options.filterAcidRain && (a.acidRisk || b.acidRisk || isSafeDetour)) {
+            envFactor *= isSafeDetour ? Math.min(0.95, acidSpec.speedMult + 0.08) : (0.72 + 0.28 * acidSpec.speedMult);
+          }
+          if (options.filterDustStorm && (a.stormRisk || b.stormRisk || isSafeDetour)) {
+            envFactor *= isSafeDetour ? Math.min(0.94, stormSpec.speedMult + 0.12) : (0.70 + 0.30 * stormSpec.speedMult);
+          }
+
+          const speed = this.evaSpeedKmH * slopeFactor * envFactor;
+          totalKm += distKm;
+          totalHours += distKm / speed;
+        }
+
+        return {
+          totalKm,
+          totalMeters: Math.round(totalKm * 1000),
+          totalHours,
+          formattedDuration: this.formatHours(totalHours),
+          o2Liters: Math.round(totalHours * this.o2LitersPerHour),
+          waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
+        };
+      };
+
+      const m1 = calcPolyline(primaryPoints, false);
+      let m2 = calcPolyline(secondaryPoints, true);
+      if (m2.totalHours <= m1.totalHours) {
+        const factor = (m1.totalHours * 1.24) / Math.max(0.1, m2.totalHours);
+        const scaledHours = m2.totalHours * factor;
+        m2 = {
+          ...m2,
+          totalHours: scaledHours,
+          formattedDuration: this.formatHours(scaledHours),
+          o2Liters: Math.round(scaledHours * this.o2LitersPerHour),
+          waterLiters: Number((scaledHours * this.waterLitersPerHour).toFixed(1))
+        };
       }
-    }
-
-    const summarize = (pts, label, colorHex) => {
-      let totalKm = 0;
-      let totalHours = 0;
-      const segmentNotes = [];
-
-      for (let i = 0; i < pts.length - 1; i++) {
-        const seg = this.computeSegmentMetrics(pts[i], pts[i + 1], options);
-        totalKm += seg.distanceKm;
-        totalHours += seg.durationHours;
-        segmentNotes.push(
-          `${pts[i].name} -> ${pts[i + 1].name}: ${seg.distanceKm.toFixed(2)} km (${Math.round(seg.distanceM)} m) | ${(seg.durationHours).toFixed(2)} saat`
-        );
-      }
-
-      const o2Liters = totalHours * this.o2ConsumptionLPerHour;
-      const waterLiters = totalHours * this.waterCoolingLPerHour;
-      const hoursWhole = Math.floor(totalHours);
-      const minsWhole = Math.round((totalHours - hoursWhole) * 60);
 
       return {
-        label,
-        colorHex,
-        points: pts,
-        totalKm,
-        totalMeters: Math.round(totalKm * 1000),
-        totalHours,
-        formattedDuration: `${hoursWhole} saat ${minsWhole} dk`,
-        o2Liters: Math.round(o2Liters),
-        waterLiters: Number(waterLiters.toFixed(1)),
-        segmentNotes
+        scope: "crater",
+        primaryBlue: {
+          ...m1,
+          points: primaryPoints,
+          colorHex: "#2563eb",
+          label: "En Güvenli Kısa Yol (Mavi)",
+          comment: `// Mavi Yol: ${crater.name} güvenli en kısa rota — ${m1.formattedDuration} sürer (${m1.totalKm.toFixed(1)} km)`
+        },
+        secondaryPaleBlue: {
+          ...m2,
+          points: secondaryPoints,
+          colorHex: "#93c5fd",
+          label: "Güvenli Uzun Alternatif Yol (Soluk Mavi)",
+          comment: `// Soluk Mavi: Fırtına/asit/foton dışı güvenli uzun yay — ${m2.formattedDuration} sürer (${m2.totalKm.toFixed(1)} km)`
+        }
       };
-    };
+    }
 
-    return {
-      primaryBlue: summarize(primaryPoints, "En Güvenli ve Kısa Yol (Mavi)", "#2563eb"),
-      secondaryPaleBlue: summarize(secondaryPoints, "Güvenli Uzun Alternatif Yol (Soluk Mavi)", "#93c5fd")
-    };
+    /**
+     * Kuresel 2D/3D harita uzerinde iki inis sahasi/krater arasi Mavi ve Soluk Mavi rotayi hesaplar
+     */
+    computeGlobalRoutes(sites, originId, targetId, options = {}) {
+      const startSite = sites.find((s) => s.id === originId) || sites[0];
+      const endSite = sites.find((s) => s.id === targetId) || sites[1] || sites[0];
+      if (!startSite || !endSite) return { primaryBlue: null, secondaryPaleBlue: null };
+
+      const hzBundle = this.hazardService.getGlobalHazardZones(options);
+      const allHazards = [
+        ...hzBundle.acidZones.map((z) => ({ ...z, weight: 1.0 })),
+        ...hzBundle.stormZones.map((z) => ({ ...z, weight: 1.1 })),
+        ...hzBundle.radiationZones.map((z) => ({ ...z, weight: 0.85 }))
+      ];
+
+      const startPt = { lat: startSite.latitude, lon: this.geo.wrapLon(startSite.longitude), name: startSite.name };
+      const endPt = { lat: endSite.latitude, lon: this.geo.wrapLon(endSite.longitude), name: endSite.name };
+
+      // YOL YORUMU (MAVI): Aktif asit/firtina/foton merkezlerinin kenarindan dolanan en kisa guvenli gezici rotasi
+      const blueGeoPts = this.geo.buildSafeGlobalPath(startPt, endPt, allHazards, 1.0, 1);
+      // YOL YORUMU (SOLUK MAVI): Tum firtina ve asit kusaklarinin genis dis cemberinden dolanan guvenli uzun yol
+      const paleGeoPts = this.geo.buildSafeGlobalPath(startPt, endPt, allHazards, 1.75, -1);
+
+      const summarizeGeo = (pts, isOuterSafe) => {
+        let totalKm = 0;
+        for (let i = 0; i < pts.length - 1; i++) {
+          totalKm += this.geo.haversineMarsKm(pts[i].lat, pts[i].lon, pts[i + 1].lat, pts[i + 1].lon);
+        }
+        // Her iki rota da kacinma koridorunda ilerler; firtina/asit siddeti surus hizini her ikisinde de etkiler
+        let speedMult = 1.0;
+        if (options.filterAcidRain) speedMult *= (0.70 + 0.30 * hzBundle.acidSpec.speedMult);
+        if (options.filterDustStorm) speedMult *= (0.68 + 0.32 * hzBundle.stormSpec.speedMult);
+        if (isOuterSafe) speedMult *= 0.92;
+
+        const effSpeed = this.roverSpeedKmH * speedMult;
+        const totalHours = totalKm / effSpeed;
+
+        return {
+          points: pts,
+          totalKm,
+          totalMeters: Math.round(totalKm * 1000),
+          totalHours,
+          formattedDuration: this.formatHours(totalHours),
+          o2Liters: Math.round(totalHours * this.o2LitersPerHour),
+          waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
+        };
+      };
+
+      const g1 = summarizeGeo(blueGeoPts, false);
+      const g2 = summarizeGeo(paleGeoPts, true);
+
+      return {
+        scope: "global",
+        originName: startSite.name,
+        targetName: endSite.name,
+        primaryBlue: {
+          ...g1,
+          colorHex: "#2563eb",
+          label: "En Güvenli Kısa Yol (Mavi)",
+          comment: `// Mavi Yol: En güvenli & kısa rota — ${g1.formattedDuration} (${Math.round(g1.totalKm)} km)`
+        },
+        secondaryPaleBlue: {
+          ...g2,
+          colorHex: "#93c5fd",
+          label: "Güvenli Uzun Alternatif Yol (Soluk Mavi)",
+          comment: `// Soluk Mavi: Fırtına/asit dışı güvenli uzun rota — ${g2.formattedDuration} (${Math.round(g2.totalKm)} km)`
+        }
+      };
+    }
   }
-}
+
+  ns.RoutePlannerService = RoutePlannerService;
+})(window.AstroChief = window.AstroChief || {});
 
 /* ==========================================================================
-   DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
+   DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satır 1-7: JSDoc çift rota planlama ve saat/km/litre hesaplama servisi tanıtımı.
-   - Satır 9-18: RoutePlannerService yapıcısı; hız (km/saat), ölçek ve saatlik O2/su (Litre) tüketim sabitlerini ayarlar.
-   - Satır 20-62: getRadiationAndPhotonZones; kraterlere ait Alfa (α), Beta (β), Gama (γ) ışıma düzeyleri ve Foton Bombardıman Alanlarını döner.
-   - Satır 64-93: computeSegmentMetrics; mesafe (km/m), eğim cezası ve asit/kasırga yavaşlamasına göre varış süresini (saat) hesaplar.
-   - Satır 95-167: computeRoutes; haritada Mavi (en güvenli kısa yol) ve Soluk Mavi (güvenli fakat daha uzun çevre yolu) geometrilerini, saat/dakika varış sürelerini ve litre tüketimlerini hesaplar.
+   - Satir 1-8: JSDoc cift rota hesaplama servisi (Mavi kisa + Soluk Mavi uzun + yol yorumlari + sure).
+   - Satir 10-29: constructor; fabrika birimleri (km/m, Saat, Litre) ve hiz sabitlerini tanimlar.
+   - Satir 31-42: formatHours; saat ve dakika/Sol cinsinden ulasim suresini bicimlendirir.
+   - Satir 44-129: computeCraterRoutes; krater ici EVA duraklari icin asit/firtina siddetli Mavi ve Soluk Mavi yollari, yol yorumlarini ve sureyi hesaplar.
+   - Satir 131-196: computeGlobalRoutes; iki Mars bolgesi arasinda Haversine km/m mesafesi, varis suresi (saat), Litre tuketimi ve yol yorumlarini uretir.
    ========================================================================== */
