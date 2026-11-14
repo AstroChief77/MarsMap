@@ -1,0 +1,289 @@
+/* ==========================================================================
+   ROVER & MARS GRID SECTION STYLES
+   ========================================================================== */
+
+.section-rover {
+  padding: 80px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.rover-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 32px;
+  margin-top: 40px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .rover-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Kontrol Kartı */
+.rover-controls-card, .rover-map-card {
+  background: rgba(22, 27, 34, 0.85);
+  border: 1px solid rgba(255, 87, 34, 0.25);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+/* Durum Rozeti */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-badge.online {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+.status-badge.online .status-dot {
+  background: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+.status-badge.offline {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+}
+.status-badge.offline .status-dot {
+  background: #f44336;
+}
+
+.status-badge.checking {
+  background: rgba(255, 179, 0, 0.15);
+  color: #ffb300;
+  border: 1px solid rgba(255, 179, 0, 0.4);
+}
+.status-badge.checking .status-dot {
+  background: #ffb300;
+  animation: pulse 1s infinite alternate;
+}
+
+/* Koordinat Girişleri */
+.input-group-row {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.coord-box label {
+  display: block;
+  font-size: 0.85rem;
+  color: #a0aec0;
+  margin-bottom: 6px;
+}
+
+.input-duo {
+  display: flex;
+  gap: 8px;
+}
+
+.input-duo input {
+  width: 50%;
+  padding: 10px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.input-duo input:focus {
+  outline: none;
+  border-color: #ff5722;
+}
+
+/* Butonlar */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.rover-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary.rover-btn {
+  background: linear-gradient(135deg, #ff5722, #f4511e);
+  color: #fff;
+}
+.btn-primary.rover-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 87, 34, 0.4);
+}
+
+.btn-secondary.rover-btn {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+}
+.btn-secondary.rover-btn:hover {
+  background: #30363d;
+}
+
+/* Sonuç Kutusu */
+.route-result-box {
+  background: #0d1117;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #30363d;
+}
+
+.route-result-box h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  color: #e6edf3;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #8b949e;
+}
+
+.metric-row strong {
+  color: #fff;
+}
+
+.res-log {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.4;
+  border-top: 1px solid #21262d;
+  padding-top: 8px;
+}
+
+/* Legend */
+.map-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.start-box { background: #4caf50; }
+.goal-box { background: #2196f3; }
+.path-box { background: #ffeb3b; }
+.obs-box { background: #111; border: 1px solid #555; }
+
+/* Grid Haritası */
+.mars-grid {
+  display: grid;
+  gap: 3px;
+  background: #0d1117;
+  padding: 10px;
+  border-radius: 10px;
+  aspect-ratio: 1 / 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.grid-cell {
+  background: #2d1810;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  user-select: none;
+}
+
+.grid-cell:hover {
+  transform: scale(1.15);
+  z-index: 2;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.cell-obstacle {
+  background: #101010 !important;
+  color: #e53935 !important;
+  cursor: not-allowed;
+}
+
+.cell-start {
+  background: #4caf50 !important;
+  color: #fff !important;
+  font-size: 0.9rem !important;
+  box-shadow: 0 0 10px #4caf50;
+  z-index: 3;
+}
+
+.cell-goal {
+  background: #2196f3 !important;
+  color: #fff !important;
+  font-size: 0.9rem !important;
+  box-shadow: 0 0 10px #2196f3;
+  z-index: 3;
+}
+
+.cell-path {
+  background: #ffeb3b !important;
+  color: #000 !important;
+  font-size: 1.2rem !important;
+  animation: pulse-step 0.4s ease-out;
+  box-shadow: 0 0 6px #ffeb3b;
+}
+
+@keyframes pulse-step {
+  0% { transform: scale(0.6); opacity: 0.3; }
+  100% { transform: scale(1); opacity: 1; }
+}

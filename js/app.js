@@ -4,6 +4,7 @@
  */
 
 import { Navbar } from "./components/Navbar.js";
+import { RoverSection } from "./components/RoverSection.js";
 import { DetailsSection } from "./components/DetailsSection.js";
 import { ResourcesSection } from "./components/ResourcesSection.js";
 import { TeamSection } from "./components/TeamSection.js";
@@ -15,6 +16,7 @@ export class AstroChiefApp {
    */
   constructor() {
     this.navbar = new Navbar("navbar-container");
+    this.rover = new RoverSection("rover-container");
     this.details = new DetailsSection("details-container");
     this.resources = new ResourcesSection("resources-container");
     this.teams = new TeamSection("teams-container");
@@ -28,6 +30,7 @@ export class AstroChiefApp {
     console.log("[AstroChiefApp] Görev kontrol sistemi başlatılıyor...");
 
     this.navbar.init();
+    this.rover.init();
     this.details.init();
     this.resources.init();
     this.teams.init();

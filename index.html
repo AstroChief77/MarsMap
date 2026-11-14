@@ -11,6 +11,7 @@
   
   <!-- CSS Stilleri -->
   <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/rover.css">
 </head>
 <body>
 
@@ -33,21 +34,21 @@
           NASA açık veri setleri, JPL Mars Trek 3D modelleri, USGS jeolojik haritaları ve Curiosity / Perseverance gezici verilerini bir araya getiren yeni nesil keşif arayüzü şablonu.
         </p>
         <div class="hero-cta-group">
-          <a href="#details" class="btn-primary">
+          <a href="#rover-sim" class="btn-primary">
+            <span>🚜 Rover Path Finder (Rust)</span>
+          </a>
+          <a href="#details" class="btn-secondary">
             <span>Mission Details</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 9l-7 7-7-7"/>
-            </svg>
           </a>
           <a href="#resources" class="btn-secondary">
-            <span>NASA Data & Resources</span>
-          </a>
-          <a href="#teams" class="btn-secondary">
-            <span>Flight Crew</span>
+            <span>NASA Data</span>
           </a>
         </div>
       </div>
     </section>
+
+    <!-- Rover & A* Simülasyon Bölümü (Rust API Entegrasyonu) -->
+    <div id="rover-container"></div>
 
     <!-- Details Bölümü Kapsayıcısı (Details Section Mount) -->
     <div id="details-container"></div>
