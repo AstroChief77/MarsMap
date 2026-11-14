@@ -53,6 +53,8 @@ AstroChief
 -Yazı fontu "Public Sans Web" ailesi,sans-serif olmalıdır
 
 -Tema %60 beyaz, %30 Siyah, %10 Kırmızı, genel tema bu şekşilde olmalıdır başka renklerde kullanılabilir.
+
+-Kodu yazmayı bitirdiğinde derleyip githuba yükle.
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
