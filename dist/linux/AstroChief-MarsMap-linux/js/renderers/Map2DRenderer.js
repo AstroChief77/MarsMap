@@ -143,7 +143,7 @@
 
       ctx.save();
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = isInteracting ? "medium" : "high";
+      ctx.imageSmoothingQuality = "high";
 
       for (const wrapX of [-mapW, 0, mapW]) {
         const bx = ox + wrapX;

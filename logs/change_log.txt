@@ -266,3 +266,12 @@
   * Surukleme modunda (fastMode) sifir getImageData blokajli 1-tap hizli doku okumasi, duragan modda 4-tap bilineer keskinlestirme ve kare-onbellekli (lastRayKey) raster blitting eklendi.
 - js/renderers/StarfieldRenderer.js & js/components/MarsNavigatorController.js:
   * Arka plan yildiz tuvali offscreen onbelleklendi ve surukleme aninda duraklatildi; DOM FPS/telemetri guncellemeleri kirli-kontrol (dirty-check) ve zaman kisitlamasi (throttle) ile sifir-reflow hale getirildi.
+
+[2026-11-14T19:32:00+03:00] v3.8 ANTI-PIXELATION & BILINEAR MOLA/HERMITE ZOOM ENGINE:
+- js/renderers/Map3DRenderer.js:
+  * Yakinlastirirken (zoom in/out) olusan "feci piksellesme"nin 3 ana nedeni kokten giderildi:
+    1. 1024x512 MOLA DEM ve egim izgarasi (elevGrid, normXGrid, normYGrid) en-yakin-komsu (nearest-neighbor) tamsayi indisi yerine 4-tap bilineer enterpolasyonla (sampleTopoBilinear) okunarak yuksek zoomda olusan dev dikdortgen bloklasma ve paralaks yirtilmasi tamamen kaldirildi.
+    2. fastMode (yakinlastirma/surukleme) icindeki 1-tap nearest-neighbor doku okumasi kaldirildi; her karede 4-tap bilineer + Hermite yumusatma (dx*dx*(3-2*dx)) aktif edildi.
+    3. Etkilesim sirasindaki ara tampon olcegi (scale) 64.000 pikselden 260.000 piksele (4 kat cozunurluk) ve duragan olcek 920.000-1.650.000 piksele yukseltildi.
+- js/services/MarsTileLoader.js & js/components/MarsNavigatorController.js:
+  * Tekerlekle yakinlastirma (isZooming) sirasinda z=3..5 yerel karolarinin bekletilmeden aninda yuklenmesi ve cozulmesi saglandi; computeTargetZoom esikleri erken yuksek-LOD sececek sekilde iyilestirildi.
