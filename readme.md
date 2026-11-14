@@ -34,6 +34,8 @@ AstroChief
 
 -Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeniği olmalıdır.
 
+-Factory ayarları şu şekilde olmalıdır, harita ölçeği yaklaştıkça render edilicek tamamı render edilmiyicek, parametreler litre, kilometre/metre, saat, radyasyon alfa beta gama olarak ışıma düzeyi foton bombarduman alanalrı vesaire belirtilmeli.
+
 -Orta alanda harita olmak zorunda.
 
 -Sol altta 2D görünüm, 3D görünüm, asit yağmuru filtresi, kum yağmuru/kasırga filtresi gibi filtreler olmak zorunda.
