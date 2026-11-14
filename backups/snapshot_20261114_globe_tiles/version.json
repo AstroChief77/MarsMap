@@ -1,0 +1,7 @@
+{
+  "name": "AstroChief-MarsMap",
+  "version": "2.3.0",
+  "buildDate": "2026-11-14",
+  "targets": ["windows-x64", "linux-x64"],
+  "description": "NASA Space Apps 2026 Kurumsal Google Maps & Mars Trek Krater Harita Navigasyonu"
+}

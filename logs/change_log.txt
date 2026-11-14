@@ -112,3 +112,11 @@
 [2026-11-14 12:17:33] [UPDATE] js/services/StateStorageService.js & SettingsMenu.js güncellendi (Factory ayarları: yaklaştıkça LOD render, Litre, km/m, Saat ve Alfa/Beta/Gama + Foton Bombardıman alanları).
 [2026-11-14 12:18:45] [UPDATE] js/renderers/CraterCanvasRenderer.js, CraterDrawers.js, CraterMapViewer.js, css/navbar.css ve css/crater_viewer.css ölçekli LOD kırpma, çift mavi yol ve radyasyon katmanlarıyla güncellendi.
 [2026-11-14 12:19:15] [VERSION] version.json v2.3.0 sürümüne yükseltildi ve Windows/Linux derleme aracı tetiklendi.
+[2026-11-14 12:29:05] [BACKUP] backups/snapshot_20261114_globe_tiles klasorune 13 dosya yedeklendi.
+[2026-11-14 12:29:25] [UPDATE] data/datasets/jpl_mars_trek_layers.json guncellendi (4 dogrulanmis NASA Trek katmani ve yerel ./data/tiles sablonlari tanimlandi).
+[2026-11-14 12:30:12] [DOWNLOAD] tools/fetch_mars_tiles.ps1 olusturulup calistirildi; 136 gercek NASA Mars Trek karosu data/tiles/ dizinine indirildi (6.64 MB).
+[2026-11-14 12:31:11] [CREATE] js/services/MarsTileLoader.js olusturuldu (jpl_mars_trek_layers.json okuyup data/tiles uzerinden Progressive LOD karolari ceken motor).
+[2026-11-14 12:31:52] [UPDATE] js/services/DatasetLoader.js, StateStorageService.js ve js/renderers/MarsGlobeRenderer.js guncellendi (bilineer 3D kure raycaster ve 2D karolu harita tamamen data/tiles dokusuna gecirildi).
+[2026-11-14 12:32:33] [CREATE/UPDATE] js/components/MarsGlobeViewer.js olusturuldu; SettingsMenu.js (1. secenek Factory Reset) ve navbar olmayan tam ekran gezinebilen kureye baglandi (pathfind backend'e birakildi).
+[2026-11-14 12:33:22] [UPDATE] index.html, js/app.js, css/base.css, css/globe_viewer.css, css/style.css ve version.json (v2.4.0) guncellendi.
+[2026-11-14 12:36:25] [UPDATE] tools/build_tool.ps1 güncellendi (Açık çalışan MarsMap-win64.exe kilitliyken web ve data/tiles dosyalarının masaüstüne hatasız güncellenmesi sağlandı).

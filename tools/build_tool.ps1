@@ -121,8 +121,19 @@ if (-not $SkipDesktopDeploy) {
         New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     }
 
-    # Masaustune dogrudan Windows EXE + Web paketi + dist/ arsivlerini kopyala
-    Copy-Item -Path (Join-Path $WinStage "*") -Destination $TargetDir -Recurse -Force
+    # Masaustune guncel web/data/tiles + paketleri kopyala (calisan EXE kilitliyse atla)
+    Get-ChildItem -Path $WinStage | ForEach-Object {
+        $dst = Join-Path $TargetDir $_.Name
+        if ($_.PSIsContainer) {
+            Copy-Item -Path $_.FullName -Destination $TargetDir -Recurse -Force
+        } else {
+            try {
+                Copy-Item -Path $_.FullName -Destination $dst -Force -ErrorAction Stop
+            } catch {
+                Write-Warning "Kilitli dosya atlandi (calisiyor olabilir): $($_.Name)"
+            }
+        }
+    }
     $DeskDist = Join-Path $TargetDir "dist"
     New-Item -ItemType Directory -Path $DeskDist -Force | Out-Null
     Copy-Item -Path $WinZip, $LinTar -Destination $DeskDist -Force
