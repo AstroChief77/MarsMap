@@ -36,3 +36,13 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 ## 3. Harita Netliği & Yakınlaştırma Donması Düzeltmesi
 - **Yüksek Çözünürlüklü Hibrit Karo Piramidi (`MarsTileLoader.js`, `offlineDatasets.js`)**: `data/tiles/manifest.json` (`z=0..5` küresel + krater karoları; `file://` desteği için `offlineDatasets.js` içine de eklendi) ve çevrimiçi CORS NASA Trek WMTS (`z=3..7+`, 30 sn hata devre kesicisi) HiDPI `devicePixelRatio` yoğunluğuna göre tam ekran netliğinde yüklenir; `256x256` tembel piksel çıkarımı `8.4 MB` tam atlas kilitlenmesini kaldırır.
 - **Akıcı & Keskin 2D/3D Render (`Map2DRenderer.js`, `Map3DRenderer.js`, `OverlayDrawHelper.js`, `RouteGeometryHelper.js`, `MarsNavigatorController.js`)**: Tuval `devicePixelRatio` (`<=2`) ile ölçeklenir; `2D` `12x` ve `3D` `10x` yakına kadar netleşir ve ters projeksiyon sınırları buna göre güncellenmiştir. Hızlı tekerlek/sürükleme olayları `requestAnimationFrame` (`scheduleRender`) ile tek karede birleştirilir, etkileşim sırasında 3D viewport kırpma tamponu düşük piksel bütçesiyle (`120k px`, `<10 ms`) akıp durduğunda (`140 ms`) `4x4` blok trig enterpolasyonu + tek-karo `Uint32Array` bilineer örneklemeyle yüksek çözünürlüğe netleşir (`backups/snapshot_20261114_fix_pixel_freeze/`).
+
+## 4. 10 Dilli Çoklu Dil (i18n) Desteği (v3.1.0)
+- **Desteklenen 10 Dil**: Türkçe (`tr`, varsayılan), İngilizce (`en`), Almanca (`de`), Fransızca (`fr`), İspanyolca (`es`), Basitleştirilmiş Çince (`zh`), Japonca (`ja`), Korece (`ko`), Arapça (`ar`, RTL) ve İbranice (`he`, RTL).
+- **Modüler Sözlükler & Servis (< 800 Satır Kuralına Tam Uyumlu)**:
+  - `data/i18n/localesTrEnDe.js` (`tr`, `en`, `de`)
+  - `data/i18n/localesFrEsZh.js` (`fr`, `es`, `zh`)
+  - `data/i18n/localesJaKoArHe.js` (`ja`, `ko`, `ar`, `he`)
+  - `js/services/I18nService.js` (`window.AstroChief.i18n` — `t(key, vars)`, RTL `document.documentElement.dir` yönetimi, krater ve mürettebat yerelleştirmesi)
+- **Arayüz Entegrasyonu**: Sol üst `Ayarlar` menüsünde 1. seçenek `Factory Reset` olarak korunmuş, hemen altına 10 dil bayrak/rozet ızgarası (`lang-chip-grid`) eklenmiştir. Sağ üst rota inceleme paneli, sol alt `Uydular` paneli, `Görev & Ekip Bilgisi` modalı, harita üstü tehlike/rota/Boxwork etiketleri ve telemetri çubuğu seçilen dile anında geçer.
+

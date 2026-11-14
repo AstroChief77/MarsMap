@@ -118,7 +118,7 @@
      */
     screenToMarsCoords2D(px, py, width, height, rotLat, rotLon, zoom) {
       const baseWidth = Math.max(width * 0.86, 620);
-      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 12.0);
+      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 4.5);
       const mapH = mapW * 0.5;
       const vCenter = (90 - rotLat) / 180;
       const oy = height / 2 - vCenter * mapH;
@@ -137,7 +137,7 @@
     screenToMarsCoords3D(px, py, width, height, rotLat, rotLon, zoom) {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 10.0);
+      const radius = Math.min(width, height) * 0.41 * Math.min(Math.max(zoom, 0.55), 3.2);
       const nx = (px - cx) / radius;
       const ny = (cy - py) / radius;
       const rSq = nx * nx + ny * ny;
@@ -173,7 +173,8 @@
       const dLon = this.shortestDeltaLon(lon1, lon2);
       const ang = (Math.atan2(dLon, dLat) * 180) / Math.PI;
       const norm = (ang + 360) % 360;
-      const dirs = ["Kuzey", "Kuzeydoğu", "Doğu", "Güneydoğu", "Güney", "Güneybatı", "Batı", "Kuzeybatı"];
+      const defaultDirs = ["Kuzey", "Kuzeydoğu", "Doğu", "Güneydoğu", "Güney", "Güneybatı", "Batı", "Kuzeybatı"];
+      const dirs = (ns.i18n && Array.isArray(ns.i18n.t("cardinalDirs"))) ? ns.i18n.t("cardinalDirs") : defaultDirs;
       return dirs[Math.round(norm / 45) % 8];
     }
 
@@ -182,6 +183,7 @@
      */
     buildStepsFromGeoPath(pts, hazards, totalHours, totalKm) {
       if (!Array.isArray(pts) || pts.length === 0) return [];
+      const t = (k, v) => (ns.i18n ? ns.i18n.t(k, v) : k);
       const denomKm = Math.max(0.01, totalKm || 1);
       const steps = [];
 
@@ -200,19 +202,19 @@
         for (const hz of hazards || []) {
           const d = Math.hypot(cur.lat - hz.lat, this.shortestDeltaLon(hz.lon, cur.lon));
           if (d < hz.radiusDeg * 1.45) {
-            hazardWarning = `${hz.name} çevresinden güvenli sapma`;
+            hazardWarning = t("warnHazardDetour", { name: hz.name });
             break;
           }
         }
 
         let instruction;
         if (i === 0) {
-          instruction = `Başlangıç (${cur.lat.toFixed(2)}°, ${cur.lon.toFixed(2)}°): Etkenler doğrulandı, çıkış`;
+          instruction = t("stepGlobalStart", { lat: cur.lat.toFixed(2), lon: cur.lon.toFixed(2) });
         } else if (i === pts.length - 1) {
-          instruction = `Varış (${cur.lat.toFixed(2)}°, ${cur.lon.toFixed(2)}°): Güvenli park ve görev sonu`;
+          instruction = t("stepGlobalEnd", { lat: cur.lat.toFixed(2), lon: cur.lon.toFixed(2) });
         } else {
           const dir = this.getCardinalDirectionTr(prev.lat, prev.lon, cur.lat, cur.lon);
-          instruction = `${dir} yönünde ${Math.round(legKm)} km ilerle (Eğim ${slopeDeg}°)`;
+          instruction = t("stepGlobalMove", { dir, km: Math.round(legKm), slope: slopeDeg });
         }
 
         steps.push({
@@ -239,7 +241,9 @@
 
     /** Sabit Bulundugumuz Konum -> Secilen Hedef Konum uc noktalarini cozumler */
     resolveActiveEndpoints(state, _crater, _waypoints, landingSites) {
-      const origin = { id: "curiosity-gale", name: "Bulunduğumuz Konum", lat: -4.5895, lon: 137.4417 };
+      const origPrefix = ns.i18n ? ns.i18n.t("originWord") : "Bulunduğumuz Konum";
+      const destPrefix = ns.i18n ? ns.i18n.t("destWord") : "Hedef";
+      const origin = { id: "curiosity-gale", name: origPrefix, lat: -4.5895, lon: 137.4417 };
       if (state.useCustomCoordinates && state.customDestination) {
         return { origin, destination: state.customDestination };
       }
@@ -249,7 +253,7 @@
         origin,
         destination: e
           ? { id: e.id, name: e.name, lat: e.latitude, lon: e.longitude }
-          : (state.customDestination || this.makeEndpointPoint("dest", "Hedef", 18.44, 77.45))
+          : (state.customDestination || this.makeEndpointPoint("dest", destPrefix, 18.44, 77.45))
       };
     }
   }

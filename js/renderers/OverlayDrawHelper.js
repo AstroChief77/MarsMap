@@ -211,9 +211,11 @@
         ctx.textBaseline = "middle";
         ctx.fillText(tag, p.x, p.y + 0.5);
 
+        const originLbl = ns.i18n ? ns.i18n.t("originWord") : "Konumumuz";
+        const destLbl = ns.i18n ? ns.i18n.t("destWord") : "Hedef";
         const caption = tag === "A"
-          ? `📍 Konumumuz (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`
-          : `🎯 Hedef (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
+          ? `📍 ${originLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`
+          : `🎯 ${destLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
         ctx.font = "800 10px 'Public Sans Web', sans-serif";
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";

@@ -19,6 +19,8 @@
       this.config = new AppConfig();
       this.storage = new StateStorageService(this.config);
       this.state = this.storage.loadState();
+      this.i18n = ns.i18n || null;
+      if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
 
       this.datasetLoader = new DatasetLoader();
       this.tileLoader = new MarsTileLoader(() => this.scheduleRender(false));
@@ -44,7 +46,7 @@
       this.backendHazards = null;
       this.backendLatencyMs = null;
       this.backendLoading = false;
-      this.backendStatusText = "Backend bekleniyor (istek hazır)";
+      this.backendStatusText = "";
       this.lastRequestPayload = null;
       this.pickMode = null;
       this.cachedBundle = null;
@@ -71,9 +73,12 @@
       this.initUiPanels();
     }
 
+    t(key, vars = {}) { return this.i18n ? this.i18n.t(key, vars) : key; }
+
     initUiPanels() {
       this.settingsPanel = new SettingsPanel(document.getElementById("top-left-dock"), {
         onFactoryReset: () => this.performFactoryReset(),
+        onLanguageChange: (code) => this.changeLanguage(code),
         onSettingChange: (key, val, label) => this.applyGuardedSetting(key, val, label),
         onSelectGlobalScope: () => this.switchToGlobalRouteScope(),
         onSelectCrater: (craterId) => this.flyToCraterById(craterId),
@@ -133,12 +138,28 @@
       }
     }
 
+    getLocalizedCraters() {
+      return this.i18n ? CRATERS_DATA.map((c) => this.i18n.localizeCrater(c)) : CRATERS_DATA;
+    }
+
     getActiveCrater() {
-      return CRATERS_DATA.find((c) => c.id === this.state.activeCraterId) || CRATERS_DATA[0];
+      const list = this.getLocalizedCraters();
+      return list.find((c) => c.id === this.state.activeCraterId) || list[0];
     }
 
     getActiveWaypoints() {
       return CRATER_WAYPOINTS_DATA[this.getActiveCrater().id] || [];
+    }
+
+    changeLanguage(langCode) {
+      if (!this.i18n) return;
+      const valid = this.i18n.setLang(langCode);
+      this.state.lang = valid;
+      this.persistState();
+      this.renderBottomRight();
+      this.refreshAll();
+      const meta = this.i18n.getLanguages().find((l) => l.code === valid);
+      this.showToast(this.t("toastLangChanged", { lang: meta ? `${meta.nativeName} (${meta.badge})` : valid.toUpperCase() }));
     }
 
     persistState() {
@@ -172,10 +193,11 @@
       const prevSnapshot = { ...this.state };
       this.fpsGuard.armSettingGuard(prevSnapshot, label, (safePrev, measuredFps, failedLabel) => {
         this.state = { ...safePrev };
+        if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
         this.starfield?.setEnabled(this.state.showStarfield);
         this.persistState();
         this.refreshAll();
-        this.showToast(`FPS ${measuredFps} (<10)! '${failedLabel}' engellendi ve önceki ayara dönüldü.`, true);
+        this.showToast(this.t("toastFpsRevert", { fps: measuredFps, label: failedLabel }), true);
       });
 
       this.state[key] = value;
@@ -204,11 +226,13 @@
       this.backendStatusText = "";
       this.lastRequestPayload = null;
       this.state = this.storage.factoryReset();
+      if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
       this.starfield?.setEnabled(this.state.showStarfield);
+      this.renderBottomRight();
       this.refreshAll();
-      this.showToast("Factory Reset: 3D Varsayılan, Ölçekli LOD ve Litre/km/Saat/α-β-γ yüklendi.");
+      this.showToast(this.t("toastFactoryReset"));
     }
 
     switchToGlobalRouteScope() {
@@ -222,19 +246,14 @@
     }
 
     flyToCraterById(craterId) {
-      const crater = CRATERS_DATA.find((c) => c.id === craterId);
+      const crater = this.getLocalizedCraters().find((c) => c.id === craterId);
       if (!crater) return;
       this.pickMode = null;
       if (this.canvas) this.canvas.style.cursor = "";
       this.state.activeCraterId = crater.id;
       this.state.routeScope = "global";
       if (crater.id !== "gale-crater") {
-        this.state.customDestination = {
-          id: crater.id,
-          name: crater.name,
-          lat: crater.coordinates.lat,
-          lon: crater.coordinates.lon
-        };
+        this.state.customDestination = { id: crater.id, name: crater.name, lat: crater.coordinates.lat, lon: crater.coordinates.lon };
         this.state.useCustomCoordinates = true;
       }
       this.backendRoutes = null;
@@ -245,19 +264,12 @@
     }
 
     getActiveEndpoints() {
-      return this.routePlanner.geo.resolveActiveEndpoints(
-        this.state,
-        this.getActiveCrater(),
-        this.getActiveWaypoints(),
-        this.landingSites
-      );
+      return this.routePlanner.geo.resolveActiveEndpoints(this.state, this.getActiveCrater(), this.getActiveWaypoints(), this.landingSites);
     }
 
     getActiveHazardBundle() {
       const base = this.hazardService.getGlobalHazardZones(this.state);
-      if (!this.backendHazards) {
-        return { ...base, acidZones: [], stormZones: [], radiationZones: [] };
-      }
+      if (!this.backendHazards) return { ...base, acidZones: [], stormZones: [], radiationZones: [] };
       const pick = (flag, arr) => (flag && Array.isArray(arr) ? arr : []);
       return {
         ...base,
@@ -267,32 +279,21 @@
       };
     }
 
-    computeActiveRoutes() {
-      return this.backendRoutes;
-    }
+    computeActiveRoutes() { return this.backendRoutes; }
 
     buildCurrentRequestPayload(origin, destination, activeCrater) {
       if (!this.backendApi) return null;
       const baseHazards = this.hazardService.getGlobalHazardZones(this.state);
       const craterRadZones = this.hazardService.getCraterRadiationZones(activeCrater.id);
       return this.backendApi.buildRouteRequestPayload({
-        scope: this.state.routeScope,
-        origin,
-        destination,
-        state: this.state,
-        activeCrater,
-        hazardBundle: this.backendHazards || baseHazards,
-        craterRadZones,
-        planner: this.routePlanner
+        scope: this.state.routeScope, origin, destination, state: this.state, activeCrater,
+        hazardBundle: this.backendHazards || baseHazards, craterRadZones, planner: this.routePlanner
       });
     }
 
     getRouteAndHazardBundle() {
       if (!this.cachedBundle) {
-        this.cachedBundle = {
-          computedRoutes: this.computeActiveRoutes(),
-          hazardBundle: this.getActiveHazardBundle()
-        };
+        this.cachedBundle = { computedRoutes: this.computeActiveRoutes(), hazardBundle: this.getActiveHazardBundle() };
       }
       return this.cachedBundle;
     }
@@ -306,16 +307,15 @@
     }
 
     renderUi() {
+      const craters = this.getLocalizedCraters();
       const activeCrater = this.getActiveCrater();
       const wps = this.getActiveWaypoints();
       const { computedRoutes } = this.getRouteAndHazardBundle();
-      const radZones = (this.backendHazards && Array.isArray(this.backendHazards.radiationZones))
-        ? this.backendHazards.radiationZones
-        : [];
+      const radZones = (this.backendHazards && Array.isArray(this.backendHazards.radiationZones)) ? this.backendHazards.radiationZones : [];
       const { origin, destination } = this.getActiveEndpoints();
       const reqPayload = this.lastRequestPayload || this.buildCurrentRequestPayload(origin, destination, activeCrater);
 
-      this.settingsPanel.render(this.state, CRATERS_DATA, this.backendStatusText);
+      this.settingsPanel.render(this.state, craters, this.backendStatusText);
       this.satellitesPanel.render(this.state, this.tileLoader.getLayers());
       this.inspectorPanel.render(
         this.state, activeCrater, this.landingSites,
@@ -336,12 +336,12 @@
       if (!this.bottomRightEl) return;
       this.bottomRightEl.innerHTML = `
         <div class="zoom-stack">
-          <button class="zoom-btn" id="btn-zoom-in" title="Yaklaş (LOD Arttır)">＋</button>
-          <button class="zoom-btn" id="btn-zoom-out" title="Uzaklaş">－</button>
-          <button class="zoom-btn" id="btn-cam-reset" title="Görünümü Sıfırla">⌂</button>
+          <button class="zoom-btn" id="btn-zoom-in" title="${this.t("zoomInTitle")}">＋</button>
+          <button class="zoom-btn" id="btn-zoom-out" title="${this.t("zoomOutTitle")}">－</button>
+          <button class="zoom-btn" id="btn-cam-reset" title="${this.t("zoomResetTitle")}">⌂</button>
         </div>
         <div class="telemetry-strip">
-          <span id="telemetry-text">Mars Yükleniyor...</span>
+          <span id="telemetry-text">${this.t("telemetryLoading")}</span>
           <span class="fps-pill" id="live-fps-pill">60 FPS</span>
         </div>
       `;
@@ -365,7 +365,7 @@
       const el = document.getElementById("telemetry-text");
       if (!el) return;
       const stats = this.tileLoader.getLayerStats(this.state.activeLayerId);
-      const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • ${stats.name} • z=${stats.zoom} (${stats.loaded} karo)`;
+      const nextText = `${this.hoverCoords.lat.toFixed(2)}°, ${this.hoverCoords.lon.toFixed(2)}° • ${stats.name} • z=${stats.zoom} (${stats.loaded} ${this.t("tileWord")})`;
       if (nextText !== this.lastTelemetryText) {
         this.lastTelemetryText = nextText;
         el.innerText = nextText;
@@ -397,7 +397,7 @@
         width: this.viewWidth, height: this.viewHeight, dpr: this.dpr,
         rotLat: s.rotLat, rotLon: s.rotLon, zoom: s.zoom, activeLayerId: s.activeLayerId,
         isDragging: this.isDragging, isInteracting: Boolean(this.isDragging || this.isZooming || this.isAnimating),
-        craters: CRATERS_DATA, landingSites: this.landingSites, activeCrater,
+        craters: this.getLocalizedCraters(), landingSites: this.landingSites, activeCrater,
         hazardBundle, craterRadZones: this.hazardService.getCraterRadiationZones(activeCrater.id),
         computedRoutes, craterWaypoints: this.getActiveWaypoints(), selectedWaypoint: this.selectedWaypoint,
         customOrigin: origin, customDestination: destination,
@@ -477,23 +477,18 @@
 
         const geo = this.pixelToGeo(cx, cy);
         if (!geo.insideMap) {
-          if (this.pickMode) this.showToast("Lütfen Mars yüzeyi üzerinde bir koordinata tıklayın.", true);
+          if (this.pickMode) this.showToast(this.t("toastClickMarsSurface"), true);
           return;
         }
         this.pickMode = null;
         this.canvas.style.cursor = "";
-        this.state.customDestination = this.routePlanner.geo.makeEndpointPoint(
-          "picked-dest",
-          "Seçilen Hedef",
-          geo.lat,
-          geo.lon
-        );
+        this.state.customDestination = this.routePlanner.geo.makeEndpointPoint("picked-dest", this.t("pickedDestName"), geo.lat, geo.lon);
         this.state.useCustomCoordinates = true;
         this.state.routeScope = "global";
         this.backendRoutes = null;
         this.persistState();
         this.refreshAll();
-        this.showToast(`🎯 Hedef Seçildi: ${geo.lat.toFixed(2)}°, ${geo.lon.toFixed(2)}° — Backend'e istek gönderiliyor...`);
+        this.showToast(this.t("toastDestPicked", { lat: geo.lat.toFixed(2), lon: geo.lon.toFixed(2) }));
         this.scheduleBackendRouteFetch(20);
       });
     }
@@ -628,7 +623,7 @@
       this.pickMode = this.pickMode === mode ? null : mode;
       if (this.canvas) this.canvas.style.cursor = this.pickMode ? "crosshair" : "";
       if (this.pickMode === "destination") {
-        this.showToast("Harita üzerinde gitmek istediğiniz Hedef Konuma tıklayın.");
+        this.showToast(this.t("toastPickDestinationHint"));
       }
       this.renderUi();
     }
@@ -639,11 +634,11 @@
       this.state.backendApiUrl = clean;
       this.backendRoutes = null;
       this.backendHazards = null;
-      this.backendStatusText = clean ? "Bağlanıyor..." : "Yerel yedek rota motoru aktif";
+      this.backendStatusText = clean ? this.t("backendConnecting") : this.t("backendLocalActive");
       this.persistState();
       this.refreshAll();
       if (clean) await this.refreshBackendHazardsAndRoute();
-      else this.showToast("Backend URL temizlendi. Yerel yedek mod aktif.");
+      else this.showToast(this.t("toastBackendUrlCleared"));
     }
 
     async handleBackendUrlTest(rawUrl) {
@@ -687,7 +682,7 @@
     updateLatencyBadges() {
       const label = typeof this.backendLatencyMs === "number"
         ? `⏱ ${this.backendLatencyMs} ms`
-        : (this.state.backendApiUrl ? "⏱ Bağlantı Yok" : "⏱ Yerel");
+        : (this.state.backendApiUrl ? `⏱ ${this.t("inspNoConnection")}` : `⏱ ${this.t("inspLocalBadge")}`);
       const isOffline = typeof this.backendLatencyMs !== "number";
       const isSlow = typeof this.backendLatencyMs === "number" && this.backendLatencyMs > 500;
       ["#insp-latency-pill", "#insp-latency-pill-card"].forEach((sel) => {
@@ -722,16 +717,16 @@
         this.backendRoutes = res;
         this.backendLatencyMs = typeof res.latencyMs === "number" ? res.latencyMs : this.backendLatencyMs;
         if (res.hazards) this.backendHazards = res.hazards;
-        this.backendStatusText = `🦀 Backend yanıtladı (${res.latencyMs || 0} ms)`;
+        this.backendStatusText = this.t("backendResponded", { ms: res.latencyMs || 0 });
         this.updateLatencyBadges();
       } catch (err) {
         if (seq !== this.requestSeq) return;
         this.backendRoutes = null;
         this.backendLatencyMs = null;
-        this.backendStatusText = `İstek hazır (${baseUrl}/api/v1/route) — Rust Backend yanıtı bekleniyor`;
+        this.backendStatusText = `${this.t("inspBackendWaiting")} (${baseUrl}/api/v1/route)`;
         this.updateLatencyBadges();
         if (isManual) {
-          this.showToast(`İstek ${baseUrl}/api/v1/route adresine gönderildi (Backend henüz yanıt vermedi).`, true);
+          this.showToast(`${baseUrl}/api/v1/route — ${this.t("inspBackendWaiting")}`, true);
         }
       } finally {
         if (seq === this.requestSeq) {
@@ -768,11 +763,11 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc ana Mars Navigator denetleyicisi tanimi.
-   - Satir 17-74: constructor; HiDPI olcek, rAF birlestirme zamanlayicilari, rota onbellegi, Rust Backend istemcisi ve 10s FPS koruma sistemini kurar.
-   - Satir 76-148: initUiPanels ve init; Ayarlar, Uydular, Rota Inceleme panellerini, gecikme izleyiciyi ve veri setlerini yukler.
-   - Satir 150-248: scheduleRender, applyGuardedSetting, performFactoryReset ve krater/kuresel rota gecis metodlari.
-   - Satir 250-355: getActiveHazardBundle, computeActiveRoutes, buildCurrentRequestPayload, getRouteAndHazardBundle ve renderUi yardimcilari.
+   - Satir 17-75: constructor; 10 dilli i18n, HiDPI olcek, rAF birlestirme, Rust Backend istemcisi ve 10s FPS koruma sistemini kurar.
+   - Satir 76-158: initUiPanels, init, getLocalizedCraters ve changeLanguage; Ayarlar, Uydular, Rota Inceleme panellerini ve 10 dil gecisini yonetir.
+   - Satir 160-250: scheduleRender, applyGuardedSetting, performFactoryReset ve krater/kuresel rota gecis metodlari.
+   - Satir 251-355: getActiveHazardBundle, computeActiveRoutes, buildCurrentRequestPayload, getRouteAndHazardBundle ve renderUi yardimcilari.
    - Satir 357-445: requestTilesForView ve drawMap; HiDPI tuval donusumuyle 2D/3D motorlarini donmasiz cizer.
-   - Satir 447-630: piksel-kilitli surukleme, yumusak tekerlek yakinlastirma, haritadan hedef secimi, atalet ve duragan netlestirme.
-   - Satir 632-782: pixelToGeo, Rust Backend senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
+   - Satir 447-625: piksel-kilitli surukleme, yumusak tekerlek yakinlastirma, haritadan hedef secimi, atalet ve duragan netlestirme.
+   - Satir 626-774: pixelToGeo, Rust Backend senkronizasyonu, 5s gecikme izleyici, HiDPI koordinat okuma ve bildirim yonetimi.
    ========================================================================== */
