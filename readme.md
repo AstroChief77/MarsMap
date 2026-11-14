@@ -8,6 +8,8 @@
 
 -Asit yağmurları, fırtınalar hesaplanarak en güvenli ulaşılacak yerin rotasyonu belirlenicek.
 
+-Mars haritası dosyaları vesaire data klasöründe bulunuyor.
+
 AstroChief
 # Kurallar
 -Readme.md yi değiştirmek oynamak silmek tamamen yasaktır. Yapan AI cehennemine gider, yargılıyıcı sizi sevmez.
