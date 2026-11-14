@@ -30,8 +30,14 @@
     /**
      * 2D Equirectangular tuval uzerinde dairesel tehlike / radyasyon bolgesi cizer
      */
-    draw2DHazardCircle(ctx, px, py, radPx, fillStart, borderStroke, labelText) {
-      const g = ctx.createRadialGradient(px, py, 2, px, py, radPx);
+    draw2DHazardCircle(ctx, px, py, radPx, fillStart, borderStroke, labelText, viewW = 4096, viewH = 4096) {
+      if (radPx <= 0.5) return;
+      if (px + radPx < -20 || px - radPx > viewW + 20 || py + radPx < -20 || py - radPx > viewH + 20) {
+        return;
+      }
+
+      const gradR = Math.min(radPx, Math.max(viewW, viewH) * 2.5);
+      const g = ctx.createRadialGradient(px, py, 2, px, py, gradR);
       g.addColorStop(0, fillStart);
       g.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = g;
@@ -39,7 +45,7 @@
       ctx.arc(px, py, radPx, 0, Math.PI * 2);
       ctx.fill();
 
-      if (borderStroke) {
+      if (borderStroke && radPx < Math.max(viewW, viewH) * 2.2) {
         ctx.save();
         ctx.setLineDash([4, 4]);
         ctx.strokeStyle = borderStroke;
@@ -50,7 +56,7 @@
         ctx.restore();
       }
 
-      if (labelText) {
+      if (labelText && px >= -140 && px <= viewW + 140 && py >= -30 && py <= viewH + 30) {
         ctx.save();
         ctx.font = "700 10px 'Public Sans Web', sans-serif";
         const tw = ctx.measureText(labelText).width;
@@ -66,44 +72,53 @@
     /**
      * 2D veya 3D projeksiyonda tum aktif Asit Yagmuru, Firtina ve Foton alanlarini cizer
      */
-    drawGlobalHazards(ctx, mode, projFn, hazardBundle, zoom) {
+    drawGlobalHazards(ctx, mode, projFn, hazardBundle, zoom, viewW = 4096, viewH = 4096) {
       const { acidZones, stormZones, radiationZones, acidSpec, stormSpec } = hazardBundle;
       const acidAlpha = Math.min(0.65, 0.34 * (acidSpec?.alphaMult || 1));
       const stormAlpha = Math.min(0.68, 0.34 * (stormSpec?.alphaMult || 1));
 
       for (const z of acidZones) {
         const p = projFn(z.lat, z.lon);
-        if (!p || !p.visible) continue;
+        if (!p) continue;
         const r = mode === "2d" ? z.radiusDeg * p.pxPerDeg : z.radiusDeg * p.pxPerDeg * 0.85;
+        if (mode === "3d" && !p.visible) continue;
+        if (mode === "2d" && (p.x + r < -20 || p.x - r > viewW + 20 || p.y + r < -20 || p.y - r > viewH + 20)) continue;
         this.draw2DHazardCircle(
           ctx, p.x, p.y, r,
           `rgba(245, 158, 11, ${acidAlpha})`,
           "rgba(251, 191, 36, 0.72)",
-          zoom >= 0.85 ? `⚗ ${z.name}` : ""
+          zoom >= 0.85 ? `⚗ ${z.name}` : "",
+          viewW, viewH
         );
       }
 
       for (const z of stormZones) {
         const p = projFn(z.lat, z.lon);
-        if (!p || !p.visible) continue;
+        if (!p) continue;
         const r = mode === "2d" ? z.radiusDeg * p.pxPerDeg : z.radiusDeg * p.pxPerDeg * 0.85;
+        if (mode === "3d" && !p.visible) continue;
+        if (mode === "2d" && (p.x + r < -20 || p.x - r > viewW + 20 || p.y + r < -20 || p.y - r > viewH + 20)) continue;
         this.draw2DHazardCircle(
           ctx, p.x, p.y, r,
           `rgba(217, 43, 43, ${stormAlpha})`,
           "rgba(248, 113, 113, 0.80)",
-          zoom >= 0.85 ? `🌪 ${z.name}` : ""
+          zoom >= 0.85 ? `🌪 ${z.name}` : "",
+          viewW, viewH
         );
       }
 
       for (const z of radiationZones) {
         const p = projFn(z.lat, z.lon);
-        if (!p || !p.visible) continue;
+        if (!p) continue;
         const r = mode === "2d" ? z.radiusDeg * p.pxPerDeg : z.radiusDeg * p.pxPerDeg * 0.85;
+        if (mode === "3d" && !p.visible) continue;
+        if (mode === "2d" && (p.x + r < -20 || p.x - r > viewW + 20 || p.y + r < -20 || p.y - r > viewH + 20)) continue;
         this.draw2DHazardCircle(
           ctx, p.x, p.y, r,
           "rgba(139, 92, 246, 0.28)",
           "rgba(196, 181, 253, 0.75)",
-          zoom >= 0.9 ? `☢ ${z.name}` : ""
+          zoom >= 0.9 ? `☢ ${z.name}` : "",
+          viewW, viewH
         );
       }
     }
@@ -226,8 +241,8 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc tehlike/radyasyon/pin cizim yardimci sinifi tanimi.
    - Satir 7-26: projectToSphere; enlem/boylam koordinatlarini 3D kure ekran noktasina cevirir.
-   - Satir 28-61: draw2DHazardCircle; radyal gradyan, kesikli sinir halkasi ve etiket kutusu cizer.
-   - Satir 63-105: drawGlobalHazards; Asit Yagmuru, Kum Firtinasi ve Alfa/Beta/Gama Foton kusaklarini aktif siddetle cizer.
-   - Satir 107-165: drawMarkers; NASA inis sahalari ve tiklanabilir odak krater pinlerini cizer.
-   - Satir 167-212: drawCustomEndpoints; haritada secilen Mevcut Konum (A) ve Varis (B) noktalarini cizer.
+   - Satir 28-76: draw2DHazardCircle; gorunur ekran siniri ve gradyan cap sinirlamasiyla dairesel tehlike alanini cizer.
+   - Satir 78-130: drawGlobalHazards; 2D/3D gorunur alana dusen Asit/Firtina/Foton kusaklarini aktif siddetle cizer.
+   - Satir 132-190: drawMarkers; NASA inis sahalari ve tiklanabilir odak krater pinlerini cizer.
+   - Satir 192-238: drawCustomEndpoints; haritada secilen Mevcut Konum (A) ve Varis (B) noktalarini cizer.
    ========================================================================== */

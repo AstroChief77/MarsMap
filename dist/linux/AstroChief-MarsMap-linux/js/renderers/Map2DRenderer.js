@@ -1,8 +1,8 @@
 /**
  * @file Map2DRenderer.js
  * @description Varsayilan (Default) 2D Equirectangular Mars Haritasi cizim sinifi.
- * Kural geregi olcek yaklastikca gorunur pencereye dusen data/tiles karolari kademeli (LOD)
- * olarak cizilir; haritanin tamami ayni anda render edilmez.
+ * Kural geregi olcek yaklastikca gorunur pencereye dusen z=0..7+ karolari tek geciste (1x overdraw)
+ * ve otomatik ata-karo yedegiyle yuksek netlikte cizilir; haritanin tamami ayni anda render edilmez.
  */
 
 (function (ns) {
@@ -12,7 +12,7 @@
   class Map2DRenderer {
     /**
      * Map2DRenderer yapici metodu
-     * @param {MarsTileLoader} tileLoader - Yerel data/tiles karo yukleyici
+     * @param {MarsTileLoader} tileLoader - Yerel/WMTS karo yukleyici
      */
     constructor(tileLoader) {
       this.tileLoader = tileLoader;
@@ -25,7 +25,7 @@
      */
     render(ctx, state) {
       const {
-        width, height, rotLat, rotLon, zoom, activeLayerId,
+        width, height, rotLat, rotLon, zoom, activeLayerId, dpr,
         craters, landingSites, activeCrater, hazardBundle,
         computedRoutes, craterWaypoints, selectedWaypoint,
         progressiveLodRender, showGraticule, showNomenclature,
@@ -36,7 +36,7 @@
       ctx.clearRect(0, 0, width, height);
 
       const baseWidth = Math.max(width * 0.86, 620);
-      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 4.5);
+      const mapW = baseWidth * Math.min(Math.max(zoom, 0.65), 12.0);
       const mapH = mapW * 0.5;
       const pxPerDeg = mapW / 360;
 
@@ -45,17 +45,33 @@
       const ox = width / 2 - uCenter * mapW;
       const oy = height / 2 - vCenter * mapH;
 
-      // 1. Olcege gore yalnizca gorunur karolari kademeli (LOD) yukleyip ciz
+      // 1. Olcege gore yalnizca gorunur karolari tek geciste (1x overdraw + ata karo yedegi) ciz
       const layer = this.tileLoader.getLayerById(activeLayerId);
-      const targetZ = this.tileLoader.computeTargetZoom(zoom, layer, progressiveLodRender !== false);
+      const targetZ = this.tileLoader.computeTargetZoom({
+        zoom,
+        mapWidthPx: mapW,
+        dpr: dpr || 1,
+        viewMode: "2d",
+        progressiveLodRender: progressiveLodRender !== false
+      }, layer);
 
-      this.drawVisibleTileLevel(ctx, activeLayerId, 0, ox, oy, mapW, mapH, width, height);
-      if (targetZ >= 1) this.drawVisibleTileLevel(ctx, activeLayerId, 1, ox, oy, mapW, mapH, width, height);
-      if (targetZ >= 2) this.drawVisibleTileLevel(ctx, activeLayerId, 2, ox, oy, mapW, mapH, width, height);
+      this.drawVisibleTiles(ctx, activeLayerId, targetZ, ox, oy, mapW, mapH, width, height);
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      // Kutup ust/alt sinir cizgileri (antimeridyende dikey dikis izi olusturmadan)
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
       ctx.lineWidth = 1;
-      ctx.strokeRect(ox, oy, mapW, mapH);
+      ctx.beginPath();
+      if (oy >= 0 && oy <= height) {
+        ctx.moveTo(0, oy);
+        ctx.lineTo(width, oy);
+      }
+      if (oy + mapH >= 0 && oy + mapH <= height) {
+        ctx.moveTo(0, oy + mapH);
+        ctx.lineTo(width, oy + mapH);
+      }
+      ctx.stroke();
+      ctx.restore();
 
       // 2. Projeksiyon yardimcisi (2D enlem/boylam -> ekran pikseli, rotLon merkezli yatay wrap)
       const project2D = (lat, lon) => {
@@ -72,7 +88,7 @@
       }
 
       // 4. Aktif Asit Yagmuru, Kum Firtinasi ve Alfa/Beta/Gama Foton alanlari
-      this.overlays.drawGlobalHazards(ctx, "2d", project2D, hazardBundle, zoom);
+      this.overlays.drawGlobalHazards(ctx, "2d", project2D, hazardBundle, zoom, width, height);
 
       // 5. Bolge isimleri (Nomenclature)
       if (showNomenclature) {
@@ -113,30 +129,63 @@
     }
 
     /**
-     * Gorunur ekran sinirlari icinde kalan karolari cizer (Viewport Culling)
+     * Yalnizca gorunur hucreler icin en keskin hazir karoyu (yoksa ata karo kesitini) cizer
      */
-    drawVisibleTileLevel(ctx, layerId, z, ox, oy, mapW, mapH, viewW, viewH) {
-      const cols = Math.pow(2, z + 1);
-      const rows = Math.pow(2, z);
+    drawVisibleTiles(ctx, layerId, targetZ, ox, oy, mapW, mapH, viewW, viewH) {
+      const cols = 1 << (targetZ + 1);
+      const rows = 1 << targetZ;
       const tw = mapW / cols;
       const th = mapH / rows;
 
-      for (const wrapX of [-mapW, 0, mapW]) {
+      const yStart = Math.max(0, Math.floor((0 - oy) / th));
+      const yEnd = Math.min(rows - 1, Math.floor((viewH - oy) / th));
+      if (yStart > yEnd) return;
+
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      for (const wrapX of [-2 * mapW, -mapW, 0, mapW, 2 * mapW]) {
         const bx = ox + wrapX;
         if (bx + mapW < 0 || bx > viewW) continue;
 
-        for (let y = 0; y < rows; y++) {
-          const py = oy + y * th;
-          if (py + th < 0 || py > viewH) continue;
+        const xStart = Math.max(0, Math.floor((0 - bx) / tw));
+        const xEnd = Math.min(cols - 1, Math.floor((viewW - bx) / tw));
+        if (xStart > xEnd) continue;
 
-          for (let x = 0; x < cols; x++) {
+        for (let y = yStart; y <= yEnd; y++) {
+          const py = oy + y * th;
+          for (let x = xStart; x <= xEnd; x++) {
             const px = bx + x * tw;
-            if (px + tw < 0 || px > viewW) continue;
-            const img = this.tileLoader.getTileImage(layerId, z, y, x);
-            if (img) ctx.drawImage(img, px, py, tw + 0.6, th + 0.6);
+            const img = this.tileLoader.getTileImage(layerId, targetZ, y, x);
+            if (img) {
+              ctx.drawImage(img, px, py, tw + 0.7, th + 0.7);
+              continue;
+            }
+            for (let az = targetZ - 1; az >= 0; az--) {
+              const shift = targetZ - az;
+              const scale = 1 << shift;
+              const ax = x >> shift;
+              const ay = y >> shift;
+              const ancImg = this.tileLoader.getTileImage(layerId, az, ay, ax);
+              if (ancImg) {
+                const subW = ancImg.width / scale;
+                const subH = ancImg.height / scale;
+                const subX = Math.max(0, (x - ax * scale) * subW);
+                const subY = Math.max(0, (y - ay * scale) * subH);
+                const clampW = Math.min(subW, ancImg.width - subX);
+                const clampH = Math.min(subH, ancImg.height - subY);
+                if (clampW > 0 && clampH > 0) {
+                  ctx.drawImage(ancImg, subX, subY, clampW, clampH, px, py, tw + 0.7, th + 0.7);
+                }
+                break;
+              }
+            }
           }
         }
       }
+
+      ctx.restore();
     }
 
     drawGraticule(ctx, ox, oy, mapW, mapH, viewW, viewH) {
@@ -189,12 +238,16 @@
       ctx.setLineDash([4, 4]);
       for (let i = 1; i <= 4; i++) {
         const sr = (r / 4) * i;
-        ctx.beginPath();
-        ctx.arc(cx, cy, sr, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = "#38bdf8";
-        ctx.font = "700 9px 'Public Sans Web', sans-serif";
-        ctx.fillText(`${Math.round(crater.elevation_datum_m + i * 260)}m`, cx + sr + 4, cy);
+        if (sr < viewW * 2.2) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, sr, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        if (cx + sr + 40 >= 0 && cx + sr <= viewW && cy >= -20 && cy <= viewH + 20) {
+          ctx.fillStyle = "#38bdf8";
+          ctx.font = "700 9px 'Public Sans Web', sans-serif";
+          ctx.fillText(`${Math.round(crater.elevation_datum_m + i * 260)}m`, cx + sr + 4, cy);
+        }
       }
       ctx.setLineDash([]);
 
@@ -225,7 +278,8 @@
             ctx, rx, ry, rr,
             "rgba(168, 85, 247, 0.34)",
             "#c084fc",
-            zoom >= 2.1 ? `☢ ${rz.gammaLevel} | ${rz.photonFlux}` : ""
+            zoom >= 2.1 ? `☢ ${rz.gammaLevel} | ${rz.photonFlux}` : "",
+            viewW, viewH
           );
         }
       }
@@ -239,10 +293,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-6: JSDoc varsayilan 2D harita motoru ve olcekli LOD kirpma aciklamasi.
+   - Satir 1-6: JSDoc varsayilan 2D harita motoru ve 1x overdraw LOD kirpma aciklamasi.
    - Satir 11-20: constructor; MarsTileLoader, OverlayDrawHelper ve RouteCanvasRenderer baglar.
-   - Satir 25-106: render; 2D Equirectangular tuvalde yalnizca gorunur karolari, rotLon merkezli saran projeksiyonla tehlike, krater EVA ve kuresel rotalari cizer.
-   - Satir 111-133: drawVisibleTileLevel; ekrana sigmayan karo karelerini hic cizmez (viewport culling).
-   - Satir 135-170: drawGraticule ve drawNomenclature yardimcilari.
-   - Satir 175-226: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve foton alanini cizer.
+   - Satir 25-115: render; 2D Equirectangular tuvalde HiDPI olcekli gorunur karolari, dikissiz yatay sarmayi, tehlike ve rotalari cizer.
+   - Satir 120-169: drawVisibleTiles; yalnizca gorunur indeks araligindaki en keskin karolari (yoksa ata karo alt kesitini) 1 kez cizer.
+   - Satir 171-206: drawGraticule ve drawNomenclature yardimcilari.
+   - Satir 211-265: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve foton alanini cizer.
    ========================================================================== */
