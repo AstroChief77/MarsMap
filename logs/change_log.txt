@@ -57,3 +57,21 @@
 [2026-11-14 11:26:02] [BACKUP] backups/readme_backup_before_rebase2_20261114_1126.md oluşturuldu (2. rebase öncesi yedek).
 [2026-11-14 11:26:47] [GIT] origin/main ile rebase başarıyla tamamlandı (origin/main'deki deploy betikleri ve font/masaüstü kuralları birleştirildi).
 [2026-11-14 11:26:55] [GIT] Tüm veri setleri ve güncellemeler GitHub origin/main dalına gönderilmeye hazır.
+[2026-11-14 11:35:50] [BACKUP] backups/index_backup_*.html ve backups/readme_backup_*.md yedeği alındı.
+[2026-11-14 11:36:06] [CREATE] data/craterLocations.js oluşturuldu (Gale Krateri / Mount Sharp & Boxwork ve Jezero Krateri veri modeli).
+[2026-11-14 11:36:24] [CREATE] js/components/Starfield.js oluşturuldu (Zifiri siyah zemin üzerinde 320 adet gerçekçi parıldayan yıldız tuval motoru).
+[2026-11-14 11:37:34] [CREATE] js/components/CraterMapViewer.js oluşturuldu (Google Earth / NASA Trek tarzı çok katmanlı etkileşimli krater motoru, canlı telemetri, pan/zoom, waypoint inceleme).
+[2026-11-14 11:37:46] [CREATE] js/components/HudTelemetry.js oluşturuldu (Astronot EVA kask HUD canlı görev saati, O2 rezervi, radyasyon izleme çubuğu).
+[2026-11-14 11:38:14] [UPDATE] js/components/DetailsSection.js güncellendi (NASA Space Apps 2026 meydan okuma hedefleri, çok katmanlı veri, Boxwork formasyonları).
+[2026-11-14 11:38:25] [UPDATE] js/components/Navbar.js güncellendi (Mission Control temiz navigasyon çubuğu).
+[2026-11-14 11:38:36] [UPDATE] js/app.js güncellendi (Yıldız tuvali, krater haritası ve HUD koordinasyonu sağlandı).
+[2026-11-14 11:38:52] [UPDATE] css/variables.css güncellendi (Zorunlu 'Public Sans Web' fontu ve bold ağırlıklar, zifiri siyah uzay paleti).
+[2026-11-14 11:39:03] [UPDATE] css/base.css güncellendi (Sabit yıldız canvası, zifiri siyah arka plan, Public Sans bold tipografi).
+[2026-11-14 11:39:20] [UPDATE] css/navbar.css güncellendi (EVA HUD üst çubuğu ve temiz navigasyon tasarımı).
+[2026-11-14 11:39:45] [CREATE] css/crater_viewer.css oluşturuldu (Google Earth esintili harita arayüzü, katman anahtarları, imleç HUD ve inceleme paneli).
+[2026-11-14 11:39:58] [UPDATE] css/sections.css güncellendi (Space Apps meydan okuma sütunları ve mimari format kutusu).
+[2026-11-14 11:40:16] [UPDATE] css/cards.css güncellendi (Temiz kaynak ve mürettebat manifestosu kartları).
+[2026-11-14 11:40:26] [UPDATE] css/footer.css güncellendi (Görev Kontrol alt bilgi alanı).
+[2026-11-14 11:40:43] [UPDATE] css/style.css güncellendi (Google Fonts Public Sans 600-900 ve tüm modüler CSS bağlantıları).
+[2026-11-14 11:40:55] [UPDATE] index.html güncellendi (Yıldız tuvali, EVA HUD ve krater haritası mount noktaları).
+[2026-11-14 11:41:09] [UPDATE] readme.md güncellendi (Yeni temiz şablon adımı eklendi).

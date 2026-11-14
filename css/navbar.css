@@ -1,6 +1,6 @@
 /**
  * @file navbar.css
- * @description Üst gezinti çubuğu (navbar), marka logosu ve mobil menü stilleri.
+ * @description NASA Mission Control üst navigasyon ve astronot baş üstü göstergesi (HUD) çubuğu stilleri.
  */
 
 #navbar-container {
@@ -10,203 +10,254 @@
   width: 100%;
 }
 
-.main-navbar {
+/* En Üst Astronot Canlı Telemetri Çubuğu */
+.hud-top-telemetry-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.1rem 2rem;
-  background: rgba(10, 12, 16, 0.75);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  border-bottom: 1px solid var(--border-light);
-  transition: all var(--transition-normal);
+  padding: 0.45rem 2rem;
+  background: rgba(0, 0, 0, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.main-navbar.scrolled {
-  padding: 0.8rem 2rem;
-  background: rgba(10, 12, 16, 0.92);
-  border-bottom-color: var(--border-accent);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-}
-
-/* Marka / Logo */
-.nav-brand {
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-link {
+.hud-brand-indicator {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-main);
 }
 
-.brand-logo-icon {
-  font-size: 1.45rem;
-  filter: drop-shadow(0 0 8px var(--mars-primary-glow));
+.blinking-status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--hud-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--hud-green);
+  animation: hudPulse 1.8s infinite ease-in-out;
 }
 
-.brand-text .highlight {
+@keyframes hudPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.hud-brand-title {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.hud-event-tag {
+  background: rgba(255, 87, 34, 0.15);
   color: var(--mars-primary);
-  text-shadow: 0 0 12px var(--mars-primary-glow);
+  border: 1px solid var(--border-active);
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.7rem;
 }
 
-.brand-subtext {
-  font-size: 0.72rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-top: 1px;
-}
-
-/* Navigasyon Menüsü */
-.nav-menu {
+.hud-metrics-row {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: 1.5rem;
 }
 
-.nav-links {
+.hud-metric-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pill-label {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+.pill-value {
+  font-weight: var(--font-weight-heavy);
+}
+
+.text-green { color: var(--hud-green); }
+.text-cyan  { color: var(--nasa-cyan); }
+.text-amber { color: var(--hud-amber); }
+.text-mars  { color: var(--mars-primary); }
+
+/* Ana Menü Çubuğu */
+.main-navbar-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 2rem;
+  background: rgba(5, 7, 10, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-clean);
+  transition: all 0.25s ease;
+}
+
+.main-navbar-clean.scrolled-dark {
+  background: rgba(0, 0, 0, 0.96);
+  border-bottom-color: var(--border-active);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85);
+}
+
+.nav-brand-clean {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.brand-link-clean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.brand-radar-icon {
+  color: var(--mars-primary);
+  font-size: 1.3rem;
+}
+
+.brand-sub-badge {
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+  border-left: 2px solid var(--border-clean);
+  padding-left: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.nav-menu-clean {
+  display: flex;
+  align-items: center;
+  gap: 2.2rem;
+}
+
+.nav-links-clean {
   display: flex;
   align-items: center;
   list-style: none;
-  gap: 2rem;
+  gap: 1.8rem;
 }
 
-.nav-link {
-  font-size: 0.95rem;
-  font-weight: 500;
+.nav-link-clean {
+  font-size: 0.88rem;
+  font-weight: var(--font-weight-bold);
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0;
   position: relative;
-  padding: 0.4rem 0;
-  transition: color var(--transition-fast);
+  transition: color 0.2s ease;
 }
 
-.nav-link::after {
+.nav-link-clean:hover,
+.nav-link-clean.active {
+  color: var(--text-primary);
+}
+
+.nav-link-clean.active::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -4px;
   left: 0;
-  width: 0;
+  width: 100%;
   height: 2px;
   background: var(--mars-primary);
   box-shadow: 0 0 8px var(--mars-primary);
-  transition: width var(--transition-fast);
 }
 
-.nav-link:hover {
-  color: var(--text-main);
-}
-
-.nav-link:hover::after {
-  width: 100%;
-}
-
-/* Aksiyon Butonu */
-.btn-nav-action {
+.btn-clean-action {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.15rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, var(--mars-primary) 0%, var(--mars-deep) 100%);
-  border-radius: var(--border-radius-full);
-  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.35);
-  transition: all var(--transition-fast);
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-clean);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
 }
 
-.btn-nav-action:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
-  filter: brightness(1.1);
+.btn-clean-action:hover {
+  background: var(--mars-primary);
+  border-color: var(--mars-primary);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 87, 34, 0.45);
 }
 
-/* Mobil Hamburger Menü Butonu */
+/* Mobil Hamburger Menüsü */
 .nav-toggle {
   display: none;
   flex-direction: column;
   justify-content: space-around;
-  width: 32px;
-  height: 26px;
-  background: transparent;
+  width: 30px;
+  height: 24px;
   cursor: pointer;
-  z-index: 1001;
 }
 
 .hamburger-bar {
   width: 100%;
   height: 2.5px;
-  background-color: var(--text-main);
+  background-color: var(--text-primary);
   border-radius: 4px;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
-/* Mobil Responsive Kuralları */
-@media (max-width: 820px) {
+@media (max-width: 992px) {
+  .hud-metrics-row {
+    display: none;
+  }
+
   .nav-toggle {
     display: flex;
   }
 
-  .nav-menu {
+  .nav-menu-clean {
     position: fixed;
     top: 0;
     right: -100%;
     width: 280px;
     height: 100vh;
-    background: rgba(14, 18, 26, 0.97);
-    backdrop-filter: blur(16px);
-    border-left: 1px solid var(--border-accent);
+    background: #090c12;
+    border-left: 1px solid var(--border-active);
     flex-direction: column;
     justify-content: center;
-    gap: 2.5rem;
-    padding: 3rem 2rem;
-    transition: right var(--transition-normal);
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+    gap: 2rem;
+    padding: 2rem;
+    transition: right 0.3s ease;
+    z-index: 1002;
   }
 
-  .nav-menu.is-open {
+  .nav-menu-clean.is-open {
     right: 0;
   }
 
-  .nav-links {
+  .nav-links-clean {
     flex-direction: column;
-    gap: 1.8rem;
+    gap: 1.5rem;
     width: 100%;
     text-align: center;
-  }
-
-  .nav-link {
-    font-size: 1.15rem;
-  }
-
-  /* Hamburger Animasyonu */
-  .nav-toggle.is-active .hamburger-bar:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
-  }
-  .nav-toggle.is-active .hamburger-bar:nth-child(2) {
-    opacity: 0;
-  }
-  .nav-toggle.is-active .hamburger-bar:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
   }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc navbar CSS dosya başlığı.
-   - Satır 6-11: #navbar-container sticky konumlandırma kuralları.
-   - Satır 13-23: .main-navbar flexbox düzeni, cam efekti (backdrop-filter) ve kenarlıklar.
-   - Satır 25-30: .main-navbar.scrolled kaydırma anındaki kompakt görünüm stili.
-   - Satır 32-60: Logo ve marka metni, parlama efekti (drop-shadow) ve alt başlık kuralları.
-   - Satır 62-97: Navigasyon linkleri ve hover animasyonu (alt çizgi genişlemesi).
-   - Satır 99-116: Navigasyon CTA butonu gradyanı ve hover derinliği.
-   - Satır 118-135: Mobil hamburger menü ikonu tasarımı.
-   - Satır 137-180: Medya sorgusu (@media max-width: 820px); sağdan kayan çekmece mobil menü ve hamburger X animasyonu.
+   - Satır 1-4: JSDoc navbar CSS başlığı.
+   - Satır 6-11: #navbar-container sticky konumlandırması.
+   - Satır 13-22: .hud-top-telemetry-bar; astronot kask vizörünü simüle eden üst telemetri şeridi.
+   - Satır 24-40: Canlı durum yanıp sönen yeşil ledi (.blinking-status-dot) ve Space Apps rozeti.
+   - Satır 42-63: EVA görev saati, O2 rezervi, radyasyon dozu ve durum renk sınıfları.
+   - Satır 65-81: .main-navbar-clean; NASA tarzı yarı saydam cam çubuk ve scroll anında siyahlaşma.
+   - Satır 83-102: Radar logolu AstroChief başlığı ve sağındaki alt görev rozeti.
+   - Satır 104-135: Navigasyon linkleri, aktif alt çizgi göstergesi ve JPL Mars Trek butonu.
+   - Satır 137-180: Mobil hamburger menüsü tasarımı ve 992px altındaki sağdan kayan menü kuralları.
    ========================================================================== */

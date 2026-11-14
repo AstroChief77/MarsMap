@@ -1,12 +1,15 @@
 /**
  * @file style.css
- * @description AstroChief ana stil dosyası. Tüm modüler CSS dosyalarını birleştirir.
+ * @description AstroChief Mars Crater Navigator ana stil dosyası.
+ * Kural Gereği: Yazı fontları Public Sans Web, sans-serif ailesinden ve bold olmak zorundadır.
  */
+
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@600;700;800;900&display=swap');
 
 @import url('./variables.css');
 @import url('./base.css');
 @import url('./navbar.css');
-@import url('./hero.css');
+@import url('./crater_viewer.css');
 @import url('./sections.css');
 @import url('./cards.css');
 @import url('./footer.css');
@@ -14,12 +17,13 @@
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-4: JSDoc ana stil dosyası açıklaması.
-   - Satır 6: variables.css içe aktarımı (renk ve tasarım değişkenleri).
-   - Satır 7: base.css içe aktarımı (sıfırlama ve genel düzen).
-   - Satır 8: navbar.css içe aktarımı (menü ve navigasyon).
-   - Satır 9: hero.css içe aktarımı (karşılama alanı ve görsel efektler).
-   - Satır 10: sections.css içe aktarımı (bölüm başlıkları, metrikler ve yasal uyarılar).
-   - Satır 11: cards.css içe aktarımı (kaynak ve ekip kartları).
-   - Satır 12: footer.css içe aktarımı (sayfa alt alanı).
+   - Satır 1-5: JSDoc ana stil dosyası ve zorunlu font kuralı açıklaması.
+   - Satır 7: Google Fonts üzerinden 'Public Sans' (600, 700, 800, 900) yüklenmesi.
+   - Satır 9: variables.css içe aktarımı (renk ve tasarım değişkenleri).
+   - Satır 10: base.css içe aktarımı (zifiri siyah zemin ve font atamaları).
+   - Satır 11: navbar.css içe aktarımı (üst telemetri HUD ve menü).
+   - Satır 12: crater_viewer.css içe aktarımı (Google Earth tarzı harita arayüzü).
+   - Satır 13: sections.css içe aktarımı (Space Apps detay ve sütun stilleri).
+   - Satır 14: cards.css içe aktarımı (kaynak ve ekip kartları).
+   - Satır 15: footer.css içe aktarımı (alt bilgi alanı).
    ========================================================================== */
