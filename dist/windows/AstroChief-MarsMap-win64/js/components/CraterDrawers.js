@@ -1,7 +1,7 @@
 /**
  * @file CraterDrawers.js
- * @description Google Maps tarzı sade, yormayan Sol Kenar Çubuğu (Sidebar) bileşeni.
- * Krater seçimi, veri katmanları ve seçili bölge/durak özetini tek temiz panelde sunar.
+ * @description Google Maps stili Sol Kenar Çubuğu (Sidebar): Krater seçimi, Mavi/Soluk Mavi
+ * rota süre-mesafe-litre analizi, Alfa/Beta/Gama foton radyasyon verisi ve seçili istasyon kartı.
  */
 
 import { CRATERS_DATA } from "../../data/craterLocations.js";
@@ -9,7 +9,6 @@ import { CRATERS_DATA } from "../../data/craterLocations.js";
 export class CraterDrawers {
   /**
    * CraterDrawers yapıcı metodu
-   * @param {Object} callbacks - Krater seçimi, katman ve durak geri çağrıları
    */
   constructor(callbacks) {
     this.callbacks = callbacks;
@@ -18,9 +17,9 @@ export class CraterDrawers {
   }
 
   /**
-   * Google Maps stili temiz beyaz Sol Kenar Çubuğu HTML çıktısını üretir
+   * Google Maps stili Sol Kenar Çubuğu HTML çıktısını üretir
    */
-  renderSidebar(state, waypoints) {
+  renderSidebar(state, waypoints, computedRoutes, radiationZones, lodTier) {
     const query = this.searchQuery.trim().toLowerCase();
 
     const craterButtons = CRATERS_DATA
@@ -34,7 +33,7 @@ export class CraterDrawers {
               <span class="scb-title">${c.name}</span>
               ${c.id === "gale-crater" ? '<span class="scb-badge">ÖNERİLEN</span>' : ""}
             </div>
-            <div class="scb-sub">Çap ${c.diameter_km} km • Derinlik ${c.depth_m} m</div>
+            <div class="scb-sub">Çap ${c.diameter_km} km • İrtifa ${c.elevation_datum_m} m</div>
           </button>
         `;
       }).join("");
@@ -50,6 +49,43 @@ export class CraterDrawers {
       </button>
     `).join("");
 
+    const pri = computedRoutes?.primaryBlue;
+    const sec = computedRoutes?.secondaryPaleBlue;
+    const routeSummaryHtml = (pri && sec) ? `
+      <div class="sidebar-route-box">
+        <div class="route-row route-blue">
+          <span class="route-swatch swatch-blue"></span>
+          <div class="route-info">
+            <div class="route-title">Mavi Yol (En Güvenli Kısa)</div>
+            <div class="route-metrics">${pri.totalKm.toFixed(2)} km (${pri.totalMeters} m) • <strong>${pri.formattedDuration}</strong></div>
+            <div class="route-consumables">Tüketim: ${pri.o2Liters} L O2 • ${pri.waterLiters} L Su</div>
+          </div>
+        </div>
+        <div class="route-row route-pale">
+          <span class="route-swatch swatch-pale"></span>
+          <div class="route-info">
+            <div class="route-title">Soluk Mavi (Güvenli Uzun Alternatif)</div>
+            <div class="route-metrics">${sec.totalKm.toFixed(2)} km (${sec.totalMeters} m) • <strong>${sec.formattedDuration}</strong></div>
+            <div class="route-consumables">Tüketim: ${sec.o2Liters} L O2 • ${sec.waterLiters} L Su</div>
+          </div>
+        </div>
+      </div>
+    ` : "";
+
+    const radZone = radiationZones && radiationZones[0];
+    const radiationBoxHtml = radZone ? `
+      <div class="sidebar-rad-box">
+        <div class="rad-head">☢ ${radZone.name}</div>
+        <div class="rad-grid">
+          <div><span>Alfa (α):</span><strong>${radZone.alphaLevel}</strong></div>
+          <div><span>Beta (β):</span><strong>${radZone.betaLevel}</strong></div>
+          <div><span>Gama (γ):</span><strong>${radZone.gammaLevel}</strong></div>
+          <div><span>Foton Akısı:</span><strong>${radZone.photonFlux}</strong></div>
+        </div>
+        <div class="rad-lod-note">Render Ölçeği: LOD ${lodTier}/3 (${state.progressiveLodRender ? "Yalnızca Görünür Alan" : "Tam Render"})</div>
+      </div>
+    ` : "";
+
     const activeWp = state.selectedWaypoint;
     const wpDetailHtml = activeWp ? `
       <div class="sidebar-detail-card">
@@ -62,29 +98,35 @@ export class CraterDrawers {
         <div class="sdc-stats">
           <div><span>İrtifa</span><strong>${activeWp.elev} m</strong></div>
           <div><span>Eğim</span><strong>${activeWp.slopeText}</strong></div>
-          <div><span>Durum</span><strong>${(activeWp.acidRisk || activeWp.stormRisk) ? "Dikkat" : "Güvenli"}</strong></div>
+          <div><span>Risk</span><strong>${(activeWp.acidRisk || activeWp.stormRisk) ? "Dikkat" : "Güvenli"}</strong></div>
         </div>
         <p class="sdc-text"><strong>Jeoloji:</strong> ${activeWp.geology}</p>
         <p class="sdc-text"><strong>Güvenlik:</strong> ${activeWp.hazardNote}</p>
       </div>
     ` : `
-      <div class="sidebar-empty-note">
-        Harita üzerinden bir krater veya rota durağı seçerek teknik detayları görüntüleyin.
-      </div>
+      <div class="sidebar-empty-note">Harita üzerinden bir krater veya durak seçin.</div>
     `;
 
     return `
       <aside class="maps-sidebar ${this.sidebarOpen ? "open" : "collapsed"}" id="maps-sidebar" aria-label="Harita Kenar Çubuğu">
-        <!-- 1. Bölüm: Bölge / Küre Seçimi -->
         <div class="sidebar-block">
           <div class="sidebar-block-title">BÖLGE VE KRATER SEÇİMİ</div>
           <button class="sidebar-orbit-btn ${state.mapScope !== "crater" ? "active" : ""}" id="btn-fly-global-orbit">
             🌐 Mars Küresel Görünüm (Trek)
           </button>
-          <div class="sidebar-crater-list">${craterButtons || '<div class="sidebar-empty-note">Eşleşen krater bulunamadı.</div>'}</div>
+          <div class="sidebar-crater-list">${craterButtons || '<div class="sidebar-empty-note">Sonuç bulunamadı.</div>'}</div>
         </div>
 
-        <!-- 2. Bölüm: Bilimsel Katmanlar -->
+        <div class="sidebar-block">
+          <div class="sidebar-block-title">ROTA ANALİZİ (KM / SAAT / LİTRE)</div>
+          ${routeSummaryHtml}
+        </div>
+
+        <div class="sidebar-block">
+          <div class="sidebar-block-title">RADYASYON &amp; FOTON BOMBARDIMANI</div>
+          ${radiationBoxHtml}
+        </div>
+
         <div class="sidebar-block">
           <div class="sidebar-block-title">HARİTA KATMANLARI</div>
           <div class="sidebar-layers">
@@ -92,11 +134,10 @@ export class CraterDrawers {
             ${this.renderLayerCheck("topography", "Topografi Konturları (MOLA)", state.layers.topography)}
             ${this.renderLayerCheck("geology", "Jeoloji & Boxwork Sırtları", state.layers.geology)}
             ${this.renderLayerCheck("thermal", "Termal Yoğunluk (THEMIS)", state.layers.thermal)}
-            ${this.renderLayerCheck("evaRoute", "Güvenli EVA Yürüyüş Rotası", state.layers.evaRoute)}
+            ${this.renderLayerCheck("evaRoute", "Güvenli Rotalar (Mavi / Soluk Mavi)", state.layers.evaRoute)}
           </div>
         </div>
 
-        <!-- 3. Bölüm: EVA İstasyonları ve Seçili Nokta Özeti -->
         <div class="sidebar-block">
           <div class="sidebar-block-title">ROTA İSTASYONLARI (${filteredWaypoints.length})</div>
           <div class="sidebar-wp-list">${wpListHtml}</div>
@@ -107,7 +148,7 @@ export class CraterDrawers {
   }
 
   /**
-   * Sade onay kutusu satırı oluşturur
+   * Sade onay kutusu satırı
    */
   renderLayerCheck(key, label, checked) {
     return `
@@ -119,25 +160,22 @@ export class CraterDrawers {
   }
 
   /**
-   * Kenar çubuğu içindeki tıklama olaylarını bağlar
+   * Kenar çubuğu olay dinleyicileri
    */
   bindEvents(root) {
     root.querySelector("#btn-fly-global-orbit")?.addEventListener("click", () => {
       this.callbacks.onFlyOrbit?.();
     });
-
     root.querySelectorAll("[data-select-crater]").forEach((btn) => {
       btn.addEventListener("click", () => {
         this.callbacks.onSelectCrater?.(parseInt(btn.getAttribute("data-select-crater"), 10));
       });
     });
-
     root.querySelectorAll("[data-select-wp]").forEach((btn) => {
       btn.addEventListener("click", () => {
         this.callbacks.onSelectWaypoint?.(btn.getAttribute("data-select-wp"));
       });
     });
-
     root.querySelectorAll(".layer-checkbox").forEach((cb) => {
       cb.addEventListener("change", (e) => {
         this.callbacks.onToggleLayer?.(cb.getAttribute("data-layer-key"), e.target.checked);
@@ -149,10 +187,8 @@ export class CraterDrawers {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc Google Maps stili temiz kenar çubuğu bileşeni tanımı.
-   - Satır 7: CRATERS_DATA verisinin içe aktarılması.
-   - Satır 9-16: constructor; kenar çubuğu açıklık durumu ve arama metnini başlatır.
-   - Satır 18-88: renderSidebar; krater listesi, katman onay kutuları, duraklar ve seçili nokta detay kartını tek düzenli sütunda üretir.
-   - Satır 90-98: renderLayerCheck; sade onay kutusu satırı döner.
-   - Satır 100-124: bindEvents; yörüngeye dönüş, krater/durak seçimi ve katman değişimlerini bağlar.
+   - Satır 1-7: JSDoc Google Maps stili kenar çubuğu bileşeni tanımı.
+   - Satır 9-16: constructor; sidebar açıklık ve arama metnini başlatır.
+   - Satır 18-137: renderSidebar; krater seçimi, Mavi/Soluk Mavi rota karşılaştırması (km, saat, litre), Alfa/Beta/Gama + Foton Bombardımanı telemetrisi ve istasyon kartını üretir.
+   - Satır 139-172: renderLayerCheck ve bindEvents olay yöneticileri.
    ========================================================================== */

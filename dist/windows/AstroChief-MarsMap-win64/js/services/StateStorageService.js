@@ -1,7 +1,8 @@
 /**
  * @file StateStorageService.js
- * @description Uygulama ayarlarını, aktif katmanları ve kamera durumunu yerel depolamada (localStorage) saklayan
- * ve Sol Üst Ayarlar menüsündeki "Factory Reset" işlemini yöneten servis sınıfı.
+ * @description Uygulama ayarlarını saklayan ve Kural Gereği Factory Ayarlarını yöneten servis.
+ * Factory ayarları: Ölçeğe bağlı (yaklaştıkça görünür alan) render, birimler (Litre, km/m, Saat)
+ * ve Alfa/Beta/Gama radyasyon ile Foton Bombardıman alanları görünürlüğü içerir.
  */
 
 export class StateStorageService {
@@ -13,21 +14,27 @@ export class StateStorageService {
   }
 
   /**
-   * Varsayılan fabrika ayarları şablonunu döner
-   * @returns {Object} Fabrika çıkışı harita ve arayüz ayarları
+   * ZORUNLU FACTORY AYARLARI ŞABLONU:
+   * - Harita ölçeği yaklaştıkça (LOD + görünür pencere kırpma) render edilir; tamamı render edilmez.
+   * - Parametreler Litre (L), Kilometre/Metre (km/m), Saat (sa) ve Alfa/Beta/Gama + Foton alanlarını içerir.
+   * @returns {Object} Fabrika çıkışı harita ve sistem ayarları
    */
   getFactoryDefaults() {
     return {
       activeCraterIndex: 0,
-      mapScope: "globe", // 'globe' (Mars Trek 3D Küre), 'global2d' (EPSG:104905), 'crater' (Hiper-yerel EVA Krater)
-      viewMode: "3d",    // '2d' veya '3d'
+      mapScope: "globe",         // 'globe' (Mars Küre), 'global2d' (EPSG:104905), 'crater' (Hiper-yerel EVA)
+      viewMode: "3d",            // '2d' veya '3d'
       filterAcidRain: true,
       filterDustStorm: true,
+      progressiveLodRender: true, // Kural: Yalnızca yakınlaşılan/görünen alan render edilir (tamamı değil)
+      showRadiationZones: true,   // Kural: Alfa, Beta, Gama ve Foton Bombardıman alanları açık
       terrainExaggeration: 1.0,
       basemapOpacity: 1.0,
       showNomenclature: true,
       showGraticule: false,
       showStarfield: true,
+      oxygenReserveLiters: 420,  // Astronot Yaşam Destek (Litre)
+      waterReserveLiters: 24.0,  // Suit Soğutma Suyu (Litre)
       layers: {
         optical: true,
         topography: true,
@@ -39,8 +46,8 @@ export class StateStorageService {
   }
 
   /**
-   * Kaydedilmiş ayarları yükler; yoksa veya bozuksa fabrika varsayılanlarını döner
-   * @returns {Object} Aktif durum ayarları
+   * Kaydedilmiş ayarları yükler; yoksa veya bozuksa Factory ayarlarını döner
+   * @returns {Object} Aktif ayarlar
    */
   loadState() {
     const defaults = this.getFactoryDefaults();
@@ -54,32 +61,31 @@ export class StateStorageService {
         layers: { ...defaults.layers, ...(parsed.layers || {}) }
       };
     } catch (err) {
-      console.warn("[StateStorageService] Kayıtlı durum okunamadı:", err.message);
+      console.warn("[StateStorageService] Kayıtlı ayar okunamadı:", err.message);
       return defaults;
     }
   }
 
   /**
-   * Güncel kullanıcı tercihlerini yerel depolamaya kaydeder
-   * @param {Object} stateSnapshot - Saklanacak durum özeti
+   * Kullanıcı tercihlerini kaydeder
    */
   saveState(stateSnapshot) {
     try {
       window.localStorage.setItem(this.storageKey, JSON.stringify(stateSnapshot));
     } catch (err) {
-      console.warn("[StateStorageService] Durum kaydedilemedi:", err.message);
+      console.warn("[StateStorageService] Kayıt hatası:", err.message);
     }
   }
 
   /**
-   * FACTORY RESET: Tüm kullanıcı tercihlerini temizler ve temiz fabrika ayarlarını döner
-   * @returns {Object} Sıfırlanmış fabrika ayarları
+   * FACTORY RESET: Tüm özelleştirmeleri temizler ve Factory ayarlarına döner
+   * @returns {Object} Temiz Factory varsayılanları
    */
   factoryReset() {
     try {
       window.localStorage.removeItem(this.storageKey);
     } catch (err) {
-      console.warn("[StateStorageService] Depolama temizleme hatası:", err.message);
+      console.warn("[StateStorageService] Temizleme hatası:", err.message);
     }
     return this.getFactoryDefaults();
   }
@@ -88,11 +94,10 @@ export class StateStorageService {
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-5: JSDoc depolama ve Factory Reset servis modülü açıklaması.
-   - Satır 7: StateStorageService sınıfının dışa aktarılması.
-   - Satır 8-13: constructor; localStorage anahtar adını belirler.
-   - Satır 15-36: getFactoryDefaults; haritanın fabrika çıkışı görünüm, filtre, büyütme ve katman ayarlarını tanımlar.
-   - Satır 38-53: loadState; tarayıcı hafızasından kayıtlı kullanıcı ayarlarını okur, hata halinde varsayılana döner.
-   - Satır 55-64: saveState; aktif filtre ve katman tercihlerini kaydeder.
-   - Satır 66-75: factoryReset; sol üst ayarlar menüsündeki ilk seçenek olan Fabrika Ayarlarına Sıfırlama işlevini gerçekleştirir.
+   - Satır 1-6: JSDoc Factory ayarları, LOD render ve birim standartları servisi tanıtımı.
+   - Satır 8-14: constructor; localStorage kayıt anahtarını tanımlar.
+   - Satır 16-43: getFactoryDefaults; harita ölçeği yaklaştıkça render etme (progressiveLodRender), Litre/km-m/Saat parametreleri ve Alfa/Beta/Gama + Foton Bombardıman alanları ayarlarını içerir.
+   - Satır 45-61: loadState; tarayıcı belleğinden ayarları yükler, yoksa varsayılanı döner.
+   - Satır 63-70: saveState; aktif ayarları kaydeder.
+   - Satır 72-81: factoryReset; sol üst Ayarlar -> 1. seçenek olan Factory Reset işlemini yürütür.
    ========================================================================== */
