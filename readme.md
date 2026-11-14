@@ -34,6 +34,14 @@ AstroChief
 
 -Her sürüm değiştiğinde masaüstüne güncel sürüm yüklenmeli ve eğer işletim sistemi ne ise ona göre ya Linuxa yada Windowsa derlenmeli(test edebilmek için), derleme aracı yaz her seferinde kendin derleme.
 
+-Res isimli klasöre(eğer yok ise oluştur) resimler fotoğraflar yani içerik olan her şey oraya kaydedilicek.
+
+-Eğer bootstrap gibi bir kütüphane kullanılacak ise kütüphaneyi internetten çekmek yasak res içinden kütüphaneler kullanılabilir eğer kütüphane yoksa res klasörüne indirilebilir.
+
+-Default oalarak harita 2D başlayacak.
+
+-Herhangi bir ayar değiştiriğinde fps 10 dan aşşağı iniyor ise değiştirilen ayarın değişmesi engellenicek değiştirilmeden önceki haline gelicek.
+
 # Tasarım Kuralları
 
 -Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeneği olmalıdır.
@@ -42,7 +50,7 @@ AstroChief
 
 -Orta alanda harita olmak zorunda.
 
--Sol altta 2D görünüm, 3D görünüm için uydular paneli olacak açılan pencerede 2D 3D seçeneği asit yağmurlarını ve şiddetlerini gösteren seçenekler olacak yazılar az ve öz olsun yazının arka planında asit yağmurunda asit yağmurlu bölge footğrafı fırtınada fırtınalı bölge fotoğrafı vesaire olacak, asit yağmuru filtresi, kum yağmuru/kasırga filtresi gibi filtreler olmak zorunda.
+-Sol altta 2D görünüm, 3D görünüm için uydular paneli olacak açılan pencerede 2D 3D seçeneği asit yağmurlarını ve şiddetlerini gösteren seçenekler olacak yazılar az ve öz olsun yazının arka planında asit yağmurunda asit yağmurlu bölge footğrafı fırtınada fırtınalı bölge fotoğrafı vesaire olacak, hepsi uydular seçeneğinin içinde olmak zorunda.
 
 -Yazı fontu "Public Sans Web" ailesi,sans-serif olmalıdır
 
