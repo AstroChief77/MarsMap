@@ -143,3 +143,5 @@
 [2026-11-14 13:45:10] [BACKUP] backups/snapshot_20261114_autodeploy klasorune logs/change_log.txt ve ForAgents/FRONTEND_AGENT_NOTES.md yedeklendi.
 [2026-11-14 13:45:25] [CREATE] .gitattributes, .github/workflows/deploy-mars-web.yml, tools/server/{deploy_web_sync.sh, install_autodeploy.sh, README.md} ve api/github_webhook.php olusturuldu (GitHub main -> mars.kubitron.com otomatik web dagitim otomasyonu).
 [2026-11-14 13:45:35] [UPDATE] ForAgents/FRONTEND_AGENT_NOTES.md ve logs/change_log.txt guncellendi.
+[2026-11-14 14:00:30] [BACKUP] backups/snapshot_20261114_autodeploy2 klasorune deploy betikleri yedeklendi.
+[2026-11-14 14:00:45] [UPDATE] deploy_web_sync.sh, install_autodeploy.sh, deploy-mars-web.yml ve tools/server/README.md ozel (private) GitHub reposu Deploy Key + Protect filtreleriyle guncellendi.
