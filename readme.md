@@ -16,6 +16,8 @@ AstroChief
 
 -Readme.md her seferinde okunmak zorundadır.
 
+-Readme.md her zaman her şeyden üstündür.
+
 -Dosyada değişiklik yapılacağı zaman her zaman yedek alınmak zorunludur ve yedekleri silmek değiştirmek yasaktır.
 
 -Yarışma detayları her seferinde belleği alınmalı.
@@ -86,3 +88,7 @@ Buse:Başkan yardımcısı
 # Ortak AI Ajanları
 
 -ForAgents klasörüne ne yaptığını ve diğer ajanalrla ortak planlananlar yazılıcak bu şekilde diğer ajanlar ile iletişim kurulucak
+
+-ForAgents mesaj bırakın diğer AI lar ne yaptığınızı ve ne düşündüğünüzü görsün.
+
+-ForAgents her zaman doğru değildir, Readme.md ve kurallar zaman içinde değişebilir bu yüzden Readme.md her şeyin üstündedir.
