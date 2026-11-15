@@ -84,16 +84,39 @@ button {
 
 ::-webkit-scrollbar-track {
   background: var(--bg-offwhite);
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--line-light);
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--line-dark);
+}
+
+/* Duz Kurumsal Tasarim: Tum HUD elemanlarinda sifir border-radius ve golgesiz keskin kenarlik */
+.app-viewport button,
+.app-viewport input,
+.app-viewport select,
+.app-viewport [class*="-card"],
+.app-viewport [class*="-pill"],
+.app-viewport [class*="-btn"],
+.app-viewport [class*="-box"],
+.app-viewport [class*="-popover"],
+.app-viewport [class*="-dropdown"],
+.app-viewport [class*="-strip"],
+.app-viewport [class*="-chip"],
+.app-viewport [class*="-badge"],
+.app-viewport [class*="-modal"],
+.app-viewport [class*="-panel"],
+.app-viewport [class*="-toast"],
+.app-viewport [class*="-row"],
+.app-viewport [class*="-item"],
+.app-viewport [class*="-tag"] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 /* ==========================================================================
