@@ -42,6 +42,7 @@ AstroChief
 
 -Asit yağmuru bölgesi, fırtına bölgesi, radyasyon falan backend kısmından gelicek ona göre haritada bölgeleri çizicek.
 
+-Yazılan tüm yazılar lokalize(9 farklı dile) edilmelidir.
 # Tasarım Kuralları
 
 -Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeneği olmalıdır.
