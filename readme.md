@@ -62,6 +62,11 @@ AstroChief
 
 -Emoji kullanman yasak emoji yerine buton kullanabilirsin.
 
+-Yazılar beyaz olmak zorundadır.
+
+-Şu an var olan arka plan rengi değiştirilemez.
+
+
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
