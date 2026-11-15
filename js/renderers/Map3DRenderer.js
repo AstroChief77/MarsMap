@@ -395,12 +395,16 @@
 
         for (let it = 0; it < passes; it++) {
           const C = nx * nx + ny * ny + pivotZ * pivotZ + 2 * pivotZ * ny * sinP - rSurf * rSurf;
-          const disc = B * B - C;
-          if (disc < 0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
+          let disc = B * B - C;
+          if (disc < 0) {
+            if (!elevGrid || it > 0) return { hit: false, r2: baseR2, nx, ny, vy: 1 };
+            disc = 0;
+          }
           const zRot = -B + Math.sqrt(disc);
           const py3 = ny * cosP - zRot * sinP;
           const pz3 = pivotZ + ny * sinP + zRot * cosP;
-          x1 = nx / rSurf; y1 = py3 / rSurf; z1 = pz3 / rSurf;
+          const invR = 1.0 / (Math.hypot(nx, py3, pz3) || rSurf);
+          x1 = nx * invR; y1 = py3 * invR; z1 = pz3 * invR;
 
           const east = x1 * cosY + y1 * sinY;
           const north = -x1 * sinY + y1 * cosY;
