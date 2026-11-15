@@ -551,11 +551,22 @@
             c = cameFrom[c];
           }
           path.reverse();
+          const consumedOxy = path.length * 25;
+          const availableOxy = Math.max(0, beginOxy - consumedOxy);
+          const consumedWater = Number((consumedOxy * (2.15 / 48.0)).toFixed(2));
+          const availableWater = Number(Math.max(0, 24.0 - consumedWater).toFixed(2));
           return {
             success: true,
             cost: Math.round(gScore[goalIdx] * 10),
             distance: path.length,
-            avaible_oxy: Math.max(0, beginOxy - path.length * 20),
+            avaible_oxy: availableOxy,
+            available_oxy: availableOxy,
+            consumed_oxy: consumedOxy,
+            consumed_water_liters: consumedWater,
+            available_water_liters: availableWater,
+            estimated_water_liters: consumedWater,
+            harcanan_su: consumedWater,
+            harcanan_oksijen: consumedOxy,
             steps_count: path.length,
             path
           };
@@ -746,5 +757,5 @@
    - Satir 52-149: gridCellToGeo ve sampleMolaCorridor; antimeridyen-guvenli koridor uzerinde 5-noktali egim ve metre bazli hucre olcegi orneklemesi.
    - Satir 151-211: evaluateGridAndMasks ve buildMolaRustGrid; tehlike bitmaskesi (egim/asit/firtina/radyasyon) ve i32 izgara uretimi.
    - Satir 213-269: buildRichTerrainPayload; HTTP /api/v1/route ve Rust A* icin tam terrainGrid, metre olcegi ve yakin krater katalogu uretir.
-   - Satir 271-331: solvePathLocalAStar; file:// ortaminda WASM yuklenemezse Rust kurallariyla birebir calisan JS A* cozucusu.
+   - Satir 271-344: solvePathLocalAStar; file:// ortaminda WASM yuklenemezse Rust kurallariyla birebir calisan O2 ve su hesabi iceren JS A* cozucusu.
    ========================================================================== */

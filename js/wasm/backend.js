@@ -1,7 +1,7 @@
 /* @ts-self-types="./backend.d.ts" */
 
 /**
- * Find the optimal path using A* algorithm.
+ * Find the optimal path using A* algorithm (with default 24.0 L water reserve).
  * @param {Int32Array | number[]} grid_flat
  * @param {number} width
  * @param {number} height
@@ -33,6 +33,86 @@ export function find_rover_path(grid_flat, width, height, start_x, start_y, goal
         wasm.__wbindgen_free(deferred9_0, deferred9_1, 1);
     }
 }
+
+/**
+ * Find the optimal path with explicit initial oxygen and water reserves.
+ * @param {Int32Array | number[]} grid_flat
+ * @param {number} width
+ * @param {number} height
+ * @param {number} start_x
+ * @param {number} start_y
+ * @param {number} goal_x
+ * @param {number} goal_y
+ * @param {number} begin_oxy
+ * @param {number} begin_water
+ * @returns {string}
+ */
+export function find_rover_path_with_water(grid_flat, width, height, start_x, start_y, goal_x, goal_y, begin_oxy, begin_water) {
+    let deferred10_0;
+    let deferred10_1;
+    try {
+        const val2 = +width;
+        const val3 = +height;
+        const val4 = +start_x;
+        const val5 = +start_y;
+        const val6 = +goal_x;
+        const val7 = +goal_y;
+        const val8 = +begin_oxy;
+        const val9 = +begin_water;
+        const ptr0 = passArray32ToWasm0(grid_flat, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.find_rover_path_with_water(ptr0, len0, val2, val3, val4, val5, val6, val7, val8, val9);
+        deferred10_0 = ret[0];
+        deferred10_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred10_0, deferred10_1, 1);
+    }
+}
+
+/**
+ * WASM/HTTP giris noktasi: maliyet + rakim izgarasindan donus noktalari (JSON) uretir.
+ * @param {Float32Array | number[]} cost_flat
+ * @param {Float32Array | number[]} elev_flat
+ * @param {number} width
+ * @param {number} height
+ * @param {number} cell_km
+ * @param {number} start_x
+ * @param {number} start_y
+ * @param {number} goal_x
+ * @param {number} goal_y
+ * @returns {string}
+ */
+export function plan_cost_path(cost_flat, elev_flat, width, height, cell_km, start_x, start_y, goal_x, goal_y) {
+    let deferred10_0;
+    let deferred10_1;
+    try {
+        const val3 = +width;
+        const val4 = +height;
+        const val5 = +cell_km;
+        const val6 = +start_x;
+        const val7 = +start_y;
+        const val8 = +goal_x;
+        const val9 = +goal_y;
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passArrayF32ToWasm0(cost_flat, wasm.__wbindgen_malloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passArrayF32ToWasm0(elev_flat, wasm.__wbindgen_malloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 4, 4); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 4, 4); }
+            throw e;
+        }
+        const ret = wasm.plan_cost_path(ptr0, len0, ptr1, len1, val3, val4, val5, val6, val7, val8, val9);
+        deferred10_0 = ret[0];
+        deferred10_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred10_0, deferred10_1, 1);
+    }
+}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
@@ -49,6 +129,14 @@ function __wbg_get_imports() {
         __proto__: null,
         "./backend_bg.js": import0,
     };
+}
+
+let cachedFloat32ArrayMemory0 = null;
+function getFloat32ArrayMemory0() {
+    if (cachedFloat32ArrayMemory0 === null || cachedFloat32ArrayMemory0.byteLength === 0) {
+        cachedFloat32ArrayMemory0 = new Float32Array(wasm.memory.buffer);
+    }
+    return cachedFloat32ArrayMemory0;
 }
 
 function getStringFromWasm0(ptr, len) {
@@ -79,6 +167,13 @@ function passArray32ToWasm0(arg, malloc) {
     return ptr;
 }
 
+function passArrayF32ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 4, 4) >>> 0;
+    getFloat32ArrayMemory0().set(arg, ptr / 4);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true });
 cachedTextDecoder.decode();
 const MAX_SAFARI_DECODE_BYTES = 2146435072;
@@ -100,6 +195,7 @@ function __wbg_finalize_init(instance, module) {
     wasmInstance = instance;
     wasm = instance.exports;
     wasmModule = module;
+    cachedFloat32ArrayMemory0 = null;
     cachedUint32ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
     wasm.__wbindgen_start();
@@ -204,7 +300,7 @@ export { initSync, __wbg_init as default };
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-35: Rust find_rover_path(grid_flat, width, height, start_x, start_y, goal_x, goal_y, begin_oxy) wasm-bindgen sarmalayicisi.
-   - Satir 36-159: Wasm bellek okuma/yazma, dizi aktarimi ve runtime yardimcilari.
-   - Satir 160-202: WebAssembly modul yukleme ve eszamanli/eszamansiz init cikislari.
+   - Satir 1-105: Rust find_rover_path, find_rover_path_with_water ve plan_cost_path wasm-bindgen sarmalayicilari.
+   - Satir 106-230: Wasm bellek okuma/yazma, float/i32 dizi aktarimi ve runtime yardimcilari.
+   - Satir 231-275: WebAssembly modul yukleme ve eszamanli/eszamansiz init cikislari.
    ========================================================================== */
