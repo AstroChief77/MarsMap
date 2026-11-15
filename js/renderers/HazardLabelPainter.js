@@ -66,26 +66,40 @@
     ctx.restore();
   }
 
-  Helper.prototype.drawDangerLabel = function (ctx, px, py, labelText, accentHex = "#b8512f") {
+  Helper.prototype.drawDangerLabel = function (ctx, px, py, labelText, accentHex = "#b8512f", cloudRadiusPx = 0) {
     if (!labelText) return;
+    if (cloudRadiusPx > 0 && cloudRadiusPx < 22) return;
     ctx.save();
-    ctx.font = "700 11px 'Public Sans Web', sans-serif";
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.3px";
+    ctx.font = "700 9.5px 'Public Sans Web', sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.25px";
     const text = String(labelText).toUpperCase();
-    const iconW = 30;
-    const boxH = 30;
-    const tapeH = 4;
-    const boxW = Math.ceil(ctx.measureText(text).width + iconW + 18);
-    const gap = 28;
+    const iconW = 22;
+    const boxH = 22;
+    const tapeH = 3;
+    const boxW = Math.ceil(ctx.measureText(text).width + iconW + 14);
+    const gap = 20;
+
+    // Toz/tehlike bulutunun ekrandaki capina gore etiketi orantila
+    const s = cloudRadiusPx > 0
+      ? Math.max(0.55, Math.min(1.15, (cloudRadiusPx * 2.0) / Math.max(140, boxW)))
+      : 0.85;
+    const sw = boxW * s;
+    const sh = boxH * s;
+    const sg = gap * s;
 
     const offsets = [
-      [0, 0], [0, -24], [0, gap * 2 + boxH],
-      [-(boxW * 0.55 + 10), 0], [boxW * 0.55 + 10, 0],
-      [-(boxW * 0.55 + 10), gap * 2 + boxH], [boxW * 0.55 + 10, gap * 2 + boxH]
+      [0, 0], [0, -20 * s], [0, sg * 2 + sh],
+      [-(sw * 0.55 + 8), 0], [sw * 0.55 + 8, 0],
+      [-(sw * 0.55 + 8), sg * 2 + sh], [sw * 0.55 + 8, sg * 2 + sh]
     ];
-    const slot = this.claimLabelSlot(px - boxW / 2, py - boxH - gap, boxW, boxH, offsets, false);
+    const slot = this.claimLabelSlot(px - sw / 2, py - sh - sg, sw, sh, offsets, false);
     if (!slot.placed) { ctx.restore(); return; }
-    const { x, y } = slot;
+
+    ctx.translate(px, py);
+    ctx.scale(s, s);
+    ctx.translate(-px, -py);
+    const x = px + (slot.x - px) / s;
+    const y = py + (slot.y - py) / s;
 
     // noktadan etikete inen çizgi + hedef halkası
     const lx = Math.max(x + 6, Math.min(px, x + boxW - 6));
@@ -125,12 +139,12 @@
     ctx.strokeStyle = accentHex;
     ctx.stroke();
 
-    warnTriangle(ctx, x + iconW / 2 + 1, y + boxH / 2, 17);
+    warnTriangle(ctx, x + iconW / 2 + 1, y + boxH / 2, 12);
 
     ctx.fillStyle = "#f2ebe3";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(text, x + iconW + 6, y + boxH / 2 + 0.5);
+    ctx.fillText(text, x + iconW + 5, y + boxH / 2 + 0.5);
     ctx.restore();
   };
 })(window.AstroChief = window.AstroChief || {});

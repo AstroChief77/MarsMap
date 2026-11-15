@@ -519,7 +519,7 @@
       ctx.restore();
 
       if (labelText && px >= -140 && px <= viewW + 140 && py >= -30 && py <= viewH + 30) {
-        this.drawDangerLabel(ctx, px, py, labelText, "#8e5aa8");
+        this.drawDangerLabel(ctx, px, py, labelText, "#8e5aa8", radPx);
       }
     }
 
@@ -605,7 +605,10 @@
           if (!p) continue;
           if (mode === "3d" && (!p.visible || p.z < 0.25)) continue;
           if (p.x < -80 || p.x > viewW + 80 || p.y < -30 || p.y > viewH + 30) continue;
-          this.drawDangerLabel(ctx, p.x, p.y, z.name, accentHex);
+          const dLat = Math.max(4, z.radiusDeg || 12);
+          const edge = projFn(z.lat + (z.lat > 70 ? -dLat : dLat), z.lon);
+          const cloudRadPx = edge ? Math.hypot(edge.x - p.x, edge.y - p.y) : 80;
+          this.drawDangerLabel(ctx, p.x, p.y, z.name, accentHex, cloudRadPx);
         }
       };
 
