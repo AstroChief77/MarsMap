@@ -78,9 +78,6 @@
         onSelectGlobalScope: () => this.switchToGlobalRouteScope(),
         onSelectCrater: (craterId) => this.flyToCraterById(craterId),
         onOpenInfoModal: () => this.missionModal.open(),
-        onToggleDemo: () => {
-          window.location.href = window.location.protocol === "file:" ? "./demo/index.html" : "./demo/";
-        },
         onBackendUrlSave: (url) => this.handleBackendUrlSave(url),
         onBackendUrlTest: (url) => this.handleBackendUrlTest(url)
       });
@@ -153,7 +150,6 @@
       }
       this.refreshAll();
       this.refreshBackendHazardsAndHealth();
-      try { if (new URLSearchParams(window.location.search).get("demo") === "1") this.demoService?.startDemo(0); } catch (_e) {}
     }
 
     /** Telefon/dar ekran: O2 ve enerji girisi zorunlu degil (once gereken miktar gosterilir) */

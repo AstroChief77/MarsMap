@@ -202,7 +202,6 @@
             />
             <button type="submit" class="nav-search-btn" id="btn-nav-search">${esc(t("navSearchBtn"))}</button>
           </form>
-          <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}"><i class="bi ${demoActive ? "bi-stop-fill" : "bi-play-fill"}" aria-hidden="true"></i> ${esc(t("demoBtnLabel"))}</button>
         </nav>
       `;
 
@@ -264,9 +263,6 @@
         this.handlers.onSearchQuery?.(val);
       });
 
-      this.mountEl.querySelector("#btn-demo-mode")?.addEventListener("click", () => {
-        this.handlers.onToggleDemo?.();
-      });
 
       this.mountEl.querySelector("#btn-open-mission-modal")?.addEventListener("click", () => {
         this.close();
