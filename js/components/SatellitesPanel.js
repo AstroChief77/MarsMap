@@ -191,7 +191,6 @@
 
         <button type="button" class="sat-trigger-btn ${this.isOpen ? "open" : ""}" id="btn-satellites-toggle" aria-expanded="${this.isOpen}">
           <span class="sat-trigger-top">
-            <span class="sat-live-dot"></span>
             <span class="sat-mode-tag">${esc(modeTag)}</span>
           </span>
           <span class="sat-trigger-label">${esc(t("satTrigger"))}</span>
@@ -270,6 +269,6 @@
    --------------------------------------------------------------------------
    - Satir 1-10: JSDoc sol alt Uydular paneli ve fotograf arkaplanli secenek kurallari.
    - Satir 12-58: constructor, preloadCardImages (5 yerel resmi onbellekte dekode eder), toggleOpen (onPopoverOpen + onPanelToggle dahil) ve close.
-   - Satir 60-200: render; esc() kacisi ile kare uydu tetikleyicisini ve 2D/3D, Asit Yagmuru, Firtina, Radyasyon ve Katman kartlarini cizer.
-   - Satir 202-265: bindEvents; kart resmi tiklama/klavye (Enter/Space) gecislerini ve siddet secimlerini FPS koruma katmanina iletir.
+   - Satir 60-199: render; esc() kacisi ile kare uydu tetikleyicisini ve 2D/3D, Asit Yagmuru, Firtina, Radyasyon ve Katman kartlarini cizer.
+   - Satir 201-264: bindEvents; kart resmi tiklama/klavye (Enter/Space) gecislerini ve siddet secimlerini FPS koruma katmanina iletir.
    ========================================================================== */

@@ -537,3 +537,9 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 - css/style.css (Satir 9, 11), index.html (Satir 9) & chat/index.html (Satir 9): Degisen stil dosyalari icin onbellek kirici ?v=5.10 guncellendi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 
+[2026-11-15T07:07:00Z] style(ui): Uydular Sol Ust Kirmizi Nokta Kaldirma ve 3D Mod Etiketi Golgesiz (?v=5.11):
+- Yedek Klasoru: backups/snapshot_20261115_uydular_badge/ (css/{satellites_panel,style}.css, js/components/SatellitesPanel.js, index.html, logs/change_log.txt)
+- js/components/SatellitesPanel.js (Satir 192-198): Uydular butonunun sol ustundeki <span class="sat-live-dot"></span> kirmizi nokta ogesi kaldirildi; alt satir aciklama numaralari guncellendi.
+- css/satellites_panel.css (Satir 48-70): .sat-trigger-top hizalamasi justify-content: flex-end yapilarak 3D etiketi sag ustte korundu, .sat-live-dot kurali silindi ve .sat-mode-tag uzerindeki box-shadow/text-shadow golgeleri kaldirildi (box-shadow: none; text-shadow: none;).
+- css/style.css (Satir 12) & index.html (Satir 9, 81): Degisen satellites_panel.css ve SatellitesPanel.js icin onbellek kirici ?v=5.11 guncellendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.

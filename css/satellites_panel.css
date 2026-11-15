@@ -49,17 +49,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.sat-live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--mars-red);
-  box-shadow: 0 0 6px rgba(220, 54, 46, 0.85);
-  border: 1px solid rgba(232, 237, 245, 0.78);
-  flex-shrink: 0;
+  justify-content: flex-end;
 }
 
 .sat-mode-tag {
@@ -69,7 +59,8 @@
   border-radius: 4px;
   background: var(--mars-red);
   color: #f8fafc;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  box-shadow: none;
+  text-shadow: none;
 }
 
 .sat-trigger-label {
@@ -449,7 +440,7 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc Uydular paneli Acik Gri Studio ve fotograf arkaplanli secenek kurallari.
-   - Satir 8-77: Sol alt kare Mars fotografli 78x78 .sat-trigger-btn ("Uydular") cerceveli karesi, canli nokta ve 2D/3D mod etiketi.
+   - Satir 8-72: Sol alt kare Mars fotografli 78x78 .sat-trigger-btn ("Uydular") cerceveli karesi ve sag ustte golgesiz 2D/3D mod etiketi.
    - Satir 79-142: Acilan .sat-popover penceresi (visibility/opacity ile aninda dekode, ust barda cakismayan yukseklik) ve baslik/kapatma dugmesi.
    - Satir 144-244: Tum gorsel kartlari (.sat-photo-card) icin hafif cam kaplama, buzlu acik gri etiket haplari ve aktif vurgu.
    - Satir 246-352: Asit Yagmuru, Firtina ve Radyasyon kartlari icin ../res/images/ fotograflari, acik gri durum/siddet haplari.
