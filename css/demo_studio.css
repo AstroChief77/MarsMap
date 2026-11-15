@@ -58,7 +58,7 @@
 }
 
 .sim-brand span {
-  color: var(--mars-red);
+  color: #ffffff;
 }
 
 .sim-route-pill {
@@ -193,7 +193,7 @@
   font-size: 10.5px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: var(--mars-red);
+  color: #ffffff;
   border-bottom: 1px solid var(--line-light);
   padding-bottom: 4px;
 }

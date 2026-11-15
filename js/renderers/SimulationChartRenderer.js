@@ -58,7 +58,7 @@
         ctx.moveTo(padL, y);
         ctx.lineTo(padL + gw, y);
         ctx.stroke();
-        ctx.fillStyle = pct === 20 ? "#fca5a5" : "#94a3b8";
+        ctx.fillStyle = pct === 20 ? "#ffffff" : "#94a3b8";
         ctx.fillText(`${pct}%`, padL - 4, y);
       });
       ctx.setLineDash([]);

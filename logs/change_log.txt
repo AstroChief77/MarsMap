@@ -525,3 +525,15 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 - js/wasm/:
   * build_wasm.sh ile WASM modulu yeniden derlendi; TypeScript arayuzleri ve alt aciklama yorumlari korundu.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T06:44:00Z] style(ui): Kirmizi Yazilarin Beyaza (#ffffff) Cevrilmesi (?v=5.10):
+- Yedek Klasoru: backups/snapshot_20261115_white_text/ (css/{variables,controls,demo_studio,chat,style}.css, index.html, demo/index.html, chat/index.html, js/renderers/SimulationChartRenderer.js, logs/change_log.txt)
+- css/variables.css (Satir 32): --warn-text (#fecdd3 -> #ffffff) guncellendi; buna bagli --mars-red-ink uyari/vurgu yazilari (controls.css, demo.css, demo_studio.css, inspector.css, satellites_panel.css, MissionInfoModal.js, ResourceItem.js, TeamMember.js) beyaza donusturuldu, buton/kenarlik (--mars-red) korundu.
+- css/controls.css (Satir 131, 342, 488, 532): .factory-spec-title, .brand-tag span (ASTROCHIEF icindeki CHIEF), .zoom-btn:hover ve .zoom-btn-3d:hover yazi renkleri #ffffff yapildi.
+- css/demo_studio.css (Satir 61, 196): .sim-brand span (CHIEF) ve .sim-sec-title bolum basliklari #ffffff yapildi.
+- css/chat.css (Satir 248, 343, 382, 520, 565): .mission-message-role, .mission-chat-remove-file, .mission-chat-attach-btn:hover, .msg-role ve .remove-file-btn yazi renkleri #ffffff yapildi.
+- demo/index.html (Satir 11, 13, 146, 199): "MOLA Rakim / %20 Walkback" lejant yazisi #ffffff yapildi (kare simgesi #fca5a5 korundu); variables.css, demo_studio.css ve SimulationChartRenderer.js ?v=5.10 olarak guncellendi.
+- js/renderers/SimulationChartRenderer.js (Satir 61): Grafik Y-ekseni "20%" Walkback etiket metni #ffffff yapildi.
+- css/style.css (Satir 9, 11), index.html (Satir 9) & chat/index.html (Satir 9): Degisen stil dosyalari icin onbellek kirici ?v=5.10 guncellendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+

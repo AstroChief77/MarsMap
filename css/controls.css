@@ -128,7 +128,7 @@
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: var(--mars-red);
+  color: #ffffff;
 }
 
 .factory-spec-row {
@@ -339,7 +339,7 @@
 }
 
 .brand-tag span {
-  color: var(--mars-red);
+  color: #ffffff;
 }
 
 .nav-search-form {
@@ -485,7 +485,7 @@
 
 .zoom-btn:hover {
   background: var(--surface-control-hover);
-  color: var(--mars-red);
+  color: #ffffff;
 }
 
 .telemetry-strip {
@@ -529,7 +529,7 @@
 
 .zoom-btn-3d:hover {
   background: var(--surface-control-hover) !important;
-  color: var(--mars-red) !important;
+  color: #ffffff !important;
 }
 
 .zoom-btn-peak {
