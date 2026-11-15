@@ -659,7 +659,7 @@
         molaRangeM: corridor ? { min: Math.round(corridor.minElevM), max: Math.round(corridor.maxElevM) } : null,
         colorHex,
         label,
-        comment: `${label} · ${budget.formattedDuration} · ${Math.round(totalKm)} km`
+        comment: planner?.formatDistance ? planner.formatDistance(totalKm) : (totalKm < 1 ? `${Math.round(totalKm * 1000)} m` : `${totalKm < 10 ? totalKm.toFixed(1) : Math.round(totalKm)} km`)
       };
     }
 
@@ -771,7 +771,7 @@
         steps,
         colorHex: r.colorHex || r.color_hex || defaultColor,
         label: r.label || defaultLabel,
-        comment: r.comment || `${defaultLabel} · ${budget.formattedDuration} · ${Math.round(budget.totalKm)} km`
+        comment: planner?.formatDistance ? planner.formatDistance(budget.totalKm) : (budget.totalKm < 1 ? `${Math.round(budget.totalKm * 1000)} m` : `${budget.totalKm < 10 ? budget.totalKm.toFixed(1) : Math.round(budget.totalKm)} km`)
       };
     }
 

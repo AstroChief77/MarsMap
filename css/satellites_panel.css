@@ -397,7 +397,7 @@
 
 @media (max-width: 720px) {
   .hud-bottom-left {
-    bottom: 10px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     left: 10px;
   }
   .sat-trigger-btn {

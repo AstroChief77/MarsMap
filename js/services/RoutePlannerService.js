@@ -29,6 +29,16 @@
     }
 
     /**
+     * Mesafeyi yalnizca metre ("850 m") veya kilometre ("12.4 km" / "10835 km") olarak bicimlendirir
+     */
+    formatDistance(km) {
+      const val = Number(km) || 0;
+      if (val < 1) return `${Math.round(val * 1000)} m`;
+      if (val < 10) return `${val.toFixed(1)} km`;
+      return `${Math.round(val)} km`;
+    }
+
+    /**
      * Saati aktif dile gore "X saat Y dk" biciminde okunur metne donusturur
      */
     formatHours(totalHours) {
@@ -123,7 +133,7 @@
           steps,
           colorHex: "#2563eb",
           label: t("blueRouteTitle"),
-          comment: t("craterBlueComment", { name: crater.name, dur: budgetMetrics.formattedDuration, km: budgetMetrics.totalKm.toFixed(1) })
+          comment: this.formatDistance(budgetMetrics.totalKm)
         },
         secondaryPaleBlue: null
       };
@@ -241,7 +251,7 @@
           steps,
           colorHex: "#2563eb",
           label: t("blueRouteTitle"),
-          comment: t("globalBlueComment", { dur: budgetMetrics.formattedDuration, km: Math.round(budgetMetrics.totalKm) })
+          comment: this.formatDistance(budgetMetrics.totalKm)
         },
         secondaryPaleBlue: null
       };
