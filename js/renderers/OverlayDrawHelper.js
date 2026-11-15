@@ -116,7 +116,7 @@
         g = 188 + 44 * t;
         b = 250 + 5 * t;
       }
-      a = Math.min(0.84, 0.68 * Math.pow(clamped, 0.68) * alphaScale);
+      a = Math.min(0.52, 0.40 * Math.pow(clamped, 0.68) * alphaScale);
     } else if (kind === "storm") {
       if (clamped < 0.35) {
         const t = clamped / 0.35;
@@ -134,7 +134,7 @@
         g = 130 + 88 * t;
         b = 22 + 95 * t;
       }
-      a = Math.min(0.84, 0.66 * Math.pow(clamped, 0.68) * alphaScale);
+      a = Math.min(0.52, 0.38 * Math.pow(clamped, 0.68) * alphaScale);
     } else {
       if (clamped < 0.35) {
         const t = clamped / 0.35;
@@ -152,7 +152,7 @@
         g = 61 + 125 * t;
         b = 222 + 30 * t;
       }
-      a = Math.min(0.80, 0.62 * Math.pow(clamped, 0.70) * alphaScale);
+      a = Math.min(0.48, 0.36 * Math.pow(clamped, 0.70) * alphaScale);
     }
 
     return { r, g, b, a };
@@ -469,7 +469,7 @@
 
           if (aAcc > 0.008) {
             const o = idx << 2;
-            const aByte = Math.min(220, Math.round(aAcc * 255));
+            const aByte = Math.min(145, Math.round(aAcc * 255));
             data[o] = Math.min(255, rAcc | 0);
             data[o + 1] = Math.min(255, gAcc | 0);
             data[o + 2] = Math.min(255, bAcc | 0);
@@ -496,10 +496,10 @@
       }
 
       const lobes = [
-        { ox: 0, oy: 0, sr: 1.15, a0: 0.56 },
-        { ox: radPx * 0.36, oy: -radPx * 0.18, sr: 0.76, a0: 0.42 },
-        { ox: -radPx * 0.32, oy: radPx * 0.24, sr: 0.72, a0: 0.40 },
-        { ox: radPx * 0.14, oy: radPx * 0.34, sr: 0.64, a0: 0.34 }
+        { ox: 0, oy: 0, sr: 1.15, a0: 0.34 },
+        { ox: radPx * 0.36, oy: -radPx * 0.18, sr: 0.76, a0: 0.25 },
+        { ox: -radPx * 0.32, oy: radPx * 0.24, sr: 0.72, a0: 0.24 },
+        { ox: radPx * 0.14, oy: radPx * 0.34, sr: 0.64, a0: 0.20 }
       ];
 
       ctx.save();
