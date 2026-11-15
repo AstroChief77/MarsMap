@@ -40,7 +40,7 @@
           <div class="team-initials">${this.escapeHtml(this.initials)}</div>
           <div>
             <div style="font-size:13px;font-weight:900;">${this.escapeHtml(this.name)}</div>
-            <div style="font-size:11px;font-weight:800;color:var(--mars-red);">${this.escapeHtml(this.role)}</div>
+            <div style="font-size:11px;font-weight:800;color:var(--mars-red-ink);">${this.escapeHtml(this.role)}</div>
             <p style="font-size:11px;color:var(--ink-muted);margin-top:3px;">${this.escapeHtml(this.description)}</p>
           </div>
         </div>
@@ -55,7 +55,7 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-4: JSDoc ekip uyesi model sinifi tanimi.
-   - Satir 6-18: constructor; uye kimligi, ad, bas harfler, rol, rozet ve aciklamayi nesneye baglar.
-   - Satir 20-29: escapeHtml; XSS onlemi icin metinleri guvenli hale getirir.
-   - Satir 31-45: renderCard; harici avatar olmadan yerel rozetli HTML ekip kartini uretir.
+   - Satir 6-20: constructor; uye kimligi, ad, bas harfler, rol, rozet ve aciklamayi nesneye baglar.
+   - Satir 22-31: escapeHtml; XSS onlemi icin metinleri guvenli hale getirir.
+   - Satir 33-48: renderCard; cift kontrastli acik gri kart uzerinde rozetli HTML ekip kartini uretir.
    ========================================================================== */

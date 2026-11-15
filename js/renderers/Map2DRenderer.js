@@ -61,9 +61,9 @@
 
       this.drawVisibleTiles(ctx, activeLayerId, targetZ, ox, oy, mapW, mapH, width, height, Boolean(state.isInteracting));
 
-      // Kutup ust/alt sinir cizgileri (Acik Gri arka planda net ayrim icin ince slate cerceve)
+      // Kutup ust/alt sinir cizgileri (Orbital Kobalt arka planda net ayrim icin ince slate cerceve)
       ctx.save();
-      ctx.strokeStyle = "rgba(100, 116, 139, 0.48)";
+      ctx.strokeStyle = "rgba(148, 174, 212, 0.36)";
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       if (oy >= 0 && oy <= height) {
@@ -234,10 +234,10 @@
       ctx.save();
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
       ctx.textBaseline = "middle";
-      ctx.strokeStyle = "rgba(30, 41, 59, 0.78)";
+      ctx.strokeStyle = "rgba(9, 13, 20, 0.85)";
       ctx.lineWidth = 3;
       ctx.lineJoin = "round";
-      ctx.fillStyle = "rgba(255, 250, 244, 0.94)";
+      ctx.fillStyle = "rgba(255, 250, 244, 0.96)";
       for (const f of features) {
         const p = project2D(f.lat, f.lon);
         if (!p.visible) continue;
@@ -320,8 +320,8 @@
    --------------------------------------------------------------------------
    - Satir 1-6: JSDoc varsayilan 2D harita motoru ve 1x overdraw LOD kirpma aciklamasi.
    - Satir 12-21: constructor; MarsTileLoader, OverlayDrawHelper ve RouteCanvasRenderer baglar.
-   - Satir 26-145: render; 2D Equirectangular tuvalde HiDPI karolari, acik gri kutup cizgisi, rotalar ve cakismasiz etiketleri cizer.
+   - Satir 26-145: render; 2D Equirectangular tuvalde HiDPI karolari, yuksek kontrastli kutup sinir cizgisi, rotalar ve cakismasiz etiketleri cizer.
    - Satir 150-224: drawVisibleTiles ve drawGraticule; gorunur karolari (1x overdraw) ve enlem/boylam izgarasini cizer.
-   - Satir 226-253: drawNomenclature; cakismasiz yuva secimi ve koyu slate hale ile gezegen yer adlarini cizer.
+   - Satir 226-253: drawNomenclature; cakismasiz yuva secimi ve #090d14 hale ile gezegen yer adlarini cizer.
    - Satir 255-312: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve foton alanini cizer.
    ========================================================================== */
