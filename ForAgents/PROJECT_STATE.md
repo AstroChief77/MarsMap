@@ -143,8 +143,15 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - Göz yoran saf beyaz (`#ffffff`) ile boğucu siyah (`#020409` / `#0d131e`) yerine **kobalt gece uzayı** (`#283c5e -> #1a2842 -> #121c30`) üzerinde **orta ton buzlu titanyum/arduvaz cam** (`rgba(54, 70, 96, 0.86)`, `#3d4e6b`, `#455878`, `--ink-black: #f1f5f9`) yüzeylere geçildi (`color-scheme: dark`).
   - `OverlayDrawHelper.js`, `RouteCanvasRenderer.js`, `Map3DRenderer.js`, `SimulationChartRenderer.js` (`#25344b`), `satellites_panel.css` (ferah uydu fotoğrafları) ve `chat.css` aynı dengeli tonlarla `?v=5.7` üzerinden güncellendi; `StarfieldRenderer.js` (`?v=5.8`) arka plan kesikli yörünge halkaları kaldırıldı.
 
-## 18. Su Parametresinin Kaldırılması (`v4.7.0`, `?v=5.9`)
+## 18. Demo Sürümü Emojisiz Bootstrap Icons & Tuval Vektör Simgeleri (`v4.6.1` / `?v=5.9`)
+- **Çevrimdışı Simge Paketi (`res/bootstrap-icons/`)**:
+  - `readme.md` CDN yasağı kuralı doğrultusunda **Bootstrap Icons v1.11.3** (`bootstrap-icons.min.css`, `LICENSE`, `fonts/bootstrap-icons.{woff2,woff}`) yerel `res/bootstrap-icons/` dizinine kuruldu; çalışma zamanında dış ağ çağrısı yapılmaz (`SOURCES.md` madde 10).
+- **Demo Arayüz Emojilerinin Kaldırılması (`?v=5.9`)**:
+  - `demo/index.html`, `css/style.css`, `css/demo_studio.css`, `css/demo.css`, `DemoStudioController.js`, `DemoControlBar.js` ve `SettingsPanel.js` (`#btn-demo-mode`) üzerindeki tüm Unicode emojiler yerel Bootstrap `<i class="bi ...">` simgeleriyle ve flex/satır-içi hizalamayla değiştirildi (`version.json`: `4.6.1`).
+- **Harita Tuvali Vektör Simgeleri (`OverlayDrawHelper.js`, `Map2DRenderer.js`)**:
+  - `OverlayDrawHelper._drawPillIcon` ile tehlike hapları (`acid` damla, `storm` rüzgar çizgileri, `rad` radyasyon trefoili) ve `A`/`B` hedef etiketleri (`origin`/`dest` nişan halkası) doğrudan `<canvas>` üzerinde vektörel çizilir; tuval etiketlerindeki ve krater radyasyon etiketlerindeki emojiler temizlendi (`794` satır, `< 800` kuralı korundu).
+
+## 19. Su Parametresinin Kaldırılması (`v4.7.0`, `?v=5.9`)
 - **Yalnızca `O₂ (L)` + `Enerji (kWh)` + `Hız (km/sa)` Görev Kapısı**:
   - Kullanıcı talebi doğrultusunda su girdisi (`#inp-mission-water`, `#sim-water-inp`), zorunlu `water` doğrulama anahtarı, soğutma/içme suyu tüketim ve varış bütçesi hesaplamaları (`MissionBudgetHelper.js`, `MarsSimulationEngine.js`, `RoutePlannerService.js`, `BackendApiService.js`, `StateStorageService.js`, `AppConfig.js`), `/demo` su telemetri çubuğu ve 9 dilli (`localesMission.js`, `localesDemo.js`, `localesTrEnDe.js`, `localesFrEs.js`, `localesJaKoArHe.js`) su uyarıları kaldırıldı.
   - `.insp-param-grid` 3 sütunlu (`O₂ / Enerji / Hız`) dengeli düzene alındı; ayarlarda `Hacim & Rezerv` satırı `O₂ L / kWh` gösterir (`?v=5.9`).
-

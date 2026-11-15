@@ -3,5 +3,5 @@
   "version": "4.7.0",
   "buildDate": "2026-11-15",
   "targets": ["linux-x64", "windows-x64"],
-  "description": "NASA Space Apps 2026 - Orbital Titanium Slate (?v=5.9), Sadece O2/Enerji/Hiz On-Gorev Kapisi (Su kaldirildi), Sade Rota Paneli, Birlesik Rover+Insan Ortak Seferi, NASA GESTALT Costmap, 9 Dil, Rust WASM/HTTP A* (v4.7.0)"
+  "description": "NASA Space Apps 2026 - Orbital Titanium Slate (?v=5.9), Yerel Bootstrap Icons v1.11.3 & Tuval Vektor Simgeleri, Sadece O2/Enerji/Hiz On-Gorev Kapisi (Su kaldirildi), Sade Rota Paneli, Birlesik Rover+Insan Ortak Seferi, NASA GESTALT Costmap, 9 Dil, Rust WASM/HTTP A* (v4.7.0)"
 }

@@ -5,6 +5,10 @@
  */
 
 .nav-demo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   padding: 7px 13px;
   border-radius: var(--r-xs);
   font-size: 12.5px;
@@ -144,6 +148,10 @@
 .demo-mini-btn,
 .demo-ctrl-btn,
 .demo-veh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   border-radius: 7px;
   border: 1px solid var(--line-light);
   background: var(--surface-control);
@@ -232,6 +240,9 @@
 }
 
 .demo-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: var(--bg-soft);
   border: 1px solid var(--line-light);
   border-radius: 6px;
@@ -240,6 +251,15 @@
   font-weight: 800;
   color: var(--ink-black);
   white-space: nowrap;
+}
+
+.demo-metric-chip .bi,
+.demo-veh-btn .bi,
+.demo-ctrl-btn .bi,
+.demo-mini-btn .bi,
+.nav-demo-btn .bi {
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .demo-metric-chip.warn {
@@ -272,9 +292,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Ortak Sefer Demo Kontrol Cubugu CSS sablonu ve Acik Gri Studio tema aciklamasi.
-   - Satir 7-31: .nav-demo-btn; ust cubuktaki kirmizi/mavi-yumusak aktif Demo dugmesi.
-   - Satir 33-78: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakismasiz buzlu cam konumlandirma.
-   - Satir 80-200: .demo-panel, senaryo, birlesik Rover+Ekip / Rover+Yaya EVA mod haplari ve oynatma kontrolleri.
-   - Satir 202-264: .demo-tele-row, .demo-metric-chip (yuksek kontrastli .warn stili) ve duyarli kurallar.
+   - Satir 1-5: JSDoc Ortak Sefer Demo Kontrol Cubugu CSS sablonu ve Bootstrap Icons hizalamasi.
+   - Satir 7-35: .nav-demo-btn; ust cubuktaki Bootstrap simgeli kirmizi/mavi aktif Demo dugmesi.
+   - Satir 37-82: .demo-bar-root ve .demo-collapsed-pill; alt-orta cakismasiz buzlu cam konumlandirma.
+   - Satir 84-208: .demo-panel, senaryo, birlesik Rover+Ekip / Rover+Yaya EVA mod haplari ve oynatma kontrolleri.
+   - Satir 210-296: .demo-tele-row, .demo-metric-chip Bootstrap simge hizalamasi (.warn stili) ve duyarli kurallar.
    ========================================================================== */

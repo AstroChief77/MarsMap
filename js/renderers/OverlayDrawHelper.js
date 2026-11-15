@@ -518,38 +518,76 @@
       ctx.restore();
 
       if (labelText && px >= -140 && px <= viewW + 140 && py >= -30 && py <= viewH + 30) {
-        this.drawCompactHazardLabel(ctx, px, py, labelText, "#9333ea", false);
+        this.drawCompactHazardLabel(ctx, px, py, labelText, "#9333ea", false, "rad");
       }
     }
 
-    drawCompactHazardLabel(ctx, px, py, labelText, accentHex = "#64748b", allowFallback = false) {
+    _drawPillIcon(ctx, kind, cx, cy) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      if (kind === "acid") {
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.moveTo(0, -4.5);
+        ctx.quadraticCurveTo(3.8, 0.2, 3.0, 2.2);
+        ctx.arc(0, 1.5, 3.0, 0.25, Math.PI - 0.25);
+        ctx.closePath();
+        ctx.fill();
+      } else if (kind === "storm") {
+        ctx.strokeStyle = "#fb923c";
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-4, -2.5); ctx.lineTo(4, -2.5);
+        ctx.moveTo(-2.8, 0.2); ctx.lineTo(2.8, 0.2);
+        ctx.moveTo(-1.4, 2.9); ctx.lineTo(1.4, 2.9);
+        ctx.stroke();
+      } else if (kind === "rad") {
+        ctx.fillStyle = "#e879f9";
+        for (let i = 0; i < 3; i++) {
+          const a = (i * Math.PI * 2) / 3 - Math.PI / 2;
+          ctx.beginPath();
+          ctx.moveTo(0, 0); ctx.arc(0, 0, 4.4, a - 0.45, a + 0.45); ctx.closePath(); ctx.fill();
+        }
+        ctx.fillStyle = "#e8edf5";
+        ctx.beginPath(); ctx.arc(0, 0, 1.3, 0, Math.PI * 2); ctx.fill();
+      } else if (kind === "origin" || kind === "dest") {
+        ctx.strokeStyle = "#e8edf5";
+        ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(0, 0, 3.3, 0, Math.PI * 2); ctx.stroke();
+        if (kind === "dest") {
+          ctx.beginPath();
+          ctx.moveTo(-5, 0); ctx.lineTo(-2, 0); ctx.moveTo(2, 0); ctx.lineTo(5, 0);
+          ctx.moveTo(0, -5); ctx.lineTo(0, -2); ctx.moveTo(0, 2); ctx.lineTo(0, 5);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = "#e8edf5";
+          ctx.beginPath(); ctx.arc(0, 0, 1.4, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
+    drawCompactHazardLabel(ctx, px, py, labelText, accentHex = "#64748b", allowFallback = false, iconKind = null) {
       ctx.save();
       ctx.font = "700 10px 'Public Sans Web', sans-serif";
-      const tw = ctx.measureText(labelText).width;
-      const boxW = Math.ceil(tw + 18);
+      const iconPad = iconKind ? 12 : 0;
+      const boxW = Math.ceil(ctx.measureText(labelText).width + 18 + iconPad);
       const boxH = 19;
-      const prefX = px - boxW / 2;
-      const prefY = py - 9.5;
       const offsets = [
-        [0, 0],
-        [0, -23],
-        [0, 23],
-        [-(boxW * 0.55 + 8), -16],
-        [boxW * 0.55 + 8, -16],
-        [-(boxW * 0.55 + 8), 16],
-        [boxW * 0.55 + 8, 16]
+        [0, 0], [0, -23], [0, 23],
+        [-(boxW * 0.55 + 8), -16], [boxW * 0.55 + 8, -16],
+        [-(boxW * 0.55 + 8), 16], [boxW * 0.55 + 8, 16]
       ];
-      const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, allowFallback);
-      if (!slot.placed) {
-        ctx.restore();
-        return;
-      }
+      const slot = this.claimLabelSlot(px - boxW / 2, py - 9.5, boxW, boxH, offsets, allowFallback);
+      if (!slot.placed) { ctx.restore(); return; }
 
       this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, accentHex, false);
+      if (iconKind) this._drawPillIcon(ctx, iconKind, slot.x + 12, slot.y + boxH / 2);
       ctx.fillStyle = "#e8edf5";
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
-      ctx.fillText(labelText, slot.x + 9, slot.y + boxH / 2 + 0.5);
+      ctx.fillText(labelText, slot.x + 9 + iconPad, slot.y + boxH / 2 + 0.5);
       ctx.restore();
     }
 
@@ -559,20 +597,20 @@
     drawGlobalHazardLabels(ctx, mode, projFn, hazardBundle, zoom, viewW = 4096, viewH = 4096) {
       if (!hazardBundle) return;
       const { acidZones = [], stormZones = [], radiationZones = [] } = hazardBundle;
-      const drawLabels = (zones, prefix, accentHex, minZoom) => {
+      const drawLabels = (zones, iconKind, accentHex, minZoom) => {
         if (zoom < minZoom) return;
         for (const z of zones) {
           const p = projFn(z.lat, z.lon);
           if (!p) continue;
           if (mode === "3d" && (!p.visible || p.z < 0.25)) continue;
           if (p.x < -80 || p.x > viewW + 80 || p.y < -30 || p.y > viewH + 30) continue;
-          this.drawCompactHazardLabel(ctx, p.x, p.y, `${prefix} ${z.name}`, accentHex, false);
+          this.drawCompactHazardLabel(ctx, p.x, p.y, z.name, accentHex, false, iconKind);
         }
       };
 
-      drawLabels(acidZones, "⚗", "#0284c7", 0.85);
-      drawLabels(stormZones, "🌪", "#ea580c", 0.85);
-      drawLabels(radiationZones, "☢", "#9333ea", 0.90);
+      drawLabels(acidZones, "acid", "#0284c7", 0.85);
+      drawLabels(stormZones, "storm", "#ea580c", 0.85);
+      drawLabels(radiationZones, "rad", "#9333ea", 0.90);
     }
 
     /**
@@ -651,21 +689,15 @@
 
         ctx.save();
         ctx.font = "800 11px 'Public Sans Web', sans-serif";
-        const label = crater.id === "gale-crater" ? `★ ${crater.name}` : crater.name;
-        const lw = ctx.measureText(label).width;
-        const boxW = Math.ceil(lw + 18);
+        const label = crater.name;
+        const boxW = Math.ceil(ctx.measureText(label).width + 18);
         const boxH = 22;
         const prefX = p.x + 12;
         const prefY = p.y - 11;
         const offsets = [
-          [0, 0],
-          [0, 23],
-          [0, -23],
-          [-(boxW + 24), 0],
-          [-(boxW + 24), 23],
-          [-(boxW + 24), -23],
-          [-(boxW * 0.5 + 12), -30],
-          [-(boxW * 0.5 + 12), 20]
+          [0, 0], [0, 23], [0, -23],
+          [-(boxW + 24), 0], [-(boxW + 24), 23], [-(boxW + 24), -23],
+          [-(boxW * 0.5 + 12), -30], [-(boxW * 0.5 + 12), 20]
         ];
         const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, false);
         if (slot.placed) {
@@ -718,32 +750,23 @@
         if (p.x >= -24 && p.x <= (this._viewW || 4096) + 24 && p.y >= -24 && p.y <= (this._viewH || 4096) + 24) {
           const originLbl = ns.i18n ? ns.i18n.t("originWord") : "Konumumuz";
           const destLbl = ns.i18n ? ns.i18n.t("destWord") : "Hedef";
-          const caption = tag === "A"
-            ? `📍 ${originLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`
-            : `🎯 ${destLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
+          const caption = `${tag} · ${tag === "A" ? originLbl : destLbl} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`;
           ctx.font = "800 10px 'Public Sans Web', sans-serif";
-          const tw = ctx.measureText(caption).width;
-          const boxW = Math.ceil(tw + 16);
+          const boxW = Math.ceil(ctx.measureText(caption).width + 28);
           const boxH = 20;
-          const prefX = p.x + 15;
-          const prefY = p.y - 24;
           const offsets = [
-            [0, 0],
-            [0, -22],
-            [-(boxW + 30), 0],
-            [0, 20],
-            [-(boxW + 30), -22],
-            [-(boxW + 30), 20],
-            [-(boxW * 0.5 + 15), -38],
-            [-(boxW * 0.5 + 15), 24]
+            [0, 0], [0, -22], [-(boxW + 30), 0], [0, 20],
+            [-(boxW + 30), -22], [-(boxW + 30), 20],
+            [-(boxW * 0.5 + 15), -38], [-(boxW * 0.5 + 15), 24]
           ];
-          const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, true);
+          const slot = this.claimLabelSlot(p.x + 15, p.y - 24, boxW, boxH, offsets, true);
           if (slot.placed) {
             this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, bgHex, true);
+            this._drawPillIcon(ctx, tag === "A" ? "origin" : "dest", slot.x + 12, slot.y + boxH / 2);
             ctx.fillStyle = "#e8edf5";
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
-            ctx.fillText(caption, slot.x + 9, slot.y + boxH / 2 + 0.5);
+            ctx.fillText(caption, slot.x + 21, slot.y + boxH / 2 + 0.5);
           }
         }
         ctx.restore();
@@ -763,9 +786,8 @@
    - Satir 1-14: JSDoc ve 1024x512 kuresel organik isi haritasi (heatmap) boyut sabitleri.
    - Satir 17-159: getSphereLookup, buildOrganicLobes ve sampleHeatmapColor; kuresel birim vektor
      uzerinde dairesel olmayan cok-loblu Asit (Mavi), Firtina (Kizil-Altin) ve Radyasyon (Mor) isi haritasi rampalarini hesaplar.
-   - Satir 161-278: beginLabelFrame, isPointInAvoidRect, claimLabelSlot (HUD kenar itme dahil) ve drawRoundedPill; harita etiketlerini cakismasiz Acik Gri haplar olarak konumlandirir.
-   - Satir 280-445: projectToSphere ve getGlobalHeatmapAtlas; 3D kamera projeksiyonu ile 1024x512 tehlike isi haritasi dokusunu onbellekler.
-   - Satir 447-598: drawLocalHeatmapPlume, drawCompactHazardLabel, drawGlobalHazardLabels ve drawGlobalHazards; isi haritalari ve acik gri tehlike etiketlerini cizer.
-   - Satir 600-758: drawMarkers ve drawCustomEndpoints; NASA inis sahalari, kraterler ve A/B noktalarini HUD/pin cakismasi olmadan Acik Gri hap etiketleriyle cizer.
+   - Satir 161-278: beginLabelFrame, isPointInAvoidRect, claimLabelSlot (HUD kenar itme dahil) ve drawRoundedPill; harita etiketlerini cakismasiz konumlandirir.
+   - Satir 280-487: projectToSphere ve getGlobalHeatmapAtlas; 3D kamera projeksiyonu ile 1024x512 tehlike isi haritasi dokusunu onbellekler.
+   - Satir 489-610: drawLocalHeatmapPlume, _drawPillIcon (vektor simge cizimi), drawCompactHazardLabel, drawGlobalHazardLabels ve drawGlobalHazards.
+   - Satir 612-768: drawMarkers ve drawCustomEndpoints; NASA inis sahalari, kraterler ve A/B noktalarini vektor simgeli hap etiketleriyle cizer.
    ========================================================================== */
-

@@ -444,8 +444,8 @@
             <div class="sim-arr-row"><span>Ortalama Hız:</span><strong>${sum.avgSpeedKmH} km/sa (${sum.speedMPerMin} m/dk)</strong></div>
             <div class="sim-arr-row"><span>O₂ Bütçesi:</span><strong>%${sum.startO2Pct} (${sum.startO2L} L) → ${Math.round(sum.finalO2L)} L (%${sum.finalO2Pct})</strong></div>
             <div class="sim-arr-row"><span>Enerji Bütçesi:</span><strong>%${sum.startEnergyPct} (${sum.startEnergyKwh} kWh) → ${sum.finalEnergyKwh.toFixed(1)} kWh (%${sum.finalEnergyPct})</strong></div>
-            ${sum.walkbackBreach ? `<div class="sim-arr-warn">⚠ KRİTİK: Varışta O₂ %20 Walkback eşiğinin altında!</div>` : ""}
-            ${sum.batteryBreach ? `<div class="sim-arr-warn">⚡ UYARI: Varışta batarya %35 sınırının altında!</div>` : ""}
+            ${sum.walkbackBreach ? `<div class="sim-arr-warn"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> KRİTİK: Varışta O₂ %20 Walkback eşiğinin altında!</div>` : ""}
+            ${sum.batteryBreach ? `<div class="sim-arr-warn"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> UYARI: Varışta batarya %35 sınırının altında!</div>` : ""}
           `;
         }
       } else {
@@ -478,7 +478,11 @@
 
     syncPlayButton() {
       const btn = document.getElementById("sim-btn-play");
-      if (btn) btn.textContent = this.playing ? "⏸ Duraklat" : "▶ Başlat";
+      if (btn) {
+        btn.innerHTML = this.playing
+          ? '<i class="bi bi-pause-fill" aria-hidden="true"></i> Duraklat'
+          : '<i class="bi bi-play-fill" aria-hidden="true"></i> Başlat';
+      }
     }
 
     syncInputsFromState() {
@@ -660,7 +664,9 @@
     updateLatencyUi() {
       const el = document.getElementById("sim-latency-pill");
       if (!el) return;
-      el.textContent = typeof this.backendLatencyMs === "number" ? `🦀 ${this.backendLatencyMs} ms` : "🦀 Yerel A*";
+      el.innerHTML = typeof this.backendLatencyMs === "number"
+        ? `<i class="bi bi-cpu-fill" aria-hidden="true"></i> ${Number(this.backendLatencyMs)} ms`
+        : '<i class="bi bi-cpu-fill" aria-hidden="true"></i> Yerel A*';
     }
 
     bindCanvasEvents() {
@@ -756,6 +762,6 @@
    - Satir 82-175: init, presets() delegasyonu, validateParamsGate ve applyGateUi; zorunlu O2/Batarya/Su girilmeden rota ve yolculugu kilitleyen kapi mekanizmasi.
    - Satir 177-285: applyPreset, recomputeRouteAndTimeline ve rebuildTimelineOnly; Ortak Rover+Insan sefer rotasi ve zaman serisi hesabi.
    - Satir 287-415: startLoop, _runLoopRaf, drawMap, computeUiAvoidRects ve requestTiles; canli Rover+Ekip / Rover+Yaya EVA cizimi ile 2D/3D harita guncellemesi.
-   - Satir 417-540: renderTelemetryAndChart ve syncInputsFromState; varis ozeti (dk, sa, km/sa, m/dk, %O2, %Enerji, Walkback) ve grafik akisi.
-   - Satir 542-755: bindControls, startLatencyMonitor, bindCanvasEvents ve resizeCanvas; parametre olaylari, 5 sn Rust ping, surukleme (computePanStep) ve imlece odakli tekerlek zoom kontrolu.
+   - Satir 417-545: renderTelemetryAndChart, syncPlayButton (Bootstrap play/pause) ve syncInputsFromState; varis ozeti ve uyari simgeleri.
+   - Satir 547-765: bindControls, startLatencyMonitor, updateLatencyUi (Bootstrap CPU simgesi), bindCanvasEvents ve resizeCanvas.
    ========================================================================== */
