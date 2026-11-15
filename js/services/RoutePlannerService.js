@@ -29,11 +29,11 @@
     }
 
     /**
-     * Mesafeyi yalnizca metre ("850 m") veya kilometre ("12.4 km" / "10835 km") olarak bicimlendirir
+     * Mesafeyi yalnizca kilometre ("0.85 km" / "4.2 km" / "10835 km") olarak bicimlendirir
      */
     formatDistance(km) {
       const val = Number(km) || 0;
-      if (val < 1) return `${Math.round(val * 1000)} m`;
+      if (val < 1) return `${val.toFixed(2)} km`;
       if (val < 10) return `${val.toFixed(1)} km`;
       return `${Math.round(val)} km`;
     }

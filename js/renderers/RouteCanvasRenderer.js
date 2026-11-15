@@ -48,30 +48,23 @@
     }
 
     drawRoundedBox(ctx, bx, by, boxW, boxH, textOrLines, accentHex, labelHelper = null) {
-      if (labelHelper && typeof labelHelper.drawRoundedPill === "function") {
-        labelHelper.drawRoundedPill(ctx, bx, by, boxW, boxH, 7, accentHex, true);
-      } else {
-        ctx.save();
-        ctx.fillStyle = "rgba(54, 70, 96, 0.90)";
-        ctx.fillRect(bx, by, boxW, boxH);
-        ctx.fillStyle = accentHex;
-        ctx.fillRect(bx, by, 3.5, boxH);
-        ctx.strokeStyle = accentHex;
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(bx, by, boxW, boxH);
-        ctx.restore();
-      }
       ctx.save();
-      ctx.font = "800 10px 'Public Sans Web', sans-serif";
-      ctx.fillStyle = "#e8edf5";
+      ctx.font = "800 11px 'Public Sans Web', sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(10, 15, 28, 0.88)";
+      ctx.lineWidth = 3;
+      ctx.fillStyle = "#f8fafc";
       const lines = Array.isArray(textOrLines) ? textOrLines : [textOrLines];
       if (lines.length >= 2) {
-        ctx.fillText(lines[0], bx + 10, by + 11.5);
-        ctx.fillText(lines[1], bx + 10, by + 24.5);
+        ctx.strokeText(lines[0], bx + 6, by + 11.5);
+        ctx.fillText(lines[0], bx + 6, by + 11.5);
+        ctx.strokeText(lines[1], bx + 6, by + 24.5);
+        ctx.fillText(lines[1], bx + 6, by + 24.5);
       } else {
-        ctx.fillText(lines[0], bx + 10, by + boxH / 2 + 0.5);
+        ctx.strokeText(lines[0], bx + 6, by + boxH / 2 + 0.5);
+        ctx.fillText(lines[0], bx + 6, by + boxH / 2 + 0.5);
       }
       ctx.restore();
     }
