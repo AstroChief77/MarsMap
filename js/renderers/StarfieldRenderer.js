@@ -1,7 +1,7 @@
 /**
  * @file StarfieldRenderer.js
  * @description Sifir GPU bogulmasi (zero compositor overhead) icin on-tuval (offscreen) onbellekli
- * Acik Gri Studio radyal arka plan, ince yorunge halkalari ve mikroyildiz arka plan motoru.
+ * kobalt gece uzayi arka plani ve sade mikroyildiz arka plan motoru.
  */
 
 (function (ns) {
@@ -40,7 +40,7 @@
       this.canvas.height = h;
       this.baseCanvas.width = w;
       this.baseCanvas.height = h;
-      this.generateStars(190);
+      this.generateStars(320);
       this.bakeBaseLayer();
       this.drawFrame();
     }
@@ -48,12 +48,20 @@
     drawBackdropGradient(ctx, w, h) {
       const cx = w * 0.5;
       const cy = h * 0.48;
-      const maxR = Math.max(w, h) * 0.72;
-      const grad = ctx.createRadialGradient(cx, cy, maxR * 0.06, cx, cy, maxR);
-      grad.addColorStop(0.0, "#edf0f5");
-      grad.addColorStop(0.58, "#dfe4ec");
-      grad.addColorStop(1.0, "#cfd7e3");
+      const maxR = Math.max(w, h) * 0.78;
+      const grad = ctx.createRadialGradient(cx, cy, maxR * 0.05, cx, cy, maxR);
+      grad.addColorStop(0.0, "#283c5e");
+      grad.addColorStop(0.55, "#1a2842");
+      grad.addColorStop(1.0, "#121c30");
       ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Ferah kobalt gece uzayi atmosfer ve nebula pariltisi (offscreen tuvale tek seferlik cizilir)
+      const marsGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.65);
+      marsGlow.addColorStop(0.0, "rgba(225, 102, 54, 0.16)");
+      marsGlow.addColorStop(0.55, "rgba(96, 165, 250, 0.10)");
+      marsGlow.addColorStop(1.0, "rgba(18, 28, 48, 0)");
+      ctx.fillStyle = marsGlow;
       ctx.fillRect(0, 0, w, h);
     }
 
@@ -93,17 +101,17 @@
       this.twinkleStars = [];
       const w = this.canvas.width || 1280;
       const h = this.canvas.height || 720;
-      const palette = ["#ffffff", "#ffffff", "#94a3b8", "#64748b", "#cbd5e1"];
+      const palette = ["#ffffff", "#ffffff", "#e2e8f0", "#bae6fd", "#fed7aa", "#93c5fd"];
       for (let i = 0; i < count; i++) {
         const star = {
           x: (Math.random() * w) | 0,
           y: (Math.random() * h) | 0,
-          s: Math.random() > 0.80 ? 2 : 1,
-          a: Math.random() * 0.45 + 0.22,
+          s: Math.random() > 0.84 ? 2 : 1,
+          a: Math.random() * 0.55 + 0.35,
           da: (Math.random() * 0.03 + 0.01) * (Math.random() > 0.5 ? 1 : -1),
           color: palette[i % palette.length]
         };
-        if (i < 34) this.twinkleStars.push(star);
+        if (i < 48) this.twinkleStars.push(star);
         else this.stars.push(star);
       }
     }
@@ -114,32 +122,6 @@
       const w = this.baseCanvas.width;
       const h = this.baseCanvas.height;
       this.drawBackdropGradient(ctx, w, h);
-
-      // Ince telemetri yorunge halkalari ve eksen cizgileri
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const baseR = Math.min(w, h) * 0.44;
-      ctx.save();
-      ctx.strokeStyle = "rgba(100, 116, 139, 0.11)";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 6]);
-      [1.04, 1.24, 1.48].forEach((mult) => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, baseR * mult, 0, Math.PI * 2);
-        ctx.stroke();
-      });
-      ctx.setLineDash([]);
-      ctx.strokeStyle = "rgba(100, 116, 139, 0.08)";
-      for (let deg = 0; deg < 360; deg += 45) {
-        const rad = (deg * Math.PI) / 180;
-        const r0 = baseR * 1.03;
-        const r1 = baseR * 1.08;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(rad) * r0, cy + Math.sin(rad) * r0);
-        ctx.lineTo(cx + Math.cos(rad) * r1, cy + Math.sin(rad) * r1);
-        ctx.stroke();
-      }
-      ctx.restore();
 
       for (const s of this.stars) {
         ctx.globalAlpha = s.a;
@@ -196,9 +178,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Acik Gri Studio arka plan, ince yorunge halkalari ve mikroyildiz motoru tanimi.
-   - Satir 10-69: constructor, init, resize, drawBackdropGradient ve setEnabled; acik gri radyal gecis zeminini uretir.
-   - Satir 71-147: generateStars, bakeBaseLayer ve drawFrame; yorunge halkalari ve 190 noktali acik gri yildiz izgarasini cizer.
-   - Satir 149-189: startLoop ve destroy; surukleme sirasinda CPU/GPU kullanimini duraklatir.
+   - Satir 1-5: JSDoc Orbital Titanium kobalt gece uzayi arka plani ve sade mikroyildiz motoru tanimi.
+   - Satir 10-69: constructor, init, resize, drawBackdropGradient ve setEnabled; #283c5e -> #121c30 kobalt gece uzayi zeminini uretir.
+   - Satir 71-132: generateStars, bakeBaseLayer ve drawFrame; sirali kesikli cizgiler olmadan temiz yildiz zeminini cizer.
+   - Satir 134-174: startLoop ve destroy; surukleme sirasinda CPU/GPU kullanimini duraklatir.
    ========================================================================== */
 

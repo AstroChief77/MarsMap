@@ -128,3 +128,19 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - Başlangıç `O₂ (L)`, `Enerji (kWh)` ve `Su (L)` değerleri varsayılan `null`/boş başlar; pozitif değerler girilmeden rota hesaplama, senaryo/oynatma başlatma ve zaman kaydırma engellenir.
   - Varış özetleri dakika/saat, hız (`km/sa` + `m/dk`), başlangıç `% + L` → varış `L + %` oksijen/enerji bütçesi, su rezervi ve `< %20` O₂ Walkback / `< %35` Batarya uyarılarını gösterir; `#insp-latency-pill-card` ile Sol 2031 durak kartı ve Açık Gri Stüdyo kontrast uyumu (`?v=4.6`) tamamlandı.
 
+## 15. Sadeleştirilmiş Sağ Üst Rota Paneli (`?v=4.8`)
+- **`RouteInspectorPanel.js`, `css/inspector.css`, `BackendApiService.js`, `data/i18n/*.js`**:
+  - Tek satırlı aç/kapa düğmesi, tek satırlı `Konum → Hedef` başlığı, çift koordinat tekrarsız hedef listesi + `📍 Harita`, kompakt 2×2 `O₂ / Enerji / Su / Hız` girişleri ve yalnızca `Rotayı Hesapla` tıklanınca açılan kapı uyarısı uygulandı.
+  - Boş bekleme kutusu, `KÜRESEL ROTA` / `🦀 Rust Backend` / `⏱ ms` rozetleri ve adım içi `(x, y)` / `MOLA` / `Δz=` geliştirici metinleri kaldırıldı; sonuçlar 3'lü KPI (`Süre`, `Kalan O₂`, `Kalan Enerji`) ve varsayılan kapalı `<details>` (`Adımlar`, `Radyasyon`, krater içi `EVA Durakları`) içine alındı.
+  - İkinci sadeleştirme (`?v=4.9`): kart içindeki tüm iç kutucuklar, `%100` rozetleri ve akordeon çerçeveleri kaldırılarak 4 girişli tek satır mikro ızgara, düz hero özet satırı, `Başlat + ↻` aksiyon satırı ve metin tabanlı isteğe bağlı çekmece düzenine (`286px`) geçildi; harita üzerindeki rota etiketinden geliştirici motor adı kaldırıldı.
+
+## 16. `marsmap.wiki` Canlı VPS Dağıtımı & SSH Takma Adı
+- **SSH Yapılandırması (`~/.ssh/config`)**: Diğer sohbetlerin doğrudan bağlanabilmesi için `C:\Users\nasaapp\.ssh\config` içine `Host marsmap.wiki` ve `Host 20.102.97.92` tanımları eklendi (`User Adminstrator`, `IdentityFile ~/.ssh/id_ed25519`).
+- **Web Kök Dizini**: `/var/www/marsmap.wiki` (`www-data:www-data`). Windows PowerShell'de `tar | ssh` borusu ikili akışı bozduğu için `tar -czf` ile arşivi oluşturup `scp` ile `/tmp/`'e aktarıp sunucuda `sudo tar -xzf ... -C /var/www/marsmap.wiki` ile açmak gerekir.
+
+## 17. Orbital Titanium Slate Teması (`?v=5.7`)
+- **Dengeli Kobalt Uzay & Buzlu Titanyum Cam Arayüz (`css/variables.css`, CSS ve Canvas Renderer katmanı)**:
+  - Göz yoran saf beyaz (`#ffffff`) ile boğucu siyah (`#020409` / `#0d131e`) yerine **kobalt gece uzayı** (`#283c5e -> #1a2842 -> #121c30`) üzerinde **orta ton buzlu titanyum/arduvaz cam** (`rgba(54, 70, 96, 0.86)`, `#3d4e6b`, `#455878`, `--ink-black: #f1f5f9`) yüzeylere geçildi (`color-scheme: dark`).
+  - `OverlayDrawHelper.js`, `RouteCanvasRenderer.js`, `Map3DRenderer.js`, `SimulationChartRenderer.js` (`#25344b`), `satellites_panel.css` (ferah uydu fotoğrafları) ve `chat.css` aynı dengeli tonlarla `?v=5.7` üzerinden güncellendi.
+
+

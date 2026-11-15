@@ -1,0 +1,826 @@
+{
+  "total_commits": 99,
+  "hotspots": [
+    {
+      "path": "logs/change_log.txt",
+      "commits": 47,
+      "fix_or_revert": 10,
+      "merges": 0,
+      "added": 555,
+      "deleted": 40,
+      "churn_pct": 7.2,
+      "recent": [
+        [
+          "2789bff",
+          "fix",
+          "fix(zoom): add cursor-anchored 2D/3D wheel zoom on main map and /demo"
+        ],
+        [
+          "4d45122",
+          "feat",
+          "feat(backend-api): send 48x48 MOLA DEM grid, slopes, crater catalog & Prameters.md physics to backend"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ]
+      ]
+    },
+    {
+      "path": "index.html",
+      "commits": 32,
+      "fix_or_revert": 10,
+      "merges": 0,
+      "added": 801,
+      "deleted": 693,
+      "churn_pct": 86.5,
+      "recent": [
+        [
+          "4c02347",
+          "feat",
+          "feat(ui): dark cosmic Mars redesign, top search+coords, 0deg 3D, square sat button, compact route panel & progressive tile load"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ],
+        [
+          "82bddf1",
+          "revert/remove",
+          "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings"
+        ]
+      ]
+    },
+    {
+      "path": "js/components/MarsNavigatorController.js",
+      "commits": 23,
+      "fix_or_revert": 9,
+      "merges": 0,
+      "added": 1782,
+      "deleted": 952,
+      "churn_pct": 53.4,
+      "recent": [
+        [
+          "4c02347",
+          "feat",
+          "feat(ui): dark cosmic Mars redesign, top search+coords, 0deg 3D, square sat button, compact route panel & progressive tile load"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ],
+        [
+          "82bddf1",
+          "revert/remove",
+          "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings"
+        ]
+      ]
+    },
+    {
+      "path": "js/renderers/Map3DRenderer.js",
+      "commits": 22,
+      "fix_or_revert": 8,
+      "merges": 0,
+      "added": 1778,
+      "deleted": 1237,
+      "churn_pct": 69.6,
+      "recent": [
+        [
+          "a72a78e",
+          "feat",
+          "feat(v4.3): wire NASA MOLA DEM, hazards & O2 into rebuilt 8-arg Rust WASM + 3D heatmaps + 10249-tile manifest"
+        ],
+        [
+          "75cec41",
+          "ci/deploy",
+          "feat(v4.3.0): add dedicated /demo survival simulation studio and web deploy routes"
+        ],
+        [
+          "4c02347",
+          "feat",
+          "feat(ui): dark cosmic Mars redesign, top search+coords, 0deg 3D, square sat button, compact route panel & progressive tile load"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ]
+      ]
+    },
+    {
+      "path": "dist/linux/AstroChief-MarsMap-linux/index.html",
+      "commits": 21,
+      "fix_or_revert": 7,
+      "merges": 0,
+      "added": 510,
+      "deleted": 505,
+      "churn_pct": 99.0,
+      "recent": [
+        [
+          "9611edc",
+          "feat",
+          "feat(heatmap): glue organic non-circular hazard heatmaps to 3D sphere (acid rain in blue, low transparency)"
+        ],
+        [
+          "c7ed976",
+          "fix",
+          "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "dist/windows/AstroChief-MarsMap-win64/index.html",
+      "commits": 21,
+      "fix_or_revert": 7,
+      "merges": 0,
+      "added": 510,
+      "deleted": 505,
+      "churn_pct": 99.0,
+      "recent": [
+        [
+          "9611edc",
+          "feat",
+          "feat(heatmap): glue organic non-circular hazard heatmaps to 3D sphere (acid rain in blue, low transparency)"
+        ],
+        [
+          "c7ed976",
+          "fix",
+          "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt",
+      "commits": 21,
+      "fix_or_revert": 5,
+      "merges": 0,
+      "added": 939,
+      "deleted": 936,
+      "churn_pct": 99.7,
+      "recent": [
+        [
+          "9fb4063",
+          "perf",
+          "Yakinlastirma siniri 80x ve 3D render hiz optimizasyonu (v3.6)"
+        ],
+        [
+          "f0cc2d3",
+          "refactor/cleanup",
+          "feat(ui): make Uydular image cards directly clickable with RTL/a11y fixes & split Map3DFallbackRenderer (v3.9)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "readme.md",
+      "commits": 30,
+      "fix_or_revert": 0,
+      "merges": 0,
+      "added": 181,
+      "deleted": 101,
+      "churn_pct": 55.8,
+      "recent": [
+        [
+          "8d7917f",
+          "docs",
+          "Update readme.md"
+        ],
+        [
+          "f689933",
+          "docs",
+          "Update readme.md"
+        ],
+        [
+          "d1e2869",
+          "docs",
+          "Update readme.md"
+        ],
+        [
+          "b34986f",
+          "docs",
+          "Update readme.md"
+        ]
+      ]
+    },
+    {
+      "path": "dist/linux/AstroChief-MarsMap-linux/js/renderers/Map3DRenderer.js",
+      "commits": 15,
+      "fix_or_revert": 7,
+      "merges": 0,
+      "added": 1602,
+      "deleted": 1601,
+      "churn_pct": 99.9,
+      "recent": [
+        [
+          "9611edc",
+          "feat",
+          "feat(heatmap): glue organic non-circular hazard heatmaps to 3D sphere (acid rain in blue, low transparency)"
+        ],
+        [
+          "c7ed976",
+          "fix",
+          "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "dist/windows/AstroChief-MarsMap-win64/js/renderers/Map3DRenderer.js",
+      "commits": 15,
+      "fix_or_revert": 7,
+      "merges": 0,
+      "added": 1602,
+      "deleted": 1601,
+      "churn_pct": 99.9,
+      "recent": [
+        [
+          "9611edc",
+          "feat",
+          "feat(heatmap): glue organic non-circular hazard heatmaps to 3D sphere (acid rain in blue, low transparency)"
+        ],
+        [
+          "c7ed976",
+          "fix",
+          "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "dist/linux/AstroChief-MarsMap-linux/js/components/MarsNavigatorController.js",
+      "commits": 16,
+      "fix_or_revert": 6,
+      "merges": 0,
+      "added": 1437,
+      "deleted": 1437,
+      "churn_pct": 100.0,
+      "recent": [
+        [
+          "f0cc2d3",
+          "refactor/cleanup",
+          "feat(ui): make Uydular image cards directly clickable with RTL/a11y fixes & split Map3DFallbackRenderer (v3.9)"
+        ],
+        [
+          "c7ed976",
+          "fix",
+          "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "dist/windows/AstroChief-MarsMap-win64/js/components/MarsNavigatorController.js",
+      "commits": 16,
+      "fix_or_revert": 6,
+      "merges": 0,
+      "added": 1437,
+      "deleted": 1437,
+      "churn_pct": 100.0,
+      "recent": [
+        [
+          "f0cc2d3",
+          "refactor/cleanup",
+          "feat(ui): make Uydular image cards directly clickable with RTL/a11y fixes & split Map3DFallbackRenderer (v3.9)"
+        ],
+        [
+          "c7ed976",
+          "fix",
+          "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    },
+    {
+      "path": "ForAgents/PROJECT_STATE.md",
+      "commits": 15,
+      "fix_or_revert": 5,
+      "merges": 0,
+      "added": 174,
+      "deleted": 42,
+      "churn_pct": 24.1,
+      "recent": [
+        [
+          "2789bff",
+          "fix",
+          "fix(zoom): add cursor-anchored 2D/3D wheel zoom on main map and /demo"
+        ],
+        [
+          "4d45122",
+          "feat",
+          "feat(backend-api): send 48x48 MOLA DEM grid, slopes, crater catalog & Prameters.md physics to backend"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ]
+      ]
+    },
+    {
+      "path": "js/services/BackendApiService.js",
+      "commits": 12,
+      "fix_or_revert": 4,
+      "merges": 0,
+      "added": 1559,
+      "deleted": 568,
+      "churn_pct": 36.4,
+      "recent": [
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ],
+        [
+          "4d45122",
+          "feat",
+          "feat(backend-api): send 48x48 MOLA DEM grid, slopes, crater catalog & Prameters.md physics to backend"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "82bddf1",
+          "revert/remove",
+          "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings"
+        ]
+      ]
+    },
+    {
+      "path": "dist/windows/AstroChief-MarsMap-win64/MarsMap-win64.exe",
+      "commits": 16,
+      "fix_or_revert": 2,
+      "merges": 0,
+      "added": 0,
+      "deleted": 0,
+      "churn_pct": 0.0,
+      "recent": [
+        [
+          "48d2fd5",
+          "fix",
+          "3D kamera egimi (Pitch/Yaw) sag tik orbit dondurme duzeltmesi (v3.4)"
+        ],
+        [
+          "7ead6e8",
+          "fix",
+          "3D aci (camYaw) degiskenken surukleme yonu duzeltildi (v3.5)"
+        ],
+        [
+          "9fb4063",
+          "perf",
+          "Yakinlastirma siniri 80x ve 3D render hiz optimizasyonu (v3.6)"
+        ],
+        [
+          "f0cc2d3",
+          "refactor/cleanup",
+          "feat(ui): make Uydular image cards directly clickable with RTL/a11y fixes & split Map3DFallbackRenderer (v3.9)"
+        ]
+      ]
+    },
+    {
+      "path": "css/controls.css",
+      "commits": 11,
+      "fix_or_revert": 4,
+      "merges": 0,
+      "added": 824,
+      "deleted": 202,
+      "churn_pct": 24.5,
+      "recent": [
+        [
+          "4c02347",
+          "feat",
+          "feat(ui): dark cosmic Mars redesign, top search+coords, 0deg 3D, square sat button, compact route panel & progressive tile load"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ],
+        [
+          "82bddf1",
+          "revert/remove",
+          "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings"
+        ]
+      ]
+    },
+    {
+      "path": "js/renderers/Map2DRenderer.js",
+      "commits": 11,
+      "fix_or_revert": 4,
+      "merges": 0,
+      "added": 413,
+      "deleted": 83,
+      "churn_pct": 20.1,
+      "recent": [
+        [
+          "c8382c9",
+          "revert/remove",
+          "feat(route): remove alternative pale-blue route and keep single primary route only (v3.9)"
+        ],
+        [
+          "9611edc",
+          "feat",
+          "feat(heatmap): glue organic non-circular hazard heatmaps to 3D sphere (acid rain in blue, low transparency)"
+        ],
+        [
+          "75cec41",
+          "ci/deploy",
+          "feat(v4.3.0): add dedicated /demo survival simulation studio and web deploy routes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ]
+      ]
+    },
+    {
+      "path": "js/components/RouteInspectorPanel.js",
+      "commits": 12,
+      "fix_or_revert": 3,
+      "merges": 0,
+      "added": 1002,
+      "deleted": 554,
+      "churn_pct": 55.3,
+      "recent": [
+        [
+          "4c02347",
+          "feat",
+          "feat(ui): dark cosmic Mars redesign, top search+coords, 0deg 3D, square sat button, compact route panel & progressive tile load"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ],
+        [
+          "82bddf1",
+          "revert/remove",
+          "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings"
+        ]
+      ]
+    },
+    {
+      "path": "js/components/SettingsPanel.js",
+      "commits": 11,
+      "fix_or_revert": 3,
+      "merges": 0,
+      "added": 401,
+      "deleted": 137,
+      "churn_pct": 34.2,
+      "recent": [
+        [
+          "4c02347",
+          "feat",
+          "feat(ui): dark cosmic Mars redesign, top search+coords, 0deg 3D, square sat button, compact route panel & progressive tile load"
+        ],
+        [
+          "b563c16",
+          "revert/remove",
+          "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes"
+        ],
+        [
+          "9670528",
+          "feat",
+          "feat(ui): v4.4.0 Light Gray Studio theme, 4c02347 merge & HUD/route polish"
+        ],
+        [
+          "82bddf1",
+          "revert/remove",
+          "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings"
+        ]
+      ]
+    },
+    {
+      "path": "dist/linux/AstroChief-MarsMap-linux/ForAgents/PROJECT_STATE.md",
+      "commits": 9,
+      "fix_or_revert": 4,
+      "merges": 0,
+      "added": 107,
+      "deleted": 115,
+      "churn_pct": 107.5,
+      "recent": [
+        [
+          "48d2fd5",
+          "fix",
+          "3D kamera egimi (Pitch/Yaw) sag tik orbit dondurme duzeltmesi (v3.4)"
+        ],
+        [
+          "f0cc2d3",
+          "refactor/cleanup",
+          "feat(ui): make Uydular image cards directly clickable with RTL/a11y fixes & split Map3DFallbackRenderer (v3.9)"
+        ],
+        [
+          "8036f9e",
+          "docs",
+          "v3.9.0: Resolve all rapor.md security, tile manifest, 3D raycast, i18n, and backend findings"
+        ],
+        [
+          "cb04871",
+          "fix",
+          "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups"
+        ]
+      ]
+    }
+  ],
+  "reversals": [
+    {
+      "sha": "510ed1a",
+      "date": "2026-11-14 13:11:46",
+      "kind": "fix",
+      "subject": "Fix map pixelation and zoom freeze with HiDPI LOD tiles and coalesced rendering",
+      "overlaps": "e804256 (ForAgents/PROJECT_STATE.md, dist/AstroChief-MarsMap-v3.0.0-linux.tar.gz), e058d7f (dist/AstroChief-MarsMap-v3.0.0-linux.tar.gz, dist/AstroChief-MarsMap-v3.0.0-windows.zip), 91d112e (dist/AstroChief-MarsMap-v3.0.0-linux.tar.gz, dist/AstroChief-MarsMap-v3.0.0-windows.zip)",
+      "diff": "+6835/-1584"
+    },
+    {
+      "sha": "3221338",
+      "date": "2026-11-14 13:34:13",
+      "kind": "revert/remove",
+      "subject": "fix(i18n): remove Chinese (zh) language support completely (9 languages supported)",
+      "overlaps": "e058d7f (dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt, logs/change_log.txt), 91d112e (dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt, dist/linux/AstroChief-MarsMap-linux/js/components/SettingsPanel.js), 3cf3b40 (dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt, dist/linux/AstroChief-MarsMap-linux/index.html)",
+      "diff": "+3701/-445"
+    },
+    {
+      "sha": "48d2fd5",
+      "date": "2026-11-14 17:29:45",
+      "kind": "fix",
+      "subject": "3D kamera egimi (Pitch/Yaw) sag tik orbit dondurme duzeltmesi (v3.4)",
+      "overlaps": "510ed1a (dist/linux/AstroChief-MarsMap-linux/ForAgents/PROJECT_STATE.md, dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt), 6b652eb (dist/linux/AstroChief-MarsMap-linux/ForAgents/PROJECT_STATE.md, dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt), 3221338 (dist/AstroChief-MarsMap-v3.1.0-linux.tar.gz, dist/AstroChief-MarsMap-v3.1.0-windows.zip)",
+      "diff": "+1998/-810"
+    },
+    {
+      "sha": "7ead6e8",
+      "date": "2026-11-14 17:34:35",
+      "kind": "fix",
+      "subject": "3D aci (camYaw) degiskenken surukleme yonu duzeltildi (v3.5)",
+      "overlaps": "6b652eb (dist/linux/AstroChief-MarsMap-linux/SHA256SUMS.txt, dist/linux/AstroChief-MarsMap-linux/index.html), 3221338 (dist/AstroChief-MarsMap-v3.1.0-linux.tar.gz, dist/AstroChief-MarsMap-v3.1.0-windows.zip), 5df481d (dist/AstroChief-MarsMap-v3.1.0-linux.tar.gz, dist/AstroChief-MarsMap-v3.1.0-windows.zip)",
+      "diff": "+120/-107"
+    },
+    {
+      "sha": "dfb10fd",
+      "date": "2026-11-14 19:32:32",
+      "kind": "fix",
+      "subject": "fix(render): eliminate zoom pixelation via bilinear MOLA DEM interpolation, 4-tap Hermite texel filtering, and eager z=3..5 zoom loading (v3.8)",
+      "overlaps": "a4a8133 (index.html, js/components/MarsNavigatorController.js), 48d2fd5 (dist/linux/AstroChief-MarsMap-linux/index.html, dist/linux/AstroChief-MarsMap-linux/js/components/MarsNavigatorController.js), 7ead6e8 (dist/linux/AstroChief-MarsMap-linux/index.html, dist/linux/AstroChief-MarsMap-linux/js/components/MarsNavigatorController.js)",
+      "diff": "+528/-558"
+    },
+    {
+      "sha": "465fdae",
+      "date": "2026-11-14 19:45:37",
+      "kind": "revert/remove",
+      "subject": "Delete backups directory",
+      "overlaps": "48d2fd5 (backups/snapshot_20261114_3d_orbit_fix/Map3DRenderer.js, backups/snapshot_20261114_3d_orbit_fix/OverlayDrawHelper.js), b4894dc (backups/snapshot_20261114_google_maps_perf/Map2DRenderer.js, backups/snapshot_20261114_google_maps_perf/Map3DRenderer.js)",
+      "diff": "+0/-71490"
+    },
+    {
+      "sha": "f8a166a",
+      "date": "2026-11-14 20:03:04",
+      "kind": "fix",
+      "subject": "Fix button sizes, photo card click toggle, and 3D/2D Mars center lock & controls",
+      "overlaps": "9fb4063 (js/components/MarsNavigatorController.js, js/renderers/Map3DRenderer.js), b4894dc (js/components/MarsNavigatorController.js, js/renderers/Map2DRenderer.js), dfb10fd (js/components/MarsNavigatorController.js, js/renderers/Map2DRenderer.js)",
+      "diff": "+315/-319"
+    },
+    {
+      "sha": "c8382c9",
+      "date": "2026-11-14 20:39:38",
+      "kind": "revert/remove",
+      "subject": "feat(route): remove alternative pale-blue route and keep single primary route only (v3.9)",
+      "overlaps": "30fe12a (backups/rapor_backup_20261114_165939.md), f8a166a (js/components/MarsNavigatorController.js, js/renderers/Map2DRenderer.js), 8bec84d (js/components/MarsNavigatorController.js, js/renderers/Map3DRenderer.js)",
+      "diff": "+1788/-569"
+    },
+    {
+      "sha": "b318877",
+      "date": "2026-11-14 21:31:39",
+      "kind": "revert/remove",
+      "subject": "fix(3d): remove undeclared dr assignment from auto-merge in Map3DRenderer.js",
+      "overlaps": "8bec84d (js/renderers/Map3DRenderer.js), f0cc2d3 (dist/linux/AstroChief-MarsMap-linux/js/renderers/Map3DRenderer.js, dist/windows/AstroChief-MarsMap-win64/js/renderers/Map3DRenderer.js), c8382c9 (js/renderers/Map3DRenderer.js)",
+      "diff": "+3/-6"
+    },
+    {
+      "sha": "3eba2a4",
+      "date": "2026-11-14 21:33:52",
+      "kind": "fix",
+      "subject": "fix(3d): use baseR2 instead of finalRhoSq in Map3DRenderer evalRay return",
+      "overlaps": "f0cc2d3 (dist/linux/AstroChief-MarsMap-linux/js/renderers/Map3DRenderer.js, dist/windows/AstroChief-MarsMap-win64/js/renderers/Map3DRenderer.js), c8382c9 (js/renderers/Map3DRenderer.js), 7f6ad99 (dist/linux/AstroChief-MarsMap-linux/js/renderers/Map3DRenderer.js, dist/windows/AstroChief-MarsMap-win64/js/renderers/Map3DRenderer.js)",
+      "diff": "+3/-3"
+    },
+    {
+      "sha": "c7ed976",
+      "date": "2026-11-14 21:55:45",
+      "kind": "fix",
+      "subject": "fix(3d-fallback): fix canvas transform reset so heatmap sticks cleanly in file:// fallback mode too (v4.1)",
+      "overlaps": "3eba2a4 (dist/linux/AstroChief-MarsMap-linux/js/renderers/Map3DRenderer.js, dist/windows/AstroChief-MarsMap-win64/js/renderers/Map3DRenderer.js), 9611edc (dist/linux/AstroChief-MarsMap-linux/index.html, dist/linux/AstroChief-MarsMap-linux/js/renderers/Map3DFallbackRenderer.js)",
+      "diff": "+179/-160"
+    },
+    {
+      "sha": "e8e8aeb",
+      "date": "2026-11-14 21:55:46",
+      "kind": "revert/remove",
+      "subject": "Remove hard atmospheric outline stroke while preserving orange atmospheric glow",
+      "overlaps": "9611edc (js/renderers/Map3DRenderer.js)",
+      "diff": "+0/-7"
+    },
+    {
+      "sha": "cb04871",
+      "date": "2026-11-15 00:24:50",
+      "kind": "fix",
+      "subject": "chore(cleanup): fix shortestDeltaLon crash, index.html UTF-8, CI tile manifest, <800 line splits & untrack dist/backups",
+      "overlaps": "8036f9e (ForAgents/PROJECT_STATE.md, backups/snapshot_20261114_rapor_fixes/.github/workflows/deploy-mars-web.yml), a72a78e (data/tiles/manifest.json, index.html), 75cec41 (ForAgents/PROJECT_STATE.md, demo/index.html)",
+      "diff": "+620/-68094"
+    },
+    {
+      "sha": "2789bff",
+      "date": "2026-11-15 00:28:38",
+      "kind": "fix",
+      "subject": "fix(zoom): add cursor-anchored 2D/3D wheel zoom on main map and /demo",
+      "overlaps": "8036f9e (ForAgents/PROJECT_STATE.md, index.html), a72a78e (index.html, logs/change_log.txt), 75cec41 (ForAgents/PROJECT_STATE.md, demo/index.html)",
+      "diff": "+222/-43"
+    },
+    {
+      "sha": "b563c16",
+      "date": "2026-11-14 22:59:16",
+      "kind": "revert/remove",
+      "subject": "feat(v4.4.0): unified rover+human travel, remove Bilim tab, mandatory O2/energy/water gate & dark contrast fixes",
+      "overlaps": "a72a78e (css/style.css, index.html), 75cec41 (ForAgents/PROJECT_STATE.md, ForAgents/SHARED_PLANS_AND_API.md), cb04871 (ForAgents/PROJECT_STATE.md, demo/index.html)",
+      "diff": "+2323/-891"
+    },
+    {
+      "sha": "82bddf1",
+      "date": "2026-11-15 03:31:13",
+      "kind": "revert/remove",
+      "subject": "fix(ui): improve satellites panel contrast, remove bottom-right telemetry strip, move info button to settings",
+      "overlaps": "2789bff (index.html), 4d45122 (index.html, js/services/BackendApiService.js), 4c02347 (css/controls.css, css/inspector.css)",
+      "diff": "+1053/-850"
+    }
+  ],
+  "defects": {
+    "uncommitted": [
+      " M ForAgents/PROJECT_STATE.md",
+      " M css/inspector.css",
+      " M data/i18n/localesMission.js",
+      " M demo/index.html",
+      " M index.html",
+      " M js/components/RouteInspectorPanel.js",
+      " M js/services/BackendApiService.js",
+      " M logs/change_log.txt",
+      "?? tools/__pycache__/",
+      "?? tools/audit_project.py"
+    ],
+    "near_800_lines": [
+      [
+        "data/i18n/localesJaKoArHe.js",
+        688
+      ],
+      [
+        "js/components/DemoStudioController.js",
+        767
+      ],
+      [
+        "js/components/MarsNavigatorController.js",
+        744
+      ],
+      [
+        "js/renderers/Map3DRenderer.js",
+        730
+      ],
+      [
+        "js/renderers/OverlayDrawHelper.js",
+        771
+      ],
+      [
+        "js/services/BackendApiService.js",
+        767
+      ]
+    ],
+    "over_800_lines": [],
+    "missing_footers": [],
+    "external_urls": [],
+    "broken_html_refs": [],
+    "todos": [
+      [
+        "tools/audit_project.py",
+        217,
+        "# 2. Kod dosyalari taramasi (<800 satir, footer, dis URL, TODO)"
+      ],
+      [
+        "tools/audit_project.py",
+        240,
+        "if re.search(r\"\\b(TODO|FIXME|HACK|XXX)\\b\", ln):"
+      ],
+      [
+        "tools/audit_project.py",
+        355,
+        "lines.append(\"- **Kod İçindeki TODO/FIXME İşaretleri:**\")"
+      ]
+    ],
+    "missing_tests": true,
+    "manifest_mismatch": {
+      "manifest_total": null,
+      "git_tracked_pngs": 225,
+      "disk_pngs": 4788
+    },
+    "deploy_drift": [
+      "GitHub Actions (.github/workflows/deploy-mars-web.yml) yalnizca mars.kubitron.com hedefine bagli; marsmap.wiki (20.102.97.92) manuel SCP/SSH ile guncelleniyor.",
+      "marsmap.wiki Nginx sunucusunda PHP-FPM yok; chat/index.html ve api/chat.php yalnizca PHP destekli sunucuda calisir."
+    ]
+  }
+}

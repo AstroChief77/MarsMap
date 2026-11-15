@@ -12,3 +12,7 @@ backend/target/
 
 # Yerelde indirilen yuksek zoom karolari (z>=3; Git yalnizca temel z=0..2 ve krater karolarini tutar)
 data/tiles/*/[3-9]/
+
+# Python derleme onbellegi
+__pycache__/
+*.pyc

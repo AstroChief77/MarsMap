@@ -438,4 +438,42 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * E2E & Derleme Dogrulamasi: node --check, tools/build.py --skip-desktop ve Playwright/CDP headless Chrome (1440x900, 1280x720, AR RTL, /demo/, /chat/) testleri 0 hata ile tamamlandi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 
+[2026-11-15T03:32:00+03:00] refactor(ui): Sag Ust Rota Paneli Sadelestirme & Kelime Kalabaligi Temizligi (?v=4.8):
+- Yedek Klasoru: backups/snapshot_20261115_clean_route_ui/ (11 kaynak/dokuman dosyasi)
+- js/components/RouteInspectorPanel.js (Satir 1-462) & css/inspector.css (Satir 1-739):
+  * Tek satirli acma/kapatma dugmesi ("Rota" / "Rota · sure · km"), tek satirli "Konum -> Hedef" basligi, segmente edilmis "Rover + Ekip | Yaya EVA" secici, cift koordinat tekrarsiz hedef secimi (_formatCustomDest) ve 2x2 kompakt O2/Enerji/Su/Hiz girisleri duzenlendi.
+  * Kapi hatasi (#insp-param-alert) yalnizca kullanici hesapla dedikten sonra gosterilir hale getirildi; bos bekleme kutusu ve teknik rozet/ms yigini kaldirildi.
+  * Rota sonucu 3'lu KPI ozetine (Sure / Kalan O2 / Kalan Enerji) + tek satir ikincil ozete indirildi; Adimlar, Radyasyon ve yalnizca krater-ici EVA Duraklari varsayilan kapali <details> bolumlerine alindi.
+- js/services/BackendApiService.js (Satir 532-756) & data/i18n/{localesMission,localesTrEnDe,localesFrEs,localesJaKoArHe}.js:
+  * "Rust A* (x, y)", "MOLA ... (0, 0)" ve "Δz=..." teknik ciktilari son kullaniciya yonelik sade pusula yonu / konum / egim adimlarina ve 9 dilde kisa UI etiketlerine donusturuldu.
+- index.html & demo/index.html: Tum yerel CSS ve JS modulleri ?v=4.8 onbellek kiricisina yukseltildi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 
+[2026-11-15T03:45:00+03:00] refactor(ui): Minimalist Rota Paneli & Harita Etiketi Temizligi (?v=4.9):
+- js/components/RouteInspectorPanel.js (Satir 1-446) & css/inspector.css (Satir 1-631):
+  * Kart ici tum ic kutular, %100 rozetleri, tekrarli baslangic kutusu, KPI kartlari ve kutulu akordeonlar kaldirildi; 286px duz yerlesime gecildi.
+  * 4 rezerv alani (O2, Enerji, Su, Hiz) tek yatay satira indirildi; hedef secimi zorunlu tek satira kilitlendi.
+  * Sonuc alani tek satir ana ozet (sure · mesafe + Sol), tek satir durum/uyari ve alt detay linklerine ("Adimlar", "0.82 mSv/h", krater-ici "Duraklar") donusturuldu.
+- js/services/BackendApiService.js (Satir 390, 498): Harita uzerindeki rota balonundan "Mavi Yol (Rust WASM A* · MOLA DEM)" gelistirici metni kaldirilarak yerellestirilmis "Guvenli Rota" etiketine gecildi.
+- index.html & demo/index.html: Degisen moduller ?v=4.9 ile guncellendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+
+
+
+
+[2026-11-15T03:46:00+03:00] feat(audit): Git Gecmisi, Churn/Geri-Yazim ve Eksiklik Denetim Sistemi:
+- tools/audit_project.py (Yeni Dosya, Satir 1-358):
+  * Tum commit gecmisini (99 commit), dosya bazli ustune yazim/silme oranlarini (churn), geri alinan veya ust uste duzeltilen commit zincirlerini ve mevcut kod/dagitim/test eksikliklerini tarayan otomatik denetim sistemi olusturuldu (--json destekli).
+- ForAgents/PROJECT_DEFECTS_AND_HISTORY.md & logs/project_audit.json:
+  * Olusturulan denetim raporuyla tum eksiklikler, churn tablosu, 16 geri-yazim/cakisma olayi ve 99 commit listesi yazildi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T08:06:00+03:00] feat(theme): Orbital Titanium Slate Dengeli Uzay Temasi (?v=5.7):
+- Kullanici geri bildirimi ("bu cok siyah olmus" / "tam beyaz kullanma") dogrultusunda bogucu siyah tonlar (#020409 / #0d131e) ve saf beyaz (#ffffff) arasindaki altin dengeye gecildi.
+- css/base.css & js/renderers/StarfieldRenderer.js (?v=5.8):
+  * Arka plan siyah bosluktan ferah kobalt gece uzayi tonuna (#283c5e -> #1a2842 -> #121c30) yukseltildi ve arkadaki sirali kesikli yorunge cizgileri tamamen kaldirildi.
+- css/variables.css, css/{satellites_panel,chat,style}.css & js/renderers/{OverlayDrawHelper,RouteCanvasRenderer,Map3DRenderer,SimulationChartRenderer}.js:
+  * Kart, bar, popover ve harita etiketleri orta ton buzlu titanyum/arduvaz cam yuzeylere (rgba(54, 70, 96, 0.86), #3d4e6b, #455878), ince aydinlik kenarliklara ve yumusak platin (#f1f5f9) tipografiye yukseltildi; Uydular fotograf karartmasi hafifletildi; /demo grafik arka plani #25344b olarak aydinlatildi.
+- index.html, demo/index.html & chat/index.html: Tum guncel moduller ?v=5.7 ile onbellek kiriciya alindi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.

@@ -287,16 +287,16 @@
     }
 
     /**
-     * Acik Gri Studio standartlarinda yuvarlatilmis, ince cerceveli ve sol renk seritli etiket hapi cizer
+     * Orbital Titanium Slate standartlarinda buzlu yarim saydam, ince cerceveli ve sol renk seritli etiket hapi cizer
      */
     drawRoundedPill(ctx, x, y, w, h, radius = 7, accentHex = "#64748b", isStrong = false) {
       ctx.save();
-      ctx.shadowColor = "rgba(15, 23, 42, 0.16)";
+      ctx.shadowColor = "rgba(6, 12, 24, 0.34)";
       ctx.shadowBlur = 9;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 2;
       this.drawRoundRectPath(ctx, x, y, w, h, radius);
-      ctx.fillStyle = isStrong ? "rgba(255, 255, 255, 0.96)" : "rgba(241, 245, 249, 0.94)";
+      ctx.fillStyle = isStrong ? "rgba(54, 70, 96, 0.90)" : "rgba(62, 80, 108, 0.86)";
       ctx.fill();
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
@@ -312,7 +312,7 @@
       }
 
       this.drawRoundRectPath(ctx, x, y, w, h, radius);
-      ctx.strokeStyle = isStrong ? accentHex : "rgba(148, 163, 184, 0.88)";
+      ctx.strokeStyle = isStrong ? accentHex : "rgba(214, 226, 242, 0.42)";
       ctx.lineWidth = isStrong ? 1.2 : 1;
       ctx.stroke();
       ctx.restore();
@@ -546,7 +546,7 @@
       }
 
       this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, accentHex, false);
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#e8edf5";
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       ctx.fillText(labelText, slot.x + 9, slot.y + boxH / 2 + 0.5);
@@ -615,9 +615,9 @@
           if (!p || !p.visible) continue;
           ctx.beginPath();
           ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+          ctx.fillStyle = "rgba(226, 232, 240, 0.90)";
           ctx.fill();
-          ctx.strokeStyle = "#334155";
+          ctx.strokeStyle = "#0f172a";
           ctx.lineWidth = 1.1;
           ctx.stroke();
         }
@@ -630,15 +630,15 @@
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, isActive ? 8 : 5.5, 0, Math.PI * 2);
-        ctx.fillStyle = isActive ? "#d92b2b" : "#ffffff";
+        ctx.fillStyle = isActive ? "#dc362e" : "#e2e8f0";
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#334155";
+        ctx.strokeStyle = "#0f172a";
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, isActive ? 14 : 10, 0, Math.PI * 2);
-        ctx.strokeStyle = isActive ? "rgba(217, 43, 43, 0.9)" : "rgba(255, 255, 255, 0.72)";
+        ctx.strokeStyle = isActive ? "rgba(220, 54, 46, 0.90)" : "rgba(226, 232, 240, 0.56)";
         ctx.lineWidth = 1.4;
         ctx.stroke();
 
@@ -669,8 +669,8 @@
         ];
         const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, false);
         if (slot.placed) {
-          this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 7, isActive ? "#d92b2b" : "#475569", isActive);
-          ctx.fillStyle = "#1e293b";
+          this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 7, isActive ? "#dc362e" : "#64748b", isActive);
+          ctx.fillStyle = "#e8edf5";
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
           ctx.fillText(label, slot.x + 9, slot.y + boxH / 2 + 0.5);
@@ -704,11 +704,11 @@
         ctx.fillStyle = bgHex;
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = "#e8edf5";
         ctx.stroke();
 
         ctx.font = "900 10px 'Public Sans Web', sans-serif";
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#f8fafc";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(tag, p.x, p.y + 0.5);
@@ -740,7 +740,7 @@
           const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, true);
           if (slot.placed) {
             this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, bgHex, true);
-            ctx.fillStyle = "#1e293b";
+            ctx.fillStyle = "#e8edf5";
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
             ctx.fillText(caption, slot.x + 9, slot.y + boxH / 2 + 0.5);

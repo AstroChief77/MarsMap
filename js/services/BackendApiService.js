@@ -387,7 +387,8 @@
           const gW = Number(raw.gridWidth || payload.terrainGrid?.width || payload.rustWasmCall?.gridSize || 48);
           const gH = Number(raw.gridHeight || payload.terrainGrid?.height || gW);
           const latF = Number(payload.terrainGrid?.lateralFactor || 0.38);
-          const primaryBlue = this.convertWasmPathToRoute(raw.rustRawOutput, payload.origin, payload.destination, "#2563eb", "Mavi Yol (Rust HTTP A*)", planner, payload, latF, gW, gH);
+          const blueLabel = planner?.t?.("blueRouteTitle") || "Güvenli Rota";
+          const primaryBlue = this.convertWasmPathToRoute(raw.rustRawOutput, payload.origin, payload.destination, "#2563eb", blueLabel, planner, payload, latF, gW, gH);
           return {
             scope: payload.scope || "global",
             source: "rust-backend",
@@ -471,6 +472,26 @@
         ? cache.corridor
         : this.sampleMolaCorridor(orig, dest, width, height, lateralFactor);
 
+      // Asama 0: NASA GESTALT maliyet haritasi + Field D* tarzi A* (birincil motor)
+      const nasa = this.traversePlanner || (ns.NasaTraversePlanner ? (this.traversePlanner = new ns.NasaTraversePlanner(this.gridHelper)) : null);
+      if (nasa) {
+        const plan = nasa.plan(orig, dest, payload.factors || {});
+        if (plan && plan.success) {
+          const latencyMs = Math.max(1, Math.round(performance.now() - t0));
+          const rawOut = { success: true, cost: plan.stats.pathCost, distance: plan.stats.rawCells, steps_count: plan.points.length, geoPoints: plan.points, path: [] };
+          const blueLabel = planner?.t?.("blueRouteTitle") || "Güvenli Rota";
+          const primaryBlue = this.convertWasmPathToRoute(rawOut, orig, dest, "#2563eb", blueLabel, planner, payload, lateralFactor, width, height, null);
+          primaryBlue.fallbackStage = plan.stage;
+          primaryBlue.plannerStats = plan.stats;
+          if (plan.warning) {
+            primaryBlue.fallbackWarning = plan.warning;
+            primaryBlue.comment = `${primaryBlue.comment} [${plan.warning}]`;
+          }
+          const hazardZones = { acidZones: payload.factors?.acidRain?.zones || [], stormZones: payload.factors?.dustStorm?.zones || [], radiationZones: payload.factors?.radiation?.zones || [] };
+          return { scope: payload.scope || "global", source: "nasa-costmap", engine: plan.stats.engine, latencyMs, fallbackStage: plan.stage, rustRawOutput: { success: true, cost: plan.stats.pathCost, steps_count: plan.points.length }, origin: orig, destination: dest, primaryBlue, secondaryPaleBlue: null, hazards: hazardZones };
+        }
+      }
+
       // Asama 1: Tam MOLA + tam tehlike ve >25 deg ucurum engellemesi
       let fallbackStage = 1;
       let flatGrid = cache && cache.width === width && cache.strictFlat
@@ -496,7 +517,7 @@
       const engineLabel = useWasm ? "Rust WASM (find_rover_path · MOLA DEM)" : "Yerlesik A* (MOLA DEM · file://)";
       const primaryBlue = this.convertWasmPathToRoute(
         parsedPrimary, orig, dest, "#2563eb",
-        useWasm ? "Mavi Yol (Rust WASM A* · MOLA DEM)" : "Mavi Yol (Yerlesik A* · MOLA DEM)",
+        planner?.t?.("blueRouteTitle") || "Güvenli Rota",
         planner, payload, lateralFactor, width, height, corridor
       );
       primaryBlue.fallbackStage = fallbackStage;
@@ -530,24 +551,27 @@
 
     /** Rust `find_rover_path` ciktisini gercek Mars MOLA yuksekligi, tehlike uyarisi ve O2 metrikleriyle adimlara donusturur */
     convertWasmPathToRoute(rustRes, orig, dest, colorHex, label, planner, payload, lateralFactor = 0.38, gridW = 48, gridH = 48, corridor = null) {
+      const preGeo = Array.isArray(rustRes.geoPoints) && rustRes.geoPoints.length >= 2 ? rustRes.geoPoints : null;
       const path = Array.isArray(rustRes.path) && rustRes.path.length > 0
         ? rustRes.path
         : [{ x: 0, y: 0, z: 0 }, { x: gridW - 1, y: gridH - 1, z: 0 }];
       const topo = ns.marsTopo || null;
       const hasTele = topo && typeof topo.getSurfaceTelemetry === "function";
 
-      const points = path.map((p, idx) => {
-        if (idx === 0) return { lat: orig.lat, lon: orig.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
-        if (idx === path.length - 1) return { lat: dest.lat, lon: dest.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
-        const geo = this.gridCellToGeo(p.x, p.y, gridW, gridH, orig, dest, lateralFactor);
-        return {
-          lat: Number(geo.lat.toFixed(4)),
-          lon: Number(geo.lon.toFixed(4)),
-          elevLevel: p.z,
-          gridX: p.x,
-          gridY: p.y
-        };
-      });
+      const points = preGeo
+        ? preGeo.map((p) => ({ lat: p.lat, lon: p.lon, elevLevel: 0, gridX: 0, gridY: 0 }))
+        : path.map((p, idx) => {
+            if (idx === 0) return { lat: orig.lat, lon: orig.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
+            if (idx === path.length - 1) return { lat: dest.lat, lon: dest.lon, elevLevel: p.z, gridX: p.x, gridY: p.y };
+            const geo = this.gridCellToGeo(p.x, p.y, gridW, gridH, orig, dest, lateralFactor);
+            return {
+              lat: Number(geo.lat.toFixed(4)),
+              lon: Number(geo.lon.toFixed(4)),
+              elevLevel: p.z,
+              gridX: p.x,
+              gridY: p.y
+            };
+          });
 
       const acidZones = (payload.factors?.acidRain?.enabled && payload.factors?.acidRain?.zones) || [];
       const stormZones = (payload.factors?.dustStorm?.enabled && payload.factors?.dustStorm?.zones) || [];
@@ -744,11 +768,7 @@
 
     normalizeHazards(h) {
       if (!h || typeof h !== "object") return null;
-      return {
-        acidZones: h.acidZones || h.acid_zones || null,
-        stormZones: h.stormZones || h.storm_zones || null,
-        radiationZones: h.radiationZones || h.radiation_zones || null
-      };
+      return { acidZones: h.acidZones || h.acid_zones || null, stormZones: h.stormZones || h.storm_zones || null, radiationZones: h.radiationZones || h.radiation_zones || null };
     }
   }
 
@@ -762,5 +782,5 @@
    - Satir 52-164: normalizeBaseUrl, resolveInitialUrl, testConnection ve pingHttpHealth (Rust WASM ping + HTTP saglik kontrolu).
    - Satir 165-412: buildRouteRequestPayload (birlesik Rover+Insan sefer faktorleri), requestStepRoute ve fetchHttpRoute.
    - Satir 414-449: MolaAStarGridHelper delegasyonlari (wrapLon, shortestDeltaLon, sphericalAngleDeg, gridCellToGeo, sampleMolaCorridor, buildMolaRustGrid, solvePathLocalAStar).
-   - Satir 451-764: computeViaRustWasm, convertWasmPathToRoute, computeRouteBudgetFromPayload, fetchHazards ve normalizeRouteResponse.
+   - Satir 452-776: computeViaRustWasm (NASA costmap Stage 0 + MOLA WASM/A* Stage 1-3), convertWasmPathToRoute, computeRouteBudgetFromPayload, fetchHazards ve normalizeRouteResponse.
    ========================================================================== */

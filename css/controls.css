@@ -492,7 +492,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(241, 245, 249, 0.94);
+  background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
@@ -515,8 +515,8 @@
 
 .fps-pill.low {
   background: var(--mars-red-soft);
-  color: var(--mars-red-dark);
-  border-color: #fca5a5;
+  color: var(--warn-text);
+  border-color: rgba(248, 113, 113, 0.38);
 }
 
 .zoom-btn-3d {
@@ -535,12 +535,12 @@
 .zoom-btn-peak {
   font-size: 18px !important;
   background: var(--mars-red-soft) !important;
-  color: var(--mars-red-dark) !important;
+  color: var(--warn-text) !important;
 }
 
 .zoom-btn-peak:hover {
   background: var(--mars-red) !important;
-  color: #ffffff !important;
+  color: #f8fafc !important;
 }
 
 /* Toast ve FPS Koruma Uyari Bandi */
@@ -599,12 +599,78 @@
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1024px) {
   .hud-top-left {
-    max-width: calc(100vw - 32px);
+    max-width: calc(100vw - 320px);
+  }
+  .settings-dropdown {
+    width: 310px;
+    max-height: calc(100dvh - 150px);
   }
   .nav-search-input {
-    width: 135px;
+    width: 145px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hud-top-left {
+    top: 10px;
+    left: 10px;
+    max-width: calc(100vw - 20px);
+    gap: 6px;
+  }
+  .icon-square-btn {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+  .top-nav-pill {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .nav-search-form {
+    flex: 1;
+    min-width: 0;
+  }
+  .nav-search-input {
+    width: 100%;
+    min-width: 70px;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  .settings-dropdown {
+    width: min(324px, calc(100vw - 20px));
+    max-height: calc(100dvh - 135px);
+    padding: 12px;
+  }
+  .lang-chip-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hud-bottom-right {
+    bottom: 10px;
+    right: 10px;
+  }
+  .zoom-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+  .app-toast {
+    top: 56px;
+    max-width: calc(100vw - 20px);
+    font-size: 11.5px;
+  }
+}
+
+@media (max-width: 540px) {
+  .brand-tag {
+    display: none;
+  }
+  .nav-demo-btn,
+  .nav-search-btn {
+    padding: 6px 8px;
+    font-size: 11.5px;
   }
 }
 
