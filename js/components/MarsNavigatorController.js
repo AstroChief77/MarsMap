@@ -213,12 +213,19 @@
     }
 
     onChangeMissionParam(key, rawVal) {
-      const fieldMap = { o2: "oxygenReserveLiters", energy: "energyReserveKwh", speed: "targetSpeedKmH" };
+      const fieldMap = { o2: "oxygenReserveLiters", energy: "energyReserveKwh", speed: "targetSpeedKmH", crew: "crewCount", rover: "roverCount" };
       const field = fieldMap[key];
       if (!field) return;
-      const parsed = this.budget ? this.budget.parsePositive(rawVal) : (Number(rawVal) > 0 ? Number(rawVal) : null);
+      let parsed = this.budget ? this.budget.parsePositive(rawVal) : (Number(rawVal) > 0 ? Number(rawVal) : null);
+      if ((key === "crew" || key === "rover") && parsed !== null) parsed = Math.max(1, Math.round(parsed));
       if (this.state[field] === parsed && !this.paramAttempted) return;
       this.state[field] = parsed;
+      if (key === "crew" && parsed > 0 && !(this.state.oxygenReserveLiters > 0)) {
+        this.state.oxygenReserveLiters = Math.round(parsed * 500);
+      }
+      if (key === "rover" && parsed > 0 && !(this.state.energyReserveKwh > 0)) {
+        this.state.energyReserveKwh = Math.round(parsed * 75);
+      }
       const check = this.getMissionParamCheck();
       if (!check.valid) {
         const hadRoutes = Boolean(this.backendRoutes || this.state.missionParamsConfirmed);
@@ -232,6 +239,9 @@
       }
       this.paramAttempted = false;
       this.hideToast();
+      if ((key === "crew" || key === "rover") && this.state.crewCount > 0 && this.state.roverCount > 0) {
+        this.state.missionParamsConfirmed = true;
+      }
       this.schedulePersistState();
       this.inspectorPanel?.syncParamGateUi?.(this.state, check, false);
       if (this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(180);

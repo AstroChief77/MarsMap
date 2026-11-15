@@ -47,6 +47,8 @@
         activeStepRouteTab: "primary",
         expeditionMode: "rover-crew",   // Birlesik Rover + Insan sefer modu ('rover-crew' | 'joint-eva-escort')
         targetSpeedKmH: 14.5,           // Birlesik sefer hedef hizi (km/sa)
+        crewCount: null,                // Murettebat sayisi (girilince rota hesaplanir)
+        roverCount: null,               // Rover sayisi (girilince rota hesaplanir)
         oxygenReserveLiters: null,      // Zorunlu on-gorev girisi (bos baslar, kapidan gecmeden rota baslamaz)
         oxygenTankCapacityL: 420,       // Referans %100 PLSS+SEV O2 tank kapasitesi (L)
         energyReserveKwh: null,         // Zorunlu on-gorev girisi (bos baslar)

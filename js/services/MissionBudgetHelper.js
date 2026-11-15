@@ -75,6 +75,8 @@
       const o2L = this.parsePositive(params.initialO2L ?? params.oxygenReserveLiters);
       const energyKwh = this.parsePositive(params.initialEnergyKwh ?? params.energyReserveKwh);
       const speedKmH = this.parsePositive(params.targetSpeedKmH);
+      const crewCount = Math.max(1, Math.round(Number(params.crewCount) || 1));
+      const roverCount = Math.max(1, Math.round(Number(params.roverCount) || 1));
 
       const missingKeys = [];
       if (o2L === null) missingKeys.push("o2");
@@ -98,7 +100,9 @@
           energyKwh: energyKwh || 0,
           energyCapKwh: refEnergyCap,
           startEnergyPct,
-          speedKmH: speedKmH || prof.defaultSpeedKmH
+          speedKmH: speedKmH || prof.defaultSpeedKmH,
+          crewCount,
+          roverCount
         }
       };
     }
@@ -139,8 +143,8 @@
           const effSpeed = Math.max(0.5, norm.speedKmH * slopeFactor * envSpeedMult);
           const segHours = segKm / effSpeed;
           const segMin = segHours * 60.0;
-          const o2Rate = Math.min(4.0, prof.baseO2LPerMin * (1.0 + slopeDeg * prof.slopeO2Gain) * stormO2Factor) + leakLPerMin;
-          const powerKw = Math.max(0.15, prof.basePowerKw + slopeDeg * prof.slopePowerGainKw + (stormEnabled ? prof.basePowerKw * 0.14 : 0));
+          const o2Rate = Math.min(8.0, prof.baseO2LPerMin * norm.crewCount * (1.0 + slopeDeg * prof.slopeO2Gain) * stormO2Factor) + leakLPerMin;
+          const powerKw = Math.max(0.15, (prof.basePowerKw + slopeDeg * prof.slopePowerGainKw + (stormEnabled ? prof.basePowerKw * 0.14 : 0)) * norm.roverCount);
 
           accumKm += segKm;
           totalHours += segHours;
@@ -154,9 +158,9 @@
         const effSpeed = Math.max(0.5, norm.speedKmH * 0.92 * envSpeedMult);
         totalHours = finalKm / effSpeed;
         const totalMin = totalHours * 60.0;
-        const o2Rate = Math.min(4.0, prof.baseO2LPerMin * 1.12 * stormO2Factor) + leakLPerMin;
+        const o2Rate = Math.min(8.0, prof.baseO2LPerMin * norm.crewCount * 1.12 * stormO2Factor) + leakLPerMin;
         consumedO2L = o2Rate * totalMin;
-        consumedEnergyKwh = prof.basePowerKw * totalHours;
+        consumedEnergyKwh = prof.basePowerKw * norm.roverCount * totalHours;
       }
 
       const safeHours = Number(Math.max(0.01, totalHours).toFixed(2));

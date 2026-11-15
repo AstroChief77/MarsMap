@@ -18,30 +18,37 @@
 .inspector-toggle-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 12px;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
   background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
   border-radius: var(--r-sm);
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
   cursor: pointer;
   box-shadow: var(--shadow-btn);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.inspector-toggle-btn:hover {
+.inspector-toggle-btn:hover,
+.inspector-toggle-btn.active {
   background: var(--surface-control-hover);
-  border-color: var(--line-dark);
+  border-color: var(--mars-red);
 }
 
 .insp-route-icon {
   color: var(--mars-red);
-  font-size: 15px;
+  font-size: 20px;
   line-height: 1;
+}
+
+.insp-fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 5px;
 }
 
 .insp-toggle-meta {

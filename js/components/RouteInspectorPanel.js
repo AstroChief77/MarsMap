@@ -177,6 +177,8 @@
       const prof = paramCheck.profile || { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 };
       const paramAttempted = Boolean(uiMeta.paramAttempted);
 
+      const rawCrew = state.crewCount > 0 ? state.crewCount : "";
+      const rawRover = state.roverCount > 0 ? state.roverCount : "";
       const rawO2 = state.oxygenReserveLiters > 0 ? state.oxygenReserveLiters : "";
       const rawEnergy = state.energyReserveKwh > 0 ? state.energyReserveKwh : "";
       const rawSpeed = state.targetSpeedKmH > 0 ? state.targetSpeedKmH : prof.defaultSpeedKmH;
@@ -263,11 +265,8 @@
       `;
 
       this.mountEl.innerHTML = `
-        <button class="inspector-toggle-btn" id="btn-toggle-inspector">
+        <button class="inspector-toggle-btn ${state.inspectorOpen ? "active" : ""}" id="btn-toggle-inspector" title="${esc(t("inspToggleBtn"))}" aria-label="${esc(t("inspToggleBtn"))}">
           <i class="bi bi-signpost-split-fill insp-route-icon" aria-hidden="true"></i>
-          <span>${esc(t("inspToggleBtn"))}</span>
-          ${toggleMetaHtml}
-          <span class="insp-caret"><i class="bi ${state.inspectorOpen ? "bi-chevron-up" : "bi-chevron-down"}" aria-hidden="true"></i></span>
         </button>
 
         <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${esc(t("inspToggleBtn"))}" ${dirAttr}>
@@ -295,6 +294,19 @@
             <button type="button" class="insp-pick-btn ${pickingDest ? "active" : ""}" id="btn-pick-destination" title="${esc(t("pickDestBtn"))}">
               ${pickingDest ? esc(t("pickShortActive")) : "📍"}
             </button>
+          </div>
+
+          <div class="insp-fleet-grid">
+            <div class="insp-param-cell" title="${esc(t("paramCrewLabel"))}">
+              <label for="inp-mission-crew">${esc(t("paramCrewLabel"))}</label>
+              <input type="number" id="inp-mission-crew" min="1" max="24" step="1"
+                     value="${esc(rawCrew)}" placeholder="2" />
+            </div>
+            <div class="insp-param-cell" title="${esc(t("paramRoverLabel"))}">
+              <label for="inp-mission-rover">${esc(t("paramRoverLabel"))}</label>
+              <input type="number" id="inp-mission-rover" min="1" max="12" step="1"
+                     value="${esc(rawRover)}" placeholder="1" />
+            </div>
           </div>
 
           <div class="insp-param-grid">
@@ -344,6 +356,14 @@
       });
       const alertEl = this.mountEl.querySelector("#insp-param-alert");
       if (alertEl) alertEl.classList.toggle("hidden", !Boolean(paramAttempted && !paramCheck.valid));
+      const o2Inp = this.mountEl.querySelector("#inp-mission-o2");
+      if (o2Inp && document.activeElement !== o2Inp && state.oxygenReserveLiters > 0 && !o2Inp.value) {
+        o2Inp.value = String(state.oxygenReserveLiters);
+      }
+      const enInp = this.mountEl.querySelector("#inp-mission-energy");
+      if (enInp && document.activeElement !== enInp && state.energyReserveKwh > 0 && !enInp.value) {
+        enInp.value = String(state.energyReserveKwh);
+      }
     }
 
     _bindDrawerEvents() {
@@ -391,6 +411,8 @@
         el.addEventListener("input", handler);
         el.addEventListener("change", handler);
       };
+      bindParam("#inp-mission-crew", "crew");
+      bindParam("#inp-mission-rover", "rover");
       bindParam("#inp-mission-o2", "o2");
       bindParam("#inp-mission-energy", "energy");
       bindParam("#inp-mission-speed", "speed");
