@@ -40,9 +40,9 @@
       const gw = Math.max(40, w - padL - padR);
       const gh = Math.max(30, h - padT - padB);
 
-      ctx.fillStyle = "#f8fafc";
+      ctx.fillStyle = "#8d95a1";
       ctx.fillRect(padL, padT, gw, gh);
-      ctx.strokeStyle = "#cbd5e1";
+      ctx.strokeStyle = "#495362";
       ctx.lineWidth = 1;
       ctx.strokeRect(padL, padT, gw, gh);
 
@@ -52,19 +52,19 @@
       ctx.textBaseline = "middle";
       [0, 20, 50, 100].forEach((pct) => {
         const y = padT + gh - (pct / 100) * gh;
-        ctx.strokeStyle = pct === 20 ? "rgba(217, 43, 43, 0.45)" : "#e2e8f0";
+        ctx.strokeStyle = pct === 20 ? "rgba(110, 13, 13, 0.62)" : "rgba(73, 83, 98, 0.42)";
         ctx.setLineDash(pct === 20 ? [4, 3] : []);
         ctx.beginPath();
         ctx.moveTo(padL, y);
         ctx.lineTo(padL + gw, y);
         ctx.stroke();
-        ctx.fillStyle = pct === 20 ? "#b91c1c" : "#475569";
+        ctx.fillStyle = pct === 20 ? "#6e0d0d" : "#090d14";
         ctx.fillText(`${pct}%`, padL - 4, y);
       });
       ctx.setLineDash([]);
 
       if (!Array.isArray(samples) || samples.length < 2) {
-        ctx.fillStyle = "#475569";
+        ctx.fillStyle = "#090d14";
         ctx.font = "800 10.5px 'Public Sans Web', sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("Ön görev parametreleri (O₂, Enerji, Su) girin...", padL + gw / 2, padT + gh / 2);
@@ -75,7 +75,7 @@
       const maxE = Math.max(minE + 200, summary?.maxElevM ?? 5000);
       const eSpan = maxE - minE;
 
-      // 1. MOLA Rakim dolgu alani (saydam kirmizi)
+      // 1. MOLA Rakim dolgu alani (terakota kirmizi)
       ctx.beginPath();
       ctx.moveTo(padL, padT + gh);
       samples.forEach((s, idx) => {
@@ -86,18 +86,18 @@
       });
       ctx.lineTo(padL + gw, padT + gh);
       ctx.closePath();
-      ctx.fillStyle = "rgba(224, 62, 45, 0.16)";
+      ctx.fillStyle = "rgba(153, 27, 27, 0.22)";
       ctx.fill();
 
-      // 2. Batarya (%) yesil egrisi
-      this.strokeSeries(ctx, samples, (s) => s.energyPct, padL, padT, gw, gh, "#22c55e", 2.0);
-      // 3. Oksijen (%) mavi egrisi
-      this.strokeSeries(ctx, samples, (s) => s.o2Pct, padL, padT, gw, gh, "#3b82f6", 2.4);
+      // 2. Batarya (%) koyu yesil egrisi
+      this.strokeSeries(ctx, samples, (s) => s.energyPct, padL, padT, gw, gh, "#0b361c", 2.1);
+      // 3. Oksijen (%) koyu mavi egrisi
+      this.strokeSeries(ctx, samples, (s) => s.o2Pct, padL, padT, gw, gh, "#0e2666", 2.4);
 
-      // 4. Canli zaman imleci (slate dikey cizgi + ust ucgen + noktalar)
+      // 4. Canli zaman imleci (siyah dikey cizgi + ust ucgen + beyaz halkali noktalar)
       const p = Math.max(0, Math.min(1, progress || 0));
       const cx = padL + p * gw;
-      ctx.strokeStyle = "#334155";
+      ctx.strokeStyle = "#090d14";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(cx, padT);
@@ -115,12 +115,12 @@
       const idx = Math.min(samples.length - 1, Math.round(p * (samples.length - 1)));
       const cur = samples[idx];
       if (cur) {
-        this.drawDot(ctx, cx, padT + gh - (cur.energyPct / 100) * gh, "#22c55e");
-        this.drawDot(ctx, cx, padT + gh - (cur.o2Pct / 100) * gh, "#3b82f6");
+        this.drawDot(ctx, cx, padT + gh - (cur.energyPct / 100) * gh, "#0b361c");
+        this.drawDot(ctx, cx, padT + gh - (cur.o2Pct / 100) * gh, "#0e2666");
       }
 
       // Alt eksen kilometre etiketi
-      ctx.fillStyle = "#475569";
+      ctx.fillStyle = "#090d14";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
       ctx.fillText("0 km", padL, padT + gh + 4);
@@ -164,7 +164,7 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc /demo simulasyon coklu egri tuval grafigi sinifi.
    - Satir 10-19: constructor ve setCanvas; 2D grafik baglamini hazirlar.
-   - Satir 21-158: render; Acik Gri Studyo temali HiDPI tuvalde %20 Walkback esigi, parametre eksik uyari metni, MOLA rakim alani, Batarya (#22c55e) ve O2 (#3b82f6) egrileri ile slate imleci cizer.
-   - Satir 160-185: strokeSeries ve drawDot; zaman serisi egrilerini ve aktif nokta isaretcilerini cizer.
+   - Satir 21-129: render; Cift Kontrastli Acik Gri (#8d95a1) tuvalde %20 Walkback esigi, MOLA rakim alani, Batarya (#0b361c) ve O2 (#0e2666) egrileri ile imleci cizer.
+   - Satir 131-156: strokeSeries ve drawDot; zaman serisi egrilerini ve beyaz halkali aktif nokta isaretcilerini cizer.
    ========================================================================== */
 

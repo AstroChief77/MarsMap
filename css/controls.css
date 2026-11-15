@@ -39,8 +39,8 @@
 
 .icon-square-btn:hover,
 .icon-square-btn.active {
-  background: var(--surface-control-hover);
-  color: var(--mars-red);
+  background: var(--bg-elevated);
+  color: var(--mars-red-ink);
   border-color: var(--mars-red);
 }
 
@@ -128,7 +128,7 @@
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: var(--mars-red);
+  color: var(--mars-red-ink);
 }
 
 .factory-spec-row {
@@ -198,12 +198,16 @@
 .backend-url-input {
   width: 100%;
   padding: 6px 8px;
-  border: 1px solid var(--line-light);
+  border: 1px solid var(--line-dark);
   border-radius: 6px;
-  background: var(--bg-solid-white);
+  background: var(--bg-input);
   font-size: 11px;
   font-weight: 700;
   color: var(--ink-black);
+}
+
+.backend-url-input::placeholder {
+  color: var(--ink-muted);
 }
 
 .backend-url-input:focus {
@@ -221,7 +225,7 @@
   padding: 6px 8px;
   border: 1px solid var(--line-dark);
   border-radius: 6px;
-  background: var(--bg-gray-200);
+  background: var(--bg-elevated);
   color: var(--ink-black);
   font-size: 11px;
   font-weight: 800;
@@ -230,8 +234,8 @@
 }
 
 .backend-mini-btn.ghost {
-  background: var(--bg-solid-white);
-  color: var(--ink-dark);
+  background: var(--bg-gray-200);
+  color: var(--ink-black);
   border-color: var(--line-light);
 }
 
@@ -271,7 +275,7 @@
   padding: 5px 7px;
   border-radius: 6px;
   border: 1px solid var(--line-light);
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   color: var(--ink-black);
   font-size: 11px;
   font-weight: 700;
@@ -282,11 +286,11 @@
 
 .lang-chip-btn:hover {
   border-color: var(--line-dark);
-  background: var(--surface-control);
+  background: var(--surface-control-hover);
 }
 
 .lang-chip-btn.active {
-  background: var(--bg-gray-200);
+  background: var(--bg-input);
   color: var(--ink-black);
   border-color: var(--mars-red);
   box-shadow: inset 0 0 0 1px var(--mars-red);
@@ -332,21 +336,21 @@
   letter-spacing: 0.04em;
   padding: 7px 11px;
   border-radius: 7px;
-  background: var(--bg-gray-200);
+  background: var(--bg-elevated);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
   white-space: nowrap;
 }
 
 .brand-tag span {
-  color: var(--mars-red);
+  color: var(--mars-red-ink);
 }
 
 .nav-search-form {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--bg-solid-white);
+  background: var(--bg-input);
   border: 1px solid var(--line-light);
   border-radius: 7px;
   padding: 3px 4px 3px 10px;
@@ -355,7 +359,7 @@
 
 .nav-search-form:focus-within {
   border-color: var(--route-blue);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.20);
 }
 
 .nav-search-input {
@@ -394,9 +398,9 @@
   border-radius: 7px;
   font-size: 12.5px;
   font-weight: 800;
-  background: var(--bg-offwhite);
+  background: var(--bg-elevated);
   border: 1px solid var(--line-light);
-  color: var(--ink-dark);
+  color: var(--ink-black);
   white-space: nowrap;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
@@ -485,14 +489,14 @@
 
 .zoom-btn:hover {
   background: var(--surface-control-hover);
-  color: var(--mars-red);
+  color: var(--mars-red-ink);
 }
 
 .telemetry-strip {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(241, 245, 249, 0.94);
+  background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
@@ -515,27 +519,27 @@
 
 .fps-pill.low {
   background: var(--mars-red-soft);
-  color: var(--mars-red-dark);
-  border-color: #fca5a5;
+  color: var(--mars-red-ink);
+  border-color: var(--mars-red);
 }
 
 .zoom-btn-3d {
   font-size: 12.5px !important;
   font-weight: 900 !important;
-  background: var(--bg-gray-200) !important;
+  background: var(--bg-elevated) !important;
   color: var(--ink-black) !important;
   border-color: var(--line-light) !important;
 }
 
 .zoom-btn-3d:hover {
   background: var(--surface-control-hover) !important;
-  color: var(--mars-red) !important;
+  color: var(--mars-red-ink) !important;
 }
 
 .zoom-btn-peak {
   font-size: 18px !important;
   background: var(--mars-red-soft) !important;
-  color: var(--mars-red-dark) !important;
+  color: var(--mars-red-ink) !important;
 }
 
 .zoom-btn-peak:hover {
@@ -611,11 +615,11 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Acik Gri Studio tema kontrolleri ve arama seridi tanimi.
-   - Satir 7-46: Sol ust ayar ikonu konteyneri, buzlu cam kare ayarlar dugmesi ve kirmizi hover durumu.
+   - Satir 1-5: JSDoc Cift Kontrastli Acik Gri Studio tema kontrolleri ve arama seridi tanimi.
+   - Satir 7-46: Sol ust ayar ikonu konteyneri, acik gri kare ayarlar dugmesi ve kirmizi hover durumu.
    - Satir 48-242: Acilir ayarlar paneli (78x78 Uydular karesine cakismayan yukseklik siniri); 1. secenek Factory Reset dugmesi, fabrika birim kutusu, FPS koruma anahtarlari ve acik gri backend dugmeleri.
    - Satir 244-308: 9 dilli secim izgarasi ve acik gri aktif dil secim rozetleri.
-   - Satir 310-412: Buzlu ust serit; acik gri ASTROCHIEF marka etiketi, beyaz arama/koordinat giris kutusu (.nav-search-form), kirmizi Ara butonu ve Bilgi butonu.
+   - Satir 310-412: Acik gri ust serit; ASTROCHIEF marka etiketi, cift kontrastli arama/koordinat giris kutusu (.nav-search-form), kirmizi Ara butonu ve Bilgi butonu.
    - Satir 414-514: Sag alt zoom/3D/zirve stacki, acik gri telemetri seridi ve yuksek kontrastli yesil FPS rozeti.
    - Satir 516-588: Ust-orta toast bildirim seridi (parametre kapisi uyarilari dahil) ve 1380px/820px duyarli tek satir ust bar sikistirma kurallari.
    ========================================================================== */

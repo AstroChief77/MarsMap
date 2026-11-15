@@ -640,12 +640,12 @@
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#dfe5ee";
+      ctx.fillStyle = "#99a1ad";
       ctx.fill();
-      ctx.strokeStyle = "#94a3b8";
+      ctx.strokeStyle = "#495362";
       ctx.lineWidth = 1.5;
       ctx.stroke();
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#090d14";
       ctx.font = "800 12px 'Public Sans Web', sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -696,10 +696,10 @@
       ctx.save();
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
       ctx.textBaseline = "middle";
-      ctx.strokeStyle = "rgba(30, 41, 59, 0.78)";
+      ctx.strokeStyle = "rgba(9, 13, 20, 0.85)";
       ctx.lineWidth = 3;
       ctx.lineJoin = "round";
-      ctx.fillStyle = "rgba(255, 250, 244, 0.94)";
+      ctx.fillStyle = "rgba(255, 250, 244, 0.96)";
       for (const pl of places) {
         const p = project3D(pl.lat, pl.lon);
         if (!p.visible || p.z <= 0.25) continue;
@@ -726,5 +726,5 @@
    - Satir 48-246: render; Acik Gri Studio kure golgesi, atmosfer, yuksek cozunurluklu ara tampon ve cakismasiz 3D vektor projeksiyonunu calistirir.
    - Satir 248-626: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear), dokuyu 4-tap bilineer/Hermite suzmeyle ve acik kumtasi grid yedeğiyle cizer.
    - Satir 628-637: drawFallbackShadedSphere; file:// / tainted tuval ortamlarinda cizimi Map3DFallbackRenderer modulune devreder.
-   - Satir 639-715: drawLoadingSphere (Acik Gri Studio), drawGraticule3D ve cakismasiz drawNomenclature3D yardimcilari.
+   - Satir 639-715: drawLoadingSphere (#99a1ad / #495362 / #090d14), drawGraticule3D ve cakismasiz drawNomenclature3D yardimcilari.
    ========================================================================== */

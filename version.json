@@ -1,7 +1,7 @@
 {
   "name": "AstroChief-MarsMap",
-  "version": "4.4.0",
+  "version": "4.5.0",
   "buildDate": "2026-11-15",
   "targets": ["linux-x64", "windows-x64"],
-  "description": "NASA Space Apps 2026 - Acik Gri Studio Temasi, Birlesik Rover+Insan Ortak Seferi, Zorunlu On-Gorev O2/Enerji/Su Parametre Kapisi, Cakismasiz HUD, 9 Dil, Rust WASM/HTTP A* (v4.4.0)"
+  "description": "NASA Space Apps 2026 - Cift Kontrastli Acik Gri Studio Temasi (?v=4.8), Birlesik Rover+Insan Ortak Seferi, Zorunlu On-Gorev O2/Enerji/Su Parametre Kapisi, Cakismasiz HUD, 9 Dil, Rust WASM/HTTP A* (v4.5.0)"
 }

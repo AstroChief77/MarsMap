@@ -287,16 +287,16 @@
     }
 
     /**
-     * Acik Gri Studio standartlarinda yuvarlatilmis, ince cerceveli ve sol renk seritli etiket hapi cizer
+     * Cift Kontrastli Acik Gri Studio yuvarlatilmis, ince cerceveli ve sol renk seritli etiket hapi cizer
      */
-    drawRoundedPill(ctx, x, y, w, h, radius = 7, accentHex = "#64748b", isStrong = false) {
+    drawRoundedPill(ctx, x, y, w, h, radius = 7, accentHex = "#495362", isStrong = false) {
       ctx.save();
-      ctx.shadowColor = "rgba(15, 23, 42, 0.16)";
+      ctx.shadowColor = "rgba(9, 13, 20, 0.22)";
       ctx.shadowBlur = 9;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 2;
       this.drawRoundRectPath(ctx, x, y, w, h, radius);
-      ctx.fillStyle = isStrong ? "rgba(255, 255, 255, 0.96)" : "rgba(241, 245, 249, 0.94)";
+      ctx.fillStyle = isStrong ? "rgba(166, 174, 185, 0.96)" : "rgba(153, 161, 173, 0.94)";
       ctx.fill();
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
@@ -312,7 +312,7 @@
       }
 
       this.drawRoundRectPath(ctx, x, y, w, h, radius);
-      ctx.strokeStyle = isStrong ? accentHex : "rgba(148, 163, 184, 0.88)";
+      ctx.strokeStyle = isStrong ? accentHex : "rgba(73, 83, 98, 0.85)";
       ctx.lineWidth = isStrong ? 1.2 : 1;
       ctx.stroke();
       ctx.restore();
@@ -522,7 +522,7 @@
       }
     }
 
-    drawCompactHazardLabel(ctx, px, py, labelText, accentHex = "#64748b", allowFallback = false) {
+    drawCompactHazardLabel(ctx, px, py, labelText, accentHex = "#495362", allowFallback = false) {
       ctx.save();
       ctx.font = "700 10px 'Public Sans Web', sans-serif";
       const tw = ctx.measureText(labelText).width;
@@ -546,7 +546,7 @@
       }
 
       this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, accentHex, false);
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#090d14";
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       ctx.fillText(labelText, slot.x + 9, slot.y + boxH / 2 + 0.5);
@@ -615,9 +615,9 @@
           if (!p || !p.visible) continue;
           ctx.beginPath();
           ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+          ctx.fillStyle = "rgba(226, 232, 240, 0.92)";
           ctx.fill();
-          ctx.strokeStyle = "#334155";
+          ctx.strokeStyle = "#090d14";
           ctx.lineWidth = 1.1;
           ctx.stroke();
         }
@@ -630,15 +630,15 @@
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, isActive ? 8 : 5.5, 0, Math.PI * 2);
-        ctx.fillStyle = isActive ? "#d92b2b" : "#ffffff";
+        ctx.fillStyle = isActive ? "#d92b2b" : "#e2e8f0";
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#334155";
+        ctx.strokeStyle = "#090d14";
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, isActive ? 14 : 10, 0, Math.PI * 2);
-        ctx.strokeStyle = isActive ? "rgba(217, 43, 43, 0.9)" : "rgba(255, 255, 255, 0.72)";
+        ctx.strokeStyle = isActive ? "rgba(217, 43, 43, 0.9)" : "rgba(226, 232, 240, 0.80)";
         ctx.lineWidth = 1.4;
         ctx.stroke();
 
@@ -669,8 +669,8 @@
         ];
         const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, false);
         if (slot.placed) {
-          this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 7, isActive ? "#d92b2b" : "#475569", isActive);
-          ctx.fillStyle = "#1e293b";
+          this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 7, isActive ? "#d92b2b" : "#495362", isActive);
+          ctx.fillStyle = "#090d14";
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
           ctx.fillText(label, slot.x + 9, slot.y + boxH / 2 + 0.5);
@@ -740,7 +740,7 @@
           const slot = this.claimLabelSlot(prefX, prefY, boxW, boxH, offsets, true);
           if (slot.placed) {
             this.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, bgHex, true);
-            ctx.fillStyle = "#1e293b";
+            ctx.fillStyle = "#090d14";
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
             ctx.fillText(caption, slot.x + 9, slot.y + boxH / 2 + 0.5);
@@ -763,9 +763,9 @@
    - Satir 1-14: JSDoc ve 1024x512 kuresel organik isi haritasi (heatmap) boyut sabitleri.
    - Satir 17-159: getSphereLookup, buildOrganicLobes ve sampleHeatmapColor; kuresel birim vektor
      uzerinde dairesel olmayan cok-loblu Asit (Mavi), Firtina (Kizil-Altin) ve Radyasyon (Mor) isi haritasi rampalarini hesaplar.
-   - Satir 161-278: beginLabelFrame, isPointInAvoidRect, claimLabelSlot (HUD kenar itme dahil) ve drawRoundedPill; harita etiketlerini cakismasiz Acik Gri haplar olarak konumlandirir.
+   - Satir 161-278: beginLabelFrame, isPointInAvoidRect, claimLabelSlot (HUD kenar itme dahil) ve drawRoundedPill; etiketleri cift kontrastli acik gri (#99a1ad/#a6aeb9) haplar olarak konumlandirir.
    - Satir 280-445: projectToSphere ve getGlobalHeatmapAtlas; 3D kamera projeksiyonu ile 1024x512 tehlike isi haritasi dokusunu onbellekler.
-   - Satir 447-598: drawLocalHeatmapPlume, drawCompactHazardLabel, drawGlobalHazardLabels ve drawGlobalHazards; isi haritalari ve acik gri tehlike etiketlerini cizer.
-   - Satir 600-758: drawMarkers ve drawCustomEndpoints; NASA inis sahalari, kraterler ve A/B noktalarini HUD/pin cakismasi olmadan Acik Gri hap etiketleriyle cizer.
+   - Satir 447-598: drawLocalHeatmapPlume, drawCompactHazardLabel, drawGlobalHazardLabels ve drawGlobalHazards; isi haritalari ve #090d14 metinli acik gri etiketleri cizer.
+   - Satir 600-758: drawMarkers ve drawCustomEndpoints; NASA inis sahalari (#e2e8f0/#090d14), kraterler ve A/B noktalarini cift kontrastli hap etiketleriyle cizer.
    ========================================================================== */
 
