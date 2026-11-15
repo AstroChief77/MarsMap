@@ -32,13 +32,13 @@
         globalTargetId: "perseverance-jezero",
         customOrigin: {
           id: "curiosity-gale",
-          name: "Bulunduğumuz Konum",
+          name: "Current Location",
           lat: -4.5895,
           lon: 137.4417
         },
         customDestination: {
           id: "perseverance-jezero",
-          name: "Jezero Krateri",
+          name: "Jezero Crater",
           lat: 18.4447,
           lon: 77.4508
         },

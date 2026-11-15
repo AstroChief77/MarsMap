@@ -13,7 +13,7 @@
      * I18nService yapici metodu
      * @param {string} initialLang - Baslangic dil kodu (varsayilan: 'tr')
      */
-    constructor(initialLang = "tr") {
+    constructor(initialLang = "en") {
       this.locales = ns.I18N_LOCALES || {};
       this.supportedLanguages = [
         { code: "tr", label: "Türkçe", nativeName: "Türkçe", badge: "TR", dir: "ltr" },
@@ -26,7 +26,7 @@
         { code: "he", label: "עברית", nativeName: "עברית", badge: "HE", dir: "rtl" },
         { code: "ar", label: "العربية", nativeName: "العربية", badge: "AR", dir: "rtl" }
       ];
-      this.currentLang = "tr";
+      this.currentLang = "en";
       this.setLang(initialLang);
     }
 
@@ -74,8 +74,8 @@
      * @returns {string} Uygulanan gecerli dil kodu
      */
     setLang(langCode) {
-      const code = String(langCode || "tr").toLowerCase();
-      this.currentLang = this.locales[code] ? code : "tr";
+      const code = String(langCode || "en").toLowerCase();
+      this.currentLang = this.locales[code] ? code : "en";
       this.applyDocumentAttributes();
       return this.currentLang;
     }
@@ -85,7 +85,7 @@
      */
     applyDocumentAttributes() {
       if (typeof document === "undefined") return;
-      const dict = this.locales[this.currentLang] || this.locales.tr || {};
+      const dict = this.locales[this.currentLang] || this.locales.en || {};
       if (document.documentElement) {
         document.documentElement.setAttribute("lang", this.currentLang);
         document.documentElement.setAttribute("data-lang-dir", dict.dir || "ltr");
@@ -109,8 +109,8 @@
       const fallbackTr = this.locales.tr || {};
       const fallbackEn = this.locales.en || {};
       let raw = activeDict[key];
-      if (raw === undefined) raw = fallbackTr[key];
       if (raw === undefined) raw = fallbackEn[key];
+      if (raw === undefined) raw = fallbackTr[key];
       if (raw === undefined) return key;
       if (typeof raw !== "string") return raw;
 
@@ -160,7 +160,7 @@
   }
 
   ns.I18nService = I18nService;
-  ns.i18n = new I18nService("tr");
+  ns.i18n = new I18nService("en");
 })(window.AstroChief = window.AstroChief || {});
 
 /* ==========================================================================

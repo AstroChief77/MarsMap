@@ -23,7 +23,7 @@
       this.state.rotLat = Math.max(-75, Math.min(75, Number(this.state.rotLat) || -4.59));
       this.state.rotLon = this.normalizeLon(Number(this.state.rotLon) || 137.44);
       this.i18n = ns.i18n || null;
-      if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
+      if (this.i18n) this.i18n.setLang(this.state.lang || "en");
 
       this.datasetLoader = new DatasetLoader();
       this.tileLoader = new MarsTileLoader(() => this.scheduleRender(false));
@@ -298,7 +298,7 @@
       const prevSnapshot = { ...this.state };
       this.fpsGuard.armSettingGuard(prevSnapshot, label, (safePrev, measuredFps, failedLabel) => {
         this.state = { ...safePrev };
-        if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
+        if (this.i18n) this.i18n.setLang(this.state.lang || "en");
         this.starfield?.setEnabled(this.state.showStarfield);
         this.resizeCanvas();
         this.persistState();
@@ -329,7 +329,7 @@
       this.backendRoutes = null; this.backendHazards = null;
       this.backendStatusText = ""; this.lastRequestPayload = null;
       this.state = this.storage.factoryReset();
-      if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
+      if (this.i18n) this.i18n.setLang(this.state.lang || "en");
       if (this.demoService) this.demoService.expeditionMode = this.state.expeditionMode || "rover-crew";
       const wps = this.getActiveWaypoints();
       this.selectedWaypoint = wps.find((w) => w.highlight) || wps[0] || null;
@@ -748,7 +748,7 @@
           const pri = res.primaryBlue;
           this.backendRoutes = null;
           this.backendLatencyMs = null;
-          const tr = /^tr/i.test(navigator.language || "tr");
+          const tr = (this.i18n ? this.i18n.getLang() : "en") === "tr";
           this.showToast(tr
             ? `Rezerv yetmiyor. Gerekli: O₂ ${Math.round(pri.o2Liters || 0)} L · ${pri.energyUsedKwh ?? 0} kWh`
             : `Reserves not enough. Required: O₂ ${Math.round(pri.o2Liters || 0)} L · ${pri.energyUsedKwh ?? 0} kWh`, true);

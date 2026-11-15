@@ -72,7 +72,7 @@
       const enSet = Boolean(state && state.energyReserveKwh > 0);
       if (state && !o2Set && !enSet) {
         // Rezerv girilmedi: sadece bu rota icin gereken O2 ve enerjiyi goster
-        const tr = /^tr/i.test((typeof navigator !== "undefined" && navigator.language) || "tr");
+        const tr = (ns.i18n ? ns.i18n.getLang() : "en") === "tr";
         const need = `${tr ? "Gerekli" : "Required"}: O₂ ${this._fmtNum(pri.o2Liters)} L · ${this._fmtNum(pri.energyUsedKwh)} kWh`;
         return { text: esc(need), warn: false };
       }

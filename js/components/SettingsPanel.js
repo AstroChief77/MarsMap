@@ -42,7 +42,7 @@
       const esc = (s) => (i18n && i18n.escapeHtml ? i18n.escapeHtml(s) : String(s ?? "")
         .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"));
       const langs = i18n ? i18n.getSupportedLanguages() : [];
-      const currentLang = state.lang || (i18n ? i18n.getLang() : "tr");
+      const currentLang = state.lang || (i18n ? i18n.getLang() : "en");
       const dirAttr = (i18n && i18n.isRtl()) ? 'dir="rtl"' : 'dir="ltr"';
 
       const prevDropdown = this.mountEl.querySelector("#settings-dropdown");
