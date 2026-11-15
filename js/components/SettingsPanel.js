@@ -85,11 +85,27 @@
       const statusText = backendStatus || (state.backendApiUrl ? t("backendReady") : t("backendFallbackActive"));
 
       this.mountEl.innerHTML = `
+        <nav class="top-nav-pill" aria-label="${esc(t("navSearchAria"))}">
+          <span class="brand-tag" title="AstroChief"><img src="./res/logo.png?v=2" alt="AstroChief" class="brand-logo-img" /></span>
+          <form class="nav-search-form" id="nav-search-form">
+            <input
+              type="text"
+              class="nav-search-input"
+              id="nav-search-input"
+              value="${esc(draftSearchVal)}"
+              placeholder="${esc(t("navSearchPlaceholder"))}"
+              aria-label="${esc(t("navSearchAria"))}"
+            />
+            <button type="submit" class="nav-search-btn" id="btn-nav-search">${esc(t("navSearchBtn"))}</button>
+          </form>
+        </nav>
+
         <div class="settings-anchor" id="settings-anchor">
           <button class="icon-square-btn ${this.isOpen ? "active" : ""}" id="btn-settings" title="${esc(t("settingsTooltip"))}" aria-label="${esc(t("settingsAria"))}">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.77 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="2"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="12" cy="19" r="2"></circle>
             </svg>
           </button>
 
@@ -188,21 +204,6 @@
             </button>
           </div>
         </div>
-
-        <nav class="top-nav-pill" aria-label="${esc(t("navSearchAria"))}">
-          <span class="brand-tag" title="AstroChief"><img src="./res/logo.png?v=2" alt="AstroChief" class="brand-logo-img" /></span>
-          <form class="nav-search-form" id="nav-search-form">
-            <input
-              type="text"
-              class="nav-search-input"
-              id="nav-search-input"
-              value="${esc(draftSearchVal)}"
-              placeholder="${esc(t("navSearchPlaceholder"))}"
-              aria-label="${esc(t("navSearchAria"))}"
-            />
-            <button type="submit" class="nav-search-btn" id="btn-nav-search">${esc(t("navSearchBtn"))}</button>
-          </form>
-        </nav>
       `;
 
       const nextDropdown = this.mountEl.querySelector("#settings-dropdown");

@@ -21,8 +21,8 @@
 }
 
 .icon-square-btn {
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--r-sm);
   background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
@@ -48,7 +48,8 @@
 .settings-dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  left: 0;
+  right: 0;
+  left: auto;
   width: 334px;
   max-height: calc(100vh - 182px);
   overflow-y: auto;
@@ -344,7 +345,7 @@
 }
 
 .brand-logo-img {
-  height: 64px;
+  height: 36px;
   width: auto;
   object-fit: contain;
   display: block;
