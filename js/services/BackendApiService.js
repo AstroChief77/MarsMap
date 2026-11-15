@@ -632,6 +632,19 @@
       }
 
       const budget = this.computeRouteBudgetFromPayload(totalKm, totalHours, steps, payload, planner);
+      const rustO2Used = typeof rustRes.consumed_oxy_liters === "number"
+        ? rustRes.consumed_oxy_liters
+        : (typeof rustRes.consumed_oxy === "number" ? rustRes.consumed_oxy : null);
+      if (rustO2Used !== null && beginOxy > 0) {
+        const usedL = Math.max(0, Number(rustO2Used.toFixed(2)));
+        const remL = Math.max(0, Math.round(beginOxy - usedL));
+        const remPct = Number(((remL / beginOxy) * 100).toFixed(1));
+        budget.o2Liters = Math.round(usedL);
+        budget.arrivalO2L = remL;
+        budget.arrivalO2Pct = remPct;
+        budget.o2DeficitL = Math.max(0, Math.round(usedL - beginOxy));
+        budget.walkbackO2Alert = remPct < 20 || usedL > beginOxy;
+      }
       return {
         ...budget,
         points,
@@ -664,7 +677,7 @@
             expeditionMode: exp.expeditionMode || payload?.factors?.vehicleAndPhysics?.vehicleType || "rover-crew",
             targetSpeedKmH: exp.targetSpeedKmH || payload?.factors?.vehicleAndPhysics?.roverSpeedKmH || 14.5,
             oxygenReserveLiters: exp.oxygenReserveLiters ?? payload?.factors?.astronaut?.oxygenReserveLiters ?? 0,
-            oxygenTankCapacityL: exp.oxygenTankCapacityL || 420,
+            oxygenTankCapacityL: exp.oxygenTankCapacityL || exp.oxygenReserveLiters || 0,
             energyReserveKwh: exp.energyReserveKwh ?? payload?.factors?.vehicleAndPhysics?.roverBatteryKwh ?? 0,
             energyTankCapacityKwh: exp.energyTankCapacityKwh || 75
           },

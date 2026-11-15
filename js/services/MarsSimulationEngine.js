@@ -81,8 +81,8 @@
         profile: prof,
         normalized: {
           o2L: o2L > 0 ? o2L : 0,
-          o2CapL: Math.max(420, o2L || 0),
-          startO2Pct: o2L > 0 ? Number(((o2L / Math.max(420, o2L)) * 100).toFixed(1)) : 0,
+          o2CapL: o2L > 0 ? o2L : 0,
+          startO2Pct: o2L > 0 ? 100 : 0,
           energyKwh: energyKwh > 0 ? energyKwh : 0,
           energyCapKwh: Math.max(75, energyKwh || 0),
           startEnergyPct: energyKwh > 0 ? Number(((energyKwh / Math.max(75, energyKwh)) * 100).toFixed(1)) : 0,
