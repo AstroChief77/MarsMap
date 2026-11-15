@@ -43,6 +43,10 @@ AstroChief
 -Asit yağmuru bölgesi, fırtına bölgesi, radyasyon falan backend kısmından gelicek ona göre haritada bölgeleri çizicek.
 
 -Yazılan tüm yazılar lokalize(9 farklı dile) edilmelidir.
+
+-Sayfa her zaman default olarak İngilizce olmak zorundadır.
+
+-Eklenen her yeni şeyin lokalizasyonu yapılmak zorundadır.
 # Tasarım Kuralları
 
 -Sol üstte ayarlar simgesi olacak ayarlar açıldığında ilk çıkan seçenek factory reset seçeneği olmalıdır.
