@@ -303,7 +303,7 @@
           const rr = rz.radius * scale;
           this.overlays.drawLocalHeatmapPlume(
             ctx, rx, ry, rr,
-            zoom >= 2.1 ? `☢ ${rz.gammaLevel} | ${rz.photonFlux}` : "",
+            zoom >= 2.1 ? `${rz.gammaLevel} | ${rz.photonFlux}` : "",
             viewW, viewH
           );
         }
@@ -323,5 +323,5 @@
    - Satir 26-145: render; 2D Equirectangular tuvalde HiDPI karolari, yuksek kontrastli kutup sinir cizgisi, rotalar ve cakismasiz etiketleri cizer.
    - Satir 150-224: drawVisibleTiles ve drawGraticule; gorunur karolari (1x overdraw) ve enlem/boylam izgarasini cizer.
    - Satir 226-253: drawNomenclature; cakismasiz yuva secimi ve #090d14 hale ile gezegen yer adlarini cizer.
-   - Satir 255-312: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve foton alanini cizer.
+   - Satir 255-312: drawCraterLocalOverlays; yakinlasildiginda MOLA metre konturlari, Boxwork ve vektor simgeli foton alanini cizer.
    ========================================================================== */

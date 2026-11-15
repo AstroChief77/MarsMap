@@ -1,7 +1,7 @@
 {
   "name": "AstroChief-MarsMap",
-  "version": "4.6.0",
+  "version": "4.6.1",
   "buildDate": "2026-11-15",
   "targets": ["linux-x64", "windows-x64"],
-  "description": "NASA Space Apps 2026 - Orbital Titanium Slate Temasi (?v=5.8), Sade Rota Paneli, Birlesik Rover+Insan Ortak Seferi, Zorunlu On-Gorev Parametre Kapisi, NASA GESTALT Costmap, 9 Dil, Rust WASM/HTTP A* (v4.6.0)"
+  "description": "NASA Space Apps 2026 - Orbital Titanium Slate (?v=5.8), Sade Rota Paneli, Birlesik Rover+Insan Ortak Seferi, Yerel res/bootstrap-icons v1.11.3 (?v=5.9) ile Demo Emojisiz Bootstrap & Tuval Vektor Simgeleri, NASA GESTALT Costmap, 9 Dil, Rust WASM/HTTP A* (v4.6.1)"
 }

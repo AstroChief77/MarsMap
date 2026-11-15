@@ -36,7 +36,7 @@
       const energyEl = this.mountEl.querySelector("#demo-energy-val");
       const scrubEl = this.mountEl.querySelector("#demo-scrubber");
       if (pctEl) pctEl.textContent = `${tele.progressPct}%`;
-      if (timeEl) timeEl.textContent = `⏱ ${tele.elapsedMin || 0} ${this.t("minsUnit")}`;
+      if (timeEl) timeEl.innerHTML = `<i class="bi bi-stopwatch" aria-hidden="true"></i> ${Number(tele.elapsedMin) || 0} ${this.esc(this.t("minsUnit"))}`;
       if (distEl) distEl.textContent = `${tele.traveledKm.toFixed(1)} / ${tele.totalKm.toFixed(1)} km`;
       if (elevEl) elevEl.textContent = `${tele.elevM >= 0 ? "+" : ""}${tele.elevM} m`;
       if (o2El) {
@@ -74,9 +74,9 @@
           <div class="demo-collapsed-pill" ${dirAttr}>
             <span class="demo-live-dot"></span>
             <span class="demo-collapsed-title">${this.esc(this.t(activeScen.titleKey))}</span>
-            <button type="button" class="demo-mini-btn" id="demo-btn-play">${uiState.playing ? "⏸" : "▶"}</button>
-            <button type="button" class="demo-mini-btn" id="demo-btn-expand" title="${this.esc(this.t("demoExpand"))}">▴</button>
-            <button type="button" class="demo-mini-btn danger" id="demo-btn-close" title="${this.esc(this.t("demoClose"))}">✕</button>
+            <button type="button" class="demo-mini-btn" id="demo-btn-play" aria-label="${this.esc(uiState.playing ? this.t("demoPause") : this.t("demoPlay"))}"><i class="bi ${uiState.playing ? "bi-pause-fill" : "bi-play-fill"}" aria-hidden="true"></i></button>
+            <button type="button" class="demo-mini-btn" id="demo-btn-expand" title="${this.esc(this.t("demoExpand"))}" aria-label="${this.esc(this.t("demoExpand"))}"><i class="bi bi-chevron-up" aria-hidden="true"></i></button>
+            <button type="button" class="demo-mini-btn danger" id="demo-btn-close" title="${this.esc(this.t("demoClose"))}" aria-label="${this.esc(this.t("demoClose"))}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
         `;
         this.bindEvents();
@@ -106,8 +106,8 @@
             <div class="demo-head-right">
               <div class="demo-scen-pills">${stepPillsHtml}</div>
               <button type="button" class="demo-mini-btn ${uiState.autoTour ? "active" : ""}" id="demo-btn-autotour">${this.esc(this.t("demoAutoTour"))}</button>
-              <button type="button" class="demo-mini-btn" id="demo-btn-collapse" title="${this.esc(this.t("demoCollapse"))}">▾</button>
-              <button type="button" class="demo-mini-btn danger" id="demo-btn-close" title="${this.esc(this.t("demoClose"))}">✕</button>
+              <button type="button" class="demo-mini-btn" id="demo-btn-collapse" title="${this.esc(this.t("demoCollapse"))}" aria-label="${this.esc(this.t("demoCollapse"))}"><i class="bi bi-chevron-down" aria-hidden="true"></i></button>
+              <button type="button" class="demo-mini-btn danger" id="demo-btn-close" title="${this.esc(this.t("demoClose"))}" aria-label="${this.esc(this.t("demoClose"))}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
             </div>
           </div>
 
@@ -115,12 +115,12 @@
 
           <div class="demo-controls-row">
             <div class="demo-transport">
-              <button type="button" class="demo-ctrl-btn" id="demo-btn-prev" title="${this.esc(this.t("demoPrev"))}">⏮</button>
+              <button type="button" class="demo-ctrl-btn" id="demo-btn-prev" title="${this.esc(this.t("demoPrev"))}" aria-label="${this.esc(this.t("demoPrev"))}"><i class="bi bi-skip-backward-fill" aria-hidden="true"></i></button>
               <button type="button" class="demo-ctrl-btn primary" id="demo-btn-play" title="${this.esc(uiState.playing ? this.t("demoPause") : this.t("demoPlay"))}">
-                ${uiState.playing ? `⏸ ${this.esc(this.t("demoPause"))}` : `▶ ${this.esc(this.t("demoPlay"))}`}
+                <i class="bi ${uiState.playing ? "bi-pause-fill" : "bi-play-fill"}" aria-hidden="true"></i> ${this.esc(uiState.playing ? this.t("demoPause") : this.t("demoPlay"))}
               </button>
-              <button type="button" class="demo-ctrl-btn" id="demo-btn-restart" title="${this.esc(this.t("demoRestart"))}">↺</button>
-              <button type="button" class="demo-ctrl-btn" id="demo-btn-next" title="${this.esc(this.t("demoNext"))}">⏭</button>
+              <button type="button" class="demo-ctrl-btn" id="demo-btn-restart" title="${this.esc(this.t("demoRestart"))}" aria-label="${this.esc(this.t("demoRestart"))}"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>
+              <button type="button" class="demo-ctrl-btn" id="demo-btn-next" title="${this.esc(this.t("demoNext"))}" aria-label="${this.esc(this.t("demoNext"))}"><i class="bi bi-skip-forward-fill" aria-hidden="true"></i></button>
             </div>
 
             <div class="demo-scrubber-wrap">
@@ -133,12 +133,12 @@
 
           <div class="demo-tele-row">
             <div class="demo-vehicle-switch">
-              <button type="button" class="demo-veh-btn ${curMode === "rover-crew" ? "active" : ""}" data-demo-veh="rover-crew">🚙🧑‍🚀 ${this.esc(this.t("demoModeRoverCrew"))}</button>
-              <button type="button" class="demo-veh-btn ${curMode === "joint-eva-escort" ? "active" : ""}" data-demo-veh="joint-eva-escort">🚙🥾 ${this.esc(this.t("demoModeJointEva"))}</button>
+              <button type="button" class="demo-veh-btn ${curMode === "rover-crew" ? "active" : ""}" data-demo-veh="rover-crew"><i class="bi bi-truck-front-fill" aria-hidden="true"></i><i class="bi bi-people-fill" aria-hidden="true"></i> ${this.esc(this.t("demoModeRoverCrew"))}</button>
+              <button type="button" class="demo-veh-btn ${curMode === "joint-eva-escort" ? "active" : ""}" data-demo-veh="joint-eva-escort"><i class="bi bi-truck-front-fill" aria-hidden="true"></i><i class="bi bi-person-walking" aria-hidden="true"></i> ${this.esc(this.t("demoModeJointEva"))}</button>
             </div>
             <div class="demo-metrics-chips">
-              <span class="demo-metric-chip" id="demo-time-val">⏱ ${tele.elapsedMin || 0} ${this.esc(this.t("minsUnit"))}</span>
-              <span class="demo-metric-chip">⚡ ${tele.speedKmH} ${this.esc(this.t("demoSpeedUnit"))}</span>
+              <span class="demo-metric-chip" id="demo-time-val"><i class="bi bi-stopwatch" aria-hidden="true"></i> ${Number(tele.elapsedMin) || 0} ${this.esc(this.t("minsUnit"))}</span>
+              <span class="demo-metric-chip"><i class="bi bi-speedometer2" aria-hidden="true"></i> ${this.esc(tele.speedKmH)} ${this.esc(this.t("demoSpeedUnit"))}</span>
               <span class="demo-metric-chip" id="demo-dist-val">${tele.traveledKm.toFixed(1)} / ${tele.totalKm.toFixed(1)} km</span>
               <span class="demo-metric-chip" id="demo-elev-val">${tele.elevM >= 0 ? "+" : ""}${tele.elevM} m</span>
               <span class="demo-metric-chip ${Number(tele.o2Pct) < 20 ? "warn" : ""}" id="demo-o2-val">${tele.remainingO2L} L (%${Math.round(tele.o2Pct ?? 100)}) O₂</span>
@@ -191,7 +191,7 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc alt-orta Ortak Sefer Kontrol Cubugu bileseni tanimi.
    - Satir 10-26: constructor, t ve esc; DOM baglantisi, 9-dil cevirisi ve XSS kacisi.
-   - Satir 28-54: updateLiveTelemetry; rAF animasyonu sirasinda dk, km, rakim, %O2/L ve kWh sayaclarini gunceller.
-   - Satir 56-154: render; kucultulmus hap veya tam kontrol karti (birlesik Rover+Ekip / Rover+Yaya EVA modlari, senaryo, hiz, telemetri) cizer.
-   - Satir 156-187: bindEvents; oynat/duraklat, ileri/geri, ortak sefer modu, hiz carpani ve ilerleme cubugu olaylarini baglar.
+   - Satir 28-55: updateLiveTelemetry; rAF animasyonu sirasinda Bootstrap simgeli dk, km, rakim, %O2/L ve kWh sayaclarini gunceller.
+   - Satir 57-152: render; kucultulmus hap veya tam kontrol kartini (tum buton ve cipler Bootstrap Icons simgeli) cizer.
+   - Satir 154-187: bindEvents; oynat/duraklat, ileri/geri, ortak sefer modu, hiz carpani ve ilerleme cubugu olaylarini baglar.
    ========================================================================== */

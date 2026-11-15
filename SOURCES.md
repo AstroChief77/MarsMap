@@ -70,3 +70,10 @@ Bu belgede projede kullanılan tüm NASA kaynakları, haritalama araçları, ver
    - **NASA Pressurized Rover (SEV / `TM-20220006678`) & Mars Bilim Roverları:** Basınçlı rover (`166.7–241.7 m/dk`, `10–12 kW` sürüş gücü, `52.7–100 kWh` batarya) ve Perseverance (`2.53 m/dk`) / Curiosity (`1.50–2.33 m/dk`) hızları (`https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/`)
    - **NASA NSSDC Mars Fact Sheet, Curiosity RAD & `OCHMO-TB-020`:** `R = 3,389.5 km`, `g = 3.721 m/s²`, `6.36 mbar`, `0.64 ± 0.12 mSv/gün` yüzey radyasyonu ve `< 600 mSv` görev limiti (`https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html`)
 
+10. **Yerel Simge Kütüphanesi (`Bootstrap Icons v1.11.3` — Çevrimdışı `res/` Paketi)**
+   - **Resmi URL (Belgeleme Amaçlı):** https://icons.getbootstrap.com/ (MIT Lisansı)
+   - **Yerel Dosyalar (`res/bootstrap-icons/`):**
+     * `res/bootstrap-icons/bootstrap-icons.min.css` (yalnızca göreli `fonts/bootstrap-icons.woff2` ve `.woff` kaynaklarını yükler)
+     * `res/bootstrap-icons/fonts/bootstrap-icons.woff2` & `res/bootstrap-icons/fonts/bootstrap-icons.woff`
+     * `res/bootstrap-icons/LICENSE`
+   - **Kullanım Alanı:** `/demo` stüdyosu (`demo/index.html`, `DemoStudioController.js`, `css/demo_studio.css`), ana harita Rehberli Demo Çubuğu (`DemoControlBar.js`, `css/demo.css`) ve üst bar `#btn-demo-mode` düğmesinde (`SettingsPanel.js`) çalışma zamanında internet/CDN çağrısı yapılmadan emojilerin yerine vektör simgeler (`<i class="bi ...">`) sunmak.

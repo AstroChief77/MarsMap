@@ -177,7 +177,7 @@
             />
             <button type="submit" class="nav-search-btn" id="btn-nav-search">${esc(t("navSearchBtn"))}</button>
           </form>
-          <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}">${demoActive ? "■" : "▶"} ${esc(t("demoBtnLabel"))}</button>
+          <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}"><i class="bi ${demoActive ? "bi-stop-fill" : "bi-play-fill"}" aria-hidden="true"></i> ${esc(t("demoBtnLabel"))}</button>
         </nav>
       `;
 
@@ -259,6 +259,6 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc sol ust Ayarlar, Factory Reset, 9 dil secici ve ust arama seridi bileseni tanimi.
    - Satir 7-34: constructor, toggleOpen (onPopoverOpen + onPanelToggle geri cagrilari dahil) ve close; acilir menunun durumunu yonetir.
-   - Satir 36-191: render; 1. secenekte Factory Reset butonu, 9 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve yerellestirilmis ust arama/bilgi/demo cubugunu cizer.
-   - Satir 193-247: bindEvents; dil degisimi, ayar anahtarlari, yer/koordinat arama formu, Demo dugmesi ve Rust backend dugmelerini baglar.
+   - Satir 36-197: render; 1. secenekte Factory Reset butonu, 9 dilli secici izgarasi, Factory birim standartlari, 10sn FPS korumali anahtarlar ve Bootstrap simgeli Demo/arama cubugunu cizer.
+   - Satir 199-255: bindEvents; dil degisimi, ayar anahtarlari, yer/koordinat arama formu, Demo dugmesi ve Rust backend dugmelerini baglar.
    ========================================================================== */

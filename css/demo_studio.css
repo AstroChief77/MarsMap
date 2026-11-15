@@ -122,6 +122,9 @@
 }
 
 .sim-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: var(--bg-soft);
   border: 1px solid var(--line-light);
   border-radius: var(--r-pill);
@@ -129,6 +132,14 @@
   font-size: 11px;
   font-weight: 800;
   color: var(--ink-black);
+}
+
+.sim-btn .bi,
+.sim-veh-btn .bi,
+.sim-pill-badge .bi {
+  font-size: 1.05em;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .sim-workspace {
@@ -194,6 +205,10 @@
 }
 
 .sim-veh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 7px 6px;
   border-radius: 6px;
   border: 1px solid var(--line-light);
@@ -458,6 +473,17 @@
   color: var(--ink-dark);
 }
 
+.sim-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sim-legend-item .bi {
+  font-size: 8px;
+  line-height: 1;
+}
+
 .sim-log-box {
   display: flex;
   flex-direction: column;
@@ -534,10 +560,10 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc /demo Acik Gri Studio ortak sefer ve hayatta kalma studyosu CSS tanimlari.
-   - Satir 7-154: Acik gri zemin, buzlu ust arac cubugu, 4 ortak senaryo, kapi kilit rozeti ve 2D/3D seciciler.
-   - Satir 156-340: Buzlu beyaz sol/sag kartlar, 2 sutunlu Rover+Insan mod gridi, beyaz girdiler ve yuksek kontrastli O2/Su/Enerji kapi uyarilari.
-   - Satir 342-502: Varis ozeti (.sim-arrival-box), hizalanmis olay enjeksiyon butonlari, canli O2/Su/Batarya cubuklari, chart tuvali ve okunakli olay gunlugu renkleri.
-   - Satir 504-542: Buzlu alt zaman/hiz oynatma cubugu ve duyarli ekran kurallari.
+   - Satir 1-5: JSDoc /demo Orbital Titanium Slate ortak sefer studyosu CSS tanimlari.
+   - Satir 7-154: Buzlu ust arac cubugu, 4 ortak senaryo, Bootstrap simge hizalamasi (.bi), rozetler ve 2D/3D seciciler.
+   - Satir 156-345: Sol/sag kartlar, 2 sutunlu Rover+Insan mod gridi, beyaz/arduvaz girdiler ve kapi uyarilari.
+   - Satir 347-515: Varis ozeti (.sim-arrival-box), canli O2/Su/Batarya cubuklari, chart tuvali ve Bootstrap lejand (.sim-legend-item).
+   - Satir 517-569: Alt zaman/hiz oynatma cubugu ve duyarli ekran kurallari.
    ========================================================================== */
 
