@@ -54,12 +54,13 @@
   max-height: calc(100vh - 150px);
   overflow-y: auto;
   background: var(--bg-white);
-  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
+  border-top: 2px solid var(--mars-red);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   padding: 11px 12px;
+  font-variant-numeric: tabular-nums;
   display: none;
   flex-direction: column;
   gap: 8px;

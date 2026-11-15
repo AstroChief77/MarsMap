@@ -53,12 +53,13 @@
   max-height: calc(100vh - 182px);
   overflow-y: auto;
   background: var(--bg-white);
-  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
+  border-top: 2px solid var(--mars-red);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   padding: 12px;
+  font-variant-numeric: tabular-nums;
   display: none;
   flex-direction: column;
   gap: 7px;
@@ -325,8 +326,8 @@
   align-items: center;
   gap: 6px;
   background: var(--bg-white);
-  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--line-light);
+  border-left: 2px solid var(--mars-red);
   border-radius: var(--r-sm);
   padding: 5px 6px;
   box-shadow: var(--shadow-btn);
@@ -335,9 +336,9 @@
 .brand-tag {
   font-size: 13px;
   font-weight: 900;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   padding: 7px 11px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   background: var(--bg-gray-200);
   color: var(--ink-black);
   border: 1px solid var(--line-light);

@@ -6,23 +6,23 @@
 :root {
   color-scheme: dark;
 
-  /* Buzlu Titanyum & Arduvaz Cam Yuzeyleri (Ne Siyah Ne Saf Beyaz) */
-  --bg-white: rgba(54, 70, 96, 0.86);
-  --bg-solid-white: #3d4e6b;
-  --bg-offwhite: #455878;
-  --bg-soft: #4d6285;
+  /* AstroChief Gorev Kontrol Mat Yuzeyleri (Net, Keskin, Blursiz) */
+  --bg-white: rgba(15, 21, 32, 0.94);
+  --bg-solid-white: #141c2b;
+  --bg-offwhite: #1a2334;
+  --bg-soft: #212c40;
 
-  /* Kobalt Gece Uzay Zeminleri, Kontroller ve Platin Tipografi */
-  --space-black: #121c30;
-  --bg-canvas: #1a2842;
-  --bg-gray-100: #455878;
-  --bg-gray-200: #4e6386;
-  --bg-gray-300: #5a7199;
-  --surface-control: #465a7a;
-  --surface-control-hover: #566e94;
-  --ink-black: #f1f5f9;
-  --ink-dark: #dce5f2;
-  --ink-muted: #b4c4da;
+  /* Kobalt Gece Uzay Zeminleri, Kontroller ve Yuksek Kontrast Beyaz Tipografi */
+  --space-black: #0c121e;
+  --bg-canvas: #131c2e;
+  --bg-gray-100: #1b2436;
+  --bg-gray-200: #222d42;
+  --bg-gray-300: #2c3a54;
+  --surface-control: #1d273b;
+  --surface-control-hover: #29364f;
+  --ink-black: #ffffff;
+  --ink-dark: #e2e8f0;
+  --ink-muted: #9fb0c7;
 
   /* NASA / Mars Kirmizisi & Uyari Vurgulari */
   --mars-red: #e03e36;
@@ -43,21 +43,21 @@
   --status-ok-text: #86efac;
   --status-ok-border: rgba(134, 239, 172, 0.42);
 
-  /* Ince Parlak Cam Kenarliklar ve Yumusak Golgeler */
-  --line-light: rgba(214, 226, 242, 0.30);
-  --line-dark: rgba(214, 226, 242, 0.48);
-  --glass-blur: blur(16px);
-  --shadow-card: 0 16px 36px -8px rgba(6, 12, 24, 0.45), 0 0 0 1px rgba(214, 226, 242, 0.14);
-  --shadow-btn: 0 8px 20px -4px rgba(6, 12, 24, 0.38), 0 0 0 1px rgba(214, 226, 242, 0.14);
+  /* Keskin Teknik Kenarliklar ve Mat Enstruman Golgeleri */
+  --line-light: rgba(255, 255, 255, 0.16);
+  --line-dark: rgba(255, 255, 255, 0.34);
+  --glass-blur: none;
+  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.62);
+  --shadow-btn: 0 3px 10px rgba(0, 0, 0, 0.48);
 
   /* ZORUNLU FONT AILESI: Public Sans Web, sans-serif */
   --font-main: 'Public Sans Web', sans-serif;
 
-  /* Yuvarlaklik */
-  --r-xs: 8px;
-  --r-sm: 11px;
-  --r-md: 16px;
-  --r-pill: 999px;
+  /* Keskin Enstruman Koseleri (AI Yuvarlakligi Yok) */
+  --r-xs: 2px;
+  --r-sm: 3px;
+  --r-md: 4px;
+  --r-pill: 3px;
 }
 
 /* ==========================================================================
