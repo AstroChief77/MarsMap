@@ -211,12 +211,13 @@
         const screenX = x1 * rScale;
         const screenY = y1 * rScale * cosP + dz0 * sinP;
         const depthZ = -y1 * rScale * sinP + dz0 * cosP + pivotZ;
+        const camDot = -y1 * sinP + up * cosP;
 
         return {
           x: cx + screenX * radius,
           y: cy - screenY * radius,
           z: depthZ,
-          visible: up > 0.04 && depthZ > -0.15,
+          visible: camDot > 0.015,
           pxPerDeg
         };
       };
