@@ -289,14 +289,15 @@
     /**
      * Orbital Titanium Slate standartlarinda buzlu yarim saydam, ince cerceveli ve sol renk seritli etiket hapi cizer
      */
-    drawRoundedPill(ctx, x, y, w, h, radius = 7, accentHex = "#64748b", isStrong = false) {
+    drawRoundedPill(ctx, x, y, w, h, radius = 3, accentHex = "#64748b", isStrong = false) {
+      const r = Math.min(radius, 4);
       ctx.save();
-      ctx.shadowColor = "rgba(6, 12, 24, 0.34)";
-      ctx.shadowBlur = 9;
+      ctx.shadowColor = "rgba(0, 0, 0, 0.52)";
+      ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 2;
-      this.drawRoundRectPath(ctx, x, y, w, h, radius);
-      ctx.fillStyle = isStrong ? "rgba(54, 70, 96, 0.90)" : "rgba(62, 80, 108, 0.86)";
+      this.drawRoundRectPath(ctx, x, y, w, h, r);
+      ctx.fillStyle = isStrong ? "rgba(20, 28, 43, 0.96)" : "rgba(15, 21, 32, 0.93)";
       ctx.fill();
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
@@ -304,15 +305,15 @@
 
       if (accentHex) {
         ctx.save();
-        this.drawRoundRectPath(ctx, x, y, w, h, radius);
+        this.drawRoundRectPath(ctx, x, y, w, h, r);
         ctx.clip();
         ctx.fillStyle = accentHex;
-        ctx.fillRect(x, y, 3.5, h);
+        ctx.fillRect(x, y, 3, h);
         ctx.restore();
       }
 
-      this.drawRoundRectPath(ctx, x, y, w, h, radius);
-      ctx.strokeStyle = isStrong ? accentHex : "rgba(214, 226, 242, 0.42)";
+      this.drawRoundRectPath(ctx, x, y, w, h, r);
+      ctx.strokeStyle = isStrong ? accentHex : "rgba(255, 255, 255, 0.18)";
       ctx.lineWidth = isStrong ? 1.2 : 1;
       ctx.stroke();
       ctx.restore();
