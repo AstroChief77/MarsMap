@@ -35,6 +35,35 @@
       c.isAnimating = false;
     }
 
+    _applyDragStep(dx, dy) {
+      const c = this.ctrl;
+      if (dx === 0 && dy === 0) return;
+      if (dx * dx + dy * dy > 4) c.hasMoved = true;
+
+      if (c.isOrbitDragging) {
+        c.state.camYaw = ((c.state.camYaw || 0) + dx * 0.28 + 360) % 360;
+        c.state.camPitch = Math.max(0, Math.min(68, (c.state.camPitch ?? 0) - dy * 0.24));
+        const tiltBtn = document.getElementById("btn-3d-tilt");
+        if (tiltBtn) tiltBtn.textContent = `${Math.round(c.state.camPitch)}°`;
+        c.scheduleRender(false);
+        c.schedulePersistState();
+        return;
+      }
+
+      const vw = c.viewWidth || 1280;
+      const vh = c.viewHeight || 720;
+      const { stepLon, stepLat } = c.routePlanner?.geo
+        ? c.routePlanner.geo.computePanStep(dx, dy, vw, vh, c.state)
+        : { stepLon: 0, stepLat: 0 };
+      c.velLon = stepLon * 0.42;
+      c.velLat = stepLat * 0.42;
+      c.state.rotLon = c.normalizeLon(c.state.rotLon + stepLon);
+      c.state.rotLat = Math.max(-78, Math.min(78, c.state.rotLat + stepLat));
+      c.hoverCoords.lat = c.state.rotLat;
+      c.hoverCoords.lon = c.state.rotLon;
+      c.scheduleRender(false);
+    }
+
     bindCanvasEvents() {
       const c = this.ctrl;
       if (!c.canvas) return;
@@ -58,34 +87,79 @@
         if (!c.isDragging) { c.updateHoverCoords(e); return; }
         const dx = e.clientX - c.dragX;
         const dy = e.clientY - c.dragY;
-        if (dx === 0 && dy === 0) return;
-        if (dx * dx + dy * dy > 4) c.hasMoved = true;
         c.dragX = e.clientX;
         c.dragY = e.clientY;
+        this._applyDragStep(dx, dy);
+      });
 
-        if (c.isOrbitDragging) {
-          c.state.camYaw = ((c.state.camYaw || 0) + dx * 0.28 + 360) % 360;
-          c.state.camPitch = Math.max(0, Math.min(68, (c.state.camPitch ?? 0) - dy * 0.24));
-          const tiltBtn = document.getElementById("btn-3d-tilt");
-          if (tiltBtn) tiltBtn.textContent = `${Math.round(c.state.camPitch)}°`;
-          c.scheduleRender(false);
-          c.schedulePersistState();
+      let pinchDist = 0;
+      c.canvas.addEventListener("touchstart", (e) => {
+        if (c.animFrame) cancelAnimationFrame(c.animFrame);
+        clearTimeout(c.dragSettleTimer);
+        c.animFrame = null;
+        c.isAnimating = false;
+        c.isOrbitDragging = false;
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          pinchDist = 0;
+          c.isDragging = true;
+          c.hasMoved = false;
+          c.dragX = t.clientX;
+          c.dragY = t.clientY;
+          c.velLat = 0;
+          c.velLon = 0;
+        } else if (e.touches.length === 2) {
+          c.isDragging = false;
+          c.hasMoved = true;
+          pinchDist = Math.hypot(
+            e.touches[1].clientX - e.touches[0].clientX,
+            e.touches[1].clientY - e.touches[0].clientY
+          );
+        }
+      }, { passive: false });
+
+      c.canvas.addEventListener("touchmove", (e) => {
+        e.preventDefault();
+        if (e.touches.length === 2) {
+          const t0 = e.touches[0];
+          const t1 = e.touches[1];
+          const nextDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+          if (pinchDist > 8 && nextDist > 8) {
+            const rect = c.canvas.getBoundingClientRect();
+            const mx = (t0.clientX + t1.clientX) * 0.5 - rect.left;
+            const my = (t0.clientY + t1.clientY) * 0.5 - rect.top;
+            this.applyZoom(c.state.zoom * (nextDist / pinchDist), mx, my);
+          }
+          pinchDist = nextDist;
           return;
         }
+        if (e.touches.length === 1 && c.isDragging) {
+          const t = e.touches[0];
+          const dx = t.clientX - c.dragX;
+          const dy = t.clientY - c.dragY;
+          c.dragX = t.clientX;
+          c.dragY = t.clientY;
+          this._applyDragStep(dx, dy);
+        }
+      }, { passive: false });
 
-        const vw = c.viewWidth || 1280;
-        const vh = c.viewHeight || 720;
-        const { stepLon, stepLat } = c.routePlanner?.geo
-          ? c.routePlanner.geo.computePanStep(dx, dy, vw, vh, c.state)
-          : { stepLon: 0, stepLat: 0 };
-        c.velLon = stepLon * 0.42;
-        c.velLat = stepLat * 0.42;
-        c.state.rotLon = c.normalizeLon(c.state.rotLon + stepLon);
-        c.state.rotLat = Math.max(-78, Math.min(78, c.state.rotLat + stepLat));
-        c.hoverCoords.lat = c.state.rotLat;
-        c.hoverCoords.lon = c.state.rotLon;
-        c.scheduleRender(false);
-      });
+      const endTouch = (e) => {
+        if (e.touches.length === 1) {
+          pinchDist = 0;
+          c.isDragging = true;
+          c.dragX = e.touches[0].clientX;
+          c.dragY = e.touches[0].clientY;
+          c.velLat = 0;
+          c.velLon = 0;
+          return;
+        }
+        pinchDist = 0;
+        if (!c.isDragging) return;
+        c.isDragging = false;
+        this.startInertia();
+      };
+      c.canvas.addEventListener("touchend", endTouch, { passive: true });
+      c.canvas.addEventListener("touchcancel", endTouch, { passive: true });
 
       c.canvas.addEventListener("wheel", (e) => {
         e.preventDefault();
