@@ -408,6 +408,39 @@
   border-color: var(--line-dark);
 }
 
+.settings-info-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  background: var(--bg-offwhite);
+  border: 1px solid var(--line-light);
+  color: var(--ink-black);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+.settings-info-btn:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--line-dark);
+}
+
+.settings-info-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink-black);
+}
+
+.settings-info-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
 /* Sag Alt: Zoom, Sifirla ve Canli FPS Telemetri Cubugu */
 .zoom-stack-anchor,
 .hud-bottom-right {

@@ -154,6 +154,13 @@
               </div>
               <div class="backend-status-line" id="backend-status-line">${esc(statusText)}</div>
             </div>
+
+            <div class="settings-sep"></div>
+
+            <button type="button" class="settings-info-btn" id="btn-open-mission-modal" title="${esc(t("navInfoTitle"))}" role="menuitem">
+              <span class="settings-info-title">ℹ ${esc(t("navInfo"))}</span>
+              <span class="settings-info-sub">${esc(t("navInfoTitle"))}</span>
+            </button>
           </div>
         </div>
 
@@ -171,7 +178,6 @@
             <button type="submit" class="nav-search-btn" id="btn-nav-search">${esc(t("navSearchBtn"))}</button>
           </form>
           <button class="nav-demo-btn ${demoActive ? "active" : ""}" id="btn-demo-mode" title="${esc(t("demoBtnTitle"))}">${demoActive ? "■" : "▶"} ${esc(t("demoBtnLabel"))}</button>
-          <button class="nav-info-btn" id="btn-open-mission-modal" title="${esc(t("navInfoTitle"))}">${esc(t("navInfo"))}</button>
         </nav>
       `;
 
@@ -229,6 +235,7 @@
       });
 
       this.mountEl.querySelector("#btn-open-mission-modal")?.addEventListener("click", () => {
+        this.close();
         this.handlers.onOpenInfoModal?.();
       });
 

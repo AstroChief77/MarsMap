@@ -429,10 +429,6 @@
           <button class="zoom-btn zoom-btn-peak" id="btn-3d-peak" title="${this.t("peakBtnTitle")}">⛰</button>
           <button class="zoom-btn" id="btn-cam-reset" title="${this.t("zoomResetTitle")}">⌂</button>
         </div>
-        <div class="telemetry-strip">
-          <span id="telemetry-text">${this.t("telemetryLoading")}</span>
-          <span class="fps-pill" id="live-fps-pill">60 FPS</span>
-        </div>
       `;
 
       this.bottomRightEl.querySelector("#btn-zoom-in")?.addEventListener("click", () => this.applyZoom(this.state.zoom * 1.45));
