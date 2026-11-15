@@ -62,6 +62,7 @@
         showNomenclature: true,
         showGraticule: false,
         showStarfield: true,
+        graphicsQuality: "high",        // 'low' | 'medium' | 'high' | 'ultra'
         highQualityGlobeRay: false,     // Agir 3D ornekleme (FPS testine duyarli)
         enable3DTerrain: true,
         topoReliefScale: 1.0,

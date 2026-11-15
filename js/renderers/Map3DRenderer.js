@@ -55,7 +55,7 @@
         isDragging, isInteracting, craters, landingSites, activeCrater,
         hazardBundle, computedRoutes, progressiveLodRender,
         showGraticule, showNomenclature, showRouteComments, highQualityGlobeRay,
-        routeScope, customOrigin, customDestination
+        graphicsQuality, routeScope, customOrigin, customDestination
       } = state;
 
       ctx.clearRect(0, 0, width, height);
@@ -111,12 +111,14 @@
       const cropW = sx1 - sx0;
       const cropH = sy1 - sy0;
 
-      const devDpr = Math.min(dpr || 1, 2);
+      const gq = graphicsQuality || "high";
+      const devDpr = gq === "ultra" ? Math.min(Math.max(dpr || 1, 1.75), 3.0) : Math.min(dpr || 1, 2);
       const fastMode = Boolean(isDragging || isInteracting);
       const layer = this.tileLoader.getLayerById(activeLayerId);
       const targetZ = this.tileLoader.computeTargetZoom({
         zoom: clampedZoom, sphereRadiusPx: radius, dpr: devDpr,
-        viewMode: "3d", progressiveLodRender: progressiveLodRender !== false
+        viewMode: "3d", progressiveLodRender: progressiveLodRender !== false,
+        graphicsQuality: gq
       }, layer);
 
       const isTainted = this.tileLoader.isAtlasTainted?.(activeLayerId);
@@ -126,12 +128,21 @@
 
       if (!isTainted && cropW > 0 && cropH > 0) {
         let scale;
+        const cropArea = Math.max(1, cropW * cropH);
         if (fastMode) {
-          scale = Math.min(0.84, Math.sqrt(260000 / Math.max(1, cropW * cropH)));
+          if (gq === "ultra") scale = Math.min(1.05, Math.sqrt(520000 / cropArea));
+          else if (gq === "low") scale = Math.min(0.65, Math.sqrt(160000 / cropArea));
+          else scale = Math.min(0.84, Math.sqrt(260000 / cropArea));
+        } else if (gq === "ultra") {
+          scale = Math.min(devDpr, Math.sqrt(3600000 / cropArea));
+        } else if (gq === "low") {
+          scale = Math.min(1.0, Math.sqrt(520000 / cropArea));
+        } else if (gq === "medium") {
+          scale = Math.min(Math.min(devDpr, 1.25), Math.sqrt(800000 / cropArea));
         } else if (highQualityGlobeRay) {
-          scale = Math.min(devDpr, Math.sqrt(1650000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(devDpr, Math.sqrt(1650000 / cropArea));
         } else {
-          scale = Math.min(Math.min(devDpr, 1.35), Math.sqrt(920000 / Math.max(1, cropW * cropH)));
+          scale = Math.min(Math.min(devDpr, 1.35), Math.sqrt(920000 / cropArea));
         }
 
         const bw = Math.max(1, Math.round(cropW * scale));
@@ -139,8 +150,8 @@
         this.ensureCropBuffer(bw, bh);
 
         const decodedVer = this.tileLoader.getDecodedVersion ? this.tileLoader.getDecodedVersion() : 0;
-        const exactAll = Boolean(highQualityGlobeRay) && !fastMode;
-        const rayKey = `${activeLayerId}|${targetZ}|${bw}x${bh}|${sx0},${sy0}|${rotLat.toFixed(4)}|${rotLon.toFixed(4)}|${clampedZoom.toFixed(4)}|${pitch.toFixed(2)}|${yaw.toFixed(2)}|${reliefScale}|${fastMode ? 1 : 0}|${exactAll ? 1 : 0}|${decodedVer}|${heatKey}`;
+        const exactAll = (gq === "ultra" || Boolean(highQualityGlobeRay)) && !fastMode;
+        const rayKey = `${activeLayerId}|${targetZ}|${bw}x${bh}|${sx0},${sy0}|${rotLat.toFixed(4)}|${rotLon.toFixed(4)}|${clampedZoom.toFixed(4)}|${pitch.toFixed(2)}|${yaw.toFixed(2)}|${reliefScale}|${fastMode ? 1 : 0}|${exactAll ? 1 : 0}|${gq}|${decodedVer}|${heatKey}`;
 
         if (rayKey === this.lastRayKey && this.lastRayOk) {
           ctx.save();

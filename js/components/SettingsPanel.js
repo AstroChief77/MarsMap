@@ -66,6 +66,22 @@
         </button>
       `).join("");
 
+      const currentGfx = state.graphicsQuality || "high";
+      const gfxPresets = [
+        { key: "low", label: t("gfxLow") },
+        { key: "medium", label: t("gfxMedium") },
+        { key: "high", label: t("gfxHigh") },
+        { key: "ultra", label: t("gfxUltra") }
+      ];
+      const gfxChipsHtml = gfxPresets.map((g) => `
+        <button type="button"
+                class="lang-chip-btn graphics-chip-btn ${g.key === currentGfx ? "active" : ""}"
+                data-graphics-quality="${esc(g.key)}"
+                data-graphics-label="${esc(g.label)}">
+          <span class="lang-chip-name">${esc(g.label)}</span>
+        </button>
+      `).join("");
+
       const statusText = backendStatus || (state.backendApiUrl ? t("backendReady") : t("backendFallbackActive"));
 
       this.mountEl.innerHTML = `
@@ -104,6 +120,15 @@
               <div class="factory-spec-row"><span>${esc(t("specVolumeReserve"))}</span><strong>${esc(t("specVolumeReserveVal", { o2: state.oxygenReserveLiters ?? "—", energy: state.energyReserveKwh ?? "—" }))}</strong></div>
               <div class="factory-spec-row"><span>${esc(t("specDistDuration"))}</span><strong>${esc(t("specDistDurationVal"))}</strong></div>
               <div class="factory-spec-row"><span>${esc(t("specRadiation"))}</span><strong>${esc(t("specRadiationVal"))}</strong></div>
+            </div>
+
+            <div class="settings-sep"></div>
+
+            <div class="lang-config-box">
+              <div class="factory-spec-title">${esc(t("graphicsSectionTitle"))}</div>
+              <div class="lang-chip-grid" role="group" aria-label="${esc(t("graphicsSectionTitle"))}">
+                ${gfxChipsHtml}
+              </div>
             </div>
 
             <div class="settings-sep"></div>
@@ -213,6 +238,14 @@
         btn.addEventListener("click", () => {
           const code = btn.getAttribute("data-lang-code");
           this.handlers.onLanguageChange?.(code);
+        });
+      });
+
+      this.mountEl.querySelectorAll("[data-graphics-quality]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const q = btn.getAttribute("data-graphics-quality");
+          const label = btn.getAttribute("data-graphics-label") || q;
+          this.handlers.onSettingChange?.("graphicsQuality", q, `${this.i18n.t("graphicsSectionTitle")}: ${label}`);
         });
       });
 

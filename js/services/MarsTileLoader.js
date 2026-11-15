@@ -193,7 +193,11 @@
         else z = 7;
       }
 
-      return Math.min(z, maxCap);
+      const gq = vs.graphicsQuality || "high";
+      if (gq === "ultra") z += 1;
+      else if (gq === "low" && z > 2) z -= 1;
+
+      return Math.max(0, Math.min(z, maxCap));
     }
 
     /**
