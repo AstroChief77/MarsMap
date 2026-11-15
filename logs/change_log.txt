@@ -512,3 +512,16 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * Proje dogrulamasi ve paketleme tamamlandi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 >>>>>>> Stashed changes
+
+[2026-11-15T09:43:00+03:00] fix(backend,lib.rs): Anormal Yuksek O2 Tuketiminin Duzeltilmesi ve Ayarlanabilir NASA Standart Fiziksel Modeline Baglanmasi:
+- Yedek Klasoru: backups/snapshot_20261115_fix_abnormal_o2/
+- backend/src/lib.rs (Satir 1-620) & lib.rs:
+  * Problem: Eski kodda 'consumed_oxy = path.len() * 25' yapilarak her 25 metrelik izgara adiminda dogrudan 25 Litre O2 harcaniyor, 17 adimda 420 L tank tamamen tukeniyordu (75 kat anormal ve mantiksiz tuketim).
+  * Cozum & Formul: NASA-STD-3001 & Prameters.md uyarinca adim mesafesi (25m), yuruyus hizi (60 m/dk) ve nominal O2 harcamasi (0.80 L/dk = 48 L/saat) oranlanarak O2_PER_STEP_LITERS = (25 / 60) * 0.80 ≈ 0.333 L/adim olarak duzeltildi (32 adimlik rotada 800 L yerine 10.5 L harcaniyor).
+  * Ayarlanabilirlik: STEP_DISTANCE_METERS, NOMINAL_SPEED_M_PER_MIN, NOMINAL_O2_L_PER_MIN ve O2_PER_STEP_LITERS sabitleri dosyanin basina konuldu; ayrica dinamik tuketim ayari icin find_rover_path_custom API dis fonksiyonu eklendi.
+  * Su tuketimi O2 ile orantili olarak 32 adimda 35.8 L yerine 0.47 L seviyesine gercekci bicimde dengelendi.
+- js/services/MolaAStarGridHelper.js (Satir 550-575):
+  * Yerel JS fallback cozucusu Rust A* ile ayni 0.333 L O2/adim formulune gecirildi.
+- js/wasm/:
+  * build_wasm.sh ile WASM modulu yeniden derlendi; TypeScript arayuzleri ve alt aciklama yorumlari korundu.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.

@@ -551,8 +551,9 @@
             c = cameFrom[c];
           }
           path.reverse();
-          const consumedOxy = path.length * 25;
-          const availableOxy = Math.max(0, beginOxy - consumedOxy);
+          const o2PerStep = 0.333; // (25m / 60 m/dk) * 0.80 L/dk = ~0.333 L O2/adim
+          const consumedOxy = Number(((path.length > 1 ? path.length - 1 : 1) * o2PerStep).toFixed(2));
+          const availableOxy = Math.max(0, Math.round(beginOxy - consumedOxy));
           const consumedWater = Number((consumedOxy * (2.15 / 48.0)).toFixed(2));
           const availableWater = Number(Math.max(0, 24.0 - consumedWater).toFixed(2));
           return {

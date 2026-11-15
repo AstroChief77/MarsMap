@@ -35,6 +35,44 @@ export function find_rover_path(grid_flat, width, height, start_x, start_y, goal
 }
 
 /**
+ * Find optimal path with fully custom O2 consumption per step and custom initial water.
+ * @param {Int32Array | number[]} grid_flat
+ * @param {number} width
+ * @param {number} height
+ * @param {number} start_x
+ * @param {number} start_y
+ * @param {number} goal_x
+ * @param {number} goal_y
+ * @param {number} begin_oxy
+ * @param {number} o2_per_step_liters
+ * @param {number} begin_water
+ * @returns {string}
+ */
+export function find_rover_path_custom(grid_flat, width, height, start_x, start_y, goal_x, goal_y, begin_oxy, o2_per_step_liters, begin_water) {
+    let deferred11_0;
+    let deferred11_1;
+    try {
+        const val2 = +width;
+        const val3 = +height;
+        const val4 = +start_x;
+        const val5 = +start_y;
+        const val6 = +goal_x;
+        const val7 = +goal_y;
+        const val8 = +begin_oxy;
+        const val9 = +o2_per_step_liters;
+        const val10 = +begin_water;
+        const ptr0 = passArray32ToWasm0(grid_flat, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.find_rover_path_custom(ptr0, len0, val2, val3, val4, val5, val6, val7, val8, val9, val10);
+        deferred11_0 = ret[0];
+        deferred11_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred11_0, deferred11_1, 1);
+    }
+}
+
+/**
  * Find the optimal path with explicit initial oxygen and water reserves.
  * @param {Int32Array | number[]} grid_flat
  * @param {number} width
@@ -300,7 +338,7 @@ export { initSync, __wbg_init as default };
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-105: Rust find_rover_path, find_rover_path_with_water ve plan_cost_path wasm-bindgen sarmalayicilari.
-   - Satir 106-230: Wasm bellek okuma/yazma, float/i32 dizi aktarimi ve runtime yardimcilari.
-   - Satir 231-275: WebAssembly modul yukleme ve eszamanli/eszamansiz init cikislari.
+   - Satir 1-140: Rust find_rover_path, find_rover_path_with_water, find_rover_path_custom ve plan_cost_path wasm-bindgen sarmalayicilari.
+   - Satir 141-265: Wasm bellek okuma/yazma, float/i32 dizi aktarimi ve runtime yardimcilari.
+   - Satir 266-310: WebAssembly modul yukleme ve eszamanli/eszamansiz init cikislari.
    ========================================================================== */

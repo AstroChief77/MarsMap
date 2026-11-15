@@ -4,11 +4,31 @@ use pathfinding::prelude::astar;
 const MAX_SLOPE_LIMIT: i32 = 2;
 const POZITIVE_SLOP_COST: i32 = 1000;
 const NEGATIVE_SLOP_COST: i32 = 10;
-const DISTANCE_PER_MT: u64 = 25;
+pub const DISTANCE_PER_MT: u64 = 25;
 
-// NASA-STD-3001 & Prameters.md uyarinca O2 ve su tuketim oranlari:
-// Nominal EVA O2 tuketimi: 48.0 L/saat (0.80 L/dk)
-// EVA Su tuketimi (Icmeli + SWME Sogutma): 2.15 L/saat (0.0358 L/dk)
+// ==============================================================================
+// Oksijen ve Su Tuketim Parametreleri (NASA-STD-3001 & Prameters.md)
+// ------------------------------------------------------------------------------
+// - STEP_DISTANCE_METERS: Her izgara adimindaki nominal mesafe (25.0 metre).
+// - NOMINAL_SPEED_M_PER_MIN: Nominal EVA yuruyus hizi (60.0 m/dk = 3.6 km/saat).
+//   (Basincli Rover seyir hizi: 241.7 m/dk = 14.5 km/saat).
+// - NOMINAL_O2_L_PER_MIN: NASA standart EVA O2 tuketimi (0.80 L/dk = 48.0 L/saat).
+// - O2_PER_STEP_LITERS: Adim basina nominal O2 tuketimi (Litre).
+//   Formul: (25.0 m / 60.0 m/dk) * 0.80 L/dk ≈ 0.3333 L O2 / adim.
+//   (Rover modunda bu deger ~0.082 L O2 / adim seviyesine duser).
+//   NOT: Eski kodda 'adim * 25 L' yapildigi icin 17 adimda 420 L oksijen tamamen
+//   tukeniyordu (75 kat anormal tuketim). Bu sabit uzerinden tuketim ayarlanabilir.
+// ==============================================================================
+pub const STEP_DISTANCE_METERS: f64 = 25.0;
+pub const NOMINAL_SPEED_M_PER_MIN: f64 = 60.0;
+pub const NOMINAL_O2_L_PER_MIN: f64 = 0.80;
+
+// Adim basina harcanan nominal oksijen miktari (Litre):
+// Istenirse bu sabit dogrudan degistirilerek tuketim hassasiyeti ayarlanabilir.
+pub const O2_PER_STEP_LITERS: f64 = (STEP_DISTANCE_METERS / NOMINAL_SPEED_M_PER_MIN) * NOMINAL_O2_L_PER_MIN;
+
+// NASA-STD-3001 & Prameters.md uyarinca su tuketim oranlari:
+// Nominal EVA Su tuketimi (Icmeli + SWME Sogutma): 2.15 L/saat (0.0358 L/dk)
 // Su / O2 orani: 2.15 / 48.0 ≈ 0.04479167 L su / L O2
 pub const WATER_TO_O2_RATIO: f64 = 2.15 / 48.0;
 pub const DEFAULT_WATER_RESERVE_LITERS: f64 = 24.0;
@@ -162,24 +182,42 @@ impl MarsMap {
 }
 
 /// Ortak rota ve O2/Su butcesi hesaplama cekirdegi
-fn calculate_path_result(
+fn calculate_path_result_with_rate(
     mars_map: &MarsMap,
     start: (i32, i32),
     goal: (i32, i32),
     begin_oxy: i32,
     begin_water: f64,
+    o2_per_step: f64,
 ) -> String {
     match mars_map.find_path(start, goal) {
         Some((path, total_cost)) => {
-            // Prameters.md & NASA-STD-3001:
-            // Oksijen hesabi: adim basina DISTANCE_PER_MT (25 birim) harcanir
-            let consumed_oxy = path.len().saturating_mul(DISTANCE_PER_MT as usize);
-            let consumed_oxy_i32 = i32::try_from(consumed_oxy).unwrap_or(i32::MAX);
-            let available_oxy = begin_oxy.saturating_sub(consumed_oxy_i32).max(0);
+            // NASA-STD-3001 Fiziksel O2 Modeli:
+            // Her adim basina nominal O2 (0.333 L/adim) + yokus tirmanis egim yuk faktoru
+            let mut total_o2_consumed = 0.0f64;
+            if path.len() > 1 {
+                for window in path.windows(2) {
+                    let dz = window[1].z.saturating_sub(window[0].z);
+                    let slope_factor = if dz > 0 {
+                        1.0 + (dz as f64) * 0.15
+                    } else if dz < 0 {
+                        0.95
+                    } else {
+                        1.0
+                    };
+                    total_o2_consumed += o2_per_step * slope_factor;
+                }
+            } else if !path.is_empty() {
+                total_o2_consumed = o2_per_step;
+            }
+
+            let consumed_oxy_liters = (total_o2_consumed * 100.0).round() / 100.0;
+            let consumed_oxy_i32 = total_o2_consumed.round() as i32;
+            let available_oxy = ((begin_oxy as f64) - total_o2_consumed).max(0.0).round() as i32;
 
             // Su hesabi: NASA EVA standardi 2.15 L/saat su / 48.0 L/saat O2 = ~0.04479 L su / L O2
-            let consumed_water = (consumed_oxy_i32 as f64) * WATER_TO_O2_RATIO;
-            let available_water = (begin_water - consumed_water).max(0.0);
+            let consumed_water = ((total_o2_consumed * WATER_TO_O2_RATIO) * 100.0).round() / 100.0;
+            let available_water = ((begin_water - consumed_water).max(0.0) * 100.0).round() / 100.0;
 
             let steps_json: Vec<String> = path
                 .iter()
@@ -187,12 +225,13 @@ fn calculate_path_result(
                 .collect();
 
             format!(
-                "{{\"success\":true,\"cost\":{},\"distance\":{},\"avaible_oxy\":{},\"available_oxy\":{},\"consumed_oxy\":{},\"consumed_water_liters\":{:.2},\"available_water_liters\":{:.2},\"estimated_water_liters\":{:.2},\"harcanan_su\":{:.2},\"harcanan_oksijen\":{},\"steps_count\":{},\"path\":[{}]}}",
+                "{{\"success\":true,\"cost\":{},\"distance\":{},\"avaible_oxy\":{},\"available_oxy\":{},\"consumed_oxy\":{},\"consumed_oxy_liters\":{:.2},\"consumed_water_liters\":{:.2},\"available_water_liters\":{:.2},\"estimated_water_liters\":{:.2},\"harcanan_su\":{:.2},\"harcanan_oksijen\":{},\"steps_count\":{},\"path\":[{}]}}",
                 total_cost,
                 path.len(),
                 available_oxy,
                 available_oxy,
                 consumed_oxy_i32,
+                consumed_oxy_liters,
                 consumed_water,
                 available_water,
                 consumed_water,
@@ -204,6 +243,16 @@ fn calculate_path_result(
         }
         None => "{\"success\":false,\"message\":\"Hedefe giden guvenli bir rota bulunamadi (engel veya asiri dik egim).\"}".to_string(),
     }
+}
+
+fn calculate_path_result(
+    mars_map: &MarsMap,
+    start: (i32, i32),
+    goal: (i32, i32),
+    begin_oxy: i32,
+    begin_water: f64,
+) -> String {
+    calculate_path_result_with_rate(mars_map, start, goal, begin_oxy, begin_water, O2_PER_STEP_LITERS)
 }
 
 /// Find the optimal path using A* algorithm (with default 24.0 L water reserve).
@@ -237,6 +286,25 @@ pub fn find_rover_path_with_water(
 ) -> String {
     let mars_map = MarsMap::from_flat(width, height, grid_flat);
     calculate_path_result(&mars_map, (start_x, start_y), (goal_x, goal_y), begin_oxy, begin_water)
+}
+
+/// Find optimal path with fully custom O2 consumption per step and custom initial water.
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn find_rover_path_custom(
+    grid_flat: &[i32],
+    width: i32,
+    height: i32,
+    start_x: i32,
+    start_y: i32,
+    goal_x: i32,
+    goal_y: i32,
+    begin_oxy: i32,
+    o2_per_step_liters: f64,
+    begin_water: f64,
+) -> String {
+    let mars_map = MarsMap::from_flat(width, height, grid_flat);
+    let rate = if o2_per_step_liters > 0.0 { o2_per_step_liters } else { O2_PER_STEP_LITERS };
+    calculate_path_result_with_rate(&mars_map, (start_x, start_y), (goal_x, goal_y), begin_oxy, begin_water, rate)
 }
 
 
@@ -482,15 +550,17 @@ mod tests {
             0, 0,
             0, 0,
         ];
-        // (0,0) to (1,1) is diagonal step: path len = 2 steps
+        // (0,0) to (1,1) is diagonal step: path len = 2 steps (1 adim gecisi)
         let res_json = find_rover_path(&grid, 2, 2, 0, 0, 1, 1, 100);
         assert!(res_json.contains("\"distance\":2"));
-        // 2 steps * 25 = 50 consumed_oxy
-        assert!(res_json.contains("\"consumed_oxy\":50"));
-        // 100 - 50 = 50 available_oxy
-        assert!(res_json.contains("\"available_oxy\":50"));
-        // 50 * (2.15 / 48.0) ≈ 2.24 L water
-        assert!(res_json.contains("\"consumed_water_liters\":2.24"));
+        // 1 adimlik nominal O2 tuketimi ~0.33 L (eskiden 50 L harciyordu!)
+        assert!(res_json.contains("\"consumed_oxy_liters\":0.33"));
+        assert!(res_json.contains("\"available_oxy\":100"));
+        assert!(res_json.contains("\"consumed_water_liters\":0.01"));
+
+        // Ozel tuketim fonksiyonu testi: adim basi 0.50 L
+        let custom_json = find_rover_path_custom(&grid, 2, 2, 0, 0, 1, 1, 100, 0.50, 24.0);
+        assert!(custom_json.contains("\"consumed_oxy_liters\":0.50"));
     }
 
     #[test]
