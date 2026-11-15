@@ -519,7 +519,7 @@
       ctx.restore();
 
       if (labelText && px >= -140 && px <= viewW + 140 && py >= -30 && py <= viewH + 30) {
-        this.drawCompactHazardLabel(ctx, px, py, labelText, "#9333ea", false, "rad");
+        this.drawDangerLabel(ctx, px, py, labelText, "#e040fb");
       }
     }
 
@@ -605,13 +605,13 @@
           if (!p) continue;
           if (mode === "3d" && (!p.visible || p.z < 0.25)) continue;
           if (p.x < -80 || p.x > viewW + 80 || p.y < -30 || p.y > viewH + 30) continue;
-          this.drawCompactHazardLabel(ctx, p.x, p.y, z.name, accentHex, false, iconKind);
+          this.drawDangerLabel(ctx, p.x, p.y, z.name, accentHex);
         }
       };
 
-      drawLabels(acidZones, "acid", "#0284c7", 0.85);
-      drawLabels(stormZones, "storm", "#ea580c", 0.85);
-      drawLabels(radiationZones, "rad", "#9333ea", 0.90);
+      drawLabels(acidZones, "acid", "#22d3ee", 0.85);
+      drawLabels(stormZones, "storm", "#ff6a1a", 0.85);
+      drawLabels(radiationZones, "rad", "#e040fb", 0.90);
     }
 
     /**
