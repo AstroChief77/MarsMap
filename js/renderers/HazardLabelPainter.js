@@ -69,11 +69,11 @@
   Helper.prototype.drawDangerLabel = function (ctx, px, py, labelText, accentHex = "#b8512f") {
     if (!labelText) return;
     ctx.save();
-    ctx.font = "700 10.5px 'Public Sans Web', sans-serif";
+    ctx.font = "700 11px 'Public Sans Web', sans-serif";
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0.3px";
     const text = String(labelText).toUpperCase();
-    const iconW = 26;
-    const boxH = 25;
+    const iconW = 30;
+    const boxH = 30;
     const tapeH = 4;
     const boxW = Math.ceil(ctx.measureText(text).width + iconW + 18);
     const gap = 28;
@@ -110,26 +110,27 @@
 
     // gövde
     path(ctx, x, y, boxW, boxH, 2);
-    ctx.fillStyle = "#1c1412";
+    ctx.fillStyle = "#2a1210";
     ctx.fill();
 
     ctx.save();
     path(ctx, x, y, boxW, boxH, 2);
     ctx.clip();
     tape(ctx, x, y + boxH - tapeH, boxW, tapeH);
+    tape(ctx, x, y, boxW, tapeH);
     ctx.restore();
 
     path(ctx, x, y, boxW, boxH, 2);
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2;
     ctx.strokeStyle = accentHex;
     ctx.stroke();
 
-    warnTriangle(ctx, x + iconW / 2 + 1, y + (boxH - tapeH) / 2, 15);
+    warnTriangle(ctx, x + iconW / 2 + 1, y + boxH / 2, 17);
 
-    ctx.fillStyle = "#e9e2da";
+    ctx.fillStyle = "#f2ebe3";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(text, x + iconW + 6, y + (boxH - tapeH) / 2 + 0.5);
+    ctx.fillText(text, x + iconW + 6, y + boxH / 2 + 0.5);
     ctx.restore();
   };
 })(window.AstroChief = window.AstroChief || {});
