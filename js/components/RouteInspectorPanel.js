@@ -264,9 +264,10 @@
 
       this.mountEl.innerHTML = `
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
+          <i class="bi bi-signpost-split-fill insp-route-icon" aria-hidden="true"></i>
           <span>${esc(t("inspToggleBtn"))}</span>
           ${toggleMetaHtml}
-          <span class="insp-caret">${state.inspectorOpen ? "▴" : "▾"}</span>
+          <span class="insp-caret"><i class="bi ${state.inspectorOpen ? "bi-chevron-up" : "bi-chevron-down"}" aria-hidden="true"></i></span>
         </button>
 
         <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${esc(t("inspToggleBtn"))}" ${dirAttr}>

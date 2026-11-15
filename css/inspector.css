@@ -38,6 +38,12 @@
   border-color: var(--line-dark);
 }
 
+.insp-route-icon {
+  color: var(--mars-red);
+  font-size: 15px;
+  line-height: 1;
+}
+
 .insp-toggle-meta {
   color: var(--route-blue);
   font-weight: 700;
