@@ -343,7 +343,7 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc sadelestirilmis rota paneli ve ortak sefer cevirileri.
-   - Satir 11-282: 9 dilde (tr, en, de, fr, es, ja, ko, he, ar) kisa parametre etiketleri, saat/dk kisaltmalari, kompakt KPI basliklari ve sade uyarilar.
-   - Satir 284-286: Mevcut ns.I18N_LOCALES sozlugune ekleme.
+   - Satir 1-9: JSDoc sadelestirilmis rota paneli ve ortak sefer cevirileri IIFE basligi.
+   - Satir 11-336: 9 dilde (tr, en, de, fr, es, ja, ko, he, ar) kisa parametre etiketleri, saat/dk kisaltmalari, kompakt KPI basliklari ve sade uyarilar.
+   - Satir 338-341: Mevcut ns.I18N_LOCALES sozlugune ekleme.
    ========================================================================== */

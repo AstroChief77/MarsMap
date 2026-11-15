@@ -1,6 +1,6 @@
 /**
  * @file inspector.css
- * @description Sag ust sade Rota Planlayici ve Gorev/Ekip/Kaynaklar modali stilleri.
+ * @description Sag ust minimalist Rota Planlayici ve Gorev/Ekip/Kaynaklar modali stilleri.
  */
 
 .hud-top-right {
@@ -12,14 +12,14 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  max-width: 360px;
+  max-width: 320px;
 }
 
 .inspector-toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
@@ -40,7 +40,7 @@
 
 .insp-toggle-meta {
   color: var(--route-blue);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .insp-caret {
@@ -49,9 +49,9 @@
 }
 
 .inspector-card {
-  width: 318px;
+  width: 286px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 180px);
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
   background: var(--bg-white);
   backdrop-filter: var(--glass-blur);
@@ -59,7 +59,7 @@
   border: 1px solid var(--line-light);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
-  padding: 10px 11px;
+  padding: 11px 12px;
   display: none;
   flex-direction: column;
   gap: 8px;
@@ -77,21 +77,17 @@
 }
 
 .insp-title {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 900;
   color: var(--ink-black);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
 }
 
 .insp-close-btn {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   border-radius: 6px;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
   color: var(--ink-muted);
   font-size: 12px;
@@ -111,11 +107,10 @@
 .insp-mode-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 3px;
-  border-radius: var(--r-xs);
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
   background: var(--bg-soft);
-  border: 1px solid var(--line-light);
 }
 
 .insp-mode-btn {
@@ -123,76 +118,55 @@
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: var(--ink-dark);
+  color: var(--ink-muted);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition: background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
 }
 
 .insp-mode-btn:hover {
-  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink-black);
 }
 
 .insp-mode-btn.active {
-  background: var(--mars-red);
-  color: #ffffff;
-}
-
-.insp-setup-box {
-  background: var(--bg-offwhite);
-  border: 1px solid var(--line-light);
-  border-radius: var(--r-xs);
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.insp-endpoint-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 6px;
   background: var(--bg-solid-white);
-  border: 1px solid var(--line-light);
-  font-size: 11px;
-}
-
-.insp-row-k {
-  color: var(--ink-muted);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.insp-row-v {
-  color: var(--route-blue);
+  color: var(--ink-black);
   font-weight: 800;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.10);
+}
+
+.insp-origin-hint {
+  font-size: 10.5px;
+  color: var(--ink-muted);
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
 }
 
 .insp-target-row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 5px;
 }
 
 .insp-select {
   flex: 1;
   min-width: 0;
-  padding: 6px 7px;
+  height: 32px;
+  line-height: 30px;
+  padding: 0 8px;
   border: 1px solid var(--line-light);
-  border-radius: 6px;
+  border-radius: 7px;
   background: var(--bg-solid-white);
   color: var(--ink-black);
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .insp-select:focus {
@@ -201,22 +175,27 @@
 }
 
 .insp-pick-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
   flex-shrink: 0;
-  padding: 0 9px;
-  border: 1px solid var(--line-dark);
-  border-radius: 6px;
+  border: 1px solid var(--line-light);
+  border-radius: 7px;
   background: var(--bg-solid-white);
   color: var(--ink-black);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 800;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 
 .insp-pick-btn:hover {
-  background: var(--surface-control);
-  border-color: var(--mars-red);
+  background: var(--bg-offwhite);
+  border-color: var(--line-dark);
 }
 
 .insp-pick-btn.active {
@@ -227,58 +206,51 @@
 
 .insp-param-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
 }
 
 .insp-param-cell label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3px;
-  font-size: 10px;
+  display: block;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--ink-muted);
   margin-bottom: 2px;
-}
-
-.insp-cap-pct {
-  font-size: 9.5px;
-  font-weight: 800;
-  color: var(--route-blue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .insp-param-cell input {
   width: 100%;
   min-width: 0;
-  padding: 5px 7px;
+  height: 28px;
+  padding: 0 5px;
   border: 1px solid var(--line-light);
   border-radius: 6px;
-  background: var(--bg-solid-white);
+  background: var(--bg-offwhite);
   color: var(--ink-black);
-  font-size: 11.5px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .insp-param-cell input:focus {
   outline: none;
+  background: var(--bg-solid-white);
   border-color: var(--route-blue);
 }
 
 .insp-param-cell input.inp-missing {
   border-color: var(--mars-red);
-  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.20);
-  background: #fef2f2;
+  background: rgba(220, 54, 46, 0.16);
 }
 
 .insp-gate-alert {
-  background: var(--mars-red-soft);
-  border: 1px solid var(--mars-red);
-  border-radius: 6px;
-  padding: 5px 8px;
   font-size: 10.5px;
-  font-weight: 800;
-  color: var(--mars-red-dark);
+  font-weight: 700;
+  color: var(--warn-text);
+  padding: 1px 2px;
 }
 
 .insp-gate-alert.hidden {
@@ -287,13 +259,13 @@
 
 .insp-calc-btn {
   width: 100%;
-  padding: 7px 10px;
-  border: 1px solid var(--route-blue-dark);
-  border-radius: 6px;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
   background: var(--route-blue);
-  color: #ffffff;
+  color: #f8fafc;
   font-size: 11.5px;
-  font-weight: 900;
+  font-weight: 800;
   cursor: pointer;
   transition: background 0.14s ease;
 }
@@ -302,218 +274,154 @@
   background: var(--route-blue-dark);
 }
 
-/* Rota Sonuc Karti */
-.route-card {
-  border: 1px solid var(--line-light);
-  border-radius: var(--r-xs);
-  padding: 8px 9px;
-  background: var(--bg-offwhite);
+/* Sade Sonuc Ozeti */
+.insp-result {
+  border-top: 1px solid var(--line-light);
+  padding-top: 9px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
-.route-card.primary {
-  border-left: 4px solid var(--route-blue);
-}
-
-.route-card.secondary {
-  border-left: 4px solid var(--route-pale-blue);
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--ink-dark);
-}
-
-.route-card-top {
+.insp-hero {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+}
+
+.insp-hero-main {
+  font-size: 18px;
   font-weight: 900;
+  color: var(--ink-black);
+  line-height: 1.1;
 }
 
-.route-title-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--route-blue);
+.insp-hero-dist {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-muted);
 }
 
-.route-title-dot::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--route-blue);
-}
-
-.route-duration-pill {
+.insp-hero-sol {
   font-size: 11px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  background: var(--route-blue-soft);
-  color: var(--route-blue-dark);
-  border: 1px solid #bfdbfe;
+  font-weight: 700;
+  color: var(--ink-muted);
   white-space: nowrap;
 }
 
-.route-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+.insp-status-line {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-dark);
+  line-height: 1.35;
 }
 
-.route-kpi {
-  background: var(--bg-solid-white);
-  border: 1px solid var(--line-light);
-  border-radius: 6px;
-  padding: 5px 5px;
+.insp-status-line.warn {
+  color: var(--warn-text);
+  font-weight: 700;
+}
+
+.insp-action-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 1px;
-}
-
-.route-kpi-lbl {
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--ink-muted);
-}
-
-.route-kpi-val {
-  font-size: 11.5px;
-  font-weight: 900;
-  color: var(--ink-black);
-}
-
-.route-kpi-sub {
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--ink-muted);
-}
-
-.route-kpi.warn {
-  border-color: #fca5a5;
-  background: #fef2f2;
-}
-
-.route-kpi.warn .route-kpi-val,
-.route-kpi.warn .route-kpi-sub {
-  color: var(--mars-red-dark);
-}
-
-.route-sub-line {
-  font-size: 10.5px;
-  color: var(--ink-muted);
-  text-align: center;
-}
-
-.route-sub-line strong {
-  color: var(--ink-black);
-  font-weight: 800;
-}
-
-.walkback-alert-box {
-  background: var(--mars-red-soft);
-  border: 1px solid var(--mars-red);
-  border-radius: 6px;
-  padding: 4px 7px;
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--mars-red-dark);
-  text-align: center;
+  gap: 6px;
 }
 
 .insp-start-btn {
-  width: 100%;
-  padding: 7px 10px;
-  border-radius: 6px;
-  border: 1px solid #16a34a;
-  background: #15803d;
+  flex: 1;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
+  background: #16a34a;
   color: #ffffff;
   font-size: 11.5px;
-  font-weight: 900;
+  font-weight: 800;
   cursor: pointer;
   transition: background 0.14s ease;
 }
 
 .insp-start-btn:hover {
-  background: #166534;
+  background: #15803d;
 }
 
-/* Istege Bagli Acilir Detaylar */
-.insp-collapse {
+.insp-recalc-btn {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   border: 1px solid var(--line-light);
-  border-radius: var(--r-xs);
+  border-radius: 7px;
   background: var(--bg-offwhite);
-}
-
-.insp-collapse summary {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 7px 9px;
-  font-size: 11px;
+  color: var(--ink-dark);
+  font-size: 13px;
   font-weight: 800;
-  color: var(--ink-black);
   cursor: pointer;
-  user-select: none;
+  transition: background 0.14s ease, border-color 0.14s ease;
 }
 
-.insp-collapse summary::-webkit-details-marker {
-  display: none;
+.insp-recalc-btn:hover {
+  background: var(--bg-soft);
+  border-color: var(--line-dark);
 }
 
-.insp-collapse summary:hover {
-  background: var(--surface-control);
+.insp-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
-.insp-collapse-chevron,
-.insp-collapse-meta {
-  font-size: 10px;
+.insp-link-btn {
+  font-size: 11px;
   font-weight: 700;
   color: var(--ink-muted);
+  padding: 1px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.12s ease;
 }
 
-.insp-collapse-body {
-  padding: 0 8px 8px 8px;
+.insp-link-btn:hover,
+.insp-link-btn.active {
+  color: var(--route-blue);
+}
+
+/* Cekmece Icerigi */
+.insp-drawer {
+  background: var(--bg-offwhite);
+  border-radius: 7px;
+  padding: 7px 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
 .step-tabs {
-  display: flex;
-  gap: 5px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
 }
 
 .step-tab-btn {
-  flex: 1;
   padding: 4px 6px;
-  border: 1px solid var(--line-light);
   border-radius: 5px;
+  border: 1px solid var(--line-light);
   background: var(--bg-solid-white);
-  color: var(--ink-black);
-  font-size: 10.5px;
+  color: var(--ink-muted);
+  font-size: 10px;
   font-weight: 800;
   cursor: pointer;
 }
 
 .step-tab-btn.active {
-  background: var(--route-blue);
-  color: #ffffff;
+  background: var(--route-blue-soft);
+  color: var(--info-text);
   border-color: var(--route-blue);
 }
 
 .step-list {
-  max-height: 160px;
+  max-height: 170px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -522,58 +430,46 @@
 
 .step-row {
   background: var(--bg-solid-white);
-  border: 1px solid var(--line-light);
-  border-left: 3px solid var(--route-blue);
+  border-left: 2.5px solid var(--route-blue);
   border-radius: 5px;
-  padding: 6px 8px;
+  padding: 4px 7px;
   cursor: pointer;
-  transition: border-color 0.12s ease, background 0.12s ease;
 }
 
 .step-row:hover {
-  border-color: var(--route-blue);
-  background: var(--route-blue-soft);
+  background: var(--surface-control-hover);
 }
 
 .step-row-top {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
   gap: 6px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
   color: var(--ink-black);
 }
 
 .step-dist {
-  font-size: 10px;
   color: var(--route-blue);
-  white-space: nowrap;
   flex-shrink: 0;
 }
 
 .step-row-meta {
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--ink-muted);
-  margin-top: 2px;
 }
 
 .step-row-warn {
-  margin-top: 2px;
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--mars-red);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--warn-text);
 }
 
 .rad-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px 8px;
-  background: var(--bg-solid-white);
-  border: 1px solid var(--line-light);
-  border-radius: 6px;
-  padding: 7px 8px;
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .rad-grid div span {
@@ -594,7 +490,7 @@
 }
 
 .wp-chip {
-  padding: 4px 7px;
+  padding: 3px 6px;
   border-radius: 5px;
   border: 1px solid var(--line-light);
   background: var(--bg-solid-white);
@@ -606,15 +502,11 @@
 
 .wp-chip.active {
   background: var(--mars-red-soft);
-  color: var(--mars-red-dark);
+  color: var(--warn-text);
   border-color: var(--mars-red);
 }
 
-.wp-detail-box {
-  background: var(--bg-solid-white);
-  border: 1px solid var(--line-light);
-  border-radius: 6px;
-  padding: 6px 8px;
+.wp-detail-line {
   font-size: 10.5px;
   color: var(--ink-dark);
   line-height: 1.35;
@@ -624,7 +516,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(148, 163, 184, 0.46);
+  background: rgba(2, 6, 14, 0.72);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -717,23 +609,57 @@
   color: var(--ink-black);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .hud-top-right {
-    top: auto;
-    bottom: 72px;
-    right: 16px;
+    top: 12px;
+    right: 12px;
   }
   .inspector-card {
-    max-height: 58vh;
+    width: 276px;
+    max-height: calc(100dvh - 155px);
+  }
+}
+
+@media (max-width: 720px) {
+  .hud-top-right {
+    top: 58px;
+    bottom: auto;
+    right: 10px;
+    left: auto;
+  }
+  .inspector-card {
+    width: min(304px, calc(100vw - 20px));
+    max-height: calc(100dvh - 165px);
+  }
+  .mission-modal-card {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 24px);
+    padding: 14px;
+  }
+  .mission-team-grid,
+  .mission-res-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .hud-top-right {
+    left: 10px;
+    right: 10px;
+    align-items: flex-end;
+  }
+  .inspector-card {
+    width: 100%;
+    max-height: calc(100dvh - 160px);
   }
 }
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-5: JSDoc Acik Gri Studio sag ust rota inceleme karti ve gorev/ekip modali stilleri.
-   - Satir 7-82: .hud-top-right konumlandirmasi, buzlu cam acma/kapatma dugmesi ve 334px kart gorunumu.
-   - Satir 84-198: Zorunlu on-gorev parametre kapisi (.insp-param-box, Rover+Ekip/EVA mod secici, O2/Enerji/Su/Hiz ve yuksek kontrastli uyarilar).
-   - Satir 200-370: Seciciler, Mavi/Soluk Mavi varis ozeti (.route-summary-grid), %20 Walkback kutusu, ayrik kaynak/gecikme rozetleri.
-   - Satir 372-565: Koordinat alma dugmeleri, Mavi hesapla/baslat CTA, adim sekmeleri, Alfa/Beta/Gama izgarasi, EVA durak foto karti ve Acik Gri ekip modali.
+   - Satir 1-5: JSDoc sag ust minimalist Rota Planlayici ve gorev/ekip modali stilleri.
+   - Satir 6-275: .hud-top-right, tek satir ac/kapa dugmesi, 286px duz kart, segmente mod, tek satir hedef+pin, 4'lu micro girdi izgarasi.
+   - Satir 277-388: Duz sonuc ozeti (.insp-result, .insp-hero, .insp-status-line, Baslat/Yenile satiri, alt detay baglantilari).
+   - Satir 390-513: Istege bagli .insp-drawer (Adimlar listesi, Radyasyon dozlari ve krater-ici EVA duraklari).
+   - Satir 515-621: Acik Gri Gorev/Ekip/Kaynaklar modali ve @media (max-width: 720px) mobil yerlesim.
    ========================================================================== */

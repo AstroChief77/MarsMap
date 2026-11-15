@@ -78,15 +78,15 @@
       const pivotZ = Math.max(0, Math.min(1, (clampedZoom - 1.1) / 1.1));
       const sphereCy = cy + pivotZ * sinP * radius;
 
-      // 1. Acik Gri arka planda Mars kuresine derinlik veren yumusak studyo golgesi ve dis atmosfer isimasi
+      // 1. Derin Uzay atmosfer hale katmani ve gezegen kenari yumusak uzay derinligi
       if (limbVisible) {
-        const dropShadow = ctx.createRadialGradient(cx + radius * 0.04, sphereCy + radius * 0.06, radius * 0.85, cx + radius * 0.04, sphereCy + radius * 0.06, limbRadius * 1.12);
-        dropShadow.addColorStop(0.0, "rgba(15, 23, 42, 0.16)");
-        dropShadow.addColorStop(0.65, "rgba(15, 23, 42, 0.08)");
-        dropShadow.addColorStop(1.0, "rgba(15, 23, 42, 0)");
+        const dropShadow = ctx.createRadialGradient(cx + radius * 0.02, sphereCy + radius * 0.03, radius * 0.88, cx + radius * 0.02, sphereCy + radius * 0.03, limbRadius * 1.14);
+        dropShadow.addColorStop(0.0, "rgba(225, 108, 52, 0.14)");
+        dropShadow.addColorStop(0.65, "rgba(205, 88, 38, 0.06)");
+        dropShadow.addColorStop(1.0, "rgba(2, 4, 9, 0)");
         ctx.fillStyle = dropShadow;
         ctx.beginPath();
-        ctx.arc(cx + radius * 0.04, sphereCy + radius * 0.06, limbRadius * 1.12, 0, Math.PI * 2);
+        ctx.arc(cx + radius * 0.02, sphereCy + radius * 0.03, limbRadius * 1.14, 0, Math.PI * 2);
         ctx.fill();
 
         const atmo = ctx.createRadialGradient(cx, sphereCy, radius * 0.94, cx, sphereCy, limbRadius * 1.10);
@@ -640,12 +640,12 @@
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#dfe5ee";
+      ctx.fillStyle = "#2b3b56";
       ctx.fill();
-      ctx.strokeStyle = "#94a3b8";
+      ctx.strokeStyle = "rgba(214, 226, 242, 0.45)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#e2e8f0";
       ctx.font = "800 12px 'Public Sans Web', sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -723,8 +723,8 @@
    --------------------------------------------------------------------------
    - Satir 1-7: JSDoc piksellesmesiz (anti-pixelated) 60+ FPS 4x4 blok enterpolasyonlu 3D motor tanimi.
    - Satir 13-46: constructor (Map3DFallbackRenderer baslatma dahil) ve ensureCropBuffer; Uint32 tamponu ve kare-onbellek (lastRayKey) degiskenlerini yonetir.
-   - Satir 48-246: render; Acik Gri Studio kure golgesi, atmosfer, yuksek cozunurluklu ara tampon ve cakismasiz 3D vektor projeksiyonunu calistirir.
+   - Satir 48-246: render; uzay atmosfer halesi, yuksek cozunurluklu ara tampon ve cakismasiz 3D vektor projeksiyonunu calistirir.
    - Satir 248-626: raycastSphereCrop; MOLA topografik kabartmasini bilineer (sampleTopoBilinear), dokuyu 4-tap bilineer/Hermite suzmeyle ve acik kumtasi grid yedeğiyle cizer.
    - Satir 628-637: drawFallbackShadedSphere; file:// / tainted tuval ortamlarinda cizimi Map3DFallbackRenderer modulune devreder.
-   - Satir 639-715: drawLoadingSphere (Acik Gri Studio), drawGraticule3D ve cakismasiz drawNomenclature3D yardimcilari.
+   - Satir 639-715: drawLoadingSphere (Orbital Titanium Slate), drawGraticule3D ve cakismasiz drawNomenclature3D yardimcilari.
    ========================================================================== */

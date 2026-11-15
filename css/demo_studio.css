@@ -94,8 +94,8 @@
 }
 
 .sim-btn.active {
-  background: var(--bg-gray-200);
-  color: var(--mars-red-dark);
+  background: var(--mars-red-soft);
+  color: var(--warn-text);
   border-color: var(--mars-red);
   box-shadow: inset 0 0 0 1px var(--mars-red);
 }
@@ -154,7 +154,7 @@
   position: absolute;
   top: 12px;
   bottom: 72px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-white);
   color: var(--ink-black);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--line-light);
@@ -212,8 +212,8 @@
 }
 
 .sim-veh-btn.active {
-  background: var(--bg-gray-200);
-  color: var(--mars-red-dark);
+  background: var(--mars-red-soft);
+  color: var(--warn-text);
   border-color: var(--mars-red);
   box-shadow: inset 0 0 0 1px var(--mars-red);
 }
@@ -265,8 +265,8 @@
 
 .sim-input-missing {
   border-color: var(--mars-red) !important;
-  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.22);
-  background: #fef2f2 !important;
+  box-shadow: 0 0 0 2px rgba(220, 54, 46, 0.25);
+  background: rgba(220, 54, 46, 0.16) !important;
 }
 
 .sim-param-alert {
@@ -276,7 +276,7 @@
   padding: 6px 8px;
   font-size: 10.5px;
   font-weight: 800;
-  color: var(--mars-red-dark);
+  color: var(--warn-text);
   line-height: 1.35;
 }
 
@@ -372,7 +372,7 @@
   border-radius: 4px;
   background: var(--mars-red-soft);
   border: 1px solid var(--mars-red);
-  color: var(--mars-red-dark);
+  color: var(--warn-text);
   font-weight: 900;
   font-size: 10px;
 }
@@ -483,11 +483,11 @@
 }
 
 .sim-log-item.warn {
-  color: #b45309;
+  color: #fbbf24;
 }
 
 .sim-log-item.danger {
-  color: var(--mars-red-dark);
+  color: var(--warn-text);
   font-weight: 900;
 }
 

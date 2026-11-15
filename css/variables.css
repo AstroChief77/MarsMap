@@ -1,48 +1,54 @@
 /**
  * @file variables.css
- * @description Acik Gri Studio (%60 Beyaz/Buzlu Yuzey, %30 Acik Gri Zemin & Slate Tipografi, %10 Kirmizi) tema degiskenleri ve "Public Sans Web" font ailesi.
+ * @description Orbital Titanium Slate temasi: Ne goz yoran saf beyaz ne bogucu siyah — derin kobalt uzay uzerinde buzlu titanyum/arduvaz cam yuzeyler ve 'Public Sans Web'.
  */
 
 :root {
-  /* Beyaz & Buzlu Kart Yuzeyleri */
-  --bg-white: rgba(255, 255, 255, 0.95);
-  --bg-solid-white: #ffffff;
-  --bg-offwhite: #f8fafc;
-  --bg-soft: #eef2f6;
+  color-scheme: dark;
 
-  /* Acik Gri Studio Zeminleri, Kontroller ve Yuksek Kontrastli Slate Tipografi */
-  --space-black: #dfe4ec;
-  --bg-canvas: #dfe4ec;
-  --bg-gray-100: #eef2f6;
-  --bg-gray-200: #dfe5ee;
-  --bg-gray-300: #cfd7e3;
-  --surface-control: #eef2f6;
-  --surface-control-hover: #e2e8f0;
-  --ink-black: #1e293b;
-  --ink-dark: #334155;
-  --ink-muted: #64748b;
+  /* Buzlu Titanyum & Arduvaz Cam Yuzeyleri (Ne Siyah Ne Saf Beyaz) */
+  --bg-white: rgba(54, 70, 96, 0.86);
+  --bg-solid-white: #3d4e6b;
+  --bg-offwhite: #455878;
+  --bg-soft: #4d6285;
 
-  /* NASA / Mars Kirmizisi Vurgular */
-  --mars-red: #d92b2b;
-  --mars-red-dark: #b91c1c;
-  --mars-red-tint: rgba(217, 43, 43, 0.10);
-  --mars-red-soft: #fee2e2;
+  /* Kobalt Gece Uzay Zeminleri, Kontroller ve Platin Tipografi */
+  --space-black: #121c30;
+  --bg-canvas: #1a2842;
+  --bg-gray-100: #455878;
+  --bg-gray-200: #4e6386;
+  --bg-gray-300: #5a7199;
+  --surface-control: #465a7a;
+  --surface-control-hover: #566e94;
+  --ink-black: #f1f5f9;
+  --ink-dark: #dce5f2;
+  --ink-muted: #b4c4da;
+
+  /* NASA / Mars Kirmizisi & Uyari Vurgulari */
+  --mars-red: #e03e36;
+  --mars-red-dark: #c52922;
+  --mars-red-tint: rgba(224, 62, 54, 0.20);
+  --mars-red-soft: rgba(224, 62, 54, 0.22);
+  --warn-text: #fecdd3;
+  --mars-red-ink: var(--warn-text);
 
   /* Guvenli Rota ve Durum Renk Standartlari */
-  --route-blue: #2563eb;
-  --route-blue-dark: #1d4ed8;
-  --route-blue-soft: #eff6ff;
-  --route-pale-blue: #60a5fa;
-  --status-ok-bg: #dcfce7;
-  --status-ok-text: #15803d;
-  --status-ok-border: #86efac;
+  --route-blue: #3b82f6;
+  --route-blue-dark: #2563eb;
+  --route-blue-soft: rgba(59, 130, 246, 0.24);
+  --route-pale-blue: #93c5fd;
+  --info-text: #bae6fd;
+  --route-blue-ink: var(--info-text);
+  --status-ok-bg: rgba(34, 197, 94, 0.20);
+  --status-ok-text: #86efac;
+  --status-ok-border: rgba(134, 239, 172, 0.42);
 
-  /* Cizgiler, Cam Efektleri ve Yumusak Slate Golgeler */
-  --line-light: #cbd5e1;
-  --line-dark: #94a3b8;
-  --glass-blur: blur(14px);
-  --shadow-card: 0 14px 34px -6px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
-  --shadow-btn: 0 6px 18px -4px rgba(15, 23, 42, 0.12), 0 1px 4px rgba(15, 23, 42, 0.06);
+  /* Ince Parlak Cam Kenarliklar ve Yumusak Golgeler */
+  --line-light: rgba(214, 226, 242, 0.30);
+  --line-dark: rgba(214, 226, 242, 0.48);
+  --glass-blur: blur(16px);
+  --shadow-card: 0 16px 36px -8px rgba(6, 12, 24, 0.45), 0 0 0 1px rgba(214, 226, 242, 0.14);
+  --shadow-btn: 0 8px 20px -4px rgba(6, 12, 24, 0.38), 0 0 0 1px rgba(214, 226, 242, 0.14);
 
   /* ZORUNLU FONT AILESI: Public Sans Web, sans-serif */
   --font-main: 'Public Sans Web', sans-serif;
@@ -57,8 +63,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-4: JSDoc Acik Gri Studio tema degiskenleri tanimi.
-   - Satir 6-24: Beyaz/buzlu kartlar, acik gri arka plan/kontrol tonlari ve yuksek kontrastli slate metin renkleri.
-   - Satir 26-39: Mars Kirmizisi, Mavi Guvenli Rota ve yuksek okunakli durum rozeti renk sabitleri.
-   - Satir 41-55: Ince gri kenarliklar, buzlu cam bulanikligi, yumusak golgeler ve 'Public Sans Web', sans-serif font ailesi.
+   - Satir 1-4: JSDoc Orbital Titanium Slate tema degiskenleri tanimi.
+   - Satir 6-25: Buzlu titanyum/arduvaz kart yuzeyleri, kobalt uzay zeminleri ve yuksek kontrastli platin metinler.
+   - Satir 27-42: Mars Kirmizisi, Mavi Guvenli Rota ve durum rozeti renk sabitleri.
+   - Satir 44-58: Ince cam kenarliklar, blur(16px), yumusak golgeler ve 'Public Sans Web', sans-serif font ailesi.
    ========================================================================== */

@@ -52,7 +52,7 @@
         labelHelper.drawRoundedPill(ctx, bx, by, boxW, boxH, 7, accentHex, true);
       } else {
         ctx.save();
-        ctx.fillStyle = "rgba(248, 250, 252, 0.95)";
+        ctx.fillStyle = "rgba(54, 70, 96, 0.90)";
         ctx.fillRect(bx, by, boxW, boxH);
         ctx.fillStyle = accentHex;
         ctx.fillRect(bx, by, 3.5, boxH);
@@ -63,7 +63,7 @@
       }
       ctx.save();
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#e8edf5";
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       const lines = Array.isArray(textOrLines) ? textOrLines : [textOrLines];
@@ -288,10 +288,10 @@
 
         ctx.beginPath();
         ctx.arc(wx, wy, isSel ? 7.5 : (wp.highlight ? 6.5 : 4.5), 0, Math.PI * 2);
-        ctx.fillStyle = isSel ? "#ffffff" : (wp.highlight ? "#d92b2b" : "#2563eb");
+        ctx.fillStyle = isSel ? "#f8fafc" : (wp.highlight ? "#dc362e" : "#3b82f6");
         ctx.fill();
         ctx.lineWidth = 1.8;
-        ctx.strokeStyle = "#334155";
+        ctx.strokeStyle = "#0f172a";
         ctx.stroke();
         labelHelper?.reserveRect?.(wx - 9, wy - 9, 18, 18);
 
@@ -308,9 +308,9 @@
               : [[12, -9.5], [-(boxW + 12), -9.5], [-boxW / 2, -26], [-boxW / 2, 12]];
             const slot = labelHelper.claimLabelSlot(wx, wy, boxW, boxH, offsets, false);
             if (slot.placed) {
-              const acc = isSel ? "#d92b2b" : (wp.highlight ? "#d92b2b" : "#2563eb");
+              const acc = isSel ? "#dc362e" : (wp.highlight ? "#dc362e" : "#3b82f6");
               labelHelper.drawRoundedPill(ctx, slot.x, slot.y, boxW, boxH, 6, acc, Boolean(isSel || wp.highlight));
-              ctx.fillStyle = "#1e293b";
+              ctx.fillStyle = "#e8edf5";
               ctx.textAlign = "left";
               ctx.textBaseline = "middle";
               ctx.fillText(wpLabel, slot.x + 8, slot.y + boxH / 2 + 0.5);
@@ -320,11 +320,11 @@
             const tx = alignLeftSide ? wx - 11 : wx + 11;
             const ty = wy + 3;
             ctx.textAlign = alignLeftSide ? "right" : "left";
-            ctx.strokeStyle = "rgba(30, 41, 59, 0.85)";
+            ctx.strokeStyle = "rgba(2, 6, 14, 0.90)";
             ctx.lineWidth = 3;
             ctx.lineJoin = "round";
             ctx.strokeText(wpLabel, tx, ty);
-            ctx.fillStyle = "#ffffff";
+            ctx.fillStyle = "#e8edf5";
             ctx.fillText(wpLabel, tx, ty);
           }
         }
@@ -378,10 +378,10 @@
       ctx.stroke();
 
       const badgeR = isEscort ? 15.5 : 13.5;
-      const badgeAccent = isEscort ? "#2563eb" : "#d92b2b";
+      const badgeAccent = isEscort ? "#3b82f6" : "#e03e36";
       ctx.beginPath();
       ctx.arc(p.x, p.y, badgeR, 0, Math.PI * 2);
-      ctx.fillStyle = "#f8fafc";
+      ctx.fillStyle = "#34435c";
       ctx.fill();
       ctx.lineWidth = 2.5;
       ctx.strokeStyle = badgeAccent;
@@ -390,7 +390,7 @@
 
       if (isEscort) {
         // Rover + Yaya EVA: sol tarafta eslikci basincli rover, altin guvenlik halati ve sag tarafta yuruyen astronot
-        ctx.strokeStyle = "#ca8a04";
+        ctx.strokeStyle = "#facc15";
         ctx.lineWidth = 1.8;
         ctx.beginPath();
         ctx.moveTo(p.x - 4.0, p.y + 1.0);
@@ -398,24 +398,24 @@
         ctx.stroke();
 
         // Mini Eslikci Basincli Rover
-        ctx.fillStyle = "#334155";
+        ctx.fillStyle = "#94a3b8";
         ctx.fillRect(p.x - 11.2, p.y - 2.6, 8.2, 4.4);
-        ctx.fillStyle = "#0284c7";
+        ctx.fillStyle = "#38bdf8";
         ctx.fillRect(p.x - 6.0, p.y - 4.2, 3.0, 1.8);
-        ctx.fillStyle = "#1e293b";
+        ctx.fillStyle = "#e8edf5";
         ctx.beginPath();
         ctx.arc(p.x - 9.4, p.y + 3.2, 1.5, 0, Math.PI * 2);
         ctx.arc(p.x - 4.8, p.y + 3.2, 1.5, 0, Math.PI * 2);
         ctx.fill();
 
         // Eslikteki Yaya EVA Astronotu
-        ctx.fillStyle = "#1e293b";
+        ctx.fillStyle = "#e8edf5";
         ctx.beginPath();
         ctx.arc(p.x + 7.2, p.y - 3.6, 3.0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#0284c7";
+        ctx.fillStyle = "#38bdf8";
         ctx.fillRect(p.x + 5.5, p.y - 4.5, 3.4, 1.6);
-        ctx.strokeStyle = "#1e293b";
+        ctx.strokeStyle = "#cbd5e1";
         ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.moveTo(p.x + 4.6, p.y + 4.8);
@@ -425,11 +425,11 @@
         ctx.stroke();
       } else {
         // Rover + Ekip: Genis Basincli Rover kabini icinde yan yana gorunen 2 astronot kaski ve tekerlekler
-        ctx.fillStyle = "#334155";
+        ctx.fillStyle = "#94a3b8";
         ctx.fillRect(p.x - 8.2, p.y - 1.5, 16.4, 5.2);
-        ctx.fillStyle = "#d92b2b";
+        ctx.fillStyle = "#dc362e";
         ctx.fillRect(p.x - 6.2, p.y - 5.2, 1.8, 3.7);
-        ctx.fillStyle = "#0284c7";
+        ctx.fillStyle = "#38bdf8";
         ctx.fillRect(p.x - 4.2, p.y - 5.6, 10.2, 3.8);
         // Kabin icindeki ekip kasklari
         ctx.fillStyle = "#f8fafc";
@@ -438,7 +438,7 @@
         ctx.arc(p.x + 3.0, p.y - 3.7, 1.5, 0, Math.PI * 2);
         ctx.fill();
         // 3 cift rover tekerlegi
-        ctx.fillStyle = "#1e293b";
+        ctx.fillStyle = "#e8edf5";
         ctx.beginPath();
         ctx.arc(p.x - 5.5, p.y + 5.2, 2.0, 0, Math.PI * 2);
         ctx.arc(p.x, p.y + 5.2, 2.0, 0, Math.PI * 2);
@@ -489,9 +489,9 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc Mavi ve Soluk Mavi rota ile harita ustu yol yorumu cizim sinifi.
    - Satir 7-48: _trimToWidth ve _layoutCommentLines; uzun rota yorumlarini paneller arasi genislige gore 1-2 satira boler/kisaltir.
-   - Satir 50-111: drawRoundedBox ve drawRouteCommentBox; Acik Gri Studio tarzinda golgeli, sol seritli 1-2 satirli yol yorum kutulari cizer.
+   - Satir 50-111: drawRoundedBox ve drawRouteCommentBox; Obsidian Space Telemetry tarzinda golgeli, sol seritli 1-2 satirli yol yorum kutulari cizer.
    - Satir 113-204: drawDeferredRouteComment ve drawGlobalDualRoutes; _avoidRects arasi koridora sigan rota yorumunu ve Mavi rotayi cizer.
    - Satir 206-255: drawLeaderLine ve strokeGeoPath; kesikli isaret cizgisi ile antimeridyen sicramasiz guzergah cizer.
-   - Satir 257-337: drawCraterEvaRoutes; krater icindeki Mavi EVA rotasini, Acik Gri hap durak etiketlerini ve ertelenmis yorumu cizer.
-   - Satir 339-488: drawDemoSimulation ve drawDemoVehicleBadge; Acik Gri zeminli, koyu slate siluetli Rover+Ekip / Rover+Yaya EVA rozetini ve çakismasiz %O2/kWh telemetri hapini cizer.
+   - Satir 257-337: drawCraterEvaRoutes; krater icindeki Mavi EVA rotasini, Obsidian hap durak etiketlerini ve ertelenmis yorumu cizer.
+   - Satir 339-488: drawDemoSimulation ve drawDemoVehicleBadge; Obsidian koyu cam disk uzerinde Rover+Ekip / Rover+Yaya EVA rozetini ve cakismasiz %O2/kWh telemetri hapini cizer.
    ========================================================================== */

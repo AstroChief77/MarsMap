@@ -1,7 +1,7 @@
 /**
  * @file RouteInspectorPanel.js
- * @description Sag ustte yer alan sade, dusuk metinli Rota Planlayici bileseni (9 dil destekli).
- * Yalnizca kullanicinin ihtiyac duydugu hedef, rezerv, sure/mesafe/kalan ozet ve istege bagli acilir adimlari gosterir.
+ * @description Sag ustte yer alan minimalist Rota Planlayici bileseni (9 dil destekli).
+ * Yalnizca hedef, 4 kisa rezerv alani, tek bakislik sonuc ve istege bagli detay baglantilari sunar.
  */
 
 (function (ns) {
@@ -11,15 +11,28 @@
     constructor(mountEl, handlers) {
       this.mountEl = mountEl;
       this.handlers = handlers;
-      this._openSections = new Set();
+      this._activeDetail = null;
+      this._lastDrawerData = null;
     }
 
     _shortPlace(rawName, fallback = "") {
       const cleaned = String(rawName || fallback)
-        .replace(/\s*\([^)]*°[^)]*\)\s*/g, " ")
+        .replace(/\s*\([^)]*\)\s*/g, " ")
         .replace(/\s+/g, " ")
         .trim();
       return cleaned || fallback;
+    }
+
+    _shortFieldLabel(rawLabel) {
+      return String(rawLabel || "")
+        .replace(/\s*\([^)]*\)\s*/g, "")
+        .trim();
+    }
+
+    _fmtNum(val) {
+      const n = Number(val || 0);
+      if (Math.abs(n) >= 20) return `${Math.round(n)}`;
+      return Number(n.toFixed(1)).toString();
     }
 
     _formatShortDur(route, t) {
@@ -53,28 +66,40 @@
         .trim();
     }
 
-    _buildReserveAlert(pri, t) {
-      if (!pri) return "";
+    _buildStatusLine(pri, t, esc) {
+      if (!pri) return { text: "", warn: false };
       const waterDef = Math.max(0, Number(((pri.waterLiters || 0) - (pri.startWaterL || 0)).toFixed(1)));
       const deficits = [];
-      if ((pri.o2DeficitL || 0) > 0) deficits.push(`O₂ -${pri.o2DeficitL} L`);
-      if ((pri.energyDeficitKwh || 0) > 0) deficits.push(`-${pri.energyDeficitKwh} kWh`);
-      if (waterDef > 0) deficits.push(`${t("summaryWaterLabel")} -${waterDef} L`);
+      if ((pri.o2DeficitL || 0) > 0) deficits.push(`O₂ -${this._fmtNum(pri.o2DeficitL)} L`);
+      if ((pri.energyDeficitKwh || 0) > 0) deficits.push(`-${this._fmtNum(pri.energyDeficitKwh)} kWh`);
+      if (waterDef > 0) deficits.push(`${t("summaryWaterLabel")} -${this._fmtNum(waterDef)} L`);
+
       if (deficits.length > 0) {
-        return `⚠ ${t("deficitShort")}: ${deficits.join(" · ")}`;
+        return { text: `⚠ ${t("deficitShort")}: ${deficits.join(" · ")}`, warn: true };
       }
+
+      const o2Text = `O₂ ${this._fmtNum(pri.arrivalO2L)} L`;
+      const enText = `${this._fmtNum(pri.arrivalEnergyKwh)} kWh`;
+      const waterText = `${t("summaryWaterLabel")} ${this._fmtNum(pri.arrivalWaterL)} L`;
+      const base = `${esc(o2Text)} · ${esc(enText)} · ${esc(waterText)}`;
+
       const crit = [];
       if (pri.walkbackO2Alert) crit.push(t("walkbackO2Short"));
       if (pri.batteryReserveAlert) crit.push(t("walkbackBatteryShort"));
-      return crit.length > 0 ? `⚠ ${crit.join(" · ")}` : "";
+      if (crit.length > 0) {
+        return { text: `${base} · ⚠ ${crit.join(" · ")}`, warn: true };
+      }
+      return { text: base, warn: false };
     }
 
-    _renderCollapsibles({ state, activeTabRoute, pri, sec, showSecTab, radZone, wpList, selectedWp, t, esc }) {
-      const parts = [];
-      const steps = (activeTabRoute && activeTabRoute.steps) || [];
+    _renderDetailDrawerHtml(activeKey) {
+      const ctx = this._lastDrawerData;
+      if (!ctx || !activeKey) return "";
+      const { activeTabRoute, sec, showSecTab, radZone, wpList, selectedWp, t, esc } = ctx;
 
-      if (steps.length > 0) {
-        const stepsOpen = this._openSections.has("steps") ? "open" : "";
+      if (activeKey === "steps") {
+        const steps = (activeTabRoute && activeTabRoute.steps) || [];
+        if (steps.length === 0) return "";
         const tabsHtml = sec ? `
           <div class="step-tabs">
             <button type="button" class="step-tab-btn ${!showSecTab ? "active" : ""}" data-step-tab="primary">${esc(t("blueRouteTitle"))}</button>
@@ -91,43 +116,23 @@
             ${s.hazardWarning ? `<div class="step-row-warn">⚠ ${esc(s.hazardWarning)}</div>` : ""}
           </div>
         `).join("");
-
-        parts.push(`
-          <details class="insp-collapse" data-collapse-key="steps" ${stepsOpen}>
-            <summary>
-              <span>${esc(t("stepsListTitle", { count: steps.length }))}</span>
-              <span class="insp-collapse-chevron">▾</span>
-            </summary>
-            <div class="insp-collapse-body">
-              ${tabsHtml}
-              <div class="step-list">${rowsHtml}</div>
-            </div>
-          </details>
-        `);
+        return `<div class="insp-drawer">${tabsHtml}<div class="step-list">${rowsHtml}</div></div>`;
       }
 
-      if (state.showRadiationZones && radZone) {
-        const radOpen = this._openSections.has("rad") ? "open" : "";
-        parts.push(`
-          <details class="insp-collapse" data-collapse-key="rad" ${radOpen}>
-            <summary>
-              <span>☢ ${esc(radZone.name || t("photonRadiation"))}</span>
-              <span class="insp-collapse-meta">${esc(radZone.gammaLevel || "0.82 mSv/h")} ▾</span>
-            </summary>
-            <div class="insp-collapse-body">
-              <div class="rad-grid">
-                <div><span>${esc(t("radAlpha"))}</span><strong>${esc(radZone.alphaLevel || "0.14 μSv/s")}</strong></div>
-                <div><span>${esc(t("radBeta"))}</span><strong>${esc(radZone.betaLevel || "1.65 mSv/h")}</strong></div>
-                <div><span>${esc(t("radGamma"))}</span><strong>${esc(radZone.gammaLevel || "0.82 mSv/h")}</strong></div>
-                <div><span>${esc(t("radPhotonFlux"))}</span><strong>${esc(radZone.photonFlux || "4.2×10⁴/cm²s")}</strong></div>
-              </div>
+      if (activeKey === "rad" && radZone) {
+        return `
+          <div class="insp-drawer">
+            <div class="rad-grid">
+              <div><span>${esc(t("radAlpha"))}</span><strong>${esc(radZone.alphaLevel || "0.14 μSv/s")}</strong></div>
+              <div><span>${esc(t("radBeta"))}</span><strong>${esc(radZone.betaLevel || "1.65 mSv/h")}</strong></div>
+              <div><span>${esc(t("radGamma"))}</span><strong>${esc(radZone.gammaLevel || "0.82 mSv/h")}</strong></div>
+              <div><span>${esc(t("radPhotonFlux"))}</span><strong>${esc(radZone.photonFlux || "4.2×10⁴/cm²s")}</strong></div>
             </div>
-          </details>
-        `);
+          </div>
+        `;
       }
 
-      if (state.routeScope === "crater" && wpList.length > 0) {
-        const wpOpen = this._openSections.has("wp") ? "open" : "";
+      if (activeKey === "wp" && wpList.length > 0) {
         const chipsHtml = wpList.slice(0, 6).map((w) => `
           <button type="button" data-wp-id="${esc(w.id)}"
                   class="wp-chip ${selectedWp && selectedWp.id === w.id ? "active" : ""}">
@@ -135,27 +140,15 @@
           </button>
         `).join("");
         const detailHtml = selectedWp ? `
-          <div class="wp-detail-box">
-            <div><strong>${esc(selectedWp.name)}</strong> · ${Number(selectedWp.elev || 0)} m · ${Number(selectedWp.slope || 0)}°</div>
-            ${selectedWp.hazardNote ? `<div>${esc(selectedWp.hazardNote)}</div>` : ""}
+          <div class="wp-detail-line">
+            <strong>${esc(selectedWp.name)}</strong> · ${Number(selectedWp.elev || 0)} m · ${Number(selectedWp.slope || 0)}°
+            ${selectedWp.hazardNote ? ` · ${esc(selectedWp.hazardNote)}` : ""}
           </div>
         ` : "";
-
-        parts.push(`
-          <details class="insp-collapse" data-collapse-key="wp" ${wpOpen}>
-            <summary>
-              <span>${esc(t("evaWaypointsTitle"))} (${wpList.length})</span>
-              <span class="insp-collapse-chevron">▾</span>
-            </summary>
-            <div class="insp-collapse-body">
-              <div class="wp-strip">${chipsHtml}</div>
-              ${detailHtml}
-            </div>
-          </details>
-        `);
+        return `<div class="insp-drawer"><div class="wp-strip">${chipsHtml}</div>${detailHtml}</div>`;
       }
 
-      return parts.join("");
+      return "";
     }
 
     render(state, activeCrater, landingSites, waypoints, selectedWp, computedRoutes, radZones, uiMeta = {}) {
@@ -174,7 +167,7 @@
       const helper = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
       const paramCheck = uiMeta.paramCheck || (helper
         ? helper.validateMissionParams(state)
-        : { valid: false, missingKeys: ["o2", "energy", "water"], mode: state.expeditionMode || "rover-crew", profile: { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 }, normalized: { startO2Pct: 0, startEnergyPct: 0 } });
+        : { valid: false, missingKeys: ["o2", "energy", "water"], mode: state.expeditionMode || "rover-crew", profile: { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 } });
       const mode = paramCheck.mode || "rover-crew";
       const prof = paramCheck.profile || { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 };
       const paramAttempted = Boolean(uiMeta.paramAttempted);
@@ -188,21 +181,17 @@
       const sec = computedRoutes?.secondaryPaleBlue || null;
       const showSecTab = state.activeStepRouteTab === "secondary" && sec;
       const activeTabRoute = showSecTab ? sec : pri;
-      const activeOrigin = uiMeta.activeOrigin || state.customOrigin || { name: t("originWord"), lat: -4.59, lon: 137.44 };
       const activeDest = uiMeta.activeDestination || state.customDestination || { name: "Jezero", lat: 18.44, lon: 77.45 };
+      const activeOrigin = uiMeta.activeOrigin || state.customOrigin || null;
       const pickingDest = uiMeta.pickMode === "destination";
       const backendLoading = Boolean(uiMeta.backendLoading);
       const hasBackendResponse = Boolean(pri && paramCheck.valid && state.missionParamsConfirmed);
-
-      const shortOrigin = this._shortPlace(activeOrigin.name, t("originWord"));
-      const shortDest = this._shortPlace(activeDest.name, t("destWord"));
-      const originLabelLine = `${shortOrigin} (${Number(activeOrigin.lat).toFixed(1)}°, ${Number(activeOrigin.lon).toFixed(1)}°)`;
 
       const targetOptions = (landingSites || [])
         .filter((s) => s.id !== "curiosity-gale")
         .map((s) => `
           <option value="${esc(s.id)}" ${(!state.useCustomCoordinates && s.id === state.globalTargetId) ? "selected" : ""}>
-            ${esc(s.name)}
+            ${esc(this._shortPlace(s.name, s.name))}
           </option>
         `).join("");
 
@@ -212,57 +201,62 @@
         ? `<span class="insp-toggle-meta">${esc(shortDur)} · ${this._formatKm(pri.totalKm)} km</span>`
         : "";
 
-      const radZone = (Array.isArray(radZones) && radZones[0]) || null;
-      const wpList = Array.isArray(waypoints) ? waypoints : [];
+      const radZone = (state.showRadiationZones && Array.isArray(radZones) && radZones[0]) || null;
+      const wpList = (state.routeScope === "crater" && Array.isArray(waypoints)) ? waypoints : [];
+      const steps = (activeTabRoute && activeTabRoute.steps) || [];
+
+      if (this._activeDetail === "steps" && steps.length === 0) this._activeDetail = null;
+      if (this._activeDetail === "rad" && !radZone) this._activeDetail = null;
+      if (this._activeDetail === "wp" && wpList.length === 0) this._activeDetail = null;
+
+      this._lastDrawerData = { activeTabRoute, sec, showSecTab, radZone, wpList, selectedWp, t, esc };
+
       const miss = (k) => (paramAttempted && paramCheck.missingKeys.includes(k) ? "inp-missing" : "");
       const showGateAlert = Boolean(paramAttempted && !paramCheck.valid);
-      const reserveAlert = this._buildReserveAlert(pri, t);
+      const status = this._buildStatusLine(pri, t, esc);
+      const radShort = radZone ? String(radZone.gammaLevel || "0.82 mSv/h").replace(/\s*\([^)]*\)/g, "").trim() : "";
 
-      const resultsHtml = hasBackendResponse ? `
-        <div class="route-card primary">
-          <div class="route-card-top">
-            <span class="route-title-dot">${esc(t("blueRouteTitle"))}</span>
-            <span class="route-duration-pill">${this._formatKm(pri.totalKm)} km</span>
+      const footerLinks = [];
+      if (steps.length > 0) {
+        footerLinks.push(`<button type="button" class="insp-link-btn ${this._activeDetail === "steps" ? "active" : ""}" data-detail-toggle="steps">${esc(t("stepsListTitle", { count: steps.length }))} ▾</button>`);
+      }
+      if (radZone) {
+        footerLinks.push(`<button type="button" class="insp-link-btn ${this._activeDetail === "rad" ? "active" : ""}" data-detail-toggle="rad">☢ ${esc(radShort)} ▾</button>`);
+      }
+      if (wpList.length > 0) {
+        footerLinks.push(`<button type="button" class="insp-link-btn ${this._activeDetail === "wp" ? "active" : ""}" data-detail-toggle="wp">${esc(t("evaWaypointsTitle"))} (${wpList.length}) ▾</button>`);
+      }
+
+      const customOriginHtml = state.useCustomOrigin && activeOrigin
+        ? `<div class="insp-origin-hint">${esc(t("originPresetLabel"))}: ${esc(this._shortPlace(activeOrigin.name, t("originWord")))}</div>`
+        : "";
+
+      const bottomSectionHtml = hasBackendResponse ? `
+        <div class="insp-result">
+          <div class="insp-hero">
+            <div class="insp-hero-main">${esc(shortDur)} <span class="insp-hero-dist">· ${this._formatKm(pri.totalKm)} km</span></div>
+            ${solHint ? `<span class="insp-hero-sol">${esc(solHint)}</span>` : ""}
           </div>
 
-          <div class="route-kpi-grid">
-            <div class="route-kpi">
-              <span class="route-kpi-lbl">${esc(t("summaryDurationLabel"))}</span>
-              <strong class="route-kpi-val">${esc(shortDur)}</strong>
-              ${solHint ? `<span class="route-kpi-sub">${esc(solHint)}</span>` : ""}
-            </div>
-            <div class="route-kpi ${pri.walkbackO2Alert ? "warn" : ""}">
-              <span class="route-kpi-lbl">${esc(t("summaryO2Label"))}</span>
-              <strong class="route-kpi-val">${pri.arrivalO2L} L</strong>
-              <span class="route-kpi-sub">%${Math.round(pri.arrivalO2Pct ?? 0)}</span>
-            </div>
-            <div class="route-kpi ${pri.batteryReserveAlert ? "warn" : ""}">
-              <span class="route-kpi-lbl">${esc(t("summaryEnergyLabel"))}</span>
-              <strong class="route-kpi-val">${pri.arrivalEnergyKwh} kWh</strong>
-              <span class="route-kpi-sub">%${Math.round(pri.arrivalEnergyPct ?? 0)}</span>
-            </div>
+          <div class="insp-status-line ${status.warn ? "warn" : ""}">${status.text}</div>
+
+          <div class="insp-action-row">
+            <button type="button" class="insp-start-btn" id="btn-start-joint-journey">
+              ${esc(t("startJointJourneyBtn"))}
+            </button>
+            <button type="button" class="insp-recalc-btn" id="btn-send-backend-route" title="${esc(t("calcRouteBtn"))}">
+              ${backendLoading ? "…" : "↻"}
+            </button>
           </div>
 
-          <div class="route-sub-line">
-            ${esc(t("summaryWaterLabel"))}: <strong>${pri.arrivalWaterL} L</strong> · ${esc(t("summarySpeedLabel"))}: <strong>${pri.avgSpeedKmH} km/sa</strong>
-          </div>
-
-          ${reserveAlert ? `<div class="walkback-alert-box">${esc(reserveAlert)}</div>` : ""}
+          ${footerLinks.length > 0 ? `<div class="insp-links-row">${footerLinks.join("")}</div>` : ""}
+          <div id="insp-drawer-slot">${this._renderDetailDrawerHtml(this._activeDetail)}</div>
         </div>
-
-        <button type="button" class="insp-start-btn" id="btn-start-joint-journey">
-          ${esc(t("startJointJourneyBtn"))}
+      ` : `
+        <button type="button" class="insp-calc-btn" id="btn-send-backend-route">
+          ${esc(backendLoading ? t("calculatingShort") : t("calcRouteBtn"))}
         </button>
-
-        ${sec ? `
-          <div class="route-card secondary">
-            <span>${esc(t("routeAltShort"))}</span>
-            <strong>${this._formatKm(sec.totalKm)} km · ${esc(this._formatShortDur(sec, t))}</strong>
-          </div>
-        ` : ""}
-
-        ${this._renderCollapsibles({ state, activeTabRoute, pri, sec, showSecTab, radZone, wpList, selectedWp, t, esc })}
-      ` : "";
+      `;
 
       this.mountEl.innerHTML = `
         <button class="inspector-toggle-btn" id="btn-toggle-inspector">
@@ -273,7 +267,7 @@
 
         <aside class="inspector-card ${state.inspectorOpen ? "open" : ""}" aria-label="${esc(t("inspToggleBtn"))}" ${dirAttr}>
           <div class="insp-head">
-            <div class="insp-title" title="${esc(`${shortOrigin} → ${shortDest}`)}">${esc(shortOrigin)} → ${esc(shortDest)}</div>
+            <div class="insp-title">${esc(t("inspToggleBtn"))}</div>
             <button type="button" class="insp-close-btn" id="btn-close-inspector" aria-label="${esc(t("close"))}">✕</button>
           </div>
 
@@ -286,61 +280,46 @@
             </button>
           </div>
 
-          <div class="insp-setup-box">
-            <div class="insp-endpoint-row">
-              <span class="insp-row-k">${esc(t("originPresetLabel"))}</span>
-              <span class="insp-row-v">${esc(originLabelLine)}</span>
-            </div>
+          ${customOriginHtml}
 
-            <div class="insp-target-row">
-              <select class="insp-select" id="sel-target" aria-label="${esc(t("targetPresetLabel"))}">
-                ${state.useCustomCoordinates ? `<option value="__custom__" selected>${esc(this._formatCustomDest(activeDest, t))}</option>` : ""}
-                ${targetOptions}
-              </select>
-              <button type="button" class="insp-pick-btn ${pickingDest ? "active" : ""}" id="btn-pick-destination" title="${esc(t("pickDestBtn"))}">
-                ${pickingDest ? esc(t("pickShortActive")) : `📍 ${esc(t("pickShortBtn"))}`}
-              </button>
-            </div>
-
-            <div class="insp-param-grid">
-              <div class="insp-param-cell">
-                <label for="inp-mission-o2">
-                  <span>${esc(t("paramO2Label"))}</span>
-                  <span class="insp-cap-pct" id="insp-o2-cap-pct">${rawO2 ? `%${paramCheck.normalized.startO2Pct}` : ""}</span>
-                </label>
-                <input type="number" id="inp-mission-o2" class="${miss("o2")}" min="1" max="3000" step="10"
-                       value="${esc(rawO2)}" placeholder="${esc(t("paramRequiredPlaceholder"))}" />
-              </div>
-              <div class="insp-param-cell">
-                <label for="inp-mission-energy">
-                  <span>${esc(t("paramEnergyLabel"))}</span>
-                  <span class="insp-cap-pct" id="insp-energy-cap-pct">${rawEnergy ? `%${paramCheck.normalized.startEnergyPct}` : ""}</span>
-                </label>
-                <input type="number" id="inp-mission-energy" class="${miss("energy")}" min="0.5" max="300" step="0.5"
-                       value="${esc(rawEnergy)}" placeholder="${esc(t("paramRequiredPlaceholder"))}" />
-              </div>
-              <div class="insp-param-cell">
-                <label for="inp-mission-water">${esc(t("paramWaterLabel"))}</label>
-                <input type="number" id="inp-mission-water" class="${miss("water")}" min="0.5" max="200" step="0.5"
-                       value="${esc(rawWater)}" placeholder="${esc(t("paramRequiredPlaceholder"))}" />
-              </div>
-              <div class="insp-param-cell">
-                <label for="inp-mission-speed">${esc(t("paramSpeedLabel"))}</label>
-                <input type="number" id="inp-mission-speed" class="${miss("speed")}" min="${prof.minSpeedKmH}" max="${prof.maxSpeedKmH}" step="0.1"
-                       value="${esc(rawSpeed)}" />
-              </div>
-            </div>
-
-            <div class="insp-gate-alert ${showGateAlert ? "" : "hidden"}" id="insp-param-alert">
-              ⚠ ${esc(t("paramGateAlert"))}
-            </div>
-
-            <button type="button" class="insp-calc-btn" id="btn-send-backend-route">
-              ${esc(backendLoading ? t("calculatingShort") : t("calcRouteBtn"))}
+          <div class="insp-target-row">
+            <select class="insp-select" id="sel-target" aria-label="${esc(t("targetPresetLabel"))}">
+              ${state.useCustomCoordinates ? `<option value="__custom__" selected>${esc(this._formatCustomDest(activeDest, t))}</option>` : ""}
+              ${targetOptions}
+            </select>
+            <button type="button" class="insp-pick-btn ${pickingDest ? "active" : ""}" id="btn-pick-destination" title="${esc(t("pickDestBtn"))}">
+              ${pickingDest ? esc(t("pickShortActive")) : "📍"}
             </button>
           </div>
 
-          ${resultsHtml}
+          <div class="insp-param-grid">
+            <div class="insp-param-cell" title="${esc(t("paramO2Label"))}">
+              <label for="inp-mission-o2">${esc(this._shortFieldLabel(t("paramO2Label")))}</label>
+              <input type="number" id="inp-mission-o2" class="${miss("o2")}" min="1" max="3000" step="10"
+                     value="${esc(rawO2)}" placeholder="L" />
+            </div>
+            <div class="insp-param-cell" title="${esc(t("paramEnergyLabel"))}">
+              <label for="inp-mission-energy">${esc(this._shortFieldLabel(t("paramEnergyLabel")))}</label>
+              <input type="number" id="inp-mission-energy" class="${miss("energy")}" min="0.5" max="300" step="0.5"
+                     value="${esc(rawEnergy)}" placeholder="kWh" />
+            </div>
+            <div class="insp-param-cell" title="${esc(t("paramWaterLabel"))}">
+              <label for="inp-mission-water">${esc(this._shortFieldLabel(t("paramWaterLabel")))}</label>
+              <input type="number" id="inp-mission-water" class="${miss("water")}" min="0.5" max="200" step="0.5"
+                     value="${esc(rawWater)}" placeholder="L" />
+            </div>
+            <div class="insp-param-cell" title="${esc(t("paramSpeedLabel"))}">
+              <label for="inp-mission-speed">${esc(this._shortFieldLabel(t("paramSpeedLabel")))}</label>
+              <input type="number" id="inp-mission-speed" class="${miss("speed")}" min="${prof.minSpeedKmH}" max="${prof.maxSpeedKmH}" step="0.1"
+                     value="${esc(rawSpeed)}" placeholder="km/h" />
+            </div>
+          </div>
+
+          <div class="insp-gate-alert ${showGateAlert ? "" : "hidden"}" id="insp-param-alert">
+            ⚠ ${esc(t("paramGateAlert"))}
+          </div>
+
+          ${bottomSectionHtml}
         </aside>
       `;
 
@@ -354,14 +333,9 @@
       this.bindEvents(state);
     }
 
-    /** Kullanici yazarken odak bozmadan kapasite % ve kapi uyarisini gunceller */
+    /** Kullanici yazarken odak bozmadan eksik girdi vurgusu ve uyariyi gunceller */
     syncParamGateUi(state, paramCheck, paramAttempted = false) {
       if (!this.mountEl) return;
-      const o2PctEl = this.mountEl.querySelector("#insp-o2-cap-pct");
-      const enPctEl = this.mountEl.querySelector("#insp-energy-cap-pct");
-      if (o2PctEl) o2PctEl.textContent = state.oxygenReserveLiters > 0 ? `%${paramCheck.normalized.startO2Pct}` : "";
-      if (enPctEl) enPctEl.textContent = state.energyReserveKwh > 0 ? `%${paramCheck.normalized.startEnergyPct}` : "";
-
       const missing = paramCheck.missingKeys || [];
       const map = { o2: "#inp-mission-o2", energy: "#inp-mission-energy", water: "#inp-mission-water", speed: "#inp-mission-speed" };
       Object.keys(map).forEach((k) => {
@@ -370,6 +344,30 @@
       });
       const alertEl = this.mountEl.querySelector("#insp-param-alert");
       if (alertEl) alertEl.classList.toggle("hidden", !Boolean(paramAttempted && !paramCheck.valid));
+    }
+
+    _bindDrawerEvents() {
+      const slot = this.mountEl.querySelector("#insp-drawer-slot");
+      if (!slot) return;
+      slot.querySelectorAll("[data-wp-id]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          this.handlers.onSelectWaypoint?.(btn.getAttribute("data-wp-id"));
+        });
+      });
+      slot.querySelectorAll("[data-step-tab]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          this.handlers.onChangeStepTab?.(btn.getAttribute("data-step-tab"));
+        });
+      });
+      slot.querySelectorAll("[data-step-lat]").forEach((row) => {
+        row.addEventListener("click", () => {
+          const lat = parseFloat(row.getAttribute("data-step-lat"));
+          const lon = parseFloat(row.getAttribute("data-step-lon"));
+          if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+            this.handlers.onFocusCoords?.(lat, lon);
+          }
+        });
+      });
     }
 
     bindEvents(state) {
@@ -415,36 +413,22 @@
         this.handlers.onStartJointJourney?.();
       });
 
-      this.mountEl.querySelectorAll("[data-collapse-key]").forEach((det) => {
-        det.addEventListener("toggle", () => {
-          const key = det.getAttribute("data-collapse-key");
-          if (!key) return;
-          if (det.open) this._openSections.add(key);
-          else this._openSections.delete(key);
-        });
-      });
-
-      this.mountEl.querySelectorAll("[data-wp-id]").forEach((btn) => {
+      this.mountEl.querySelectorAll("[data-detail-toggle]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          this.handlers.onSelectWaypoint?.(btn.getAttribute("data-wp-id"));
-        });
-      });
-
-      this.mountEl.querySelectorAll("[data-step-tab]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          this.handlers.onChangeStepTab?.(btn.getAttribute("data-step-tab"));
-        });
-      });
-
-      this.mountEl.querySelectorAll("[data-step-lat]").forEach((row) => {
-        row.addEventListener("click", () => {
-          const lat = parseFloat(row.getAttribute("data-step-lat"));
-          const lon = parseFloat(row.getAttribute("data-step-lon"));
-          if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
-            this.handlers.onFocusCoords?.(lat, lon);
+          const key = btn.getAttribute("data-detail-toggle");
+          this._activeDetail = this._activeDetail === key ? null : key;
+          this.mountEl.querySelectorAll("[data-detail-toggle]").forEach((b) => {
+            b.classList.toggle("active", b.getAttribute("data-detail-toggle") === this._activeDetail);
+          });
+          const slot = this.mountEl.querySelector("#insp-drawer-slot");
+          if (slot) {
+            slot.innerHTML = this._renderDetailDrawerHtml(this._activeDetail);
+            this._bindDrawerEvents();
           }
         });
       });
+
+      this._bindDrawerEvents();
     }
   }
 
@@ -454,9 +438,9 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-14: JSDoc sadelestirilmis sag ust Rota Planlayici sinifi ve constructor.
-   - Satir 16-71: Metin/sure kisaltma, adim metni temizleme ve oz rezerv uyari yardimcilari.
-   - Satir 73-147: _renderCollapsibles; varsayilan kapali acilir Adimlar, Radyasyon ve krater-ici Duraklar bolumleri.
-   - Satir 149-292: render; tek satirli baslik, kompakt kurulum kutusu, 3'lu KPI rota ozeti ve Yolculugu Baslat butonu.
-   - Satir 294-370: syncParamGateUi ve bindEvents; canli girdi dogrulamasi, hedef secimi ve acilir bolum durum korumasi.
+   - Satir 1-16: JSDoc minimalist sag ust Rota Planlayici sinifi ve constructor.
+   - Satir 17-95: Metin kisaltma, sayi yuvarlama, cift koordinat temizleme ve tek satir durum ozeti.
+   - Satir 97-159: _renderDetailDrawerHtml; istege bagli Adimlar, Radyasyon ve krater-ici Duraklar cekmecesi.
+   - Satir 161-334: render; minimalist kart, mod sekmesi, tek satir hedef+harita, 4'lu micro rezerv izgarasi ve duz sonuc ozeti.
+   - Satir 336-436: syncParamGateUi ve olay baglayicilar (girdi dogrulama, rota baslatma ve cekmece gecisleri).
    ========================================================================== */

@@ -1,6 +1,6 @@
 /**
  * @file base.css
- * @description Tam ekran harita kilitli yerlesim, acik gri studio zemini, ince kaydirma cubugu ve Public Sans Web tipografi sifirlamalari.
+ * @description Tam ekran harita kilitli yerlesim, Orbital Titanium uzay zemini (#121c30 -> #283c5e), ince kaydirma cubugu ve Public Sans Web tipografi.
  */
 
 *,
@@ -16,8 +16,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: var(--bg-canvas);
-  background-image: radial-gradient(circle at 50% 48%, #edf0f5 0%, #dfe4ec 58%, #cfd7e3 100%);
+  background-color: #121c30;
+  background-image: radial-gradient(circle at 50% 48%, #283c5e 0%, #1a2842 55%, #121c30 100%);
   color: var(--ink-black);
   font-family: var(--font-main);
   font-weight: 600;
@@ -33,7 +33,7 @@ body {
   height: 100vh;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 48%, #edf0f5 0%, #dfe4ec 58%, #cfd7e3 100%);
+  background: radial-gradient(circle at 50% 48%, #283c5e 0%, #1a2842 55%, #121c30 100%);
 }
 
 .app-viewport {
@@ -68,7 +68,7 @@ button {
   background: none;
 }
 
-/* Ince ve uyumlu Acik Gri kaydirma cubuklari */
+/* Ince ve uyumlu Obsidian Uzay kaydirma cubuklari */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -92,8 +92,8 @@ button {
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-4: JSDoc temel sifirlama ve tam ekran harita kurallari.
-   - Satir 6-27: Kutu modeli, kaydirma kilidi, acik gri studio arka plani ve Public Sans Web temel tipografi.
-   - Satir 29-45: #starfield-canvas sabit acik gri arka plan tuvali ve .app-viewport ana sahne cercevesi.
+   - Satir 6-27: Kutu modeli, kaydirma kilidi, derin uzay (#020409) arka plani ve Public Sans Web temel tipografi.
+   - Satir 29-45: #starfield-canvas derin uzay yildiz alani tuvali ve .app-viewport ana sahne cercevesi.
    - Satir 47-56: #mars-map-canvas orta alan tam boyut harita tuvali ve tutma imleci.
-   - Satir 58-87: Buton/form elemanlari Font mirasi ve ince acik gri kaydirma cubugu stilleri.
+   - Satir 58-89: Buton/form elemanlari Font mirasi ve ince Obsidian uzay kaydirma cubugu stilleri.
    ========================================================================== */

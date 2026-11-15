@@ -40,9 +40,9 @@
       const gw = Math.max(40, w - padL - padR);
       const gh = Math.max(30, h - padT - padB);
 
-      ctx.fillStyle = "#f8fafc";
+      ctx.fillStyle = "#25344b";
       ctx.fillRect(padL, padT, gw, gh);
-      ctx.strokeStyle = "#cbd5e1";
+      ctx.strokeStyle = "rgba(214, 226, 242, 0.30)";
       ctx.lineWidth = 1;
       ctx.strokeRect(padL, padT, gw, gh);
 
@@ -52,19 +52,19 @@
       ctx.textBaseline = "middle";
       [0, 20, 50, 100].forEach((pct) => {
         const y = padT + gh - (pct / 100) * gh;
-        ctx.strokeStyle = pct === 20 ? "rgba(217, 43, 43, 0.45)" : "#e2e8f0";
+        ctx.strokeStyle = pct === 20 ? "rgba(224, 62, 54, 0.55)" : "rgba(214, 226, 242, 0.18)";
         ctx.setLineDash(pct === 20 ? [4, 3] : []);
         ctx.beginPath();
         ctx.moveTo(padL, y);
         ctx.lineTo(padL + gw, y);
         ctx.stroke();
-        ctx.fillStyle = pct === 20 ? "#b91c1c" : "#475569";
+        ctx.fillStyle = pct === 20 ? "#fca5a5" : "#94a3b8";
         ctx.fillText(`${pct}%`, padL - 4, y);
       });
       ctx.setLineDash([]);
 
       if (!Array.isArray(samples) || samples.length < 2) {
-        ctx.fillStyle = "#475569";
+        ctx.fillStyle = "#94a3b8";
         ctx.font = "800 10.5px 'Public Sans Web', sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("Ön görev parametreleri (O₂, Enerji, Su) girin...", padL + gw / 2, padT + gh / 2);
@@ -94,17 +94,17 @@
       // 3. Oksijen (%) mavi egrisi
       this.strokeSeries(ctx, samples, (s) => s.o2Pct, padL, padT, gw, gh, "#3b82f6", 2.4);
 
-      // 4. Canli zaman imleci (slate dikey cizgi + ust ucgen + noktalar)
+      // 4. Canli zaman imleci (platin dikey cizgi + ust ucgen + noktalar)
       const p = Math.max(0, Math.min(1, progress || 0));
       const cx = padL + p * gw;
-      ctx.strokeStyle = "#334155";
+      ctx.strokeStyle = "#cbd5e1";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(cx, padT);
       ctx.lineTo(cx, padT + gh);
       ctx.stroke();
 
-      ctx.fillStyle = "#d92b2b";
+      ctx.fillStyle = "#dc362e";
       ctx.beginPath();
       ctx.moveTo(cx - 3.5, padT - 4);
       ctx.lineTo(cx + 3.5, padT - 4);
@@ -120,7 +120,7 @@
       }
 
       // Alt eksen kilometre etiketi
-      ctx.fillStyle = "#475569";
+      ctx.fillStyle = "#94a3b8";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
       ctx.fillText("0 km", padL, padT + gh + 4);
@@ -150,7 +150,7 @@
       ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = "#0f172a";
       ctx.lineWidth = 1.6;
       ctx.stroke();
     }
@@ -164,7 +164,7 @@
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc /demo simulasyon coklu egri tuval grafigi sinifi.
    - Satir 10-19: constructor ve setCanvas; 2D grafik baglamini hazirlar.
-   - Satir 21-158: render; Acik Gri Studyo temali HiDPI tuvalde %20 Walkback esigi, parametre eksik uyari metni, MOLA rakim alani, Batarya (#22c55e) ve O2 (#3b82f6) egrileri ile slate imleci cizer.
+   - Satir 21-158: render; Obsidian Space Telemetry temali HiDPI tuvalde %20 Walkback esigi, parametre eksik uyari metni, MOLA rakim alani, Batarya (#22c55e) ve O2 (#3b82f6) egrileri ile platin imleci cizer.
    - Satir 160-185: strokeSeries ve drawDot; zaman serisi egrilerini ve aktif nokta isaretcilerini cizer.
    ========================================================================== */
 
