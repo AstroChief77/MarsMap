@@ -17,7 +17,7 @@ body {
   height: 100%;
   overflow: hidden;
   background-color: var(--bg-canvas);
-  background-image: radial-gradient(circle at 50% 48%, #edf0f5 0%, #dfe4ec 58%, #cfd7e3 100%);
+  background-image: radial-gradient(circle at 50% 48%, #929aa6 0%, #88909c 58%, #7e8692 100%);
   color: var(--ink-black);
   font-family: var(--font-main);
   font-weight: 600;
@@ -33,7 +33,7 @@ body {
   height: 100vh;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 48%, #edf0f5 0%, #dfe4ec 58%, #cfd7e3 100%);
+  background: radial-gradient(circle at 50% 48%, #929aa6 0%, #88909c 58%, #7e8692 100%);
 }
 
 .app-viewport {

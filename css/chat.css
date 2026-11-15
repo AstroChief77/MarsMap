@@ -1,7 +1,7 @@
 /**
  * @file chat.css
- * @description AstroChief Mars Görev İletişim & Dosya Aktarım Paneli Stilleri (Açık Gri Studio).
- * Tema standartları: %60 Beyaz (#ffffff, #f8fafc), %30 Açık Gri Zemin & Slate Tipografi (#eef2f6, #dfe5ee, #1e293b), %10 Kırmızı (#d92b2b).
+ * @description AstroChief Mars Görev İletişim & Dosya Aktarım Paneli Stilleri (Çift Kontrastlı Açık Gri Stüdyo).
+ * Tema standartları: Hem beyaz hem siyah yazı/öğelerin net göründüğü açık gri yüzeyler (#88909c, #99a1ad, #a1a9b5, #a6aeb9), koyu metinler (#090d14) ve Mars Kırmızısı (#d92b2b).
  * Yazı tipi: 'Public Sans Web', sans-serif.
  */
 
@@ -16,16 +16,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
+  background: linear-gradient(135deg, #a1a9b5 0%, #8d95a1 100%);
+  color: #090d14;
+  border: 1px solid #495362;
   border-radius: 9999px;
   padding: 12px 20px;
   font-family: 'Public Sans Web', sans-serif;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(217, 43, 43, 0.14);
+  box-shadow: 0 10px 25px -5px rgba(9, 13, 20, 0.24), 0 0 0 1px rgba(217, 43, 43, 0.16);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 }
@@ -33,8 +33,8 @@
 .mission-chat-trigger:hover {
   transform: translateY(-2px);
   border-color: #d92b2b;
-  background: #ffffff;
-  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.18), 0 0 16px rgba(217, 43, 43, 0.18);
+  background: #a6aeb9;
+  box-shadow: 0 14px 28px -4px rgba(9, 13, 20, 0.28), 0 0 16px rgba(217, 43, 43, 0.22);
 }
 
 .mission-chat-trigger .chat-badge-icon {
@@ -64,10 +64,10 @@
   max-width: calc(100vw - 32px);
   height: 580px;
   max-height: calc(100vh - 120px);
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
+  background: var(--bg-solid-white, #99a1ad);
+  border: 1px solid #495362;
   border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(217, 43, 43, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(9, 13, 20, 0.28), 0 0 0 1px rgba(217, 43, 43, 0.16);
   display: flex;
   flex-direction: column;
   z-index: 1001;
@@ -95,8 +95,8 @@
    3. BAŞLIK VE KİMLİK / ROL BARI (HEADER)
    ========================================================================== */
 .mission-chat-header {
-  background: #eef2f6;
-  color: #1e293b;
+  background: #88909c;
+  color: #090d14;
   padding: 14px 18px;
   display: flex;
   align-items: center;
@@ -115,7 +115,8 @@
   height: 10px;
   background: #22c55e;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.65);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.72);
+  border: 1px solid #0b361c;
   animation: pulseLive 2s infinite;
 }
 
@@ -130,13 +131,13 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   margin: 0;
-  color: #1e293b;
+  color: #090d14;
 }
 
 .mission-chat-close-btn {
   background: transparent;
   border: none;
-  color: #475569;
+  color: #151d29;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
@@ -146,15 +147,15 @@
 }
 
 .mission-chat-close-btn:hover {
-  color: #1e293b;
-  background: #e2e8f0;
+  color: #090d14;
+  background: #7d8694;
 }
 
 /* Kullanıcı Kimlik Seçimi */
 .mission-chat-user-selector {
-  background: #f8fafc;
+  background: #8d95a1;
   padding: 10px 16px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #697382;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -162,20 +163,20 @@
 }
 
 .mission-chat-user-selector label {
-  color: #64748b;
-  font-weight: 600;
+  color: #151d29;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .mission-chat-select {
   flex: 1;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
+  background: #a6aeb9;
+  border: 1px solid #495362;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 12px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 700;
+  color: #090d14;
   outline: none;
 }
 
@@ -193,14 +194,15 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #f8fafc;
+  background: #858d99;
 }
 
 .mission-chat-empty {
   margin: auto;
   text-align: center;
-  color: #64748b;
+  color: #090d14;
   font-size: 13px;
+  font-weight: 700;
   padding: 24px;
 }
 
@@ -208,19 +210,19 @@
   display: flex;
   flex-direction: column;
   max-width: 85%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #a1a9b5;
+  border: 1px solid #697382;
   border-radius: 12px;
   padding: 10px 14px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 2px 6px rgba(9, 13, 20, 0.12);
   animation: messageFadeIn 0.2s ease-out;
 }
 
 .mission-message-item.own-message {
   align-self: flex-end;
-  background: #ffffff;
+  background: #a6aeb9;
   border-left: 3px solid #d92b2b;
-  box-shadow: 0 2px 6px rgba(217, 43, 43, 0.08);
+  box-shadow: 0 3px 8px rgba(9, 13, 20, 0.16);
 }
 
 @keyframes messageFadeIn {
@@ -238,27 +240,28 @@
 }
 
 .mission-message-author {
-  font-weight: 700;
-  color: #1e293b;
+  font-weight: 800;
+  color: #090d14;
 }
 
 .mission-message-role {
-  background: rgba(217, 43, 43, 0.1);
-  color: #d92b2b;
+  background: #b58f94;
+  color: #6e0d0d;
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .mission-message-time {
-  color: #64748b;
+  color: #242f40;
   font-size: 10px;
+  font-weight: 700;
 }
 
 .mission-message-body {
   font-size: 13px;
-  color: #334155;
+  color: #090d14;
   line-height: 1.45;
   word-break: break-word;
 }
@@ -269,17 +272,17 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: #8d95a1;
+  border: 1px solid #495362;
   border-radius: 8px;
   padding: 8px 12px;
   text-decoration: none;
-  color: #1e293b;
+  color: #090d14;
   transition: all 0.2s;
 }
 
 .mission-message-file-card:hover {
-  background: #e2e8f0;
+  background: #7d8694;
   border-color: #d92b2b;
 }
 
@@ -295,8 +298,8 @@
 
 .mission-file-name {
   font-size: 12px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 700;
+  color: #090d14;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -305,7 +308,8 @@
 
 .mission-file-size {
   font-size: 10px;
-  color: #64748b;
+  color: #242f40;
+  font-weight: 700;
 }
 
 .mission-file-image-preview {
@@ -313,7 +317,7 @@
   max-width: 100%;
   max-height: 180px;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #495362;
   object-fit: cover;
   cursor: pointer;
 }
@@ -322,14 +326,14 @@
    5. DOSYA EKLEME & YÜKLEME ÇUBUĞU (ATTACHMENT PREVIEW)
    ========================================================================== */
 .mission-chat-attachment-bar {
-  background: #f1f5f9;
-  border-top: 1px solid #e2e8f0;
+  background: #8d95a1;
+  border-top: 1px solid #697382;
   padding: 6px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #1e293b;
+  color: #090d14;
 }
 
 .mission-chat-attachment-bar.hidden {
@@ -339,8 +343,8 @@
 .mission-chat-remove-file {
   background: transparent;
   border: none;
-  color: #d92b2b;
-  font-weight: 700;
+  color: #6e0d0d;
+  font-weight: 800;
   cursor: pointer;
   padding: 2px 6px;
 }
@@ -349,8 +353,8 @@
    6. MESAJ VE DOSYA GÖNDERME ALANI (FOOTER)
    ========================================================================== */
 .mission-chat-footer {
-  background: #ffffff;
-  border-top: 1px solid #e2e8f0;
+  background: #9199a6;
+  border-top: 1px solid #697382;
   padding: 10px 14px;
 }
 
@@ -361,8 +365,8 @@
 }
 
 .mission-chat-attach-btn {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: #a1a9b5;
+  border: 1px solid #495362;
   border-radius: 8px;
   width: 36px;
   height: 36px;
@@ -372,30 +376,35 @@
   font-size: 16px;
   cursor: pointer;
   transition: all 0.2s;
-  color: #475569;
+  color: #090d14;
 }
 
 .mission-chat-attach-btn:hover {
-  background: #e2e8f0;
+  background: #aeb6c1;
   border-color: #d92b2b;
-  color: #d92b2b;
+  color: #6e0d0d;
 }
 
 .mission-chat-input {
   flex: 1;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  background: #a6aeb9;
+  border: 1px solid #495362;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13px;
-  color: #1e293b;
+  font-weight: 700;
+  color: #090d14;
   outline: none;
   font-family: inherit;
 }
 
+.mission-chat-input::placeholder {
+  color: #242f40;
+}
+
 .mission-chat-input:focus {
   border-color: #d92b2b;
-  background: #ffffff;
+  background: #aeb6c1;
 }
 
 .mission-chat-send-btn {
@@ -405,7 +414,7 @@
   border-radius: 8px;
   padding: 8px 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -414,18 +423,20 @@
 }
 
 .mission-chat-send-btn:hover {
-  background: #b91c1c;
+  background: #991b1b;
 }
 
 .mission-chat-send-btn:disabled {
-  background: #94a3b8;
+  background: #697382;
+  color: #ffffff;
   cursor: not-allowed;
 }
 
 .mission-chat-security-badge {
   text-align: center;
   font-size: 10px;
-  color: #64748b;
+  font-weight: 700;
+  color: #151d29;
   margin-top: 6px;
 }
 
@@ -434,8 +445,8 @@
    ========================================================================== */
 body.standalone-chat-body {
   font-family: 'Public Sans Web', sans-serif;
-  background: linear-gradient(155deg, #f1f5f9 0%, #dfe5ee 100%);
-  color: #1e293b;
+  background: radial-gradient(circle at 50% 48%, #929aa6 0%, #88909c 58%, #7e8692 100%);
+  color: #090d14;
   height: 100dvh;
   display: flex;
   align-items: center;
@@ -448,18 +459,18 @@ body.standalone-chat-body {
   max-width: 920px;
   height: 100%;
   max-height: 860px;
-  background: #ffffff;
+  background: var(--bg-solid-white, #99a1ad);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 22px 48px -12px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06);
+  border: 1px solid #495362;
+  box-shadow: 0 22px 48px -12px rgba(9, 13, 20, 0.28), 0 2px 10px rgba(9, 13, 20, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .chat-header {
-  background: #eef2f6;
-  color: #1e293b;
+  background: #88909c;
+  color: #090d14;
   padding: 16px 22px;
   display: flex;
   align-items: center;
@@ -470,19 +481,19 @@ body.standalone-chat-body {
 }
 
 .chat-title-wrap { display: flex; align-items: center; gap: 10px; }
-.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.65); }
-.chat-title { font-size: 16px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: #1e293b; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; border: 1px solid #0b361c; box-shadow: 0 0 8px rgba(34, 197, 94, 0.72); }
+.chat-title { font-size: 16px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: #090d14; }
 .crew-bar { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.crew-bar label { color: #475569; font-weight: 700; }
+.crew-bar label { color: #151d29; font-weight: 800; }
 
 .crew-select {
-  background: #ffffff;
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
+  background: #a6aeb9;
+  color: #090d14;
+  border: 1px solid #495362;
   border-radius: 8px;
   padding: 6px 12px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   font-family: inherit;
   outline: none;
   cursor: pointer;
@@ -494,37 +505,37 @@ body.standalone-chat-body {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  background: #f8fafc;
+  background: #858d99;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.empty-state { margin: auto; color: #64748b; font-size: 14px; text-align: center; }
+.empty-state { margin: auto; color: #090d14; font-size: 14px; font-weight: 700; text-align: center; }
 
 .msg-card {
   max-width: 78%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #a1a9b5;
+  border: 1px solid #697382;
   border-radius: 12px;
   padding: 12px 16px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 2px 6px rgba(9, 13, 20, 0.14);
 }
 
-.msg-card.own { align-self: flex-end; border-left: 4px solid #d92b2b; }
+.msg-card.own { align-self: flex-end; background: #a6aeb9; border-left: 4px solid #d92b2b; }
 .msg-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 12px; }
 .msg-author-wrap { display: flex; align-items: center; gap: 6px; }
-.msg-author { font-weight: 700; color: #1e293b; }
-.msg-role { background: rgba(217, 43, 43, 0.1); color: #d92b2b; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-.msg-time { color: #64748b; font-size: 11px; }
-.msg-text { font-size: 14px; color: #334155; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
+.msg-author { font-weight: 800; color: #090d14; }
+.msg-role { background: #b58f94; color: #6e0d0d; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px; }
+.msg-time { color: #242f40; font-size: 11px; font-weight: 700; }
+.msg-text { font-size: 14px; color: #090d14; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
 
 .file-preview-img {
   margin-top: 10px;
   max-width: 100%;
   max-height: 260px;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #495362;
   cursor: pointer;
   display: block;
 }
@@ -534,62 +545,66 @@ body.standalone-chat-body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: #8d95a1;
+  border: 1px solid #495362;
   border-radius: 8px;
   padding: 8px 12px;
   text-decoration: none;
-  color: #1e293b;
-  transition: border-color 0.2s;
+  color: #090d14;
+  transition: border-color 0.2s, background 0.2s;
 }
 
-.file-card:hover { border-color: #d92b2b; background: #e2e8f0; }
-.file-name { font-size: 13px; font-weight: 600; }
-.file-size { font-size: 11px; color: #64748b; }
+.file-card:hover { border-color: #d92b2b; background: #7d8694; }
+.file-name { font-size: 13px; font-weight: 700; }
+.file-size { font-size: 11px; color: #242f40; font-weight: 700; }
 
 .attach-bar {
-  background: #f1f5f9;
-  border-top: 1px solid #e2e8f0;
+  background: #8d95a1;
+  border-top: 1px solid #697382;
   padding: 8px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  color: #090d14;
 }
 
 .attach-bar.hidden { display: none; }
-.remove-file-btn { background: transparent; border: none; color: #d92b2b; font-weight: 800; cursor: pointer; font-size: 14px; }
-.chat-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 18px; }
+.remove-file-btn { background: transparent; border: none; color: #6e0d0d; font-weight: 800; cursor: pointer; font-size: 14px; }
+.chat-footer { background: #9199a6; border-top: 1px solid #697382; padding: 14px 18px; }
 .chat-form { display: flex; gap: 10px; align-items: center; }
 
 .attach-btn {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
+  border: 1px solid #495362;
+  background: #a1a9b5;
+  color: #090d14;
   font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.attach-btn:hover { border-color: #d92b2b; background: #f1f5f9; }
+.attach-btn:hover { border-color: #d92b2b; background: #aeb6c1; }
 
 .msg-input {
   flex: 1;
   height: 42px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #495362;
   border-radius: 10px;
   padding: 0 14px;
   font-size: 14px;
+  font-weight: 700;
   font-family: inherit;
   outline: none;
-  color: #1e293b;
-  background: #f8fafc;
+  color: #090d14;
+  background: #a6aeb9;
 }
 
-.msg-input:focus { border-color: #d92b2b; background: #ffffff; }
+.msg-input::placeholder { color: #242f40; }
+.msg-input:focus { border-color: #d92b2b; background: #aeb6c1; }
 
 .send-btn {
   height: 42px;
@@ -605,18 +620,18 @@ body.standalone-chat-body {
   transition: background 0.2s;
 }
 
-.send-btn:hover { background: #b91c1c; }
-.send-btn:disabled { background: #94a3b8; cursor: not-allowed; }
-.security-note { margin-top: 8px; text-align: center; font-size: 11px; color: #64748b; }
+.send-btn:hover { background: #991b1b; }
+.send-btn:disabled { background: #697382; color: #ffffff; cursor: not-allowed; }
+.security-note { margin-top: 8px; text-align: center; font-size: 11px; font-weight: 700; color: #151d29; }
 
 /* ==========================================================================
    DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
    --------------------------------------------------------------------------
-   - Satır 1-6: Stil dosyası başlığı, Açık Gri Studio (%60 Beyaz / %30 Açık Gri & Slate / %10 Kırmızı) kuralları.
-   - Satır 11-53: Sağ alt köşe sabit açık gri sohbet açma/kapama butonu (.mission-chat-trigger).
-   - Satır 58-150: Sohbet modal paneli pencere kapsayıcısı ve açık gri başlık/durum rozeti.
-   - Satır 152-317: Ekip üyesi seçici, mesaj balonları ve dosya kartı stilleri.
-   - Satır 322-428: Yüklenmek üzere seçilen dosya önizleme şeridi ve gönderme formu.
-   - Satır 433-608: Bağımsız /chat/ sayfası (.standalone-chat-body, .chat-shell, .chat-header, .msg-card, .chat-footer) açık gri stilleri.
+   - Satır 1-6: Stil dosyası başlığı, Çift Kontrastlı Açık Gri Stüdyo kuralları.
+   - Satır 11-55: Sağ alt köşe sabit açık gri sohbet açma/kapama butonu (.mission-chat-trigger).
+   - Satır 59-155: Sohbet modal paneli pencere kapsayıcısı ve açık gri başlık/durum rozeti.
+   - Satır 157-325: Ekip üyesi seçici, yükseltilmiş açık gri mesaj balonları (#a1a9b5/#a6aeb9) ve dosya kartı stilleri.
+   - Satır 327-438: Yüklenmek üzere seçilen dosya önizleme şeridi ve gönderme formu.
+   - Satır 440-630: Bağımsız /chat/ sayfası (.standalone-chat-body, .chat-shell, .chat-header, .msg-card, .chat-footer) çift kontrastlı açık gri stilleri.
    ========================================================================== */
 

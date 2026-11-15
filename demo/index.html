@@ -6,10 +6,10 @@
   <base href="../">
   <title>AstroChief | /demo Mars Hayatta Kalma Simülasyonu</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%23d92b2b%22/><circle cx=%2250%22 cy=%2250%22 r=%2222%22 fill=%22%23ffffff%22 opacity=%220.22%22/></svg>">
-  <link rel="stylesheet" href="./css/fonts.css?v=4.6">
-  <link rel="stylesheet" href="./css/variables.css?v=4.6">
-  <link rel="stylesheet" href="./css/base.css?v=4.6">
-  <link rel="stylesheet" href="./css/demo_studio.css?v=4.6">
+  <link rel="stylesheet" href="./css/fonts.css?v=4.8">
+  <link rel="stylesheet" href="./css/variables.css?v=4.8">
+  <link rel="stylesheet" href="./css/base.css?v=4.8">
+  <link rel="stylesheet" href="./css/demo_studio.css?v=4.8">
 </head>
 <body class="demo-studio-body">
   <canvas id="demo-starfield" aria-hidden="true"></canvas>
@@ -149,9 +149,9 @@
         <div class="sim-sec-title">ZAMAN SERİSİ PROFİLİ (O₂ / BATARYA / RAKIM)</div>
         <canvas id="sim-chart-canvas"></canvas>
         <div class="sim-chart-legend">
-          <span style="color:#2563eb;">■ O₂ (%)</span>
-          <span style="color:#15803d;">■ Enerji (%)</span>
-          <span style="color:#b91c1c;">■ MOLA Rakım / %20 Walkback</span>
+          <span style="color:#0e2666;">■ O₂ (%)</span>
+          <span style="color:#0b361c;">■ Enerji (%)</span>
+          <span style="color:#6e0d0d;">■ MOLA Rakım / %20 Walkback</span>
         </div>
 
         <div class="sim-sec-title">SİMÜLASYON OLAY GÜNLÜĞÜ</div>
@@ -196,13 +196,13 @@
   <script defer src="./js/services/RoutePlannerService.js?v=4.6"></script>
   <script defer src="./js/services/MarsSimulationEngine.js?v=4.6"></script>
 
-  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.6"></script>
-  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.6"></script>
-  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.6"></script>
-  <script defer src="./js/renderers/Map2DRenderer.js?v=4.6"></script>
+  <script defer src="./js/renderers/StarfieldRenderer.js?v=4.8"></script>
+  <script defer src="./js/renderers/OverlayDrawHelper.js?v=4.8"></script>
+  <script defer src="./js/renderers/RouteCanvasRenderer.js?v=4.8"></script>
+  <script defer src="./js/renderers/Map2DRenderer.js?v=4.8"></script>
   <script defer src="./js/renderers/Map3DFallbackRenderer.js?v=4.6"></script>
-  <script defer src="./js/renderers/Map3DRenderer.js?v=4.6"></script>
-  <script defer src="./js/renderers/SimulationChartRenderer.js?v=4.6"></script>
+  <script defer src="./js/renderers/Map3DRenderer.js?v=4.8"></script>
+  <script defer src="./js/renderers/SimulationChartRenderer.js?v=4.8"></script>
 
   <script defer src="./js/components/DemoStudioController.js?v=4.6"></script>
 </body>
@@ -212,11 +212,11 @@
 ==========================================================================
 DOSYA SATIR VE İŞLEV AÇIKLAMALARI (Satır Satır Ne İşe Yaradığı):
 --------------------------------------------------------------------------
-- Satır 1-14: /demo HTML5 belgesi, kök göreceli <base href="../"> tanımı ve Açık Gri Stüdyo (?v=4.6) yerel CSS paketi.
-- Satır 15-45: Açık gri yörünge arka plan tuvali ve üst simülasyon araç çubuğu (4 ortak senaryo, 2D/3D, 5 sn Rust ping, Ana Harita dönüşü).
-- Satır 47-125: Sol parametre giriş kartı (Rover+Ekip / Rover+Yaya EVA seçimi, zorunlu/boş başlayan O₂/Su/Batarya kapısı, rota ve fırtına/sızıntı enjeksiyonu).
-- Satır 127-166: Sağ telemetri ve varış özeti kartı (dakika, saat, km/sa, m/dk, O₂ %+L, Enerji %+kWh, Walkback uyarısı, yüksek kontrast grafik ve olay günlüğü).
-- Satır 168-180: Alt zaman kontrol ve hız çarpanı (1x-240x) oynatma çubuğu.
-- Satır 182-215: Paylaşılan harita, MissionBudgetHelper, Rust WASM (MolaAStarGridHelper) ve DemoStudioController betikleri (?v=4.6).
+- Satır 1-14: /demo HTML5 belgesi, kök göreceli <base href="../"> tanımı ve Çift Kontrastlı Açık Gri Stüdyo (?v=4.8) yerel CSS paketi.
+- Satır 15-38: Açık gri yörünge arka plan tuvali ve üst simülasyon araç çubuğu (4 ortak senaryo, 2D/3D, 5 sn Rust ping, Ana Harita dönüşü).
+- Satır 40-119: Sol parametre giriş kartı (Rover+Ekip / Rover+Yaya EVA seçimi, zorunlu/boş başlayan O₂/Su/Batarya kapısı, rota ve fırtına/sızıntı enjeksiyonu).
+- Satır 121-159: Sağ telemetri ve varış özeti kartı (dakika, saat, km/sa, m/dk, O₂ %+L, Enerji %+kWh, Walkback uyarısı, çift kontrastlı grafik ve olay günlüğü).
+- Satır 161-174: Alt zaman kontrol ve hız çarpanı (1x-240x) oynatma çubuğu.
+- Satır 177-208: Paylaşılan harita, MissionBudgetHelper, Rust WASM (MolaAStarGridHelper) ve DemoStudioController betikleri (?v=4.8 güncel renderer paketi).
 ==========================================================================
 -->

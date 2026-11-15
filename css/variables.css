@@ -1,48 +1,53 @@
 /**
  * @file variables.css
- * @description Acik Gri Studio (%60 Beyaz/Buzlu Yuzey, %30 Acik Gri Zemin & Slate Tipografi, %10 Kirmizi) tema degiskenleri ve "Public Sans Web" font ailesi.
+ * @description Cift Kontrastli Acik Gri Studio (hem beyaz hem siyah ogelerin net okunabildigi acik gri yuzeyler, koyu tipografi, Mars Kirmizisi/Mavi vurgular) tema degiskenleri ve "Public Sans Web" font ailesi.
  */
 
 :root {
-  /* Beyaz & Buzlu Kart Yuzeyleri */
-  --bg-white: rgba(255, 255, 255, 0.95);
-  --bg-solid-white: #ffffff;
-  --bg-offwhite: #f8fafc;
-  --bg-soft: #eef2f6;
+  /* Cift Kontrastli Acik Gri Kart ve Kontrol Yuzeyleri (Goz almayan acik gri tonlama) */
+  --bg-white: rgba(153, 161, 173, 0.94);
+  --bg-solid-white: #99a1ad;
+  --bg-elevated: #a1a9b5;
+  --bg-input: #a6aeb9;
+  --bg-offwhite: #8d95a1;
+  --bg-soft: #858d99;
 
-  /* Acik Gri Studio Zeminleri, Kontroller ve Yuksek Kontrastli Slate Tipografi */
-  --space-black: #dfe4ec;
-  --bg-canvas: #dfe4ec;
-  --bg-gray-100: #eef2f6;
-  --bg-gray-200: #dfe5ee;
-  --bg-gray-300: #cfd7e3;
-  --surface-control: #eef2f6;
-  --surface-control-hover: #e2e8f0;
-  --ink-black: #1e293b;
-  --ink-dark: #334155;
-  --ink-muted: #64748b;
+  /* Acik Gri Studio Zeminleri ve Yuksek Kontrastli Tipografi */
+  --space-black: #88909c;
+  --bg-canvas: #88909c;
+  --bg-gray-100: #8d95a1;
+  --bg-gray-200: #828a97;
+  --bg-gray-300: #77808d;
+  --surface-control: #8d95a1;
+  --surface-control-hover: #7d8694;
+  --ink-white: #ffffff;
+  --ink-black: #090d14;
+  --ink-dark: #151d29;
+  --ink-muted: #242f40;
 
   /* NASA / Mars Kirmizisi Vurgular */
   --mars-red: #d92b2b;
-  --mars-red-dark: #b91c1c;
-  --mars-red-tint: rgba(217, 43, 43, 0.10);
-  --mars-red-soft: #fee2e2;
+  --mars-red-dark: #991b1b;
+  --mars-red-ink: #6e0d0d;
+  --mars-red-tint: rgba(217, 43, 43, 0.14);
+  --mars-red-soft: #b58f94;
 
   /* Guvenli Rota ve Durum Renk Standartlari */
   --route-blue: #2563eb;
   --route-blue-dark: #1d4ed8;
-  --route-blue-soft: #eff6ff;
+  --route-blue-ink: #0e2666;
+  --route-blue-soft: #8e9fb6;
   --route-pale-blue: #60a5fa;
-  --status-ok-bg: #dcfce7;
-  --status-ok-text: #15803d;
-  --status-ok-border: #86efac;
+  --status-ok-bg: #89a695;
+  --status-ok-text: #0b361c;
+  --status-ok-border: #2f6b47;
 
-  /* Cizgiler, Cam Efektleri ve Yumusak Slate Golgeler */
-  --line-light: #cbd5e1;
-  --line-dark: #94a3b8;
+  /* Cizgiler, Cam Efektleri ve Golgeler */
+  --line-light: #697382;
+  --line-dark: #495362;
   --glass-blur: blur(14px);
-  --shadow-card: 0 14px 34px -6px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
-  --shadow-btn: 0 6px 18px -4px rgba(15, 23, 42, 0.12), 0 1px 4px rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 14px 34px -6px rgba(9, 13, 20, 0.24), 0 2px 8px rgba(9, 13, 20, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  --shadow-btn: 0 6px 18px -4px rgba(9, 13, 20, 0.20), 0 1px 4px rgba(9, 13, 20, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 
   /* ZORUNLU FONT AILESI: Public Sans Web, sans-serif */
   --font-main: 'Public Sans Web', sans-serif;
@@ -57,8 +62,8 @@
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-4: JSDoc Acik Gri Studio tema degiskenleri tanimi.
-   - Satir 6-24: Beyaz/buzlu kartlar, acik gri arka plan/kontrol tonlari ve yuksek kontrastli slate metin renkleri.
-   - Satir 26-39: Mars Kirmizisi, Mavi Guvenli Rota ve yuksek okunakli durum rozeti renk sabitleri.
-   - Satir 41-55: Ince gri kenarliklar, buzlu cam bulanikligi, yumusak golgeler ve 'Public Sans Web', sans-serif font ailesi.
+   - Satir 1-4: JSDoc Cift Kontrastli Acik Gri Studio tema degiskenleri tanimi.
+   - Satir 6-26: Beyaz ve siyah metinlerin ikisini de net gosteren acik gri kart (#99a1ad/#a1a9b5), girdi (#a6aeb9), oyuk kutu (#8d95a1) ve yuksek kontrastli metin degiskenleri.
+   - Satir 28-41: Mars Kirmizisi/Mavi CTA dolgulari ile acik gri ustunde yuksek kontrast saglayan --mars-red-ink (#6e0d0d), --route-blue-ink (#0e2666) ve yesil durum sabitleri.
+   - Satir 43-58: Belirgin gri kenarliklar, cam bulanikligi, ust kenar isiltili golgeler ve 'Public Sans Web', sans-serif font ailesi.
    ========================================================================== */

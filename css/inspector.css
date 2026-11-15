@@ -39,7 +39,7 @@
 }
 
 .insp-toggle-meta {
-  color: var(--route-blue);
+  color: var(--route-blue-ink);
   font-weight: 800;
 }
 
@@ -132,7 +132,7 @@
 }
 
 .insp-mode-btn:hover {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-elevated);
 }
 
 .insp-mode-btn.active {
@@ -157,7 +157,7 @@
   gap: 8px;
   padding: 5px 8px;
   border-radius: 6px;
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   border: 1px solid var(--line-light);
   font-size: 11px;
 }
@@ -169,7 +169,7 @@
 }
 
 .insp-row-v {
-  color: var(--route-blue);
+  color: var(--route-blue-ink);
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
@@ -189,7 +189,7 @@
   padding: 6px 7px;
   border: 1px solid var(--line-light);
   border-radius: 6px;
-  background: var(--bg-solid-white);
+  background: var(--bg-input);
   color: var(--ink-black);
   font-size: 11px;
   font-weight: 700;
@@ -205,7 +205,7 @@
   padding: 0 9px;
   border: 1px solid var(--line-dark);
   border-radius: 6px;
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   color: var(--ink-black);
   font-size: 10.5px;
   font-weight: 800;
@@ -215,7 +215,7 @@
 }
 
 .insp-pick-btn:hover {
-  background: var(--surface-control);
+  background: var(--surface-control-hover);
   border-color: var(--mars-red);
 }
 
@@ -245,7 +245,7 @@
 .insp-cap-pct {
   font-size: 9.5px;
   font-weight: 800;
-  color: var(--route-blue);
+  color: var(--route-blue-ink);
 }
 
 .insp-param-cell input {
@@ -254,10 +254,14 @@
   padding: 5px 7px;
   border: 1px solid var(--line-light);
   border-radius: 6px;
-  background: var(--bg-solid-white);
+  background: var(--bg-input);
   color: var(--ink-black);
   font-size: 11.5px;
   font-weight: 800;
+}
+
+.insp-param-cell input::placeholder {
+  color: var(--ink-muted);
 }
 
 .insp-param-cell input:focus {
@@ -267,8 +271,8 @@
 
 .insp-param-cell input.inp-missing {
   border-color: var(--mars-red);
-  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.20);
-  background: #fef2f2;
+  box-shadow: 0 0 0 2px rgba(217, 43, 43, 0.24);
+  background: var(--mars-red-soft);
 }
 
 .insp-gate-alert {
@@ -278,7 +282,7 @@
   padding: 5px 8px;
   font-size: 10.5px;
   font-weight: 800;
-  color: var(--mars-red-dark);
+  color: var(--mars-red-ink);
 }
 
 .insp-gate-alert.hidden {
@@ -339,7 +343,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--route-blue);
+  color: var(--route-blue-ink);
 }
 
 .route-title-dot::before {
@@ -356,8 +360,8 @@
   padding: 2px 8px;
   border-radius: var(--r-pill);
   background: var(--route-blue-soft);
-  color: var(--route-blue-dark);
-  border: 1px solid #bfdbfe;
+  color: var(--route-blue-ink);
+  border: 1px solid var(--route-blue);
   white-space: nowrap;
 }
 
@@ -368,7 +372,7 @@
 }
 
 .route-kpi {
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   border: 1px solid var(--line-light);
   border-radius: 6px;
   padding: 5px 5px;
@@ -398,13 +402,13 @@
 }
 
 .route-kpi.warn {
-  border-color: #fca5a5;
-  background: #fef2f2;
+  border-color: var(--mars-red);
+  background: var(--mars-red-soft);
 }
 
 .route-kpi.warn .route-kpi-val,
 .route-kpi.warn .route-kpi-sub {
-  color: var(--mars-red-dark);
+  color: var(--mars-red-ink);
 }
 
 .route-sub-line {
@@ -425,7 +429,7 @@
   padding: 4px 7px;
   font-size: 10px;
   font-weight: 800;
-  color: var(--mars-red-dark);
+  color: var(--mars-red-ink);
   text-align: center;
 }
 
@@ -472,7 +476,7 @@
 }
 
 .insp-collapse summary:hover {
-  background: var(--surface-control);
+  background: var(--surface-control-hover);
 }
 
 .insp-collapse-chevron,
@@ -499,7 +503,7 @@
   padding: 4px 6px;
   border: 1px solid var(--line-light);
   border-radius: 5px;
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   color: var(--ink-black);
   font-size: 10.5px;
   font-weight: 800;
@@ -521,7 +525,7 @@
 }
 
 .step-row {
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   border: 1px solid var(--line-light);
   border-left: 3px solid var(--route-blue);
   border-radius: 5px;
@@ -547,7 +551,7 @@
 
 .step-dist {
   font-size: 10px;
-  color: var(--route-blue);
+  color: var(--route-blue-ink);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -562,14 +566,14 @@
   margin-top: 2px;
   font-size: 10px;
   font-weight: 800;
-  color: var(--mars-red);
+  color: var(--mars-red-ink);
 }
 
 .rad-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5px 8px;
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   border: 1px solid var(--line-light);
   border-radius: 6px;
   padding: 7px 8px;
@@ -597,7 +601,7 @@
   padding: 4px 7px;
   border-radius: 5px;
   border: 1px solid var(--line-light);
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   color: var(--ink-black);
   font-size: 10px;
   font-weight: 700;
@@ -606,12 +610,12 @@
 
 .wp-chip.active {
   background: var(--mars-red-soft);
-  color: var(--mars-red-dark);
+  color: var(--mars-red-ink);
   border-color: var(--mars-red);
 }
 
 .wp-detail-box {
-  background: var(--bg-solid-white);
+  background: var(--bg-elevated);
   border: 1px solid var(--line-light);
   border-radius: 6px;
   padding: 6px 8px;
@@ -624,7 +628,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(148, 163, 184, 0.46);
+  background: rgba(15, 23, 42, 0.56);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;

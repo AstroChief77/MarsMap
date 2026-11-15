@@ -128,3 +128,11 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
   - Başlangıç `O₂ (L)`, `Enerji (kWh)` ve `Su (L)` değerleri varsayılan `null`/boş başlar; pozitif değerler girilmeden rota hesaplama, senaryo/oynatma başlatma ve zaman kaydırma engellenir.
   - Varış özetleri dakika/saat, hız (`km/sa` + `m/dk`), başlangıç `% + L` → varış `L + %` oksijen/enerji bütçesi, su rezervi ve `< %20` O₂ Walkback / `< %35` Batarya uyarılarını gösterir; `#insp-latency-pill-card` ile Sol 2031 durak kartı ve Açık Gri Stüdyo kontrast uyumu (`?v=4.6`) tamamlandı.
 
+## 15. Çift Kontrastlı Açık Gri Stüdyo Tema Güncellemesi (`v4.5.0 / ?v=4.8`)
+- **Yüzey & Tipografi Tonlaması (`css/variables.css`, `css/*`, `index.html`, `demo/index.html`, `chat/index.html`)**:
+  - Saf bembeyaz kart/zemin (`#ffffff`, `#f8fafc`, `#edf0f5`) alanları göz almayacak, aynı anda **hem siyah (`#090d14`) hem beyaz (`#ffffff`) yazıların** net seçileceği dengeli açık gri spektrumuna çekildi: dış radyal arka plan `#929aa6 -> #88909c -> #7e8692`, kartlar `rgba(153, 161, 173, 0.94)` (`#99a1ad`), yükseltilmiş balonlar `#a1a9b5`, girdiler `#a6aeb9`, oyuk alt zeminler `#8d95a1`/`#858d99`.
+  - Açık gri kartlar üstündeki metin vurguları için koyulaştırılmış mürekkep tokenları (`--mars-red-ink: #6e0d0d`, `--route-blue-ink: #0e2666`, `--status-ok-text: #0b361c`) tanımlandı (`ResourceItem.js`, `TeamMember.js`, `MissionInfoModal.js`); solid kırmızı/mavi/yeşil CTA butonlarında `#ffffff` beyaz metin korundu.
+- **Tuval ve Harita İşaretçileri (`StarfieldRenderer.js`, `OverlayDrawHelper.js`, `RouteCanvasRenderer.js`, `SimulationChartRenderer.js`, `Map3DRenderer.js`, `Map2DRenderer.js`)**:
+  - Arka planda siyah+beyaz yıldızlar ve koyu/beyaz yörünge detayları; haritada `#99a1ad`/`#a6aeb9` etiket hapları (`#090d14` metin, `#e2e8f0`/`#090d14` krater ve inis pinleri); `/demo/` grafik tuvalinde `#8d95a1` zemin, `#0b361c` enerji & `#0e2666` O₂ eğrileri, beyaz halkalı imleç noktaları ve `#cbd5e1` rover/EVA rozetleri uygulandı (`?v=4.8`).
+- **Yedek & Kural Uyumu**: Düzenleme öncesi 25 dosyanın tam kopyası `backups/snapshot_20261115_light_gray_contrast/` altına alındı; `readme.md` dosyasına dokunulmadı, `< 800` satır ve alt yorum kuralları doğrulandı.
+

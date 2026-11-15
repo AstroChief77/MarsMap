@@ -48,14 +48,14 @@ Frontend tarafında **tüm backend uç noktaları, A/B koordinat seçimi ve rota
   - `js/services/I18nService.js`: `window.AstroChief.i18n` tekil servisi (`t(key, vars)`, `setLang(code)`, `isRtl()`, `localizeCrater()`, `localizeTeamMember()`).
 - **RTL Desteği**: Arapça (`ar`) ve İbranice (`he`) seçildiğinde açılır kartlar (`#settings-dropdown`, `#satellites-popover`, `.inspector-card`, `.modal-box`) `dir="rtl"` yönüne geçer; ekran köşelerindeki HUD sabitlemeleri (`sol üst`, `sol alt`, `sağ üst`, `sağ alt`) korunur.
 
-## 6. Açık Gri Stüdyo GUI & Birleşik Rover+İnsan Sefer Kapısı (`v4.4.0 / ?v=4.6`)
+## 6. Çift Kontrastlı Açık Gri Stüdyo GUI & Birleşik Rover+İnsan Sefer Kapısı (`v4.5.0 / ?v=4.8`)
 - **Görsel Tema (`css/variables.css`, `StarfieldRenderer.js`, `css/demo_studio.css`, `css/chat.css`)**:
-  - Tüm siyah/koyu HUD arka planları ve koyu yıldız tuvali, Mars yüzeyi ile yüksek kontrast sağlayan **Açık Gri Stüdyo** paletine (`#eef2f6`/`#dfe5ee`/`#cfd7e3` arka plan, `#ffffff` buzlu cam kartlar, `#1e293b`/`#334155` slate metinler, `#d92b2b` Mars kırmızısı ve `#2563eb` rota mavisi) geçirildi (`?v=4.6` önbellek kırıcı).
-  - 3D Mars küresi altına yumuşak slate ortam gölgesi, küre kenarına sıcak terakota atmosfer geçişi eklendi; `/`, `/demo/` ve `/chat/` modüllerinde tüm kart/buton/grafik lejantları açık gri okunabilirlik standartlarına hizalandı.
+  - Tüm saf beyaz (`#ffffff`, `#f8fafc`, `#edf0f5`) bembeyaz yüzeyler kaldırılarak **hem beyaz (`#ffffff`) hem siyah (`#090d14`) yazı/öğelerin** rahatça okunabildiği **Çift Kontrastlı Açık Gri** palete geçildi: dış zemin `#929aa6 -> #88909c -> #7e8692`, ana kartlar `rgba(153, 161, 173, 0.94)` (`#99a1ad`), yükseltilmiş balonlar `#a1a9b5`, girdiler `#a6aeb9`, oyuk kutular `#8d95a1` / `#858d99`, koyulaştırılmış metin aksanları (`--mars-red-ink: #6e0d0d`, `--route-blue-ink: #0e2666`, `--status-ok-text: #0b361c`) ve beyaz metinli solid kırmızı/mavi/yeşil CTA butonları (`?v=4.8` önbellek kırıcı).
+  - `StarfieldRenderer` üzerinde siyah + beyaz mikroyıldızlar ve koyu yörünge halkaları / beyaz derece çentikleri bir arada çizilir; `/`, `/demo/` (`SimulationChartRenderer` `#8d95a1` tuval) ve `/chat/` modülleri tamamen aynı palete hizalandı.
 - **Birleşik Sefer Modları & Zorunlu Parametre Kapısı (`MissionBudgetHelper.js`, `RouteInspectorPanel.js`, `DemoStudioController.js`)**:
   - Ayrık seyahat modları ile `🤖 Bilim` sekmesi kaldırıldı; yalnızca **Rover + Ekip** (`rover-crew`, `14.5 km/sa`) ve **Rover + Yaya EVA** (`joint-eva-escort`, `3.6 km/sa`) ortak modları desteklenir.
   - Başlangıç `O₂ (L)`, `Enerji (kWh)` ve `Su (L)` değerleri varsayılan `null`/boş başlar; pozitif değerler girilmeden rota hesaplama, demo senaryoları ve `/demo/` zaman çizelgesi başlatılamaz.
 - **Çakışmasız Etiket & HUD Geometrisi**:
-  - `OverlayDrawHelper` (`beginLabelFrame` + `claimLabelSlot`) tüm harita etiketlerini (`uiAvoidRects` üzerinden açık HUD kartlarından kaçarak) yuvarlak açık gri haplar olarak konumlandırır; `RouteCanvasRenderer.drawDeferredRouteComment` uzun rota yorumlarını 2 satıra bölüp koridora sığdırır.
+  - `OverlayDrawHelper` (`beginLabelFrame` + `claimLabelSlot`) tüm harita etiketlerini (`uiAvoidRects` üzerinden açık HUD kartlarından kaçarak) yuvarlak açık gri (`#99a1ad`/`#a6aeb9`) haplar ve `#090d14` siyah yazıyla konumlandırır; `RouteCanvasRenderer.drawDeferredRouteComment` uzun rota yorumlarını 2 satıra bölüp koridora sığdırır.
   - `.inspector-card` (`width: 334px; max-height: calc(100vh - 220px)`) sağ alt yatay `.zoom-stack` kontrolleriyle çakışmaz; `.insp-source-pill` ve `#insp-latency-pill-card` dikey esnek yığında ayrı gösterilir; `MarsMapInteractionHelper.js` ve `MarsSimulationEngine.getPresets()` bölünmeleriyle tüm dosyalar `< 800` satır kuralına uyar.
 

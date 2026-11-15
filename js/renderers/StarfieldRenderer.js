@@ -50,9 +50,9 @@
       const cy = h * 0.48;
       const maxR = Math.max(w, h) * 0.72;
       const grad = ctx.createRadialGradient(cx, cy, maxR * 0.06, cx, cy, maxR);
-      grad.addColorStop(0.0, "#edf0f5");
-      grad.addColorStop(0.58, "#dfe4ec");
-      grad.addColorStop(1.0, "#cfd7e3");
+      grad.addColorStop(0.0, "#929aa6");
+      grad.addColorStop(0.58, "#88909c");
+      grad.addColorStop(1.0, "#7e8692");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
     }
@@ -93,13 +93,13 @@
       this.twinkleStars = [];
       const w = this.canvas.width || 1280;
       const h = this.canvas.height || 720;
-      const palette = ["#ffffff", "#ffffff", "#94a3b8", "#64748b", "#cbd5e1"];
+      const palette = ["#ffffff", "#f8fafc", "#090d14", "#1e293b", "#e2e8f0"];
       for (let i = 0; i < count; i++) {
         const star = {
           x: (Math.random() * w) | 0,
           y: (Math.random() * h) | 0,
           s: Math.random() > 0.80 ? 2 : 1,
-          a: Math.random() * 0.45 + 0.22,
+          a: Math.random() * 0.45 + 0.35,
           da: (Math.random() * 0.03 + 0.01) * (Math.random() > 0.5 ? 1 : -1),
           color: palette[i % palette.length]
         };
@@ -115,12 +115,12 @@
       const h = this.baseCanvas.height;
       this.drawBackdropGradient(ctx, w, h);
 
-      // Ince telemetri yorunge halkalari ve eksen cizgileri
+      // Ince telemetri yorunge halkalari ve cift kontrastli eksen cizgileri
       const cx = w * 0.5;
       const cy = h * 0.5;
       const baseR = Math.min(w, h) * 0.44;
       ctx.save();
-      ctx.strokeStyle = "rgba(100, 116, 139, 0.11)";
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.16)";
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 6]);
       [1.04, 1.24, 1.48].forEach((mult) => {
@@ -129,7 +129,7 @@
         ctx.stroke();
       });
       ctx.setLineDash([]);
-      ctx.strokeStyle = "rgba(100, 116, 139, 0.08)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
       for (let deg = 0; deg < 360; deg += 45) {
         const rad = (deg * Math.PI) / 180;
         const r0 = baseR * 1.03;
@@ -156,8 +156,8 @@
 
       for (const s of this.twinkleStars) {
         s.a += s.da;
-        if (s.a > 0.72) { s.a = 0.72; s.da = -Math.abs(s.da); }
-        else if (s.a < 0.18) { s.a = 0.18; s.da = Math.abs(s.da); }
+        if (s.a > 0.88) { s.a = 0.88; s.da = -Math.abs(s.da); }
+        else if (s.a < 0.30) { s.a = 0.30; s.da = Math.abs(s.da); }
         this.ctx.globalAlpha = s.a;
         this.ctx.fillStyle = s.color;
         this.ctx.fillRect(s.x, s.y, s.s, s.s);
@@ -197,8 +197,8 @@
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc Acik Gri Studio arka plan, ince yorunge halkalari ve mikroyildiz motoru tanimi.
-   - Satir 10-69: constructor, init, resize, drawBackdropGradient ve setEnabled; acik gri radyal gecis zeminini uretir.
-   - Satir 71-147: generateStars, bakeBaseLayer ve drawFrame; yorunge halkalari ve 190 noktali acik gri yildiz izgarasini cizer.
-   - Satir 149-189: startLoop ve destroy; surukleme sirasinda CPU/GPU kullanimini duraklatir.
+   - Satir 10-77: constructor, init, resize, drawBackdropGradient (#929aa6..#7e8692) ve setEnabled; cift kontrastli acik gri zemini uretir.
+   - Satir 79-166: generateStars, bakeBaseLayer ve drawFrame; koyu/beyaz yorunge halkalari ile siyah+beyaz 190 mikroyildizi cizer.
+   - Satir 168-190: startLoop ve destroy; surukleme sirasinda CPU/GPU kullanimini duraklatir.
    ========================================================================== */
 

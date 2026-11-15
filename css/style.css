@@ -4,17 +4,17 @@
  * Kural geregi hicbir harici CDN kutuphanesi veya fontu internetten cekilmez.
  */
 
-@import url('./fonts.css?v=4.7');
-@import url('./variables.css?v=4.7');
-@import url('./base.css?v=4.7');
-@import url('./controls.css?v=4.7');
-@import url('./satellites_panel.css?v=4.7');
-@import url('./inspector.css?v=4.7');
-@import url('./demo.css?v=4.7');
+@import url('./fonts.css?v=4.8');
+@import url('./variables.css?v=4.8');
+@import url('./base.css?v=4.8');
+@import url('./controls.css?v=4.8');
+@import url('./satellites_panel.css?v=4.8');
+@import url('./inspector.css?v=4.8');
+@import url('./demo.css?v=4.8');
 
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
    - Satir 1-5: JSDoc cevrime kapali (yerel res/fonts) ana stil girisi.
-   - Satir 7-13: Acik Gri Studyo (v4.4 / ?v=4.6) icin fonts.css, variables.css, base.css, controls.css, satellites_panel.css, inspector.css ve demo.css modullerinin sirali yuklenmesi.
+   - Satir 7-13: Cift Kontrastli Acik Gri Studyo (?v=4.8) icin fonts.css, variables.css, base.css, controls.css, satellites_panel.css, inspector.css ve demo.css modullerinin sirali yuklenmesi.
    ========================================================================== */

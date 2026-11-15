@@ -438,4 +438,24 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * E2E & Derleme Dogrulamasi: node --check, tools/build.py --skip-desktop ve Playwright/CDP headless Chrome (1440x900, 1280x720, AR RTL, /demo/, /chat/) testleri 0 hata ile tamamlandi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 
+[2026-11-15T04:10:00+03:00] style(ui,v4.5.0): Cift Kontrastli Acik Gri Studio Donusumu (Hem Siyah Hem Beyaz Yazi Okunabilirligi):
+- Yedek Klasoru: backups/snapshot_20261115_light_gray_contrast/ (25 hedef dosyanin tam yedegi alindi).
+- css/variables.css (Satir 1-69):
+  * Tum saf beyaz (#ffffff / #f8fafc / #edf0f5) kart ve zemin degiskenleri dengeli acik gri palete cekildi (--bg-white: rgba(153,161,173,0.94), --bg-solid-white: #99a1ad, --bg-elevated: #a1a9b5, --bg-input: #a6aeb9, --bg-offwhite: #8d95a1, --bg-soft: #858d99, --space-black/--bg-canvas: #88909c).
+  * Siyah tipografi (#090d14 / #151d29 / #242f40), beyaz CTA/oge vurgusu (--ink-white: #ffffff) ve koyulastirilmis metin vurguları (--mars-red-ink: #6e0d0d, --route-blue-ink: #0e2666, --status-ok-text: #0b361c) tanimlandi; kart/buton golgelerine inset 0 1px 0 rgba(255,255,255,0.22-0.24) eklendi.
+- css/{base,controls,demo,inspector,satellites_panel,demo_studio,chat,style}.css:
+  * Outer backdrop (#929aa6 -> #88909c -> #7e8692), modal backdrop, input/select/pill/card/message balonlari ve warning kutulari cift kontrastli acik gri yuzeylere ve #692d0a/--mars-red-ink/--route-blue-ink uyumlu metinlere cevrildi; chat/index.html ve style.css @import sorgulari ?v=4.8 surumune alindi.
+- js/models/{ResourceItem,TeamMember}.js & js/components/MissionInfoModal.js:
+  * Inline etiket/rol/altbaslik renkleri var(--mars-red-ink) ve var(--route-blue-ink) ile yuksek kontrastli hale getirildi.
+- js/renderers/{StarfieldRenderer,OverlayDrawHelper,RouteCanvasRenderer,SimulationChartRenderer,Map3DRenderer,Map2DRenderer}.js:
+  * StarfieldRenderer (Satir 50-166): #929aa6/#88909c/#7e8692 radyal gokyuzu, hem #ffffff/#f8fafc hem #090d14/#1e293b yildizlar ve koyu yorunge halkalari/beyaz derece isaretleri eklendi.
+  * OverlayDrawHelper & RouteCanvasRenderer: Etiket haplari rgba(166,174,185,0.96)/rgba(153,161,173,0.94) + #090d14 metin, inis/krater pinleri #e2e8f0/#090d14, Rover+Ekip rozeti #cbd5e1/#090d14 siluet ve #e2e8f0 kasklarla yenilendi.
+  * SimulationChartRenderer (Satir 43-129) & demo/index.html (Satir 151-155): Grafik tuvali #8d95a1, izgara/cerceve #495362, Enerji #0b361c, O2 #0e2666, %20 Walkback #6e0d0d, MOLA dolgu rgba(153,27,27,0.22) ve beyaz halkali imlec noktalari olarak guncellendi.
+  * Map3DRenderer & Map2DRenderer: Yukleme kuresi (#99a1ad / #495362 / #090d14), 2D kutup cercevesi (rgba(15,23,42,0.55)) ve yer adi halesi (rgba(9,13,20,0.85)) guclendirildi.
+- index.html, demo/index.html, chat/index.html, version.json (v4.5.0), ForAgents/{FRONTEND_AGENT_NOTES,PROJECT_STATE}.md:
+  * Tum HTML onbellek kiricilari ?v=4.8 olarak guncellendi, surum 4.5.0 yapildi ve ajan notlari islendi.
+- Dogrulama & Derleme (node --check, WCAG kontrast, Chromium CDP & tools/build.py):
+  * Tum .js modulleri sozdizimi kontrolunden, tum CSS/JS/HTML dosyalari < 800 satir kuralindan ve WCAG AA kontrast denetiminden (zemin/metin >= 4.02:1 - 8.69:1) gecti.
+  * Headless Chromium CDP ile / (3D & 2D gorunum, Ayarlar, Uydular, Rota Planlayici, Ortak Sefer oynatici, Bilgilendirme Modali), /demo/ ve /chat/ ekranlari 0 runtime/console hatasi ile goruntulenerek dogrulandi; tools/build.py ile Linux/Windows arsivleri ve masaustu kopyasi guncellendi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 
