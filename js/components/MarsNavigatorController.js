@@ -338,6 +338,22 @@
       if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(120);
     }
 
+    setSearchDestination(name, lat, lon, zoom = 2.2, id = null) {
+      const normLon = this.normalizeLon(lon);
+      this.state.routeScope = "global";
+      this.state.customDestination = {
+        id: id || `search-${String(name || "target").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        name, lat, lon: normLon
+      };
+      this.state.useCustomCoordinates = true;
+      this.state.inspectorOpen = true;
+      this.backendRoutes = null;
+      this.persistState();
+      this.refreshAll();
+      this.animateTo(lat, normLon, Math.max(this.state.zoom || 1, zoom));
+      if (this.hasValidMissionParams() && this.state.missionParamsConfirmed) this.scheduleBackendRouteFetch(40);
+    }
+
     getActiveEndpoints() {
       return this.routePlanner.geo.resolveActiveEndpoints(this.state, this.getActiveCrater(), this.getActiveWaypoints(), this.landingSites);
     }

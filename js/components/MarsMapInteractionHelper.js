@@ -348,6 +348,64 @@
       c.schedulePersistState();
     }
     /** Ust arama cubugundan koordinat (lat, lon) veya yer/krater/inis sahasi aramasini isler */
+    _normalizeSearch(str) {
+      return String(str || "")
+        .replace(/İ/g, "i").replace(/I/g, "i")
+        .toLowerCase()
+        .replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ı/g, "i")
+        .replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u")
+        .replace(/[^a-z0-9\s]+/g, " ")
+        .trim();
+    }
+
+    _levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      if (m === 0) return n;
+      if (n === 0) return m;
+      const dp = Array.from({ length: n + 1 }, (_, j) => j);
+      for (let i = 1; i <= m; i++) {
+        let prev = dp[0];
+        dp[0] = i;
+        for (let j = 1; j <= n; j++) {
+          const tmp = dp[j];
+          dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+          prev = tmp;
+        }
+      }
+      return dp[n];
+    }
+
+    _scoreCandidate(normQ, qTokens, fields) {
+      let best = 0;
+      for (const raw of fields) {
+        if (!raw) continue;
+        const normF = this._normalizeSearch(raw);
+        if (!normF) continue;
+        if (normF === normQ) return 1000;
+        if (normF.includes(normQ)) best = Math.max(best, 800 - (normF.length - normQ.length));
+        const fTokens = normF.split(/\s+/).filter(Boolean);
+        if (qTokens.length && fTokens.length) {
+          let totalScore = 0;
+          let matched = 0;
+          for (const qt of qTokens) {
+            let tokBest = 0;
+            for (const ft of fTokens) {
+              if (ft === qt) { tokBest = 120; break; }
+              if (ft.startsWith(qt) || qt.startsWith(ft)) { tokBest = Math.max(tokBest, 95); continue; }
+              if (ft.includes(qt)) { tokBest = Math.max(tokBest, 80); continue; }
+              const maxDist = Math.max(qt.length, ft.length) >= 5 ? 2 : 1;
+              const d = this._levenshtein(qt, ft);
+              if (d <= maxDist) tokBest = Math.max(tokBest, 70 - d * 18);
+            }
+            if (tokBest > 0) { matched++; totalScore += tokBest; }
+          }
+          if (matched === qTokens.length) best = Math.max(best, 200 + totalScore);
+          else if (matched > 0) best = Math.max(best, totalScore * 0.6);
+        }
+      }
+      return best;
+    }
+
     handleSearchQuery(rawQuery) {
       const c = this.ctrl;
       const q = String(rawQuery || "").trim();
@@ -361,52 +419,83 @@
         const lonValid = coordMatch[4] ? (lon >= -180 && lon <= 180) : (lon >= -180 && lon <= 360);
         if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lonValid) {
           const normLon = c.normalizeLon(lon);
-          this.animateTo(lat, normLon, Math.max(c.state.zoom || 1, 2.2));
-          c.showToast(`${lat.toFixed(2)}°, ${normLon.toFixed(2)}°`);
+          const label = `${lat.toFixed(2)}°, ${normLon.toFixed(2)}°`;
+          c.setSearchDestination(label, lat, normLon, 2.2);
+          c.showToast(`${label} → B`);
           return;
         }
       }
-      const norm = q.toLowerCase();
-      const craterHit = c.getLocalizedCraters().find((cr) =>
-        cr.name.toLowerCase().includes(norm) ||
-        (cr.englishName && cr.englishName.toLowerCase().includes(norm)) ||
-        cr.id.toLowerCase().includes(norm)
-      );
-      if (craterHit) {
-        c.flyToCraterById(craterHit.id);
-        c.showToast(`${craterHit.name} (${craterHit.coordinates.lat.toFixed(2)}°, ${c.normalizeLon(craterHit.coordinates.lon).toFixed(2)}°)`);
-        return;
-      }
-      const siteHit = (c.landingSites || []).find((s) =>
-        (s.name && s.name.toLowerCase().includes(norm)) ||
-        (s.site_name && s.site_name.toLowerCase().includes(norm)) ||
-        (s.id && s.id.toLowerCase().includes(norm))
-      );
-      if (siteHit) {
-        const sLat = Number(siteHit.latitude ?? siteHit.lat);
-        const sLon = c.normalizeLon(Number(siteHit.longitude ?? siteHit.lon));
-        if (Number.isFinite(sLat) && Number.isFinite(sLon)) {
-          this.animateTo(sLat, sLon, Math.max(c.state.zoom || 1, 2.2));
-          c.showToast(siteHit.name || q);
-          return;
-        }
-      }
+
+      const normQ = this._normalizeSearch(q);
+      const qTokens = normQ.split(/\s+/).filter(Boolean);
       const landmarks = [
-        { name: "Olympus Mons", lat: 18.65, lon: -133.8, zoom: 2.35 },
-        { name: "Valles Marineris", lat: -13.9, lon: -59.2, zoom: 2.25 },
-        { name: "Ascraeus Mons", lat: 11.9, lon: -104.5, zoom: 2.3 },
-        { name: "Arsia Mons", lat: -8.3, lon: -120.1, zoom: 2.3 },
-        { name: "Elysium Mons", lat: 25.0, lon: 147.2, zoom: 2.3 },
-        { name: "Hellas Planitia", lat: -42.4, lon: 70.5, zoom: 1.85 },
-        { name: "Syrtis Major", lat: 8.4, lon: 69.5, zoom: 2.0 },
-        { name: "Gale Crater", lat: -5.08, lon: 137.85, zoom: 2.6 },
-        { name: "Jezero Crater", lat: 18.38, lon: 77.58, zoom: 2.6 },
-        { name: "Korolev Crater", lat: 72.77, lon: 164.42, zoom: 2.4 }
+        { name: "Olympus Mons", alias: "olimpus olimpos dag", lat: 18.65, lon: -133.8, zoom: 2.35 },
+        { name: "Elysium Mons", alias: "elsiyum elizyum dag", lat: 25.02, lon: 147.21, zoom: 2.3 },
+        { name: "Ascraeus Mons", alias: "askreus dag", lat: 11.92, lon: -104.08, zoom: 2.3 },
+        { name: "Pavonis Mons", alias: "tavus dag", lat: 1.48, lon: -112.96, zoom: 2.3 },
+        { name: "Arsia Mons", alias: "arsiya dag", lat: -8.35, lon: -120.09, zoom: 2.3 },
+        { name: "Alba Mons", alias: "alba patera dag", lat: 40.5, lon: -109.9, zoom: 2.15 },
+        { name: "Aeolis Mons (Mount Sharp)", alias: "mount sharp sarp dagi gale", lat: -5.08, lon: 137.85, zoom: 2.6 },
+        { name: "Albor Tholus", alias: "albor dag", lat: 18.87, lon: 150.47, zoom: 2.4 },
+        { name: "Hecates Tholus", alias: "hekates dag", lat: 32.12, lon: 150.24, zoom: 2.4 },
+        { name: "Apollinaris Mons", alias: "apollinaris patera dag", lat: -9.3, lon: 174.4, zoom: 2.3 },
+        { name: "Biblis Tholus", alias: "biblis patera dag", lat: 2.52, lon: -124.54, zoom: 2.4 },
+        { name: "Ulysses Tholus", alias: "ulises patera dag", lat: 2.96, lon: -121.55, zoom: 2.4 },
+        { name: "Uranius Mons", alias: "uranius patera dag", lat: 26.9, lon: -92.15, zoom: 2.35 },
+        { name: "Tharsis Montes", alias: "tarsis daglari", lat: 1.5, lon: -112.5, zoom: 1.85 },
+        { name: "Valles Marineris", alias: "marineris vadisi kanyon", lat: -13.9, lon: -59.2, zoom: 2.25 },
+        { name: "Candor Chasma", alias: "kandor kasma kanyon", lat: -6.5, lon: -70.9, zoom: 2.4 },
+        { name: "Noctis Labyrinthus", alias: "noktis labirent", lat: -7.0, lon: -102.2, zoom: 2.3 },
+        { name: "Kasei Valles", alias: "kasei vadisi", lat: 24.6, lon: -65.0, zoom: 2.1 },
+        { name: "Ares Vallis", alias: "ares vadisi pathfinder", lat: 10.4, lon: -25.8, zoom: 2.2 },
+        { name: "Hellas Planitia", alias: "helas havza ova", lat: -42.4, lon: 70.5, zoom: 1.85 },
+        { name: "Argyre Planitia", alias: "arjire arjir havza", lat: -49.7, lon: -43.9, zoom: 1.95 },
+        { name: "Isidis Planitia", alias: "isidis ovasi", lat: 12.9, lon: 87.0, zoom: 2.0 },
+        { name: "Utopia Planitia", alias: "utopya ovasi", lat: 46.7, lon: 117.5, zoom: 1.95 },
+        { name: "Acidalia Planitia", alias: "asidalya ovasi", lat: 49.8, lon: -20.7, zoom: 1.95 },
+        { name: "Chryse Planitia", alias: "krise ovasi", lat: 28.4, lon: -39.7, zoom: 2.0 },
+        { name: "Arcadia Planitia", alias: "arkadya ovasi", lat: 46.7, lon: -172.0, zoom: 1.95 },
+        { name: "Amazonis Planitia", alias: "amazonis ovasi", lat: 24.8, lon: -164.0, zoom: 1.95 },
+        { name: "Syrtis Major", alias: "sirtis major", lat: 8.4, lon: 69.5, zoom: 2.0 },
+        { name: "Planum Boreum", alias: "kuzey kutbu north pole", lat: 88.0, lon: 15.0, zoom: 2.1 },
+        { name: "Planum Australe", alias: "guney kutbu south pole", lat: -86.5, lon: 160.0, zoom: 2.1 }
       ];
-      const lmHit = landmarks.find((l) => l.name.toLowerCase().includes(norm));
-      if (lmHit) {
-        this.animateTo(lmHit.lat, c.normalizeLon(lmHit.lon), lmHit.zoom);
-        c.showToast(lmHit.name);
+
+      let bestMatch = null;
+      let bestScore = 85;
+      for (const cr of c.getLocalizedCraters()) {
+        const sc = this._scoreCandidate(normQ, qTokens, [cr.name, cr.englishName, cr.id]);
+        if (sc > bestScore) { bestScore = sc; bestMatch = { kind: "crater", item: cr }; }
+      }
+      for (const s of (c.landingSites || [])) {
+        const sc = this._scoreCandidate(normQ, qTokens, [s.name, s.site_name, s.id]);
+        if (sc > bestScore) { bestScore = sc; bestMatch = { kind: "site", item: s }; }
+      }
+      for (const l of landmarks) {
+        const sc = this._scoreCandidate(normQ, qTokens, [l.name, l.alias]);
+        if (sc > bestScore) { bestScore = sc; bestMatch = { kind: "landmark", item: l }; }
+      }
+
+      if (bestMatch) {
+        if (bestMatch.kind === "crater") {
+          const cr = bestMatch.item;
+          c.flyToCraterById(cr.id);
+          c.showToast(`${cr.name} (${cr.coordinates.lat.toFixed(2)}°, ${c.normalizeLon(cr.coordinates.lon).toFixed(2)}°) → B`);
+          return;
+        }
+        if (bestMatch.kind === "site") {
+          const s = bestMatch.item;
+          const sLat = Number(s.latitude ?? s.lat);
+          const sLon = c.normalizeLon(Number(s.longitude ?? s.lon));
+          if (Number.isFinite(sLat) && Number.isFinite(sLon)) {
+            c.setSearchDestination(s.name || s.site_name || q, sLat, sLon, 2.2, s.id);
+            c.showToast(`${s.name || q} → B`);
+            return;
+          }
+        }
+        const lm = bestMatch.item;
+        c.setSearchDestination(lm.name, lm.lat, lm.lon, lm.zoom);
+        c.showToast(`${lm.name} → B`);
         return;
       }
       c.showToast(c.t("toastSearchNotFound", { query: q }), true);
