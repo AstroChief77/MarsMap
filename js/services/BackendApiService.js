@@ -178,7 +178,6 @@
       const check = this.budget ? this.budget.validateMissionParams(state) : null;
       const modeId = check ? check.mode : "rover-crew";
       const beginOxy = Math.max(0, Math.round(check ? check.normalized.o2L : Number(state.oxygenReserveLiters || 0)));
-      const waterL = check ? check.normalized.waterL : Number(state.waterReserveLiters || 0);
       const energyKwh = check ? check.normalized.energyKwh : Number(state.energyReserveKwh || state.initialEnergyKwh || 0);
       const userSpeed = check ? check.normalized.speedKmH : Number(state.targetSpeedKmH || (planner ? planner.roverSpeedKmH : 14.5));
       const gridSize = 48;
@@ -191,8 +190,7 @@
           oxygenReserveLiters: beginOxy,
           oxygenTankCapacityL: check ? check.normalized.o2CapL : Number(state.oxygenTankCapacityL || 420),
           energyReserveKwh: energyKwh,
-          energyTankCapacityKwh: check ? check.normalized.energyCapKwh : Number(state.energyTankCapacityKwh || 75),
-          waterReserveLiters: waterL
+          energyTankCapacityKwh: check ? check.normalized.energyCapKwh : Number(state.energyTankCapacityKwh || 75)
         },
         acidRain: {
           enabled: Boolean(state.filterAcidRain),
@@ -256,9 +254,6 @@
           o2Peak10MinLPerMin: 2.52,
           o2MaxLPerMin: 4.00,
           o2LitersPerHour: 48.0,
-          waterReserveLiters: waterL,
-          waterNominalLPerMin: 0.015,
-          waterLitersPerHour: 2.15,
           evaSpeedKmH: 3.6,
           evaSpeedMPerMin: 60.0,
           evaLongWalkKmH: 2.7
@@ -668,8 +663,7 @@
             oxygenReserveLiters: exp.oxygenReserveLiters ?? payload?.factors?.astronaut?.oxygenReserveLiters ?? 0,
             oxygenTankCapacityL: exp.oxygenTankCapacityL || 420,
             energyReserveKwh: exp.energyReserveKwh ?? payload?.factors?.vehicleAndPhysics?.roverBatteryKwh ?? 0,
-            energyTankCapacityKwh: exp.energyTankCapacityKwh || 75,
-            waterReserveLiters: exp.waterReserveLiters ?? payload?.factors?.astronaut?.waterReserveLiters ?? 0
+            energyTankCapacityKwh: exp.energyTankCapacityKwh || 75
           },
           formatHoursFn: planner?.formatHours ? (h) => planner.formatHours(h) : null
         });
@@ -681,8 +675,7 @@
         totalHours: Number(h.toFixed(2)),
         totalMinutes: Math.max(1, Math.round(h * 60)),
         formattedDuration: planner?.formatHours ? planner.formatHours(h) : `${h.toFixed(1)} saat`,
-        o2Liters: Math.round(h * 48),
-        waterLiters: Number((h * 2.15).toFixed(1))
+        o2Liters: Math.round(h * 48)
       };
     }
 

@@ -38,9 +38,8 @@
         const merged = { ...defaults, ...parsed };
         const hasO2 = Number(merged.oxygenReserveLiters) > 0;
         const hasEnergy = Number(merged.energyReserveKwh) > 0;
-        const hasWater = Number(merged.waterReserveLiters) > 0;
         const hasSpeed = Number(merged.targetSpeedKmH) > 0;
-        if (!hasO2 || !hasEnergy || !hasWater || !hasSpeed) {
+        if (!hasO2 || !hasEnergy || !hasSpeed) {
           merged.missionParamsConfirmed = false;
         }
         if (merged.expeditionMode !== "joint-eva-escort") {

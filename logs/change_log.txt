@@ -477,3 +477,8 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * Kart, bar, popover ve harita etiketleri orta ton buzlu titanyum/arduvaz cam yuzeylere (rgba(54, 70, 96, 0.86), #3d4e6b, #455878), ince aydinlik kenarliklara ve yumusak platin (#f1f5f9) tipografiye yukseltildi; Uydular fotograf karartmasi hafifletildi; /demo grafik arka plani #25344b olarak aydinlatildi.
 - index.html, demo/index.html & chat/index.html: Tum guncel moduller ?v=5.7 ile onbellek kiriciya alindi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+
+[2026-11-15T08:31:00+03:00] refactor(mission,ui): Su Parametresi & Tuketiminin Kaldirilmasi (?v=5.9):
+- Kullanici talebi ("su olayini kaldir su bos is") dogrultusunda on-gorev kapisi, varis butcesi, zaman serisi simülasyonu, telemetri cubugu ve ayarlardaki tum su alanlari kaldirildi; rota ve yasam destek sadece O2 (L), Enerji (kWh) ve Hiz (km/sa) uzerinden calisacak sekilde sadelestirildi.
+- Etkilenen dosyalar: js/components/{RouteInspectorPanel,MarsNavigatorController,DemoStudioController,SettingsPanel}.js, js/services/{MissionBudgetHelper,MarsSimulationEngine,RoutePlannerService,BackendApiService,StateStorageService}.js, js/models/AppConfig.js, js/renderers/SimulationChartRenderer.js, css/{inspector,demo_studio,style}.css, data/i18n/{localesMission,localesDemo,localesTrEnDe,localesFrEs,localesJaKoArHe}.js, demo/index.html & index.html (?v=5.9, v4.7.0).
+- readme.md Kurali: Korundu (dokunulmadi).

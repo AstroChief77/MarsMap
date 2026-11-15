@@ -157,7 +157,6 @@
       const miss = [];
       if (!(this.state.oxygenReserveLiters > 0)) miss.push("o2");
       if (!(this.state.energyReserveKwh > 0)) miss.push("energy");
-      if (!(this.state.waterReserveLiters > 0)) miss.push("water");
       if (!(this.state.targetSpeedKmH > 0)) miss.push("speed");
       return { valid: miss.length === 0, missingKeys: miss, mode: this.state.expeditionMode || "rover-crew", profile: { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 }, normalized: { startO2Pct: 0, startEnergyPct: 0 } };
     }
@@ -173,7 +172,7 @@
         this.persistState();
       }
       this.renderUi();
-      const map = { o2: "#inp-mission-o2", energy: "#inp-mission-energy", water: "#inp-mission-water", speed: "#inp-mission-speed" };
+      const map = { o2: "#inp-mission-o2", energy: "#inp-mission-energy", speed: "#inp-mission-speed" };
       const sel = map[check.missingKeys[0]];
       if (sel) setTimeout(() => document.querySelector(sel)?.focus?.(), 20);
       this.showToast(this.t("demoGateBlockedToast"), true);
@@ -193,7 +192,7 @@
     }
 
     onChangeMissionParam(key, rawVal) {
-      const fieldMap = { o2: "oxygenReserveLiters", energy: "energyReserveKwh", water: "waterReserveLiters", speed: "targetSpeedKmH" };
+      const fieldMap = { o2: "oxygenReserveLiters", energy: "energyReserveKwh", speed: "targetSpeedKmH" };
       const field = fieldMap[key];
       if (!field) return;
       const parsed = this.budget ? this.budget.parsePositive(rawVal) : (Number(rawVal) > 0 ? Number(rawVal) : null);

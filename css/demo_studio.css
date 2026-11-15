@@ -431,10 +431,6 @@
   transition: width 0.08s linear;
 }
 
-.sim-bar-fill.water {
-  background: #0284c7;
-}
-
 .sim-bar-fill.energy {
   background: #16a34a;
 }

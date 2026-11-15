@@ -21,9 +21,7 @@
           maxSpeedKmH: 19.0,
           baseO2LPerMin: 0.55,
           slopeO2Gain: 0.032,
-          baseWaterLPerMin: 0.015,
           defaultO2L: 420,
-          defaultWaterL: 24.0,
           defaultEnergyKwh: 75.0,
           basePowerKw: 8.8,
           slopePowerGainKw: 0.55,
@@ -38,9 +36,7 @@
           maxSpeedKmH: 5.4,
           baseO2LPerMin: 1.01,
           slopeO2Gain: 0.095,
-          baseWaterLPerMin: 0.021,
           defaultO2L: 420,
-          defaultWaterL: 24.0,
           defaultEnergyKwh: 75.0,
           basePowerKw: 2.85,
           slopePowerGainKw: 0.22,
@@ -73,12 +69,10 @@
       const prof = this.getProfile(mode);
       const o2L = Number(params.initialO2L ?? params.oxygenReserveLiters);
       const energyKwh = Number(params.initialEnergyKwh ?? params.energyReserveKwh);
-      const waterL = Number(params.initialWaterL ?? params.waterReserveLiters);
       const speedKmH = Number(params.targetSpeedKmH);
       const missingKeys = [];
       if (!(o2L > 0)) missingKeys.push("o2");
       if (!(energyKwh > 0)) missingKeys.push("energy");
-      if (!(waterL > 0)) missingKeys.push("water");
       if (!(speedKmH > 0)) missingKeys.push("speed");
       return {
         valid: missingKeys.length === 0,
@@ -92,7 +86,6 @@
           energyKwh: energyKwh > 0 ? energyKwh : 0,
           energyCapKwh: Math.max(75, energyKwh || 0),
           startEnergyPct: energyKwh > 0 ? Number(((energyKwh / Math.max(75, energyKwh)) * 100).toFixed(1)) : 0,
-          waterL: waterL > 0 ? waterL : 0,
           speedKmH: speedKmH > 0 ? speedKmH : prof.defaultSpeedKmH
         }
       };
@@ -111,7 +104,6 @@
         startO2Pct: 0,
         finalO2L: 0,
         finalO2Pct: 0,
-        finalWaterL: 0,
         startEnergyKwh: 0,
         startEnergyPct: 0,
         finalEnergyKwh: 0,
@@ -127,7 +119,7 @@
       };
     }
 
-    /** Zorunlu O2/Enerji/Su parametrelerini dogrular ve MOLA rakim/egim + tehlikeler uzerinden ortak Rover+Insan zaman serisini uretir */
+    /** Zorunlu O2/Enerji parametrelerini dogrular ve MOLA rakim/egim + tehlikeler uzerinden ortak Rover+Insan zaman serisini uretir */
     buildTimeline(route, params, hazardBundle) {
       this.samples = [];
       this.events = [];
@@ -142,7 +134,6 @@
       const norm = check.normalized;
       const initO2 = norm.o2L;
       const o2CapL = norm.o2CapL;
-      const initWater = norm.waterL;
       const initEnergy = norm.energyKwh;
       const energyCapKwh = norm.energyCapKwh;
       const baseSpeed = Math.max(0.5, norm.speedKmH);
@@ -159,7 +150,6 @@
       let cumKm = 0;
       let cumHours = 0;
       let remO2 = initO2;
-      let remWater = initWater;
       let remEnergy = initEnergy;
       let cumCo2L = 0;
       let cumRadMsv = 0;
@@ -177,7 +167,7 @@
         progress: 0,
         hours: 0,
         level: "info",
-        text: `Ortak Sefer Başladı: ${prof.label} · ${initO2.toFixed(0)} L O₂ (%${norm.startO2Pct}) · ${initEnergy.toFixed(1)} kWh (%${norm.startEnergyPct}) · ${initWater.toFixed(1)} L Su`
+        text: `Ortak Sefer Başladı: ${prof.label} · ${initO2.toFixed(0)} L O₂ (%${norm.startO2Pct}) · ${initEnergy.toFixed(1)} kWh (%${norm.startEnergyPct})`
       });
 
       for (let i = 0; i < densePts.length; i++) {
@@ -213,14 +203,12 @@
         const o2SlopeFactor = 1.0 + slopeDeg * prof.slopeO2Gain;
         const o2StormPenalty = (inStorm || params.stormSurgeActive) ? 1.18 : 1.0;
         const o2RateLPerMin = Math.min(4.0, prof.baseO2LPerMin * o2SlopeFactor * o2StormPenalty) + leakO2LPerMin;
-        const waterRateLPerMin = prof.baseWaterLPerMin * (1.0 + slopeDeg * 0.015);
         const co2RateLPerMin = Math.max(0, (o2RateLPerMin - leakO2LPerMin) * prof.co2Ratio);
 
         const powerKw = Math.max(0.15, prof.basePowerKw + slopeDeg * prof.slopePowerGainKw + (inStorm ? prof.basePowerKw * 0.14 : 0));
         const radRateUSvPerMin = 0.44 + (inRad ? 3.8 : 0) + (inStorm ? 0.25 : 0);
 
         remO2 = Math.max(0, remO2 - o2RateLPerMin * segMin);
-        remWater = Math.max(0, remWater - waterRateLPerMin * segMin);
         remEnergy = Math.max(0, remEnergy - (powerKw * segHours));
         cumCo2L += co2RateLPerMin * segMin;
         cumRadMsv += (radRateUSvPerMin * segMin) / 1000.0;
@@ -268,9 +256,6 @@
           remO2L: Number(remO2.toFixed(1)),
           o2Pct: Number(o2Pct.toFixed(1)),
           o2RateLPerMin: Number(o2RateLPerMin.toFixed(2)),
-          remWaterL: Number(remWater.toFixed(2)),
-          waterPct: Number((initWater > 0 ? (remWater / initWater) * 100 : 0).toFixed(1)),
-          waterRateMlPerMin: Number((waterRateLPerMin * 1000).toFixed(1)),
           remEnergyKwh: Number(remEnergy.toFixed(2)),
           energyPct: Number(energyPct.toFixed(1)),
           powerKw: Number(powerKw.toFixed(2)),
@@ -306,7 +291,6 @@
         startO2Pct: norm.startO2Pct,
         finalO2L: last.remO2L,
         finalO2Pct: last.o2Pct,
-        finalWaterL: last.remWaterL,
         startEnergyKwh: Number(initEnergy.toFixed(1)),
         startEnergyPct: norm.startEnergyPct,
         finalEnergyKwh: last.remEnergyKwh,
@@ -394,8 +378,6 @@
         remO2L: Number(lerp("remO2L").toFixed(1)),
         o2Pct: Number(lerp("o2Pct").toFixed(1)),
         o2RateLPerMin: Number(lerp("o2RateLPerMin").toFixed(2)),
-        remWaterL: Number(lerp("remWaterL").toFixed(2)),
-        waterPct: Number(lerp("waterPct").toFixed(1)),
         remEnergyKwh: Number(lerp("remEnergyKwh").toFixed(2)),
         energyPct: Number(lerp("energyPct").toFixed(1)),
         powerKw: Number(lerp("powerKw").toFixed(2)),

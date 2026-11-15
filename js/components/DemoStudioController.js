@@ -74,7 +74,7 @@
         progressiveLodRender: true, highQualityGlobeRay: false, enable3DTerrain: true, topoReliefScale: 1.0,
         rotLat: 0.5, rotLon: 136.0, zoom: 1.85, camPitch: 34, camYaw: 0,
         expeditionMode: "rover-crew",
-        initialO2L: null, oxygenTankCapacityL: 420, initialWaterL: null, initialEnergyKwh: null, energyTankCapacityKwh: 75.0,
+        initialO2L: null, oxygenTankCapacityL: 420, initialEnergyKwh: null, energyTankCapacityKwh: 75.0,
         targetSpeedKmH: 14.5, o2LeakActive: false, stormSurgeActive: false
       };
     }
@@ -125,7 +125,7 @@
       if (o2PctEl) o2PctEl.textContent = s.initialO2L > 0 ? `%${check.normalized.startO2Pct}` : "—";
       if (enPctEl) enPctEl.textContent = s.initialEnergyKwh > 0 ? `%${check.normalized.startEnergyPct}` : "—";
 
-      const map = { o2: "#sim-o2-inp", energy: "#sim-energy-inp", water: "#sim-water-inp", speed: "#sim-speed-inp" };
+      const map = { o2: "#sim-o2-inp", energy: "#sim-energy-inp", speed: "#sim-speed-inp" };
       Object.keys(map).forEach((k) => {
         const el = document.querySelector(map[k]);
         if (el) el.classList.toggle("sim-input-missing", Boolean(this.paramAttempted && check.missingKeys.includes(k)));
@@ -211,8 +211,7 @@
         state: {
           ...this.state,
           oxygenReserveLiters: this.state.initialO2L,
-          energyReserveKwh: this.state.initialEnergyKwh,
-          waterReserveLiters: this.state.initialWaterL
+          energyReserveKwh: this.state.initialEnergyKwh
         },
         activeCrater,
         hazardBundle: hz,
@@ -233,7 +232,6 @@
             ...this.state,
             oxygenReserveLiters: this.state.initialO2L,
             energyReserveKwh: this.state.initialEnergyKwh,
-            waterReserveLiters: this.state.initialWaterL,
             hazardBundle: hz
           }
         );
@@ -435,11 +433,9 @@
         setTxt("sim-speed-val", `${cur.speedKmH} km/sa (${cur.speedMPerMin} m/dk)`);
         setTxt("sim-elev-val", `${cur.elevM >= 0 ? "+" : ""}${cur.elevM} m (${cur.slopeDeg}°)`);
         setTxt("sim-o2-val", `${cur.remO2L.toFixed(0)} L (%${cur.o2Pct}) · ${cur.o2RateLPerMin} L/dk`);
-        setTxt("sim-water-val", `${cur.remWaterL.toFixed(1)} L (%${cur.waterPct})`);
         setTxt("sim-energy-val", `${cur.remEnergyKwh.toFixed(2)} kWh (%${cur.energyPct}) · ${cur.powerKw} kW`);
         setTxt("sim-co2-rad-val", `CO₂: ${cur.cumCo2L} L · Doz: ${cur.cumRadMsv.toFixed(2)} mSv`);
         setBar("sim-o2-bar", cur.o2Pct, cur.o2Pct < 20);
-        setBar("sim-water-bar", cur.waterPct, cur.waterPct <= 15);
         setBar("sim-energy-bar", cur.energyPct, cur.energyPct < 35);
 
         if (arrBox) {
@@ -453,11 +449,11 @@
           `;
         }
       } else {
-        ["sim-time-val", "sim-dist-val", "sim-speed-val", "sim-elev-val", "sim-o2-val", "sim-water-val", "sim-energy-val"].forEach((id) => setTxt(id, "—"));
+        ["sim-time-val", "sim-dist-val", "sim-speed-val", "sim-elev-val", "sim-o2-val", "sim-energy-val"].forEach((id) => setTxt(id, "—"));
         setTxt("sim-co2-rad-val", "CO₂: — · Doz: —");
-        ["sim-o2-bar", "sim-water-bar", "sim-energy-bar"].forEach((id) => setBar(id, 0, false));
+        ["sim-o2-bar", "sim-energy-bar"].forEach((id) => setBar(id, 0, false));
         if (arrBox) {
-          arrBox.textContent = "Ön görev O₂ (L), Enerji (kWh) ve Su (L) parametreleri girildiğinde ortak sefer süresi (dk), hız (km/sa) ve varış rezervi (%) hesaplanır.";
+          arrBox.textContent = "Ön görev O₂ (L) ve Enerji (kWh) parametreleri girildiğinde ortak sefer süresi (dk), hız (km/sa) ve varış rezervi (%) hesaplanır.";
         }
       }
 
@@ -513,7 +509,6 @@
 
       setVal("sim-layer-sel", s.activeLayerId);
       setVal("sim-o2-inp", s.initialO2L > 0 ? s.initialO2L : "");
-      setVal("sim-water-inp", s.initialWaterL > 0 ? s.initialWaterL : "");
       setVal("sim-energy-inp", s.initialEnergyKwh > 0 ? s.initialEnergyKwh : "");
       const prof = this.simEngine.getProfile(s.expeditionMode);
       const spInp = document.getElementById("sim-speed-inp");
@@ -577,7 +572,6 @@
         });
       };
       bindNum("sim-o2-inp", "initialO2L", true);
-      bindNum("sim-water-inp", "initialWaterL", false);
       bindNum("sim-energy-inp", "initialEnergyKwh", false);
       bindNum("sim-speed-inp", "targetSpeedKmH", false);
 

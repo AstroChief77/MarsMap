@@ -67,7 +67,7 @@
         ctx.fillStyle = "#94a3b8";
         ctx.font = "800 10.5px 'Public Sans Web', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("Ön görev parametreleri (O₂, Enerji, Su) girin...", padL + gw / 2, padT + gh / 2);
+        ctx.fillText("Ön görev parametreleri (O₂, Enerji) girin...", padL + gw / 2, padT + gh / 2);
         return;
       }
 

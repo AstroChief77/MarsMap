@@ -101,7 +101,7 @@
             <div class="factory-spec-box">
               <div class="factory-spec-title">${esc(t("factorySpecTitle"))}</div>
               <div class="factory-spec-row"><span>${esc(t("specRenderScale"))}</span><strong>${esc(t("specRenderScaleVal"))}</strong></div>
-              <div class="factory-spec-row"><span>${esc(t("specVolumeReserve"))}</span><strong>${esc(t("specVolumeReserveVal", { o2: state.oxygenReserveLiters ?? "—", water: state.waterReserveLiters ?? "—" }))}</strong></div>
+              <div class="factory-spec-row"><span>${esc(t("specVolumeReserve"))}</span><strong>${esc(t("specVolumeReserveVal", { o2: state.oxygenReserveLiters ?? "—", energy: state.energyReserveKwh ?? "—" }))}</strong></div>
               <div class="factory-spec-row"><span>${esc(t("specDistDuration"))}</span><strong>${esc(t("specDistDurationVal"))}</strong></div>
               <div class="factory-spec-row"><span>${esc(t("specRadiation"))}</span><strong>${esc(t("specRadiationVal"))}</strong></div>
             </div>

@@ -20,9 +20,7 @@
           maxSpeedKmH: 19.0,
           baseO2LPerMin: 0.55,
           slopeO2Gain: 0.032,
-          baseWaterLPerMin: 0.015,
           defaultO2L: 420,
-          defaultWaterL: 24.0,
           defaultEnergyKwh: 75.0,
           basePowerKw: 8.8,
           slopePowerGainKw: 0.55,
@@ -39,9 +37,7 @@
           maxSpeedKmH: 5.4,
           baseO2LPerMin: 1.01,
           slopeO2Gain: 0.095,
-          baseWaterLPerMin: 0.021,
           defaultO2L: 420,
-          defaultWaterL: 24.0,
           defaultEnergyKwh: 75.0,
           basePowerKw: 2.85,
           slopePowerGainKw: 0.22,
@@ -71,20 +67,18 @@
       return Number.isFinite(num) && num > 0 ? num : null;
     }
 
-    /** Yolculuk ve hesaplama oncesi zorunlu O2, Enerji, Su ve Hiz parametrelerini dogrular */
+    /** Yolculuk ve hesaplama oncesi zorunlu O2, Enerji ve Hiz parametrelerini dogrular */
     validateMissionParams(params = {}) {
       const mode = this.normalizeModeId(params.expeditionMode || params.vehicleType || params.vehicle);
       const prof = this.getModeProfile(mode);
 
       const o2L = this.parsePositive(params.initialO2L ?? params.oxygenReserveLiters);
       const energyKwh = this.parsePositive(params.initialEnergyKwh ?? params.energyReserveKwh);
-      const waterL = this.parsePositive(params.initialWaterL ?? params.waterReserveLiters);
       const speedKmH = this.parsePositive(params.targetSpeedKmH);
 
       const missingKeys = [];
       if (o2L === null) missingKeys.push("o2");
       if (energyKwh === null) missingKeys.push("energy");
-      if (waterL === null) missingKeys.push("water");
       if (speedKmH === null) missingKeys.push("speed");
 
       const refO2Cap = Math.max(420, Number(params.oxygenTankCapacityL || 420), o2L || 0);
@@ -104,7 +98,6 @@
           energyKwh: energyKwh || 0,
           energyCapKwh: refEnergyCap,
           startEnergyPct,
-          waterL: waterL || 0,
           speedKmH: speedKmH || prof.defaultSpeedKmH
         }
       };
@@ -135,7 +128,6 @@
       let accumKm = 0;
       let totalHours = 0;
       let consumedO2L = 0;
-      let consumedWaterL = 0;
       let consumedEnergyKwh = 0;
 
       if (Array.isArray(steps) && steps.length >= 2) {
@@ -148,13 +140,11 @@
           const segHours = segKm / effSpeed;
           const segMin = segHours * 60.0;
           const o2Rate = Math.min(4.0, prof.baseO2LPerMin * (1.0 + slopeDeg * prof.slopeO2Gain) * stormO2Factor) + leakLPerMin;
-          const waterRate = prof.baseWaterLPerMin * (1.0 + slopeDeg * 0.015);
           const powerKw = Math.max(0.15, prof.basePowerKw + slopeDeg * prof.slopePowerGainKw + (stormEnabled ? prof.basePowerKw * 0.14 : 0));
 
           accumKm += segKm;
           totalHours += segHours;
           consumedO2L += o2Rate * segMin;
-          consumedWaterL += waterRate * segMin;
           consumedEnergyKwh += powerKw * segHours;
         }
       }
@@ -166,7 +156,6 @@
         const totalMin = totalHours * 60.0;
         const o2Rate = Math.min(4.0, prof.baseO2LPerMin * 1.12 * stormO2Factor) + leakLPerMin;
         consumedO2L = o2Rate * totalMin;
-        consumedWaterL = prof.baseWaterLPerMin * totalMin;
         consumedEnergyKwh = prof.basePowerKw * totalHours;
       }
 
@@ -180,13 +169,11 @@
 
       const usedO2 = Math.round(consumedO2L);
       const usedEnergy = Number(consumedEnergyKwh.toFixed(2));
-      const usedWater = Number(consumedWaterL.toFixed(1));
 
       const arrivalO2L = Math.max(0, Math.round(norm.o2L - consumedO2L));
       const arrivalO2Pct = norm.o2CapL > 0 ? Number(((arrivalO2L / norm.o2CapL) * 100).toFixed(1)) : 0;
       const arrivalEnergyKwh = Number(Math.max(0, norm.energyKwh - consumedEnergyKwh).toFixed(2));
       const arrivalEnergyPct = norm.energyCapKwh > 0 ? Number(((arrivalEnergyKwh / norm.energyCapKwh) * 100).toFixed(1)) : 0;
-      const arrivalWaterL = Number(Math.max(0, norm.waterL - consumedWaterL).toFixed(1));
 
       return {
         expeditionMode: check.mode,
@@ -215,9 +202,6 @@
         arrivalEnergyKwh,
         arrivalEnergyPct,
         energyDeficitKwh: Number(Math.max(0, consumedEnergyKwh - norm.energyKwh).toFixed(1)),
-        startWaterL: Number(norm.waterL.toFixed(1)),
-        waterLiters: usedWater,
-        arrivalWaterL,
         walkbackO2Alert: arrivalO2Pct < 20 || consumedO2L > norm.o2L,
         batteryReserveAlert: arrivalEnergyPct < 35 || consumedEnergyKwh > norm.energyKwh
       };

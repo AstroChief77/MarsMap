@@ -68,11 +68,9 @@
 
     _buildStatusLine(pri, t, esc) {
       if (!pri) return { text: "", warn: false };
-      const waterDef = Math.max(0, Number(((pri.waterLiters || 0) - (pri.startWaterL || 0)).toFixed(1)));
       const deficits = [];
       if ((pri.o2DeficitL || 0) > 0) deficits.push(`O₂ -${this._fmtNum(pri.o2DeficitL)} L`);
       if ((pri.energyDeficitKwh || 0) > 0) deficits.push(`-${this._fmtNum(pri.energyDeficitKwh)} kWh`);
-      if (waterDef > 0) deficits.push(`${t("summaryWaterLabel")} -${this._fmtNum(waterDef)} L`);
 
       if (deficits.length > 0) {
         return { text: `⚠ ${t("deficitShort")}: ${deficits.join(" · ")}`, warn: true };
@@ -80,8 +78,7 @@
 
       const o2Text = `O₂ ${this._fmtNum(pri.arrivalO2L)} L`;
       const enText = `${this._fmtNum(pri.arrivalEnergyKwh)} kWh`;
-      const waterText = `${t("summaryWaterLabel")} ${this._fmtNum(pri.arrivalWaterL)} L`;
-      const base = `${esc(o2Text)} · ${esc(enText)} · ${esc(waterText)}`;
+      const base = `${esc(o2Text)} · ${esc(enText)}`;
 
       const crit = [];
       if (pri.walkbackO2Alert) crit.push(t("walkbackO2Short"));
@@ -167,14 +164,13 @@
       const helper = ns.MissionBudgetHelper ? new ns.MissionBudgetHelper() : null;
       const paramCheck = uiMeta.paramCheck || (helper
         ? helper.validateMissionParams(state)
-        : { valid: false, missingKeys: ["o2", "energy", "water"], mode: state.expeditionMode || "rover-crew", profile: { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 } });
+        : { valid: false, missingKeys: ["o2", "energy"], mode: state.expeditionMode || "rover-crew", profile: { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 } });
       const mode = paramCheck.mode || "rover-crew";
       const prof = paramCheck.profile || { minSpeedKmH: 4, maxSpeedKmH: 19, defaultSpeedKmH: 14.5 };
       const paramAttempted = Boolean(uiMeta.paramAttempted);
 
       const rawO2 = state.oxygenReserveLiters > 0 ? state.oxygenReserveLiters : "";
       const rawEnergy = state.energyReserveKwh > 0 ? state.energyReserveKwh : "";
-      const rawWater = state.waterReserveLiters > 0 ? state.waterReserveLiters : "";
       const rawSpeed = state.targetSpeedKmH > 0 ? state.targetSpeedKmH : prof.defaultSpeedKmH;
 
       const pri = computedRoutes?.primaryBlue || null;
@@ -303,11 +299,6 @@
               <input type="number" id="inp-mission-energy" class="${miss("energy")}" min="0.5" max="300" step="0.5"
                      value="${esc(rawEnergy)}" placeholder="kWh" />
             </div>
-            <div class="insp-param-cell" title="${esc(t("paramWaterLabel"))}">
-              <label for="inp-mission-water">${esc(this._shortFieldLabel(t("paramWaterLabel")))}</label>
-              <input type="number" id="inp-mission-water" class="${miss("water")}" min="0.5" max="200" step="0.5"
-                     value="${esc(rawWater)}" placeholder="L" />
-            </div>
             <div class="insp-param-cell" title="${esc(t("paramSpeedLabel"))}">
               <label for="inp-mission-speed">${esc(this._shortFieldLabel(t("paramSpeedLabel")))}</label>
               <input type="number" id="inp-mission-speed" class="${miss("speed")}" min="${prof.minSpeedKmH}" max="${prof.maxSpeedKmH}" step="0.1"
@@ -337,7 +328,7 @@
     syncParamGateUi(state, paramCheck, paramAttempted = false) {
       if (!this.mountEl) return;
       const missing = paramCheck.missingKeys || [];
-      const map = { o2: "#inp-mission-o2", energy: "#inp-mission-energy", water: "#inp-mission-water", speed: "#inp-mission-speed" };
+      const map = { o2: "#inp-mission-o2", energy: "#inp-mission-energy", speed: "#inp-mission-speed" };
       Object.keys(map).forEach((k) => {
         const inp = this.mountEl.querySelector(map[k]);
         if (inp) inp.classList.toggle("inp-missing", Boolean(paramAttempted && missing.includes(k)));
@@ -393,7 +384,6 @@
       };
       bindParam("#inp-mission-o2", "o2");
       bindParam("#inp-mission-energy", "energy");
-      bindParam("#inp-mission-water", "water");
       bindParam("#inp-mission-speed", "speed");
 
       this.mountEl.querySelector("#sel-target")?.addEventListener("change", (e) => {

@@ -26,7 +26,6 @@
       this.roverSpeedKmH = 14.5;        // Rover+Ekip birlesik seyir hizi (km/saat)
       this.pixelToKmFactor = 0.085;     // Krater ici piksel -> km donusum carpani
       this.o2LitersPerHour = 48.0;      // Saatlik O2 tuketimi (Litre)
-      this.waterLitersPerHour = 2.15;   // Saatlik sogutma suyu tuketimi (Litre)
     }
 
     /**
@@ -112,8 +111,7 @@
             totalHours: Number(totalHours.toFixed(2)),
             totalMinutes: Math.max(1, Math.round(totalHours * 60)),
             formattedDuration: this.formatHours(totalHours),
-            o2Liters: Math.round(totalHours * this.o2LitersPerHour),
-            waterLiters: Number((totalHours * this.waterLitersPerHour).toFixed(1))
+            o2Liters: Math.round(totalHours * this.o2LitersPerHour)
           };
 
       return {
@@ -227,8 +225,7 @@
             totalHours: Number(roughHours.toFixed(2)),
             totalMinutes: Math.max(1, Math.round(roughHours * 60)),
             formattedDuration: this.formatHours(roughHours),
-            o2Liters: Math.round(roughHours * this.o2LitersPerHour),
-            waterLiters: Number((roughHours * this.waterLitersPerHour).toFixed(1))
+            o2Liters: Math.round(roughHours * this.o2LitersPerHour)
           };
 
       return {
