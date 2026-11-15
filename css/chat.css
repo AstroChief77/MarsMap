@@ -245,7 +245,7 @@
 
 .mission-message-role {
   background: rgba(220, 54, 46, 0.18);
-  color: #fca5a5;
+  color: #ffffff;
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 4px;
@@ -340,7 +340,7 @@
 .mission-chat-remove-file {
   background: transparent;
   border: none;
-  color: #fecdd3;
+  color: #ffffff;
   font-weight: 700;
   cursor: pointer;
   padding: 2px 6px;
@@ -379,7 +379,7 @@
 .mission-chat-attach-btn:hover {
   background: #566e94;
   border-color: #e03e36;
-  color: #fecdd3;
+  color: #ffffff;
 }
 
 .mission-chat-input {
@@ -517,7 +517,7 @@ body.standalone-chat-body {
 .msg-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 12px; }
 .msg-author-wrap { display: flex; align-items: center; gap: 6px; }
 .msg-author { font-weight: 700; color: #e8edf5; }
-.msg-role { background: rgba(220, 54, 46, 0.18); color: #fca5a5; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.msg-role { background: rgba(220, 54, 46, 0.18); color: #ffffff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
 .msg-time { color: #8b9bb4; font-size: 11px; }
 .msg-text { font-size: 14px; color: #c5d0df; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
 
@@ -562,7 +562,7 @@ body.standalone-chat-body {
 }
 
 .attach-bar.hidden { display: none; }
-.remove-file-btn { background: transparent; border: none; color: #fecdd3; font-weight: 800; cursor: pointer; font-size: 14px; }
+.remove-file-btn { background: transparent; border: none; color: #ffffff; font-weight: 800; cursor: pointer; font-size: 14px; }
 .chat-footer { background: #3d4e6b; border-top: 1px solid rgba(214, 226, 242, 0.26); padding: 14px 18px; }
 .chat-form { display: flex; gap: 10px; align-items: center; }
 
