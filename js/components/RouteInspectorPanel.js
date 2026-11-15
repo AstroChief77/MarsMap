@@ -76,8 +76,8 @@
         return { text: `⚠ ${t("deficitShort")}: ${deficits.join(" · ")}`, warn: true };
       }
 
-      const o2Text = `O₂ ${this._fmtNum(pri.arrivalO2L)} L`;
-      const enText = `${this._fmtNum(pri.arrivalEnergyKwh)} kWh`;
+      const o2Text = `${t("summaryO2Label")}: ${this._fmtNum(pri.arrivalO2L)} L`;
+      const enText = `${t("summaryEnergyLabel")}: ${this._fmtNum(pri.arrivalEnergyKwh)} kWh`;
       const base = `${esc(o2Text)} · ${esc(enText)}`;
 
       const crit = [];
