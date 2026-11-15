@@ -51,8 +51,7 @@
         oxygenTankCapacityL: 420,       // Referans %100 PLSS+SEV O2 tank kapasitesi (L)
         energyReserveKwh: null,         // Zorunlu on-gorev girisi (bos baslar)
         energyTankCapacityKwh: 75.0,    // Referans %100 SEV batarya kapasitesi (kWh)
-        waterReserveLiters: null,       // Zorunlu on-gorev girisi (bos baslar)
-        missionParamsConfirmed: false,  // Kullanici O2/Enerji/Su girip onaylamadan rota & yolculuk baslamaz
+        missionParamsConfirmed: false,  // Kullanici O2/Enerji girip onaylamadan rota & yolculuk baslamaz
         filterAcidRain: true,
         acidIntensity: "orta",          // 'hafif' | 'orta' | 'siddetli'
         filterDustStorm: true,

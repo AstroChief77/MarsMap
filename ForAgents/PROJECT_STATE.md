@@ -141,6 +141,10 @@ Eski v2.4.0 sürümünde harita varsayılan olarak 3D başlıyordu, güvenli rot
 ## 17. Orbital Titanium Slate Teması (`?v=5.7`)
 - **Dengeli Kobalt Uzay & Buzlu Titanyum Cam Arayüz (`css/variables.css`, CSS ve Canvas Renderer katmanı)**:
   - Göz yoran saf beyaz (`#ffffff`) ile boğucu siyah (`#020409` / `#0d131e`) yerine **kobalt gece uzayı** (`#283c5e -> #1a2842 -> #121c30`) üzerinde **orta ton buzlu titanyum/arduvaz cam** (`rgba(54, 70, 96, 0.86)`, `#3d4e6b`, `#455878`, `--ink-black: #f1f5f9`) yüzeylere geçildi (`color-scheme: dark`).
-  - `OverlayDrawHelper.js`, `RouteCanvasRenderer.js`, `Map3DRenderer.js`, `SimulationChartRenderer.js` (`#25344b`), `satellites_panel.css` (ferah uydu fotoğrafları) ve `chat.css` aynı dengeli tonlarla `?v=5.7` üzerinden güncellendi.
+  - `OverlayDrawHelper.js`, `RouteCanvasRenderer.js`, `Map3DRenderer.js`, `SimulationChartRenderer.js` (`#25344b`), `satellites_panel.css` (ferah uydu fotoğrafları) ve `chat.css` aynı dengeli tonlarla `?v=5.7` üzerinden güncellendi; `StarfieldRenderer.js` (`?v=5.8`) arka plan kesikli yörünge halkaları kaldırıldı.
 
+## 18. Su Parametresinin Kaldırılması (`v4.7.0`, `?v=5.9`)
+- **Yalnızca `O₂ (L)` + `Enerji (kWh)` + `Hız (km/sa)` Görev Kapısı**:
+  - Kullanıcı talebi doğrultusunda su girdisi (`#inp-mission-water`, `#sim-water-inp`), zorunlu `water` doğrulama anahtarı, soğutma/içme suyu tüketim ve varış bütçesi hesaplamaları (`MissionBudgetHelper.js`, `MarsSimulationEngine.js`, `RoutePlannerService.js`, `BackendApiService.js`, `StateStorageService.js`, `AppConfig.js`), `/demo` su telemetri çubuğu ve 9 dilli (`localesMission.js`, `localesDemo.js`, `localesTrEnDe.js`, `localesFrEs.js`, `localesJaKoArHe.js`) su uyarıları kaldırıldı.
+  - `.insp-param-grid` 3 sütunlu (`O₂ / Enerji / Hız`) dengeli düzene alındı; ayarlarda `Hacim & Rezerv` satırı `O₂ L / kWh` gösterir (`?v=5.9`).
 
