@@ -9,7 +9,7 @@
   const Helper = ns.OverlayDrawHelper;
   if (!Helper) return;
 
-  const AMBER = "#ffc21a";
+  const AMBER = "#d9a521";
 
   function path(ctx, x, y, w, h, r) {
     ctx.beginPath();
@@ -66,11 +66,11 @@
     ctx.restore();
   }
 
-  Helper.prototype.drawDangerLabel = function (ctx, px, py, labelText, accentHex = "#ff5a1f") {
+  Helper.prototype.drawDangerLabel = function (ctx, px, py, labelText, accentHex = "#b8512f") {
     if (!labelText) return;
     ctx.save();
-    ctx.font = "800 10.5px 'Public Sans Web', sans-serif";
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.6px";
+    ctx.font = "700 10.5px 'Public Sans Web', sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.3px";
     const text = String(labelText).toUpperCase();
     const iconW = 26;
     const boxH = 25;
@@ -109,28 +109,24 @@
     ctx.fill();
 
     // gövde
-    ctx.shadowColor = accentHex;
-    ctx.shadowBlur = 12;
-    path(ctx, x, y, boxW, boxH, 3);
-    ctx.fillStyle = "rgba(24, 9, 8, 0.97)";
+    path(ctx, x, y, boxW, boxH, 2);
+    ctx.fillStyle = "#1c1412";
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = "transparent";
 
     ctx.save();
-    path(ctx, x, y, boxW, boxH, 3);
+    path(ctx, x, y, boxW, boxH, 2);
     ctx.clip();
     tape(ctx, x, y + boxH - tapeH, boxW, tapeH);
     ctx.restore();
 
-    path(ctx, x, y, boxW, boxH, 3);
-    ctx.lineWidth = 2;
+    path(ctx, x, y, boxW, boxH, 2);
+    ctx.lineWidth = 1.5;
     ctx.strokeStyle = accentHex;
     ctx.stroke();
 
     warnTriangle(ctx, x + iconW / 2 + 1, y + (boxH - tapeH) / 2, 15);
 
-    ctx.fillStyle = "#fff3ea";
+    ctx.fillStyle = "#e9e2da";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillText(text, x + iconW + 6, y + (boxH - tapeH) / 2 + 0.5);

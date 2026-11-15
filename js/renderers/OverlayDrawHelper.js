@@ -519,7 +519,7 @@
       ctx.restore();
 
       if (labelText && px >= -140 && px <= viewW + 140 && py >= -30 && py <= viewH + 30) {
-        this.drawDangerLabel(ctx, px, py, labelText, "#e040fb");
+        this.drawDangerLabel(ctx, px, py, labelText, "#8e5aa8");
       }
     }
 
@@ -609,9 +609,9 @@
         }
       };
 
-      drawLabels(acidZones, "acid", "#22d3ee", 0.85);
-      drawLabels(stormZones, "storm", "#ff6a1a", 0.85);
-      drawLabels(radiationZones, "rad", "#e040fb", 0.90);
+      drawLabels(acidZones, "acid", "#3f8aa8", 0.85);
+      drawLabels(stormZones, "storm", "#b8512f", 0.85);
+      drawLabels(radiationZones, "rad", "#8e5aa8", 0.90);
     }
 
     /**
