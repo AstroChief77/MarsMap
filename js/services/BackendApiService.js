@@ -579,17 +579,21 @@
         const segHours = segKm / effSpeed;
         totalHours += segHours;
 
-        let instruction = `Rust A* (${cur.gridX}, ${cur.gridY}) · ${elevM} m → ${segKm.toFixed(1)} km`;
-        if (i === 0) instruction = `Başlangıç (${orig.name}): MOLA ${elevM} m · (${cur.gridX}, ${cur.gridY})`;
-        else if (i === points.length - 1) instruction = `Hedefe Varış (${dest.name}): MOLA ${elevM} m · (${cur.gridX}, ${cur.gridY})`;
+        const cleanPlace = (s, fb) => String(s || fb).replace(/\s*\([^)]*°[^)]*\)\s*$/, "").trim() || fb;
+        const tLoc = (k, fb) => (ns.i18n ? ns.i18n.t(k) : fb);
+        let instruction = planner?.geo?.getCardinalDirectionTr
+          ? planner.geo.getCardinalDirectionTr(prev.lat, prev.lon, cur.lat, cur.lon)
+          : `${tLoc("stepWord", "Adım")} ${i + 1}`;
+        if (i === 0) instruction = cleanPlace(orig.name, tLoc("originWord", "Başlangıç"));
+        else if (i === points.length - 1) instruction = cleanPlace(dest.name, tLoc("arrivalWord", "Varış"));
 
         let hazardWarning = null;
         if (slopeDeg >= 15.0 || Math.abs(dz) >= 2) {
-          hazardWarning = `MOLA Eğim ${slopeDeg}° (Δz=${dz > 0 ? "+" + dz : dz}, Rust +${dz > 0 ? dz * 5 : Math.abs(dz) * 2})`;
+          hazardWarning = `${tLoc("slopeWord", "Eğim")} ${slopeDeg}°`;
         } else {
           for (const z of [...acidZones, ...stormZones, ...radZones]) {
             if (this.sphericalAngleDeg(cur.lat, cur.lon, z.lat, z.lon) < (z.radiusDeg || 6) * 1.15) {
-              hazardWarning = `Tehlike Sınırı: ${z.name}`;
+              hazardWarning = z.name;
               break;
             }
           }
@@ -620,7 +624,7 @@
         molaRangeM: corridor ? { min: Math.round(corridor.minElevM), max: Math.round(corridor.maxElevM) } : null,
         colorHex,
         label,
-        comment: `// ${label}: ${rustRes.steps_count || steps.length} adım (Maliyet: ${rustRes.cost || 0}, MOLA ${corridor ? Math.round(corridor.minElevM) + ".." + Math.round(corridor.maxElevM) + "m" : "DEM"}) — ${budget.formattedDuration}`
+        comment: `${label} · ${budget.formattedDuration} · ${Math.round(totalKm)} km`
       };
     }
 
@@ -690,7 +694,7 @@
       const blueRaw = raw.primaryBlue || raw.primary_route;
       if (!blueRaw) throw new Error("Backend yanitinda primaryBlue / primary_route eksik");
 
-      const primaryBlue = this.normalizeSingleRoute(blueRaw, "#2563eb", "Mavi Yol (Backend En Kisa Guvenli)", planner, payload);
+      const primaryBlue = this.normalizeSingleRoute(blueRaw, "#2563eb", ns.i18n ? ns.i18n.t("blueRouteTitle") : "Güvenli Rota", planner, payload);
       const hazards = raw.hazards ? this.normalizeHazards(raw.hazards) : null;
       return {
         scope: raw.scope || payload.scope || "global",
@@ -734,7 +738,7 @@
         steps,
         colorHex: r.colorHex || r.color_hex || defaultColor,
         label: r.label || defaultLabel,
-        comment: r.comment || `// ${defaultLabel} — ${budget.formattedDuration} (${Math.round(budget.totalKm)} km)`
+        comment: r.comment || `${defaultLabel} · ${budget.formattedDuration} · ${Math.round(budget.totalKm)} km`
       };
     }
 
