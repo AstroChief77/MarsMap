@@ -334,15 +334,26 @@
 }
 
 .brand-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.08em;
-  padding: 7px 11px;
+  padding: 5px 10px;
   border-radius: var(--r-xs);
   background: var(--bg-gray-200);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
   white-space: nowrap;
+}
+
+.brand-logo-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
 }
 
 .brand-tag span {
