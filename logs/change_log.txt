@@ -438,6 +438,7 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
   * E2E & Derleme Dogrulamasi: node --check, tools/build.py --skip-desktop ve Playwright/CDP headless Chrome (1440x900, 1280x720, AR RTL, /demo/, /chat/) testleri 0 hata ile tamamlandi.
 - readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
 
+<<<<<<< Updated upstream
 [2026-11-15T03:32:00+03:00] refactor(ui): Sag Ust Rota Paneli Sadelestirme & Kelime Kalabaligi Temizligi (?v=4.8):
 - Yedek Klasoru: backups/snapshot_20261115_clean_route_ui/ (11 kaynak/dokuman dosyasi)
 - js/components/RouteInspectorPanel.js (Satir 1-462) & css/inspector.css (Satir 1-739):
@@ -493,3 +494,21 @@ DEGISTIRILEN DOSYALAR VE SATIR BAZLI ACIKLAMALAR:
 - Kullanici talebi ("su olayini kaldir su bos is") dogrultusunda on-gorev kapisi, varis butcesi, zaman serisi simulasyonu, telemetri cubugu ve ayarlardaki tum su alanlari kaldirildi; rota ve yasam destek sadece O2 (L), Enerji (kWh) ve Hiz (km/sa) uzerinden calisacak sekilde sadelestirildi.
 - Etkilenen dosyalar: js/components/{RouteInspectorPanel,MarsNavigatorController,DemoStudioController,SettingsPanel}.js, js/services/{MissionBudgetHelper,MarsSimulationEngine,RoutePlannerService,BackendApiService,StateStorageService}.js, js/models/AppConfig.js, js/renderers/SimulationChartRenderer.js, css/{inspector,demo_studio,style}.css, data/i18n/{localesMission,localesDemo,localesTrEnDe,localesFrEs,localesJaKoArHe}.js, demo/index.html & index.html (?v=5.9, v4.7.0).
 - readme.md Kurali: Korundu (dokunulmadi).
+
+[2026-11-15T09:27:00+03:00] feat(backend,lib.rs): Oksijen ve Harcanan Tahmini Su Miktarinin Hesaplanmasi ve Gonderilmesi:
+- Yedek Klasoru: backups/snapshot_20261115_o2_water_estimation/
+- backend/src/lib.rs (Satir 1-270):
+  * E0425 derleme hatasi (available_oxy / avaible_oxy degisken cakismasi) giderildi.
+  * NASA-STD-3001 & Prameters.md uyarinca WATER_TO_O2_RATIO (2.15 L/h / 48.0 L/h ≈ 0.04479 L su / L O2) ve DEFAULT_WATER_RESERVE_LITERS (24.0 L) sabitleri eklendi.
+  * calculate_path_result cekirdegi olusturularak find_rover_path ve yeni find_rover_path_with_water fonksiyonlari baglandi.
+  * JSON ciktisina available_oxy, consumed_oxy, consumed_water_liters, available_water_liters, estimated_water_liters, harcanan_su ve harcanan_oksijen alanlari eklendi (avaible_oxy geriye donuk uyumluluk icin korundu).
+  * O2 ve su metriklerini, Octile A* rotasini ve engel tespitini dogrulayan 3 adet Rust birim testi eklendi; cargo test basariyla gecti.
+- js/services/MolaAStarGridHelper.js & js/services/BackendApiService.js:
+  * solvePathLocalAStar JS fallback motoruna O2 ve tahmini su metrikleri Rust WASM ciktisiyla birebir uyumlu olarak eklendi.
+  * BackendApiService.js icinde rustConsumedOxy, rustConsumedWater ve rustAvailableWater eslemeleri baglandi.
+- js/wasm/:
+  * build_wasm.sh ile backend_bg.wasm yeniden derlendi; TypeScript arayuzleri ve aciklama yorumlari korundu.
+- tools/build.py:
+  * Proje dogrulamasi ve paketleme tamamlandi.
+- readme.md Kurali: readme.md okundu ve hicbir degisiklik yapilmadi.
+>>>>>>> Stashed changes

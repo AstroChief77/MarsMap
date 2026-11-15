@@ -1,9 +1,18 @@
 use pathfinding::prelude::astar;
-const MAX_SLOPE_LIMIT: i32 = 3;
-const POZITIVE_SLOP_COST: i32 = 5;
-const NEGATIVE_SLOP_COST: i32 = 2;
-const BASE_COST: u32 = 1;
+
+// Harita ve maliyet sabitleri (Prameters.md / NASA-STD-3001)
+const MAX_SLOPE_LIMIT: i32 = 2;
+const POZITIVE_SLOP_COST: i32 = 1000;
+const NEGATIVE_SLOP_COST: i32 = 10;
 const DISTANCE_PER_MT: u64 = 25;
+
+// NASA-STD-3001 & Prameters.md uyarinca O2 ve su tuketim oranlari:
+// Nominal EVA O2 tuketimi: 48.0 L/saat (0.80 L/dk)
+// EVA Su tuketimi (Icmeli + SWME Sogutma): 2.15 L/saat (0.0358 L/dk)
+// Su / O2 orani: 2.15 / 48.0 ≈ 0.04479167 L su / L O2
+pub const WATER_TO_O2_RATIO: f64 = 2.15 / 48.0;
+pub const DEFAULT_WATER_RESERVE_LITERS: f64 = 24.0;
+
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
@@ -152,7 +161,52 @@ impl MarsMap {
     }
 }
 
-/// Find the optimal path using A* algorithm.
+/// Ortak rota ve O2/Su butcesi hesaplama cekirdegi
+fn calculate_path_result(
+    mars_map: &MarsMap,
+    start: (i32, i32),
+    goal: (i32, i32),
+    begin_oxy: i32,
+    begin_water: f64,
+) -> String {
+    match mars_map.find_path(start, goal) {
+        Some((path, total_cost)) => {
+            // Prameters.md & NASA-STD-3001:
+            // Oksijen hesabi: adim basina DISTANCE_PER_MT (25 birim) harcanir
+            let consumed_oxy = path.len().saturating_mul(DISTANCE_PER_MT as usize);
+            let consumed_oxy_i32 = i32::try_from(consumed_oxy).unwrap_or(i32::MAX);
+            let available_oxy = begin_oxy.saturating_sub(consumed_oxy_i32).max(0);
+
+            // Su hesabi: NASA EVA standardi 2.15 L/saat su / 48.0 L/saat O2 = ~0.04479 L su / L O2
+            let consumed_water = (consumed_oxy_i32 as f64) * WATER_TO_O2_RATIO;
+            let available_water = (begin_water - consumed_water).max(0.0);
+
+            let steps_json: Vec<String> = path
+                .iter()
+                .map(|p| format!("{{\"x\":{},\"y\":{},\"z\":{}}}", p.x, p.y, p.z))
+                .collect();
+
+            format!(
+                "{{\"success\":true,\"cost\":{},\"distance\":{},\"avaible_oxy\":{},\"available_oxy\":{},\"consumed_oxy\":{},\"consumed_water_liters\":{:.2},\"available_water_liters\":{:.2},\"estimated_water_liters\":{:.2},\"harcanan_su\":{:.2},\"harcanan_oksijen\":{},\"steps_count\":{},\"path\":[{}]}}",
+                total_cost,
+                path.len(),
+                available_oxy,
+                available_oxy,
+                consumed_oxy_i32,
+                consumed_water,
+                available_water,
+                consumed_water,
+                consumed_water,
+                consumed_oxy_i32,
+                path.len(),
+                steps_json.join(",")
+            )
+        }
+        None => "{\"success\":false,\"message\":\"Hedefe giden guvenli bir rota bulunamadi (engel veya asiri dik egim).\"}".to_string(),
+    }
+}
+
+/// Find the optimal path using A* algorithm (with default 24.0 L water reserve).
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn find_rover_path(
     grid_flat: &[i32],
@@ -165,28 +219,24 @@ pub fn find_rover_path(
     begin_oxy: i32,
 ) -> String {
     let mars_map = MarsMap::from_flat(width, height, grid_flat);
+    calculate_path_result(&mars_map, (start_x, start_y), (goal_x, goal_y), begin_oxy, DEFAULT_WATER_RESERVE_LITERS)
+}
 
-    match mars_map.find_path((start_x, start_y), (goal_x, goal_y)) {
-        Some((path, total_cost)) => {
-            let hoxy = path.len().saturating_mul(DISTANCE_PER_MT as usize);
-            let hoxy_i32 = i32::try_from(hoxy).unwrap_or(i32::MAX);
-            let avaible_oxy = begin_oxy.saturating_sub(hoxy_i32);
-            let steps_json: Vec<String> = path
-                .iter()
-                .map(|p| format!("{{\"x\":{},\"y\":{},\"z\":{}}}", p.x, p.y, p.z))
-                .collect();
-
-            format!(
-                "{{\"success\":true,\"cost\":{},\"distance\":{},\"avaible_oxy\":{},\"steps_count\":{},\"path\":[{}]}}",
-                total_cost,
-                path.len(),
-                avaible_oxy,
-                path.len(),
-                steps_json.join(",")
-            )
-        }
-        None => "{\"success\":false,\"message\":\"Hedefe giden guvenli bir rota bulunamadi (engel veya asiri dik egim).\"}".to_string(),
-    }
+/// Find the optimal path with explicit initial oxygen and water reserves.
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn find_rover_path_with_water(
+    grid_flat: &[i32],
+    width: i32,
+    height: i32,
+    start_x: i32,
+    start_y: i32,
+    goal_x: i32,
+    goal_y: i32,
+    begin_oxy: i32,
+    begin_water: f64,
+) -> String {
+    let mars_map = MarsMap::from_flat(width, height, grid_flat);
+    calculate_path_result(&mars_map, (start_x, start_y), (goal_x, goal_y), begin_oxy, begin_water)
 }
 
 
@@ -411,6 +461,49 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_find_rover_path_success_and_metrics() {
+        let grid = vec![
+            0, 0, 0,
+            0, 1, 0,
+            0, 0, 0,
+        ];
+        let res_json = find_rover_path(&grid, 3, 3, 0, 0, 2, 2, 420);
+        assert!(res_json.contains("\"success\":true"));
+        assert!(res_json.contains("\"avaible_oxy\":"));
+        assert!(res_json.contains("\"available_oxy\":"));
+        assert!(res_json.contains("\"consumed_oxy\":"));
+        assert!(res_json.contains("\"consumed_water_liters\":"));
+        assert!(res_json.contains("\"harcanan_su\":"));
+    }
+
+    #[test]
+    fn test_water_and_oxygen_calculation() {
+        let grid = vec![
+            0, 0,
+            0, 0,
+        ];
+        // (0,0) to (1,1) is diagonal step: path len = 2 steps
+        let res_json = find_rover_path(&grid, 2, 2, 0, 0, 1, 1, 100);
+        assert!(res_json.contains("\"distance\":2"));
+        // 2 steps * 25 = 50 consumed_oxy
+        assert!(res_json.contains("\"consumed_oxy\":50"));
+        // 100 - 50 = 50 available_oxy
+        assert!(res_json.contains("\"available_oxy\":50"));
+        // 50 * (2.15 / 48.0) ≈ 2.24 L water
+        assert!(res_json.contains("\"consumed_water_liters\":2.24"));
+    }
+
+    #[test]
+    fn test_obstacle_unreachable() {
+        let grid = vec![
+            0, -999,
+            -999, 0,
+        ];
+        let res_json = find_rover_path(&grid, 2, 2, 0, 0, 1, 1, 420);
+        assert!(res_json.contains("\"success\":false"));
+    }
+
+    #[test]
     fn open_terrain_is_a_single_straight_segment() {
         let (w, h) = (40usize, 20usize);
         let cost = vec![1.0f32; w * h];
@@ -448,11 +541,13 @@ mod tests {
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-8: A* algoritmasi, egim/maliyet sabitleri ve opsiyonel wasm_bindgen baglantisi.
-   - Satir 9-21: Pos (3B izgaradaki x, y, z hucresi) ve MarsMap veri yapilari.
-   - Satir 22-49: MarsMap::new ve MarsMap::from_flat; negatif/tasma korumali duz diziden 2B izgara olusturma.
-   - Satir 51-106: get_elevation ve get_successors; -999 engel filtreleme, <=3 egim siniri ve saturating maliyet hesabi.
-   - Satir 108-129: find_path; Manhattan sezgisel fonksiyonlu A* en kisa ve guvenli yol cozucu.
-   - Satir 131-160: find_rover_path; Rust ve WebAssembly tarafindan cagrilabilen JSON ciktili ana API fonksiyonu.
-   - Satir 162-385: CostMap + plan_cost_path; NASA GESTALT/Field D* tarzi maliyet haritasi A*, anizotropik egim ve ip germe (JS NasaTraversePlanner ile ayni matematik) + birim testler.
+   - Satir 1-17: A* algoritmasi, egim/maliyet sabitleri, NASA-STD-3001 O2 ve su tuketim katsayilari.
+   - Satir 18-30: Pos (3B izgara koordinati) ve MarsMap veri modeli.
+   - Satir 31-60: MarsMap::new ve MarsMap::from_flat duz diziden 2B harita guvenli yukleyici.
+   - Satir 61-125: get_elevation ve get_successors; 8 yonlu komsuluk, kose kesme ve egim filtreleme.
+   - Satir 126-162: find_path; Octile sezgiselli A* optimal yol bulucu.
+   - Satir 164-207: calculate_path_result; O2, harcanan su ve adimlarin JSON ciktisi formatlayicisi.
+   - Satir 209-245: find_rover_path ve find_rover_path_with_water WASM/Rust API dis fonksiyonlari.
+   - Satir 247-490: CostMap + plan_cost_path; NASA GESTALT/Field D* tarzi maliyet haritasi A*, anizotropik egim ve ip germe (JS NasaTraversePlanner ile ayni matematik).
+   - Satir 492-545: tests modulu; rota basarimi, O2/su oranlari, engel dogrulama ve GESTALT birim testleri.
    ========================================================================== */
