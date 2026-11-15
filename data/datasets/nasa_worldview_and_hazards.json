@@ -54,12 +54,12 @@
         "description": "High thermal inertia and intense daytime ground heating creates severe dust devils and thermal dust lifting."
       }
     ],
-    "atmospheric_and_chemical_weathering_hazards": {
-      "acidic_atmospheric_interactions": {
-        "hazard_name": "Volcanic Acidic Fog & Sulfate Aerosols (Vog Analog)",
-        "active_regions": ["Tharsis volcanic flanks", "Cerberus Fossae fissures"],
-        "chemical_constituents": ["Sulfur dioxide (SO2)", "Hydrogen sulfide (H2S)", "Hydrochloric acid (HCl) condensates"],
-        "impact_on_rover_materials": "Surface oxidation, accelerated corrosion of metallic linkages, degradation of optical lens coatings."
+    "cryogenic_and_regolith_hazards": {
+      "perchlorate_and_co2_frost": {
+        "hazard_name": "Perchlorate Regolith & Seasonal CO2 Cryo-Frost",
+        "active_regions": ["Cerberus Fossae dust-mantled plains", "Tharsis high-altitude nocturnal frost zones", "Meridiani Planum evaporite flats"],
+        "chemical_constituents": ["Calcium/Magnesium Perchlorate (ClO4- 0.5-1.2 wt%)", "Seasonal CO2 Dry Ice Frost (-125 C)", "Electrostatic micron dust"],
+        "impact_on_rover_materials": "Toxic regolith adhesion on EVA suit seals, cryogenic thermal shock on actuators, and sub-zero brine corrosion."
       },
       "dust_devil_activity": {
         "frequency": "Highest during southern spring and summer (Ls 180 to 270)",
