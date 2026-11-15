@@ -62,6 +62,8 @@ AstroChief
 
 -2 komum arası mesafe seçildiği zaman backend e rover, insan gibi parametreler gönderilicek bu parametrelerle yolun kaç dakika süreceği, saatte kaç km gidceğini gittiğğnde kaç % ve litre oksijenle başlayıp vardığında kaç L oksijen ve enerjiye sahip olacağını gösteren bir panel yap, önceden oksijen enerji gibi parametreler girilmek zorunda, insan veya rovera göre hız parametreleri değişiklik göstericek.
 
+-Emoji kullanman yasak emoji yerine buton kullanabilirsin.
+
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
