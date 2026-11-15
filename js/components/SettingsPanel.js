@@ -245,7 +245,8 @@
         btn.addEventListener("click", () => {
           const q = btn.getAttribute("data-graphics-quality");
           const label = btn.getAttribute("data-graphics-label") || q;
-          this.handlers.onSettingChange?.("graphicsQuality", q, `${this.i18n.t("graphicsSectionTitle")}: ${label}`);
+          const title = ns.i18n ? ns.i18n.t("graphicsSectionTitle") : "Grafik Kalitesi";
+          this.handlers.onSettingChange?.("graphicsQuality", q, `${title}: ${label}`);
         });
       });
 
