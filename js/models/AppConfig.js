@@ -23,7 +23,7 @@
      */
     getFactoryDefaults() {
       return {
-        lang: "tr",                     // Varsayilan dil: Turkce (9 dil destekli)
+        lang: "en",                     // Varsayilan dil: Ingilizce (9 dil destekli)
         viewMode: "3d",                 // KURAL: Harita varsayilan olarak 3D baslar
         activeLayerId: "mars-viking-mdim21",
         activeCraterId: "gale-crater",
