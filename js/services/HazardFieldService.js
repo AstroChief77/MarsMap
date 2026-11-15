@@ -1,7 +1,7 @@
 /**
  * @file HazardFieldService.js
  * @description NASA Worldview, USGS jeoloji ve kullanici Uydular panelinden secilen siddete gore
- * Asit Yagmuru, Kum Firtinasi/Kasirga ve Alfa/Beta/Gama Foton Bombardimani bolgelerini hesaplayan servis.
+ * CO2 Kuru Buz Donu/Perklorat Regolit, Toz Firtinasi/Girdabi ve Alfa/Beta/Gama Radyasyon bolgelerini hesaplayan servis.
  */
 
 (function (ns) {

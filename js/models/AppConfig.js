@@ -78,15 +78,15 @@
     }
 
     /**
-     * Asit yagmuru ve firtina siddet katsayilarini dondurur
+     * Mars cevresel tehlike (CO2 donu/perklorat ve toz firtinasi) siddet katsayilarini dondurur
      * @returns {Object} Siddet derecesi tablosu
      */
     getIntensityTable() {
       return {
         acid: {
-          hafif:    { label: "Hafif", ph: "pH 3.8", speedMult: 0.92, detourScale: 0.65, alphaMult: 0.55 },
-          orta:     { label: "Orta", ph: "pH 2.4", speedMult: 0.78, detourScale: 1.00, alphaMult: 1.00 },
-          siddetli: { label: "Şiddetli", ph: "pH 1.3", speedMult: 0.58, detourScale: 1.48, alphaMult: 1.55 }
+          hafif:    { label: "Hafif", ph: "0.4% ClO₄⁻ · -75°C", speedMult: 0.92, detourScale: 0.65, alphaMult: 0.55 },
+          orta:     { label: "Orta", ph: "0.8% ClO₄⁻ · -105°C", speedMult: 0.78, detourScale: 1.00, alphaMult: 1.00 },
+          siddetli: { label: "Şiddetli", ph: "1.2% ClO₄⁻ · -125°C", speedMult: 0.58, detourScale: 1.48, alphaMult: 1.55 }
         },
         storm: {
           hafif:    { label: "Hafif", tau: "τ 1.2", speedMult: 0.88, detourScale: 0.70, alphaMult: 0.55 },
