@@ -190,7 +190,7 @@
         </div>
 
         <nav class="top-nav-pill" aria-label="${esc(t("navSearchAria"))}">
-          <span class="brand-tag" title="AstroChief"><img src="./res/logo.png?v=1" alt="AstroChief" class="brand-logo-img" /></span>
+          <span class="brand-tag" title="AstroChief"><img src="./res/logo.png?v=2" alt="AstroChief" class="brand-logo-img" /></span>
           <form class="nav-search-form" id="nav-search-form">
             <input
               type="text"
