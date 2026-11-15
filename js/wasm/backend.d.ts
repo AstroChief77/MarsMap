@@ -7,6 +7,11 @@
 export function find_rover_path(grid_flat: Int32Array | number[], width: number, height: number, start_x: number, start_y: number, goal_x: number, goal_y: number, begin_oxy: number): string;
 
 /**
+ * Find optimal path with fully custom O2 consumption per step and custom initial water.
+ */
+export function find_rover_path_custom(grid_flat: Int32Array | number[], width: number, height: number, start_x: number, start_y: number, goal_x: number, goal_y: number, begin_oxy: number, o2_per_step_liters: number, begin_water: number): string;
+
+/**
  * Find the optimal path with explicit initial oxygen and water reserves.
  */
 export function find_rover_path_with_water(grid_flat: Int32Array | number[], width: number, height: number, start_x: number, start_y: number, goal_x: number, goal_y: number, begin_oxy: number, begin_water: number): string;
@@ -21,6 +26,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly find_rover_path: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number];
+    readonly find_rover_path_custom: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number];
     readonly find_rover_path_with_water: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number];
     readonly plan_cost_path: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
@@ -54,7 +60,7 @@ export default function __wbg_init (module_or_path?: { module_or_path: InitInput
 /* ==========================================================================
    DOSYA SATIR VE ISLEV ACIKLAMALARI (Satir Satir Ne Ise Yaradigi):
    --------------------------------------------------------------------------
-   - Satir 1-25: find_rover_path, find_rover_path_with_water ve plan_cost_path TypeScript imzalari.
-   - Satir 26-45: InitInput / InitOutput ve WASM bellek arayuzleri.
-   - Satir 46-62: initSync ve __wbg_init WebAssembly baslatma imzalari.
+   - Satir 1-35: find_rover_path, find_rover_path_with_water, find_rover_path_custom ve plan_cost_path TypeScript imzalari.
+   - Satir 36-55: InitInput / InitOutput ve WASM bellek arayuzleri.
+   - Satir 56-72: initSync ve __wbg_init WebAssembly baslatma imzalari.
    ========================================================================== */
