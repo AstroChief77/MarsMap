@@ -30,7 +30,7 @@
         computedRoutes, craterWaypoints, selectedWaypoint,
         progressiveLodRender, showGraticule, showNomenclature,
         showRadiationZones, showRouteComments, routeScope,
-        customOrigin, customDestination
+        graphicsQuality, customOrigin, customDestination
       } = state;
 
       ctx.clearRect(0, 0, width, height);
@@ -51,13 +51,18 @@
 
       // 1. Olcege gore yalnizca gorunur karolari tek geciste (1x overdraw + ata karo yedegi) ciz
       const layer = this.tileLoader.getLayerById(activeLayerId);
+      const gq = graphicsQuality || "high";
       const targetZ = this.tileLoader.computeTargetZoom({
         zoom,
         mapWidthPx: mapW,
         dpr: dpr || 1,
         viewMode: "2d",
-        progressiveLodRender: progressiveLodRender !== false
+        progressiveLodRender: progressiveLodRender !== false,
+        graphicsQuality: gq
       }, layer);
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = gq === "low" ? "low" : "high";
 
       this.drawVisibleTiles(ctx, activeLayerId, targetZ, ox, oy, mapW, mapH, width, height, Boolean(state.isInteracting));
 

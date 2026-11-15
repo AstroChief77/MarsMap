@@ -269,6 +269,7 @@
         this.state = { ...safePrev };
         if (this.i18n) this.i18n.setLang(this.state.lang || "tr");
         this.starfield?.setEnabled(this.state.showStarfield);
+        this.resizeCanvas();
         this.persistState();
         this.refreshAll();
         this.refreshBackendHazardsAndHealth();
@@ -278,6 +279,7 @@
       this.state[key] = value;
       if (key === "viewMode" && value === "3d" && this.state.zoom > 80.0) this.state.zoom = 80.0;
       if (key === "showStarfield") this.starfield?.setEnabled(value);
+      if (key === "graphicsQuality") this.resizeCanvas();
       this.backendRoutes = null;
       this.persistState();
       this.refreshAll();
@@ -487,7 +489,7 @@
     requestTilesForView() {
       const vw = this.viewWidth || window.innerWidth || 1280;
       const vh = this.viewHeight || window.innerHeight || 720;
-      const { activeLayerId, rotLat, rotLon, zoom, viewMode, progressiveLodRender, camPitch, camYaw } = this.state;
+      const { activeLayerId, rotLat, rotLon, zoom, viewMode, progressiveLodRender, graphicsQuality, camPitch, camYaw } = this.state;
       const isDragging = Boolean(this.isDragging || this.isOrbitDragging);
       const isZooming = Boolean(this.isZooming || this.isAnimating);
       const isInteracting = Boolean(isDragging || isZooming);
@@ -496,7 +498,7 @@
         camPitch: camPitch ?? 0, camYaw: camYaw ?? 0, isDragging, isZooming, isInteracting,
         mapWidthPx: Math.max(vw * 0.86, 620) * Math.min(Math.max(zoom, 0.65), 32.0),
         sphereRadiusPx: Math.min(vw, vh) * 0.41 * Math.min(Math.max(zoom, 0.55), 80.0),
-        viewMode, progressiveLodRender
+        viewMode, progressiveLodRender, graphicsQuality: graphicsQuality || "high"
       });
     }
 
@@ -530,6 +532,7 @@
         progressiveLodRender: s.progressiveLodRender, showGraticule: s.showGraticule,
         showNomenclature: s.showNomenclature, showRadiationZones: s.showRadiationZones,
         showRouteComments: s.showRouteComments, routeScope: s.routeScope, highQualityGlobeRay: s.highQualityGlobeRay,
+        graphicsQuality: s.graphicsQuality || "high",
         demoSim: this.demoService?.getRenderPayload() || null,
         uiAvoidRects: this.computeUiAvoidRects()
       };
@@ -548,12 +551,21 @@
 
     normalizeLon(lon) { return ((lon + 180) % 360 + 360) % 360 - 180; }
 
+    getEffectiveDpr() {
+      const nativeDpr = window.devicePixelRatio || 1;
+      const q = this.state?.graphicsQuality || "high";
+      if (q === "low") return Math.min(nativeDpr, 1.0);
+      if (q === "medium") return Math.min(nativeDpr, 1.5);
+      if (q === "ultra") return Math.min(Math.max(nativeDpr, 1.75), 3.0);
+      return Math.min(nativeDpr, 2.0);
+    }
+
     resizeCanvas() {
       if (!this.canvas) return;
       const rect = this.canvas.getBoundingClientRect();
       this.viewWidth = Math.max(1, Math.round(rect.width || window.innerWidth));
       this.viewHeight = Math.max(1, Math.round(rect.height || window.innerHeight));
-      this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.dpr = this.getEffectiveDpr();
       this.canvas.width = Math.round(this.viewWidth * this.dpr);
       this.canvas.height = Math.round(this.viewHeight * this.dpr);
     }
