@@ -80,6 +80,7 @@
      * Harita uzerine yol yorum kutucugu (sure, mesafe ve yorum satiri) cizer
      */
     drawRouteCommentBox(ctx, x, y, text, accentHex, viewW, viewH, labelHelper = null) {
+      if (viewW <= 720) return;
       if (x < -120 || x > viewW + 120 || y < -40 || y > viewH + 40) return null;
       ctx.save();
       ctx.font = "800 10px 'Public Sans Web', sans-serif";
@@ -114,6 +115,7 @@
      * Ertelenmis rota yorum kutusunu yuksek oncelikli etiketler cizildikten sonra panellerle cakismayacak koridora yerlestirir
      */
     drawDeferredRouteComment(ctx, commentInfo, viewW, viewH, labelHelper = null) {
+      if (viewW <= 720) return; // Mobilde rota ozet etiketi (Guvenli Rota · saat · km) cizilmez
       if (!commentInfo || !commentInfo.text || !Array.isArray(commentInfo.pts) || commentInfo.pts.length === 0) return;
       const pts = commentInfo.pts.filter((pt) => pt && pt.x >= 12 && pt.x <= viewW - 12 && pt.y >= 12 && pt.y <= viewH - 12);
       const pool = pts.length > 0 ? pts : commentInfo.pts;

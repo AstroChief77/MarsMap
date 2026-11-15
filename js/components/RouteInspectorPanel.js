@@ -66,11 +66,19 @@
         .trim();
     }
 
-    _buildStatusLine(pri, t, esc) {
+    _buildStatusLine(pri, t, esc, state) {
       if (!pri) return { text: "", warn: false };
+      const o2Set = Boolean(state && state.oxygenReserveLiters > 0);
+      const enSet = Boolean(state && state.energyReserveKwh > 0);
+      if (state && !o2Set && !enSet) {
+        // Rezerv girilmedi: sadece bu rota icin gereken O2 ve enerjiyi goster
+        const tr = /^tr/i.test((typeof navigator !== "undefined" && navigator.language) || "tr");
+        const need = `${tr ? "Gerekli" : "Required"}: O₂ ${this._fmtNum(pri.o2Liters)} L · ${this._fmtNum(pri.energyUsedKwh)} kWh`;
+        return { text: esc(need), warn: false };
+      }
       const deficits = [];
-      if ((pri.o2DeficitL || 0) > 0) deficits.push(`O₂ -${this._fmtNum(pri.o2DeficitL)} L`);
-      if ((pri.energyDeficitKwh || 0) > 0) deficits.push(`-${this._fmtNum(pri.energyDeficitKwh)} kWh`);
+      if ((!state || o2Set) && (pri.o2DeficitL || 0) > 0) deficits.push(`O₂ -${this._fmtNum(pri.o2DeficitL)} L`);
+      if ((!state || enSet) && (pri.energyDeficitKwh || 0) > 0) deficits.push(`-${this._fmtNum(pri.energyDeficitKwh)} kWh`);
 
       if (deficits.length > 0) {
         return { text: `⚠ ${t("deficitShort")}: ${deficits.join(" · ")}`, warn: true };
@@ -209,7 +217,7 @@
 
       const miss = (k) => (paramAttempted && paramCheck.missingKeys.includes(k) ? "inp-missing" : "");
       const showGateAlert = Boolean(paramAttempted && !paramCheck.valid);
-      const status = this._buildStatusLine(pri, t, esc);
+      const status = this._buildStatusLine(pri, t, esc, state);
       const radShort = radZone ? String(radZone.gammaLevel || "0.82 mSv/h").replace(/\s*\([^)]*\)/g, "").trim() : "";
 
       const footerLinks = [];

@@ -147,12 +147,37 @@
       this.bindGlobalEvents();
       this.fpsGuard.start();
       this.startBackendLatencyMonitor();
+      if (this.isMobileLite() && this.getMissionParamCheck().valid) {
+        this.state.missionParamsConfirmed = true;
+        this.scheduleBackendRouteFetch(400);
+      }
       this.refreshAll();
       this.refreshBackendHazardsAndHealth();
       try { if (new URLSearchParams(window.location.search).get("demo") === "1") this.demoService?.startDemo(0); } catch (_e) {}
     }
 
+    /** Telefon/dar ekran: O2 ve enerji girisi zorunlu degil (once gereken miktar gosterilir) */
+    isMobileLite() {
+      try { return window.matchMedia("(max-width: 720px)").matches; } catch (_e) { return false; }
+    }
+
     getMissionParamCheck() {
+      const base = this._getMissionParamCheckRaw();
+      if (!this.isMobileLite() || base.valid) return base;
+      const missingKeys = (base.missingKeys || []).filter((k) => k === "speed");
+      return { ...base, missingKeys, valid: missingKeys.length === 0 };
+    }
+
+    /** Mobilde rezerv girildiyse ve rota icin yetmiyorsa true doner */
+    mobileReserveInsufficient(res) {
+      const pri = res && res.primaryBlue;
+      if (!pri) return false;
+      const o2Set = this.state.oxygenReserveLiters > 0;
+      const enSet = this.state.energyReserveKwh > 0;
+      return (o2Set && (pri.o2DeficitL || 0) > 0) || (enSet && (pri.energyDeficitKwh || 0) > 0);
+    }
+
+    _getMissionParamCheckRaw() {
       if (this.budget) return this.budget.validateMissionParams(this.state);
       const miss = [];
       if (!(this.state.oxygenReserveLiters > 0)) miss.push("o2");
@@ -713,6 +738,16 @@
         const res = await this.backendApi.requestStepRoute(baseUrl, payload, this.routePlanner);
         if (seq !== this.requestSeq) return;
         this.backendRoutes = res;
+        if (this.isMobileLite() && this.mobileReserveInsufficient(res)) {
+          const pri = res.primaryBlue;
+          this.backendRoutes = null;
+          this.backendLatencyMs = null;
+          const tr = /^tr/i.test(navigator.language || "tr");
+          this.showToast(tr
+            ? `Rezerv yetmiyor. Gerekli: O₂ ${Math.round(pri.o2Liters || 0)} L · ${pri.energyUsedKwh ?? 0} kWh`
+            : `Reserves not enough. Required: O₂ ${Math.round(pri.o2Liters || 0)} L · ${pri.energyUsedKwh ?? 0} kWh`, true);
+        }
+        if (!this.backendRoutes) { this.cachedBundle = null; return; }
         this.backendLatencyMs = typeof res.latencyMs === "number" ? res.latencyMs : this.backendLatencyMs;
         if (res.hazards) this.backendHazards = res.hazards;
         this.backendStatusText = this.t("backendResponded", { ms: res.latencyMs ?? 1 });

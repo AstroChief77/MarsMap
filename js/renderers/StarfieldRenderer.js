@@ -30,17 +30,30 @@
       this.resize();
       this.startLoop();
       window.addEventListener("resize", this.onResize);
+      window.addEventListener("orientationchange", this.onResize);
+      this.onVisibility = () => {
+        if (document.hidden) {
+          if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+        } else if (this.enabled) {
+          this.startLoop();
+        }
+      };
+      document.addEventListener("visibilitychange", this.onVisibility);
     }
 
     resize() {
       if (!this.canvas) return;
       const w = window.innerWidth || 1280;
       const h = window.innerHeight || 720;
+      // Mobilde ayni boyut (adres cubugu gizlenme/gosterme) tekrar tekrar yeniden cizilmesin
+      if (this._lw === w && this._lh === h) return;
+      this._lw = w;
+      this._lh = h;
       this.canvas.width = w;
       this.canvas.height = h;
       this.baseCanvas.width = w;
       this.baseCanvas.height = h;
-      this.generateStars(320);
+      this.generateStars(w < 720 ? 140 : 320);
       this.bakeBaseLayer();
       this.drawFrame();
     }
@@ -154,7 +167,7 @@
           this.rafId = null;
           return;
         }
-        if (now - this.lastDrawTs >= 120) {
+        if (now - this.lastDrawTs >= (window.innerWidth < 720 ? 250 : 120)) {
           this.lastDrawTs = now;
           this.drawFrame();
         }
@@ -169,6 +182,8 @@
         this.rafId = null;
       }
       window.removeEventListener("resize", this.onResize);
+      window.removeEventListener("orientationchange", this.onResize);
+      if (this.onVisibility) document.removeEventListener("visibilitychange", this.onVisibility);
     }
   }
 

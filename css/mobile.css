@@ -1,0 +1,101 @@
+/**
+ * @file mobile.css
+ * @description Mobil/dokunmatik optimizasyonlari: guvenli alan (notch), dinamik viewport,
+ * dokunma hedefleri, iOS yakinlastirma engeli, yatay mod ve performans (blur/animasyon azaltma).
+ */
+
+/* Notch / home-indicator guvenli alanlari */
+.hud-top-left {
+  top: max(16px, env(safe-area-inset-top));
+}
+.hud-top-left { left: max(16px, env(safe-area-inset-left)); }
+.hud-top-right { right: max(16px, env(safe-area-inset-right)); }
+.hud-bottom-left {
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+}
+.hud-bottom-right {
+  bottom: max(16px, env(safe-area-inset-bottom));
+  right: max(16px, env(safe-area-inset-right));
+}
+
+/* Tuval ve kontroller: cift dokunus zoom, secim ve uzun basma menusu olmasin */
+#mars-map-canvas,
+#starfield-canvas {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+button,
+a,
+select,
+.icon-square-btn,
+.zoom-btn {
+  touch-action: manipulation;
+}
+
+/* Dokunmatik cihazlar: hover'a bagli kalmadan, daha buyuk dokunma hedefleri */
+@media (pointer: coarse) {
+  .icon-square-btn,
+  .zoom-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .settings-dropdown,
+  .sat-panel,
+  .inspector-body,
+  [class*="dropdown"],
+  [class*="panel"] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* iOS Safari: 16px'ten kucuk input odaklaninca sayfayi zoom'lar */
+@media (max-width: 720px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  .hud-top-left {
+    top: max(10px, env(safe-area-inset-top));
+  }
+  /* Rota butonu arama seridinin ALTINDA kalmali (inspector.css: top 58px) */
+  .hud-top-right {
+    top: calc(58px + env(safe-area-inset-top));
+  }
+  .hud-top-left { left: max(10px, env(safe-area-inset-left)); }
+  .hud-top-right { right: max(10px, env(safe-area-inset-right)); }
+  .hud-bottom-left {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+  }
+  .hud-bottom-right {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    right: max(10px, env(safe-area-inset-right));
+  }
+}
+
+/* Yatay (landscape) telefon: dikey alan az, paneller ekrana sigsin */
+@media (max-height: 480px) and (orientation: landscape) {
+  .settings-dropdown,
+  .sat-panel,
+  [class*="dropdown"] {
+    max-height: calc(100dvh - 70px) !important;
+  }
+  .app-toast {
+    top: 8px;
+  }
+}
+
+/* Hareket azaltma tercihi */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
