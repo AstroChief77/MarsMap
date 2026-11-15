@@ -5,13 +5,13 @@
 
 .hud-top-right {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 16px;
+  right: 16px;
   z-index: 28;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0;
+  gap: 8px;
   max-width: 320px;
 }
 
@@ -19,20 +19,17 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 44px;
-  padding: 0 14px;
+  padding: 7px 12px;
   background: var(--bg-white);
-  backdrop-filter: none;
+  backdrop-filter: var(--glass-blur);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
-  border-top: none;
-  border-right: none;
-  border-radius: 0;
+  border-radius: var(--r-sm);
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: none;
+  box-shadow: var(--shadow-btn);
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -53,18 +50,16 @@
 
 .inspector-card {
   width: 286px;
-  max-width: 100vw;
-  max-height: calc(100vh - 120px);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
-  margin-top: -1px;
   background: var(--bg-white);
   color: var(--ink-black);
   border: 1px solid var(--line-light);
-  border-right: none;
   border-top: 2px solid var(--mars-red);
-  border-radius: 0;
-  box-shadow: none;
-  padding: 10px 12px;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+  padding: 11px 12px;
   font-variant-numeric: tabular-nums;
   display: none;
   flex-direction: column;
