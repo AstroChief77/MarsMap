@@ -81,7 +81,7 @@
       if (energyKwh === null) missingKeys.push("energy");
       if (speedKmH === null) missingKeys.push("speed");
 
-      const refO2Cap = Math.max(420, Number(params.oxygenTankCapacityL || 420), o2L || 0);
+      const refO2Cap = o2L !== null ? o2L : Math.max(1, Number(params.oxygenTankCapacityL || 0));
       const refEnergyCap = Math.max(75, Number(params.energyTankCapacityKwh || 75), energyKwh || 0);
       const startO2Pct = o2L !== null ? Number(((o2L / refO2Cap) * 100).toFixed(1)) : 0;
       const startEnergyPct = energyKwh !== null ? Number(((energyKwh / refEnergyCap) * 100).toFixed(1)) : 0;
