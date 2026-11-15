@@ -65,8 +65,6 @@ AstroChief
 -Yazılar beyaz olmak zorundadır.
 
 -Şu an var olan arka plan rengi değiştirilemez.
-
-
 # Roller
 Atahan: Kaptan,Başkan,Lider,Diktatör
 
