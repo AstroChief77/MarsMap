@@ -46,7 +46,7 @@
             <div class="modal-head">
               <div>
                 <h2>ASTROCHIEF // NASA SPACE APPS 2026</h2>
-                <div style="font-size:12px;color:var(--mars-red);font-weight:800;">${t("modalSubtitle")}</div>
+                <div style="font-size:12px;color:var(--mars-red-ink);font-weight:800;">${t("modalSubtitle")}</div>
               </div>
               <button class="sat-pop-close" id="btn-close-mission-modal" title="${t("close")}">✕</button>
             </div>
